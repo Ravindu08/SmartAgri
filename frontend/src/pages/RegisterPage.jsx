@@ -1,10 +1,20 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { loginUser, saveAuthSession } from '../services/api';
+import { registerUser, saveAuthSession } from '../services/api';
 
-export default function LoginPage() {
+const REGISTERABLE_ROLES = [
+  { value: 'Trader', label: 'Trader' },
+  { value: 'Land Owner', label: 'Land Owner' },
+];
+
+export default function RegisterPage() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({
+    full_name: '',
+    email: '',
+    password: '',
+    role: 'Trader',
+  });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -19,7 +29,7 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await loginUser(formData);
+      const response = await registerUser(formData);
       saveAuthSession(response);
       navigate(response.redirect_to, { replace: true });
     } catch (requestError) {
@@ -30,21 +40,30 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="auth-page">
+    <main className="auth-page auth-page--register">
       <div className="auth-panel">
         <div className="auth-panel__copy">
-          <p className="section__label">Login</p>
-          <h1>Welcome back to SmartAgri</h1>
+          <p className="section__label">Register</p>
+          <h1>Create a SmartAgri account</h1>
           <p>
-            Access your dashboard, marketplace tools, and account area with role-aware routing.
-          </p>
-          <p className="auth-note">
-            Traders and Land Owners can register. Admin accounts are predefined. Visitors can
-            browse the landing page and marketplace.
+            Only Traders and Land Owners can self-register. Visitors can browse public pages, and
+            Admin credentials are predefined.
           </p>
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
+          <label>
+            Full name
+            <input
+              type="text"
+              name="full_name"
+              value={formData.full_name}
+              onChange={handleChange}
+              placeholder="Your full name"
+              required
+            />
+          </label>
+
           <label>
             Email
             <input
@@ -64,19 +83,31 @@ export default function LoginPage() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Your password"
+              placeholder="At least 8 characters"
+              minLength={8}
               required
             />
+          </label>
+
+          <label>
+            Register as
+            <select name="role" value={formData.role} onChange={handleChange}>
+              {REGISTERABLE_ROLES.map((role) => (
+                <option key={role.value} value={role.value}>
+                  {role.label}
+                </option>
+              ))}
+            </select>
           </label>
 
           {error ? <div className="auth-error">{error}</div> : null}
 
           <button className="button button--primary button--full" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Signing in...' : 'Login'}
+            {isSubmitting ? 'Creating account...' : 'Create account'}
           </button>
 
           <div className="auth-links">
-            <Link to="/register">Create account</Link>
+            <Link to="/login">Already have an account?</Link>
             <Link to="/">Back to home</Link>
           </div>
         </form>

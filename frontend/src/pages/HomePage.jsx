@@ -24,7 +24,7 @@ const features = [
   },
 ];
 
-export default function LandingPage() {
+export default function HomePage() {
   const [connectionState, setConnectionState] = useState('checking');
 
   useEffect(() => {
@@ -64,12 +64,15 @@ export default function LandingPage() {
             {connectionState === 'connected'
               ? 'Connected to FastAPI'
               : connectionState === 'offline'
-                ? 'Backend offline'
-                : 'Checking connection...'}
+              ? 'Backend offline'
+              : 'Checking connection...'}
           </div>
           <div className="hero__actions">
             <Link className="button button--primary" to="/login">
               Get Started
+            </Link>
+            <Link className="button button--ghost" to="/marketplace">
+              Visit Marketplace
             </Link>
             <a className="button button--ghost" href="#features">
               Explore Features

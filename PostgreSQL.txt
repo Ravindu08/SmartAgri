@@ -15,3 +15,6 @@ Alembic migration ekn thma table auto hadenne
 1.frontend create krnna gatta
 2.connected frontend and backend
 
+
+
+
