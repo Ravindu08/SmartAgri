@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Model binaries (large — store in cloud storage or DVC)
+backend/ai_models/training/models/*.pkl
+backend/ai_models/training/models/*.joblib
+
+# Model evaluation artifacts
+backend/ai_models/training/models/*.png
+backend/ai_models/training/models/*.csv
+
+# Environment variables (never commit secrets)
+backend/.env
+frontend/.env.local
+frontend/.env
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Frontend build artifacts
+frontend/node_modules/
+frontend/dist/

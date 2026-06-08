@@ -1,0 +1,721 @@
+import { useState, useEffect, useRef } from "react";
+
+import "../styles/CropRecommendation.css";
+import { T, DISTRICT_LABELS, ZONE_LABELS, IRR_LABELS, SEA_LABELS, SEA_DESC } from "../data/translations";
+import { DISTRICT_TO_ZONES }                                         from "../data/districtZones";
+import { SOIL_TYPES, CROP_EMOJI, SOIL_GUIDE_ROWS,
+         getSoilLabel, getCropLabel, getSuitability }                from "../data/cropData";
+
+import SuitBar        from "../components/SuitBar";
+import XAIFeatureCard from "../components/XAIFeatureCard";
+import CalendarCard   from "../components/CalendarCard";
+import CompareCard    from "../components/CompareCard";
+import HistoryPanel, { saveToHistory, loadHistory, clearHistory }
+                      from "../components/HistoryPanel";
+
+// Predict/weather endpoints live on the ML service (port 8000).
+// Use an empty base so Vite's dev-server proxy forwards /predict, /weather → port 8000.
+const API_BASE = "";
+
+// ── Mock fallback (used only when backend is unreachable) ─────────────────────
+const MOCK_CROPS = ["Tomato","Chilli","Capsicum","Cabbage","Carrot","Maize","Okra","Soybean","Mung Bean","Cowpea"];
+const MOCK_CI    = { crop_duration_min:75,crop_duration_max:100,water_required_min:400,water_required_max:600,rainfall_min:450,rainfall_max:1800,ph_min:5.0,ph_max:7.5,n_min:80,n_max:170,p_min:53,p_max:120,k_min:60,k_max:140,temp_min:20,temp_max:30.5,humidity_min:52,humidity_max:88 };
+
+function mockPredict(soilType, season, irrigation, inputs = {}) {
+  const idx  = ((soilType||"").length + (season||"").length + (irrigation||"").length) % MOCK_CROPS.length;
+  const crop = MOCK_CROPS[idx];
+  const a1   = MOCK_CROPS[(idx + 1) % MOCK_CROPS.length];
+  const a2   = MOCK_CROPS[(idx + 2) % MOCK_CROPS.length];
+  const conf = 0.72 + Math.random() * 0.15;
+  return {
+    recommended_crop: crop,
+    confidence: conf,
+    low_confidence: conf < 0.6,
+    top_3: [
+      { crop, confidence: conf, crop_info: MOCK_CI },
+      { crop: a1, confidence: 0.38 + Math.random() * 0.2, crop_info: MOCK_CI },
+      { crop: a2, confidence: 0.14 + Math.random() * 0.15, crop_info: MOCK_CI },
+    ],
+    explanations: [`Soil: ${soilType}`, `Zone matched`, `Water: ${irrigation}`, `Season: ${season}`],
+    xai_features: [
+      { feature:"N",        label:"Nitrogen (N)",   label_si:"නයිට්‍රජන් (N)",  label_ta:"நைட்ரஜன் (N)",  score:0.18, direction:"positive", value:parseFloat(inputs.N)||100,  ideal_min:80,  ideal_max:170 },
+      { feature:"pH",       label:"Soil pH",        label_si:"පාංශු pH",         label_ta:"மண் pH",         score:0.15, direction:"positive", value:parseFloat(inputs.ph)||6.3, ideal_min:5.0, ideal_max:7.5 },
+      { feature:"Rainfall", label:"Rainfall",       label_si:"වර්ෂාපතනය",        label_ta:"மழைவீழ்ச்சி",    score:0.14, direction:"positive", value:parseFloat(inputs.rain)||1051, ideal_min:450, ideal_max:1800 },
+      { feature:"Temperature",label:"Temperature",  label_si:"උෂ්ණත්වය",         label_ta:"வெப்பநிலை",      score:0.12, direction:"positive", value:parseFloat(inputs.temp)||27,  ideal_min:20,  ideal_max:30.5 },
+      { feature:"NPK_Sum",  label:"Total nutrients",label_si:"මුළු පෝෂක",        label_ta:"மொத்த ஊட்டச்சத்து",score:0.10,direction:"neutral",  value:null, ideal_min:null, ideal_max:null },
+      { feature:"Humidity", label:"Humidity",       label_si:"ආර්ද්‍රතාවය",      label_ta:"ஈரப்பதம்",       score:0.09, direction:"positive", value:parseFloat(inputs.hum)||72,  ideal_min:52,  ideal_max:88  },
+    ],
+    xai_is_global: false,
+    xai_summary: {
+      en: `${crop} was recommended because your Nitrogen (${inputs.N||100} kg/ha) and Soil pH (${inputs.ph||6.3}) are within the ideal range for this crop.`,
+      si: `${getCropLabel(crop,"si")} නිර්දේශ කරන ලද්දේ ඔබේ නයිට්‍රජන් (${inputs.N||100} kg/ha) සහ pH (${inputs.ph||6.3}) සුදුසු පරාසය තුළ ඇති බැවිනි.`,
+      ta: `${getCropLabel(crop,"ta")} பரிந்துரைக்கப்பட்டது ஏனெனில் நைட்ரஜன் (${inputs.N||100} kg/ha) மற்றும் pH (${inputs.ph||6.3}) சரியான வரம்பில் உள்ளது.`,
+    },
+    warnings: [],
+    planting_calendar: season==="Maha"?{plant_start:10,plant_end:1,harvest_start:3,harvest_end:5}
+                      :season==="Yala"?{plant_start:4,plant_end:5,harvest_start:8,harvest_end:9}
+                      :{plant_start:1,plant_end:12,harvest_start:1,harvest_end:12},
+    crop_info: MOCK_CI,
+  };
+}
+
+// ── Soil Guide Modal ──────────────────────────────────────────────────────────
+function SoilGuideModal({ lang, t, onClose }) {
+  return (
+    <div className="soil-overlay" onClick={onClose}>
+      <div className="soil-modal" onClick={e => e.stopPropagation()}>
+        <div className="soil-modal-hdr">
+          <div className="soil-modal-title">🪨 {t.soilGuideTitle}</div>
+          <button className="soil-modal-close" onClick={onClose}>{t.soilGuideClose}</button>
+        </div>
+        <p className="soil-modal-intro">{t.soilGuideIntro}</p>
+        <table className="soil-guide-table">
+          <thead>
+            <tr>{t.soilGuideCols.map(h => <th key={h}>{h}</th>)}</tr>
+          </thead>
+          <tbody>
+            {SOIL_GUIDE_ROWS.map(row => (
+              <tr key={row.type}>
+                <td><span className="soil-type-name">{row.type}</span></td>
+                <td>{row.colour}</td>
+                <td>{row.texture}</td>
+                <td>{row.drainage}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+export default function CropRecommendation({ lang, setLang, setPage, weather, setWeather }) {
+  const [mode,       setMode]       = useState("simple");
+  const [loading,    setLoading]    = useState(false);
+  const [result,     setResult]     = useState(null);
+  const [error,      setError]      = useState(null);
+  const [isMock,     setIsMock]     = useState(false);
+  const [showGuide,  setShowGuide]  = useState(false);
+  const [history,    setHistory]    = useState(() => loadHistory());
+  const resRef = useRef(null);
+
+  const t   = T[lang];
+  const dl  = DISTRICT_LABELS[lang];
+  const zl  = ZONE_LABELS[lang];
+  const il  = IRR_LABELS[lang];
+  const sl  = SEA_LABELS[lang];
+  const zLabel = z => zl[z] || z;
+
+  // ── Persisted form state (sessionStorage) ──
+  const ss = typeof sessionStorage !== "undefined" ? sessionStorage : null;
+  const ssGet = (k, d = "") => { try { return ss?.getItem(k) || d; } catch { return d; } };
+  const ssSet = (k, v)      => { try { ss?.setItem(k, v); } catch {} };
+
+  const [district,   setDistrictRaw]   = useState(() => ssGet("sa_district"));
+  const [avZones,    setAvZones]       = useState([]);
+  const [agroZone,   setAgroZoneRaw]   = useState(() => ssGet("sa_zone"));
+  const [soilType,   setSoilTypeRaw]   = useState(() => ssGet("sa_soil"));
+  const [irrigation, setIrrigationRaw] = useState(() => ssGet("sa_irr"));
+  const [season,     setSeasonRaw]     = useState(() => ssGet("sa_season"));
+  const [N,   setNRaw]    = useState(() => ssGet("sa_N"));
+  const [P,   setPRaw]    = useState(() => ssGet("sa_P"));
+  const [K,   setKRaw]    = useState(() => ssGet("sa_K"));
+  const [temp,setTempRaw] = useState(() => ssGet("sa_temp"));
+  const [rain,setRainRaw] = useState(() => ssGet("sa_rain"));
+  const [ph,  setPhRaw]   = useState(() => ssGet("sa_ph"));
+  const [hum, setHumRaw]  = useState(() => ssGet("sa_hum"));
+
+  const mkSet = (raw, key) => v => { raw(v); ssSet(key, v); };
+  const setDistrict   = mkSet(setDistrictRaw,   "sa_district");
+  const setAgroZone   = mkSet(setAgroZoneRaw,   "sa_zone");
+  const setSoilType   = mkSet(setSoilTypeRaw,   "sa_soil");
+  const setIrrigation = mkSet(setIrrigationRaw, "sa_irr");
+  const setSeason     = mkSet(setSeasonRaw,     "sa_season");
+  const setN   = mkSet(setNRaw,    "sa_N");
+  const setP   = mkSet(setPRaw,    "sa_P");
+  const setK   = mkSet(setKRaw,    "sa_K");
+  const setTemp= mkSet(setTempRaw, "sa_temp");
+  const setRain= mkSet(setRainRaw, "sa_rain");
+  const setPh  = mkSet(setPhRaw,   "sa_ph");
+  const setHum = mkSet(setHumRaw,  "sa_hum");
+
+  // Update available zones when district changes
+  useEffect(() => {
+    if (!district) { setAvZones([]); setAgroZone(""); return; }
+    const z = DISTRICT_TO_ZONES[district] || [];
+    setAvZones(z);
+    setAgroZone(z.length === 1 ? z[0] : "");
+  }, [district]);
+
+  // Fetch seasonal weather when district or season changes.
+  // Passes the selected season so the archive window matches what the model was trained on.
+  const [wxLoading, setWxLoading] = useState(false);
+  useEffect(() => {
+    if (!district) { setWxFilled(false); return; }
+    setWxLoading(true);
+    const url = season
+      ? `${API_BASE}/weather?district=${encodeURIComponent(district)}&season=${encodeURIComponent(season)}`
+      : `${API_BASE}/weather?district=${encodeURIComponent(district)}`;
+    fetch(url)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(data => setWeather?.(data))
+      .catch(() => {})
+      .finally(() => setWxLoading(false));
+  }, [district, season]);
+
+  // Auto-fill climate fields from weather when district matches
+  const [wxFilled, setWxFilled] = useState(false);
+  useEffect(() => {
+    if (!weather || !district) { setWxFilled(false); return; }
+    if (weather.district !== district) { setWxFilled(false); return; }
+    const c = weather.current;
+    // Use season-to-date averages from archive — matches what the model trained on.
+    // Falls back to current live reading if archive values aren't available yet.
+    setTemp(String(
+      weather.season_avg_temp != null ? weather.season_avg_temp : c.temperature.toFixed(1)
+    ));
+    setHum(String(
+      weather.season_avg_humidity != null ? weather.season_avg_humidity : c.humidity
+    ));
+    // Rainfall: use actual season-to-date accumulation from Open-Meteo archive.
+    // Falls back to climatological seasonal lookup if archive not available.
+    const actualMm = weather.season_actual_mm;
+    const sr       = weather.seasonal_rainfall || {};
+    const seasonKey = weather.season_name || season || "Year-round";
+    const fallback  = sr[seasonKey] ?? sr["Year-round"] ?? null;
+    const rainfallMm = (actualMm != null && actualMm > 0) ? actualMm : fallback;
+    if (rainfallMm !== null) setRain(String(rainfallMm));
+    setWxFilled(true);
+  }, [district, weather, season]);
+
+  const baseOk   = district && agroZone && soilType && irrigation && season;
+  const fullOk   = baseOk && N && P && K && temp && rain && ph && hum;
+  // Simple mode is always submittable once base fields are filled; weather fields are optional bonuses
+  const canSubmit = mode === "simple" ? baseOk : fullOk;
+
+  // Suitability classes for numeric inputs
+  const ci = result?.crop_info;
+  const suit = ci ? {
+    N: getSuitability(N, ci.n_min, ci.n_max),
+    P: getSuitability(P, ci.p_min, ci.p_max),
+    K: getSuitability(K, ci.k_min, ci.k_max),
+    temp: getSuitability(temp, ci.temp_min, ci.temp_max),
+    rain: getSuitability(rain, ci.rainfall_min, ci.rainfall_max),
+    ph:   getSuitability(ph,   ci.ph_min,       ci.ph_max),
+    hum:  getSuitability(hum,  ci.humidity_min, ci.humidity_max),
+  } : {};
+  const sClass = s => s === "ok" ? "ok" : s === "below" ? "warn" : s === "above" ? "err" : "";
+
+  const resetForm = () => {
+    setDistrictRaw(""); setAgroZoneRaw(""); setSoilTypeRaw("");
+    setIrrigationRaw(""); setSeasonRaw("");
+    setNRaw(""); setPRaw(""); setKRaw(""); setTempRaw("");
+    setRainRaw(""); setPhRaw(""); setHumRaw("");
+    setResult(null); setError(null); setIsMock(false);
+    ["sa_district","sa_zone","sa_soil","sa_irr","sa_season",
+     "sa_N","sa_P","sa_K","sa_temp","sa_rain","sa_ph","sa_hum"]
+      .forEach(k => { try { ss?.removeItem(k); } catch {} });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const submit = async () => {
+    setLoading(true); setError(null); setResult(null); setIsMock(false);
+    try {
+      const endpoint = mode === "simple" ? "/predict/simple" : "/predict/full";
+      const body = mode === "simple"
+        ? {
+            Soil_Type: soilType, Agro_Zone: agroZone, Irrigation: irrigation,
+            Season: season, District: district || undefined,
+            // Include weather values when available — boosts accuracy from ~47% to ~67%
+            ...(temp ? { Temperature: +temp } : {}),
+            ...(rain ? { Rainfall:    +rain } : {}),
+            ...(hum  ? { Humidity:    +hum  } : {}),
+          }
+        : { N: +N, P: +P, K: +K, Temperature: +temp, Rainfall: +rain, pH: +ph, Humidity: +hum,
+            Soil_Type: soilType, Agro_Zone: agroZone, Irrigation: irrigation, Season: season };
+
+      const res = await fetch(`${API_BASE}${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.detail || `Error ${res.status}`);
+      }
+
+      const json = await res.json();
+      setResult(json.data);
+
+      // Persist to history
+      saveToHistory({
+        crop:       json.data.recommended_crop,
+        confidence: json.data.confidence,
+        mode,
+        zone:   agroZone,
+        season,
+        soil:   soilType,
+      });
+      setHistory(loadHistory());
+
+    } catch (e) {
+      // Backend unreachable — use mock BUT show a prominent warning
+      console.warn("Backend unreachable, using preview mock:", e.message);
+      await new Promise(r => setTimeout(r, 1300));
+      setResult(mockPredict(soilType, season, irrigation, { N, P, K, temp, rain, ph, hum }));
+      setIsMock(true);
+    }
+
+    setLoading(false);
+    setTimeout(() => resRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+  };
+
+  const pct = result ? Math.round(result.confidence * 100) : 0;
+  const maxScore = result?.xai_features?.length > 0 ? result.xai_features[0].score : 1;
+
+  const numFields = [
+    { key:"N",    label:t.nitrogen,    val:N,    set:setN,    unit:"kg/ha", ph:"100",  min:0,   max:300  },
+    { key:"P",    label:t.phosphorus,  val:P,    set:setP,    unit:"kg/ha", ph:"60",   min:0,   max:200  },
+    { key:"K",    label:t.potassium,   val:K,    set:setK,    unit:"kg/ha", ph:"91",   min:0,   max:300  },
+    { key:"temp", label:t.temperature, val:temp, set:setTemp, unit:"°C",    ph:"27",   min:5,   max:45   },
+    { key:"rain", label:t.rainfall,    val:rain, set:setRain, unit:"mm",    ph:"1051", min:0,   max:5000 },
+    { key:"ph",   label:t.soilPh,      val:ph,   set:setPh,   unit:"pH",    ph:"6.3",  min:3,   max:10,  step:"0.1" },
+    { key:"hum",  label:t.humidity,    val:hum,  set:setHum,  unit:"%",     ph:"72",   min:0,   max:100  },
+  ];
+
+  return (
+    <div className="page-wrapper">
+      <div className="app">
+
+        {/* ── Hero banner ─────────────────────────────────────────────────── */}
+        <div className="hero">
+          <div className="hero-inner">
+            <div className="hero-badge">🌿 AI-Powered Agriculture</div>
+            <h1 className="hero-title">
+              {lang === "si" ? <>බුද්ධිමත් <span>ගොවිතැන</span></> :
+               lang === "ta" ? <>நுண்ணிய <span>விவசாயம்</span></> :
+               <>Grow Smarter with <span>SmartAgri</span></>}
+            </h1>
+            <p className="hero-sub">
+              {lang === "si"
+                ? "ශ්‍රී ලංකාවේ ගොවීන් සඳහා AI-ශක්තිය ගත් බෝග නිර්දේශ, දේශගුණය සහ වෙළඳපොල මිල ගණන්."
+                : lang === "ta"
+                ? "இலங்கையின் விவசாயிகளுக்கு AI-ஆதரவு பயிர் பரிந்துரை, காலநிலை மற்றும் சந்தை விலைகள்."
+                : "AI-powered crop recommendations tailored for Sri Lanka's agro-climatic zones, soil types, and seasonal patterns."}
+            </p>
+            <div className="hero-stats">
+              <div className="hero-stat">
+                <div className="hero-stat-num">41</div>
+                <div className="hero-stat-lbl">{lang === "si" ? "බෝග" : lang === "ta" ? "பயிர்கள்" : "Crops"}</div>
+              </div>
+              <div className="hero-divider" />
+              <div className="hero-stat">
+                <div className="hero-stat-num">25</div>
+                <div className="hero-stat-lbl">{lang === "si" ? "දිස්ත්‍රික්ක" : lang === "ta" ? "மாவட்டங்கள்" : "Districts"}</div>
+              </div>
+              <div className="hero-divider" />
+              <div className="hero-stat">
+                <div className="hero-stat-num">AI</div>
+                <div className="hero-stat-lbl">{lang === "si" ? "ශ්‍රේණිගත" : lang === "ta" ? "இயக்கப்படுகிறது" : "Powered"}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="hero-wave" />
+
+        {/* ── History panel (above form) ──────────────────────────────────── */}
+        <HistoryPanel
+          history={history}
+          onClear={() => { clearHistory(); setHistory([]); }}
+          lang={lang}
+          t={t}
+        />
+
+        {/* ── Mode toggle ─────────────────────────────────────────────────── */}
+        <div className={`mode-bar${history.length > 0 ? " mode-bar--spaced" : ""}`}>
+          <div className="mtog">
+            <button className={`mb${mode === "simple" ? " on" : ""}`}
+              onClick={() => { setMode("simple"); setResult(null); setError(null); setIsMock(false); }}>
+              {t.modeSimple}
+            </button>
+            <button className={`mb${mode === "full" ? " on" : ""}`}
+              onClick={() => { setMode("full"); setResult(null); setError(null); setIsMock(false); }}>
+              {t.modeFull}
+            </button>
+          </div>
+        </div>
+
+        {/* ── Form card ───────────────────────────────────────────────────── */}
+        <div className="card">
+          <div className="ci">
+            <div className="ch">
+              <div className={`cico ${mode === "simple" ? "cig" : "cia"}`}>
+                {mode === "simple" ? "🌱" : "🔬"}
+              </div>
+              <div>
+                <div className="ct">{mode === "simple" ? t.titleSimple : t.titleFull}</div>
+                <div className="cs">{mode === "simple" ? t.subSimple : t.subFull}</div>
+              </div>
+            </div>
+
+            <div className="cb">
+              {/* Location */}
+              <div className="sec">{t.secLocation}</div>
+              <div className="g2">
+                <div className="fl">
+                  <label className="flb">{t.district}</label>
+                  <select className="fs" value={district} onChange={e => setDistrict(e.target.value)} aria-label={t.district}>
+                    <option value="">{t.selectDistrict}</option>
+                    {Object.keys(DISTRICT_TO_ZONES).map(d => (
+                      <option key={d} value={d}>{dl[d] || d}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="fl">
+                  <label className="flb">{t.agroZone}</label>
+                  {avZones.length === 1
+                    ? <div className="zone-auto">✓ {zLabel(avZones[0])}</div>
+                    : avZones.length > 1
+                      ? <>
+                          <select className="fs" value={agroZone} onChange={e => setAgroZone(e.target.value)} aria-label={t.agroZone}>
+                            <option value="">{t.selectZone} {dl[district] || district}…</option>
+                            {avZones.map(z => <option key={z} value={z}>{zLabel(z)}</option>)}
+                          </select>
+                          <span className="fhint">{dl[district] || district} {t.spansZones} {avZones.length} {t.zonesNote}</span>
+                        </>
+                      : <select className="fs" disabled aria-disabled="true"><option>{t.selectDistrictFirst}</option></select>
+                  }
+                </div>
+              </div>
+
+              {/* Farm conditions */}
+              <div className="fsec">
+                <div className="sec">{t.secFarm}</div>
+                <div className="g3">
+                  {/* Soil type with guide link */}
+                  <div className="fl">
+                    <label className="flb">
+                      {t.soilType}
+                      <button className="soil-guide-btn" type="button" onClick={() => setShowGuide(true)}>
+                        ℹ {t.soilGuideBtn}
+                      </button>
+                    </label>
+                    <select className="fs" value={soilType} onChange={e => setSoilType(e.target.value)} aria-label={t.soilType}>
+                      <option value="">{t.selectSoil}</option>
+                      {SOIL_TYPES.map(s => <option key={s} value={s}>{getSoilLabel(s, lang)}</option>)}
+                    </select>
+                  </div>
+                  <div className="fl">
+                    <label className="flb">{t.irrigation}</label>
+                    <select className="fs" value={irrigation} onChange={e => setIrrigation(e.target.value)} aria-label={t.irrigation}>
+                      <option value="">{t.select}</option>
+                      {["Rainfed","Irrigated","Supplemental"].map(i => (
+                        <option key={i} value={i}>{il[i]}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="fl">
+                    <label className="flb">{t.season}</label>
+                    <select className="fs" value={season} onChange={e => setSeason(e.target.value)} aria-label={t.season}>
+                      <option value="">{t.select}</option>
+                      {["Maha","Yala","Year-round"].map(s => (
+                        <option key={s} value={s}>{sl[s]}</option>
+                      ))}
+                    </select>
+                    {season && SEA_DESC[lang]?.[season] && (
+                      <div className="fhint">{SEA_DESC[lang][season]}</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Weather auto-fill section (simple mode) */}
+              {mode === "simple" && (
+                <div className="fsec">
+                  <div className="sec">{t.secWeatherSimple}</div>
+                  {wxFilled ? (
+                    <div className="wx-autofill-badge">
+                      🌦️ {t.wxAutoFillBadge} <strong>{district}</strong>. {t.wxAutoFillAdjust}
+                    </div>
+                  ) : wxLoading ? (
+                    <div className="wx-autofill-hint">
+                      ⏳ {t.wxFetchingHint || "Fetching live weather for"} <strong>{district}</strong>…
+                    </div>
+                  ) : (
+                    <div className="wx-autofill-hint">
+                      💡 {district ? (t.wxSelectDistrictDone || "Weather data will appear here automatically.") : (t.wxSelectDistrictHint || "Select your district above to auto-fill live weather data.")}
+                    </div>
+                  )}
+                  <div className="g3">
+                    {[
+                      { key:"temp", label:t.temperature, val:temp, set:setTemp, unit:"°C",  ph:"27",   min:5,   max:45  },
+                      { key:"rain", label:t.rainfall,    val:rain, set:setRain, unit:"mm",  ph:"1050", min:0,   max:5000 },
+                      { key:"hum",  label:t.humidity,    val:hum,  set:setHum,  unit:"%",   ph:"72",   min:0,   max:100 },
+                    ].map(({ key, label, val, set, unit, ph: ph_, min, max }) => (
+                      <div className="fl" key={key}>
+                        <label className="flb">
+                          {label}
+                          {wxFilled && <span className="wx-live-tag">🌦 {t.wxLiveTag}</span>}
+                        </label>
+                        <div className="iw">
+                          <input
+                            className={`fi${wxFilled && val ? " wx-filled" : ""}`}
+                            type="number"
+                            step="0.1"
+                            placeholder={ph_}
+                            value={val}
+                            onChange={e => set(e.target.value)}
+                            min={min}
+                            max={max}
+                            aria-label={label}
+                          />
+                          <span className="iunit">{unit}</span>
+                        </div>
+                        <span className="fhint">{t.wxOptional} · {t.rangeHint}: {min}–{max} {unit}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Numeric inputs (full mode only) */}
+              {mode === "full" && (
+                <div className="fsec">
+                  <div className="sec">{t.secNutrients}</div>
+                  {wxFilled && (
+                    <div className="wx-autofill-badge">
+                      🌦️ {t.wxAutoFillBadge} <strong>{district}</strong>. {t.wxAutoFillAdjust}
+                    </div>
+                  )}
+                  {!wxFilled && district && mode === "full" && (
+                    <div className="wx-autofill-hint">
+                      {wxLoading
+                        ? <>⏳ {t.wxFetchingHint || "Fetching live weather for"} <strong>{district}</strong>…</>
+                        : <>💡 {t.wxSelectDistrictHint || "Select your district to auto-fill live weather data."}</>}
+                    </div>
+                  )}
+                  <div className="g3">
+                    {numFields.map(({ key, label, val, set, unit, ph: ph_, min, max, step }) => {
+                      const sc = ci ? sClass(suit[key]) : "";
+                      const sv = ci ? suit[key] : null;
+                      return (
+                        <div className="fl" key={key}>
+                          <label className="flb">{label}</label>
+                          <div className="iw">
+                            <input
+                              className={`fi${sc ? " " + sc : ""}`}
+                              type="number"
+                              step={step || "1"}
+                              placeholder={ph_}
+                              value={val}
+                              onChange={e => set(e.target.value)}
+                              min={min}
+                              max={max}
+                              aria-label={label}
+                            />
+                            <span className="iunit">{unit}</span>
+                          </div>
+                          {ci && sv === "below" && <span className="fwarn">▼ {t.belowRange}</span>}
+                          {ci && sv === "above" && <span className="ferr">▲ {t.aboveRange}</span>}
+                          {!ci && <span className="fhint">{t.rangeHint}: {min}–{max} {unit}</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <button className="btn" onClick={submit} disabled={!canSubmit || loading}>
+                {loading ? <><div className="spin" />{t.btnAnalyse}</> : t.btnSubmit}
+              </button>
+
+              {result && (
+                <button className="btn-reset" onClick={resetForm}>{t.btnReset}</button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Alerts ──────────────────────────────────────────────────────── */}
+        {error && (
+          <div className="alert-bar">
+            <div className="alert-error">⚠️ {error}</div>
+          </div>
+        )}
+
+        {/* Demo mode — shown prominently when backend was unreachable */}
+        {isMock && (
+          <div className="alert-bar">
+            <div className="alert-demo">
+              <div className="alert-demo-title">{t.demoTitle}</div>
+              <div className="alert-demo-body">{t.demoDesc}</div>
+            </div>
+          </div>
+        )}
+
+        {/* Input out-of-range warnings */}
+        {result?.warnings?.length > 0 && (
+          <div className="alert-bar">
+            <div className="alert-warn">
+              <div className="alert-warn-title">{t.warningsTitle}</div>
+              {result.warnings.map((w, i) => (
+                <div className="alert-warn-item" key={i}>
+                  • {lang === "si" ? w.message_si : lang === "ta" ? w.message_ta : w.message_en}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Result card ─────────────────────────────────────────────────── */}
+        {result && (
+          <div className="rw" ref={resRef}>
+            <div className="res">
+              <div className="res-sparkles" />
+              <div className="res-top-row">
+                <div className="rl">{t.resultLabel}</div>
+                <button className="btn-print" onClick={() => window.print()} title={t.btnPrint}>
+                  🖨 {t.btnPrint}
+                </button>
+              </div>
+
+              <div className="rc">
+                <span className="re">{CROP_EMOJI[result.recommended_crop] || "🌿"}</span>
+                {getCropLabel(result.recommended_crop, lang)}
+              </div>
+
+              <div className="rcf">
+                <span>{pct}% {t.confidence}</span>
+                <div className="ctr"><div className="cf" style={{ width: `${pct}%` }} /></div>
+              </div>
+
+              {result.low_confidence && <div className="low-conf">⚠ {t.lowConfWarn}</div>}
+
+              {result.top_3?.length > 1 && (
+                <div className="t3r">
+                  <span className="also-consider-lbl">{t.alsoConsider}</span>
+                  {result.top_3.slice(1).map((c, i) => (
+                    <div className="t3c" key={i}>
+                      {CROP_EMOJI[c.crop] || "🌿"} {getCropLabel(c.crop, lang)}
+                      <span className="cp">{Math.round(c.confidence * 100)}%</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {result.explanations?.length > 0 && (
+                <div className="eg">
+                  {result.explanations.map((e, i) => (
+                    <div className="ei" key={i}><div className="ed" /><span>{e}</span></div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── XAI card ────────────────────────────────────────────────────── */}
+        {result?.xai_features?.length > 0 && (
+          <div className="xai-card">
+            <div className="xai-inner">
+              <div className="xai-hdr">
+                <div className="xai-hdr-icon">🧠</div>
+                <div>
+                  <div className="xai-title">{t.xaiTitle}</div>
+                  {/* Correct subtitle depending on whether XAI is per-prediction or global */}
+                  <div className="xai-sub">
+                    {result.xai_is_global ? t.xaiSubtitleGlobal : t.xaiSubtitle}
+                  </div>
+                </div>
+              </div>
+              <div className="xai-body">
+                {result.xai_summary && (
+                  <div className="xai-summary-box">
+                    <div className="xai-summary-icon">💬</div>
+                    <div>
+                      <div className="xai-summary-label">{t.xaiSummaryLabel}</div>
+                      <div className="xai-summary-text">
+                        {lang==="si" ? result.xai_summary.si
+                        :lang==="ta" ? result.xai_summary.ta
+                        :              result.xai_summary.en}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div className="xai-grid">
+                  {result.xai_features.map((f, i) => (
+                    <XAIFeatureCard key={i} feat={f} maxScore={maxScore} lang={lang} t={t} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Planting calendar ───────────────────────────────────────────── */}
+        {result?.planting_calendar && (
+          <CalendarCard cal={result.planting_calendar} season={season} lang={lang} t={t} />
+        )}
+
+        {/* ── Crop info ───────────────────────────────────────────────────── */}
+        {result?.crop_info && (
+          <div className="ci-card">
+            <div className="ci-inner">
+              <div className="ci-hdr">
+                <span className="ci-emoji">{CROP_EMOJI[result.recommended_crop] || "🌿"}</span>
+                <div className="ci-title">
+                  {getCropLabel(result.recommended_crop, lang)} — {t.cropInfoTitle}
+                </div>
+              </div>
+              <div className="ci-body">
+                <div className="info-grid">
+                  {[
+                    { label:t.duration,     val:`${ci.crop_duration_min}–${ci.crop_duration_max}`, sub:t.days    },
+                    { label:t.water,        val:`${ci.water_required_min}–${ci.water_required_max}`, sub:t.mmSeason },
+                    { label:t.rainfallRange,val:`${ci.rainfall_min}–${ci.rainfall_max}`,            sub:"mm"      },
+                    { label:t.phRange,      val:`${ci.ph_min}–${ci.ph_max}`,                        sub:"pH"      },
+                    { label:t.tempRange,    val:`${ci.temp_min}–${ci.temp_max}`,                    sub:"°C"      },
+                    { label:t.humidityRange,val:`${ci.humidity_min}–${ci.humidity_max}`,            sub:"%"       },
+                    { label:t.nRange,       val:`${ci.n_min}–${ci.n_max}`,                          sub:t.kgHa    },
+                    { label:t.pRange,       val:`${ci.p_min}–${ci.p_max}`,                          sub:t.kgHa    },
+                    { label:t.kRange,       val:`${ci.k_min}–${ci.k_max}`,                          sub:t.kgHa    },
+                  ].map(({ label, val, sub }) => (
+                    <div className="ip" key={label}>
+                      <div className="ip-label">{label}</div>
+                      <div className="ip-val">{val}</div>
+                      <div className="ip-sub">{sub}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {mode === "full" && (
+                  <div className="suit-section">
+                    <div className="suit-title">{t.suitabilityTitle}</div>
+                    <div className="suit-rows">
+                      <SuitBar label={t.nitrogen}    value={N}    min={ci.n_min}        max={ci.n_max}        t={t} />
+                      <SuitBar label={t.phosphorus}  value={P}    min={ci.p_min}        max={ci.p_max}        t={t} />
+                      <SuitBar label={t.potassium}   value={K}    min={ci.k_min}        max={ci.k_max}        t={t} />
+                      <SuitBar label={t.temperature} value={temp} min={ci.temp_min}     max={ci.temp_max}     t={t} />
+                      <SuitBar label={t.rainfall}    value={rain} min={ci.rainfall_min} max={ci.rainfall_max} t={t} />
+                      <SuitBar label={t.soilPh}      value={ph}   min={ci.ph_min}       max={ci.ph_max}       t={t} />
+                      <SuitBar label={t.humidity}    value={hum}  min={ci.humidity_min} max={ci.humidity_max} t={t} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Crop comparison ─────────────────────────────────────────────── */}
+        {result?.top_3 && <CompareCard top3={result.top_3} lang={lang} t={t} />}
+
+      </div>
+
+      {/* ── Soil identification guide modal ─────────────────────────────── */}
+      {showGuide && <SoilGuideModal lang={lang} t={t} onClose={() => setShowGuide(false)} />}
+    </div>
+  );
+}
