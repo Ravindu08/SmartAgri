@@ -1,0 +1,21 @@
+# ── ML Service (port 8000) ────────────────────────────────────────────────────
+fastapi==0.115.0
+uvicorn[standard]>=0.30.0
+pydantic==2.7.0
+httpx==0.27.0
+python-dotenv>=1.0.1
+
+# ML — inference
+xgboost==3.2.0
+scikit-learn==1.5.0
+joblib==1.4.2
+numpy==1.26.4
+
+# ── Auth / Farm / Crop Service (port 8001) ────────────────────────────────────
+pydantic-settings>=2.4.0
+SQLAlchemy>=2.0.0
+psycopg2-binary>=2.9.9
+python-jose[cryptography]>=3.3.0
+passlib>=1.7.4                  # pbkdf2_sha256 scheme — bcrypt extra incompatible with Python 3.14+
+alembic>=1.13.0
+email-validator>=2.2.0
