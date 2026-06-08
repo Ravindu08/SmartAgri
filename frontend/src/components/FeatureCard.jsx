@@ -1,0 +1,11 @@
+export default function FeatureCard({ title, description, icon }) {
+  return (
+    <article className="feature-card">
+      <div className="feature-card__icon" aria-hidden="true">
+        {icon}
+      </div>
+      <h3>{title}</h3>
+      <p>{description}</p>
+    </article>
+  );
+}
