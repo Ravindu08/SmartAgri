@@ -130,7 +130,7 @@
   font-size: 17px;
   flex-shrink: 0;
   background: var(--green-light);
-  box-shadow: 0 2px 8px rgba(46,125,50,0.15);
+  box-shadow: 0 2px 8px rgba(15,90,42,0.15);
 }
 .yp-card-icon-yellow {
   background: var(--yellow-light);
@@ -226,7 +226,7 @@
 .yp-field select:focus {
   border-color: var(--green-primary);
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(46,125,50,0.12);
+  box-shadow: 0 0 0 3px rgba(15,90,42,0.14);
 }
 .yp-field input:hover:not(:focus),
 .yp-field select:hover:not(:focus) {
@@ -296,7 +296,7 @@
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.16), transparent);
   transition: left 0.5s ease;
 }
-.yp-btn-primary:hover:not(:disabled) { background: var(--green-dark); transform: translateY(-1px); box-shadow: 0 10px 28px rgba(46,125,50,0.35); }
+.yp-btn-primary:hover:not(:disabled) { background: var(--green-dark); transform: translateY(-1px); box-shadow: 0 10px 28px rgba(15,90,42,0.40); }
 .yp-btn-primary:hover::before { left: 150%; }
 .yp-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
@@ -317,11 +317,12 @@
 /* ── Result box — yield ── */
 .yp-result {
   margin-top: 22px;
-  background: var(--green-light);
-  border: 1.5px solid rgba(46,125,50,0.25);
+  background: linear-gradient(135deg, var(--green-light), var(--green-subtle));
+  border: 1.5px solid rgba(15,90,42,0.28);
   border-radius: var(--radius-md);
   padding: 22px 24px;
   animation: slideUp 0.35s ease;
+  box-shadow: var(--shadow-green);
 }
 .yp-result-main {
   display: flex;
@@ -348,7 +349,7 @@
   font-weight: 500;
 }
 .yp-breakdown {
-  border-top: 1px solid rgba(46,125,50,0.2);
+  border-top: 1px solid rgba(15,90,42,0.20);
   margin-top: 12px;
   padding-top: 12px;
 }
@@ -383,11 +384,12 @@
 /* ── Price result ── */
 .yp-price-result {
   margin-top: 22px;
-  background: var(--yellow-light);
-  border: 1.5px solid rgba(251,192,45,0.4);
+  background: linear-gradient(135deg, var(--yellow-light), #FFF9E6);
+  border: 1.5px solid rgba(251,192,45,0.50);
   border-radius: var(--radius-md);
   padding: 22px 24px;
   animation: slideUp 0.35s ease;
+  box-shadow: var(--shadow-yellow);
 }
 .yp-price-rows {
   display: grid;
@@ -459,15 +461,15 @@
 /* ── Weather advisory banner ── */
 .yp-wx-banner {
   margin-bottom: 20px;
-  background: linear-gradient(135deg, #e8f4fd, #f0f8ff);
-  border: 1.5px solid #90c8f0;
+  background: linear-gradient(135deg, var(--green-light), var(--green-subtle));
+  border: 1.5px solid rgba(15,90,42,0.22);
   border-radius: var(--radius-md);
   padding: 16px 20px;
   animation: fadeInUp 0.3s ease;
 }
 .yp-wx-applied {
   background: linear-gradient(135deg, var(--green-light), var(--green-subtle));
-  border-color: rgba(46,125,50,0.3);
+  border-color: rgba(15,90,42,0.30);
 }
 .yp-wx-banner-top {
   display: flex;
@@ -480,7 +482,7 @@
   flex: 1;
   font-size: 13.5px;
   font-weight: 700;
-  color: #1a3c5e;
+  color: var(--green-dark);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -496,7 +498,7 @@
 }
 .yp-wx-apply-btn {
   padding: 8px 18px;
-  background: linear-gradient(135deg, #1565c0, #0288d1);
+  background: var(--grad-primary);
   color: #fff;
   border: none;
   border-radius: var(--radius-sm);
@@ -510,7 +512,7 @@
 .yp-wx-apply-btn:hover { opacity: 0.88; }
 .yp-wx-rows { display: flex; flex-direction: column; gap: 8px; }
 .yp-wx-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
-.yp-wx-row-label { font-weight: 700; color: #1a3c5e; white-space: nowrap; }
+.yp-wx-row-label { font-weight: 700; color: var(--green-dark); white-space: nowrap; }
 .yp-wx-tag {
   padding: 3px 10px;
   border-radius: 99px;
@@ -518,10 +520,10 @@
   font-weight: 700;
   white-space: nowrap;
 }
-.yp-wx-tag-good    { background: var(--green-light); color: var(--green-dark); border: 1px solid rgba(46,125,50,0.3); }
+.yp-wx-tag-good    { background: var(--green-light); color: var(--green-dark); border: 1px solid rgba(15,90,42,0.30); }
 .yp-wx-tag-average { background: var(--yellow-light); color: #6d4c00; border: 1px solid rgba(251,192,45,0.4); }
 .yp-wx-tag-poor    { background: #fce4ec; color: #880e4f; border: 1px solid #f48fb1; }
-.yp-wx-tag-low     { background: var(--green-light); color: var(--green-dark); border: 1px solid rgba(46,125,50,0.3); }
+.yp-wx-tag-low     { background: var(--green-light); color: var(--green-dark); border: 1px solid rgba(15,90,42,0.30); }
 .yp-wx-tag-medium  { background: var(--yellow-light); color: #6d4c00; border: 1px solid rgba(251,192,45,0.4); }
 .yp-wx-tag-high    { background: #fce4ec; color: #880e4f; border: 1px solid #f48fb1; }
 .yp-wx-reason { color: var(--muted); font-size: 12px; }
@@ -556,7 +558,7 @@
   gap: 6px;
   padding: 5px 12px;
   background: var(--green-light);
-  border: 1.5px solid rgba(46,125,50,0.25);
+  border: 1.5px solid rgba(15,90,42,0.25);
   border-radius: var(--radius-sm);
   font-size: 13px;
   color: var(--green-primary);
@@ -575,11 +577,11 @@
 
 /* Weather advisory banner */
 [data-theme="dark"] .yp-wx-banner {
-  background: rgba(59,130,246,0.08);
-  border-color: rgba(59,130,246,0.22);
+  background: rgba(15,90,42,0.12);
+  border-color: rgba(124,197,118,0.22);
 }
-[data-theme="dark"] .yp-wx-title     { color: #93c5fd; }
-[data-theme="dark"] .yp-wx-row-label { color: #93c5fd; }
+[data-theme="dark"] .yp-wx-title     { color: var(--accent); }
+[data-theme="dark"] .yp-wx-row-label { color: var(--accent); }
 
 /* Weather quality tags — poor/high (pink) */
 [data-theme="dark"] .yp-wx-tag-poor,
