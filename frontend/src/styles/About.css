@@ -315,3 +315,13 @@
   font-size: 11px;
   color: var(--muted);
 }
+
+/* ══════════════════════════════════════════════════════
+   DARK MODE OVERRIDES
+══════════════════════════════════════════════════════ */
+[data-theme="dark"] .about-ps-card--problem {
+  background: rgba(251,192,45,0.08);
+  border-color: rgba(251,192,45,0.22);
+}
+[data-theme="dark"] .about-ps-card--problem .about-ps-title { color: #fcd34d; }
+[data-theme="dark"] .about-ps-card--problem .about-ps-text  { color: #fde68a; }

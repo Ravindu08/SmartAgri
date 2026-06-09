@@ -11,44 +11,39 @@ export default function DashboardPage({ title, role, summary, highlights, primar
     navigate('/', { replace: true });
   };
 
+  const roleIcon = role === 'Admin' ? '🛡️' : role === 'Land Owner' ? '🌾' : '📦';
+
   return (
     <main className="dashboard-page">
-      <section className="dashboard-card">
-        <div className="dashboard-card__topbar">
-          <div className="dashboard-card__identity">
-            <p className="section__label">{role}</p>
-            <div className="dashboard-card__user">{userName}</div>
+      <section className="dash-card">
+        <div className="dash-card__topbar">
+          <div className="dash-card__identity">
+            <div className="dash-card__avatar">{userName.charAt(0).toUpperCase()}</div>
+            <div>
+              <div className="dash-card__role">{roleIcon} {role}</div>
+              <div className="dash-card__user">{userName}</div>
+            </div>
           </div>
-
-          <div className="dashboard-card__actions">
-            <Link className="button button--ghost" to="/">
-              Home
-            </Link>
-            <button className="button button--ghost dashboard-card__logout" type="button" onClick={handleLogout}>
-              Logout
-            </button>
+          <div className="dash-card__actions">
+            <Link className="button button--outline" to="/">🏠 Home</Link>
+            <button className="button button--danger" type="button" onClick={handleLogout}>Logout</button>
           </div>
         </div>
 
-        <div className="dashboard-card__header">
-          <div>
-            <h1>{title}</h1>
-            <p>{summary}</p>
-          </div>
+        <div className="dash-card__header">
+          <h1>{title}</h1>
+          <p>{summary}</p>
         </div>
 
-        <div className="dashboard-actions">
-          <Link className="button button--primary" to={primaryLink}>
-            {primaryLabel}
-          </Link>
-          <Link className="button button--ghost" to="/marketplace">
-            Visit marketplace
-          </Link>
+        <div className="dash-primary-actions">
+          <Link className="button button--primary" to={primaryLink}>{primaryLabel} →</Link>
+          <Link className="button button--outline" to="/marketplace">🏪 Visit Marketplace</Link>
         </div>
 
-        <div className="dashboard-highlights">
-          {highlights.map((item) => (
-            <article key={item.title} className="dashboard-highlight">
+        <div className="dash-highlights">
+          {highlights.map(item => (
+            <article key={item.title} className="dash-highlight">
+              <div className="dash-highlight__icon">✅</div>
               <h2>{item.title}</h2>
               <p>{item.description}</p>
             </article>

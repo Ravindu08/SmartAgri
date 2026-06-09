@@ -1,5 +1,9 @@
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,8 +29,8 @@ async def lifespan(app: FastAPI):
 # ── CORS origins from env (same pattern as ML service) ───────────────────────
 _cors_origins_raw = os.getenv(
     "SMARTAGRI_CORS_ORIGINS",
-    "http://localhost:4173,http://localhost:5173,http://localhost:5174,"
-    "http://127.0.0.1:4173,http://127.0.0.1:5173,http://127.0.0.1:5174",
+    "http://localhost:4173,http://localhost:5173,http://localhost:5174,http://localhost:5175,"
+    "http://127.0.0.1:4173,http://127.0.0.1:5173,http://127.0.0.1:5174,http://127.0.0.1:5175",
 )
 _cors_origins = [o.strip() for o in _cors_origins_raw.split(",") if o.strip()]
 

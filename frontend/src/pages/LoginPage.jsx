@@ -31,55 +31,53 @@ export default function LoginPage() {
 
   return (
     <main className="auth-page">
-      <div className="auth-panel">
-        <div className="auth-panel__copy">
-          <p className="section__label">Login</p>
-          <h1>Welcome back to SmartAgri</h1>
-          <p>
-            Access your dashboard, marketplace tools, and account area with role-aware routing.
-          </p>
-          <p className="auth-note">
-            Traders and Land Owners can register. Admin accounts are predefined. Visitors can
-            browse the landing page and marketplace.
-          </p>
+      <div className="auth-split">
+        {/* Left panel */}
+        <div className="auth-split__left">
+          <Link className="auth-logo" to="/">
+            <span>🌿</span> <strong>Smart</strong>Agri
+          </Link>
+          <div className="auth-split__illustration">🌾</div>
+          <h1 className="auth-split__title">Welcome Back!</h1>
+          <p className="auth-split__copy">Login to your SmartAgri account and continue your journey towards smarter farming.</p>
+          <div className="auth-who-can">
+            <span className="auth-who-can__icon">👥</span>
+            <div>
+              <div className="auth-who-can__label">Who can register?</div>
+              <div className="auth-who-can__roles">Traders and Land Owners can create an account.</div>
+            </div>
+          </div>
         </div>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <label>
-            Email
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="you@example.com"
-              required
-            />
-          </label>
-
-          <label>
-            Password
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Your password"
-              required
-            />
-          </label>
-
-          {error ? <div className="auth-error">{error}</div> : null}
-
-          <button className="button button--primary button--full" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Signing in...' : 'Login'}
-          </button>
-
-          <div className="auth-links">
-            <Link to="/register">Create account</Link>
-            <Link to="/">Back to home</Link>
-          </div>
-        </form>
+        {/* Right panel - form */}
+        <div className="auth-split__right">
+          <h2 className="auth-form-title">Login to SmartAgri</h2>
+          <form className="auth-form-new" onSubmit={handleSubmit}>
+            <label className="auth-field">
+              <span>Email Address</span>
+              <div className="auth-field__input-wrap">
+                <span className="auth-field__icon">📧</span>
+                <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" required />
+              </div>
+            </label>
+            <label className="auth-field">
+              <span>Password</span>
+              <div className="auth-field__input-wrap">
+                <span className="auth-field__icon">🔒</span>
+                <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Your password" required />
+              </div>
+            </label>
+            {error && <div className="auth-error">⚠️ {error}</div>}
+            <button className="auth-submit-btn" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Signing in...' : 'Login →'}
+            </button>
+            <div className="auth-links-row">
+              <span>Don't have an account? <Link to="/register">Register</Link></span>
+              <span>|</span>
+              <Link to="/">Back to Home</Link>
+            </div>
+          </form>
+        </div>
       </div>
     </main>
   );

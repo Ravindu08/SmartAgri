@@ -32,10 +32,10 @@ export default function CropDetails() {
   if (!crop) {
     return (
       <section className="crop-form-page">
-        <div className="crop-form-panel">
+        <div className="crop-form-header">
           <h1>Crop not found</h1>
           <p>This crop may have been removed or you do not have access.</p>
-          <button className="button button--ghost" type="button" onClick={() => navigate('/landowner/crops')}>
+          <button className="button button--outline" type="button" onClick={() => navigate('/landowner/crops')}>
             Back to crops
           </button>
         </div>
@@ -45,60 +45,70 @@ export default function CropDetails() {
 
   return (
     <section className="crop-detail-page">
-      <div className="crop-detail-panel">
+      <Link className="crop-detail-back" to="/landowner/crops">← Back to Crops</Link>
+
+      <div className="crop-detail-card">
         <div className="crop-detail-header">
           <div>
-            <p className="section__label">Crop details</p>
+            <p className="section__label">Crop Details</p>
             <h1>{crop.crop_name}</h1>
-            <p className="section__copy">Review the full crop record and expected harvest timeline.</p>
+            <p className="crop-detail-header__meta">{crop.crop_type} · {crop.category}</p>
           </div>
-          <div className="crop-detail-actions">
-            <Link className="button button--ghost" to="/landowner/crops">
-              Back to crops
-            </Link>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             <Link className="button button--primary" to={`/landowner/crops/edit/${crop.id}`}>
-              Edit crop
+              ✏️ Edit Crop
             </Link>
           </div>
         </div>
 
-        <div className="crop-detail-grid">
-          <article>
-            <strong>Farm</strong>
-            <p>{crop.farm_name}</p>
-          </article>
-          <article>
-            <strong>Crop type</strong>
-            <p>{crop.crop_type}</p>
-          </article>
-          <article>
-            <strong>Category</strong>
-            <p>{crop.category}</p>
-          </article>
-          <article>
-            <strong>Growth stage</strong>
-            <p>{crop.growth_stage}</p>
-          </article>
-          <article>
-            <strong>Planting date</strong>
-            <p>{new Date(crop.planting_date).toLocaleDateString()}</p>
-          </article>
-          <article>
-            <strong>Expected harvest</strong>
-            <p>{new Date(crop.expected_harvest_date).toLocaleDateString()}</p>
-          </article>
-          <article>
-            <strong>Status</strong>
-            <p>{crop.status}</p>
-          </article>
-          <article>
-            <strong>Created date</strong>
-            <p>{new Date(crop.created_at).toLocaleString()}</p>
-          </article>
-          <article>
-            <strong>Updated date</strong>
-            <p>{new Date(crop.updated_at).toLocaleString()}</p>
-          </article>
+        <div className="crop-detail-body">
+          <div className="detail-section">
+            <h3>Crop Information</h3>
+            <div className="detail-row">
+              <span className="detail-row__label">Farm</span>
+              <span className="detail-row__value">{crop.farm_name}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-row__label">Crop Type</span>
+              <span className="detail-row__value">{crop.crop_type}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-row__label">Category</span>
+              <span className="detail-row__value">{crop.category}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-row__label">Status</span>
+              <span className="detail-row__value">{crop.status}</span>
+            </div>
+          </div>
+          <div className="detail-section">
+            <h3>Timeline</h3>
+            <div className="detail-row">
+              <span className="detail-row__label">Growth Stage</span>
+              <span className="detail-row__value">{crop.growth_stage}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-row__label">Planting Date</span>
+              <span className="detail-row__value">{new Date(crop.planting_date).toLocaleDateString()}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-row__label">Expected Harvest</span>
+              <span className="detail-row__value">{new Date(crop.expected_harvest_date).toLocaleDateString()}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-row__label">Created</span>
+              <span className="detail-row__value">{new Date(crop.created_at).toLocaleString()}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-row__label">Updated</span>
+              <span className="detail-row__value">{new Date(crop.updated_at).toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="crop-detail-footer">
+          <Link className="button button--outline" to="/landowner/crops">← All Crops</Link>
+          <Link className="button button--primary" to={`/landowner/crops/edit/${crop.id}`}>Edit Crop</Link>
         </div>
       </div>
 
