@@ -99,14 +99,14 @@ export default function EditFarm() {
 
   return (
     <section className="farm-form-page">
-      <div className="farm-form-panel">
-        <div>
-          <p className="section__label">Edit Farm</p>
-          <h1>Update farm details</h1>
-          <p className="section__copy">Edit fields and save changes for this farm.</p>
-        </div>
+      <div className="farm-form-header">
+        <p className="section__label">Edit Farm</p>
+        <h1>Update farm details</h1>
+        <p>Edit fields and save changes for this farm.</p>
+      </div>
 
-        <form className="farm-form" onSubmit={handleSubmit}>
+      <form className="farm-form" onSubmit={handleSubmit}>
+        <div className="farm-form__grid">
           <label>
             Farm Name
             <input name="farm_name" value={formData.farm_name} onChange={handleChange} required />
@@ -141,19 +141,19 @@ export default function EditFarm() {
               ))}
             </select>
           </label>
+        </div>
 
-          {validationError ? <div className="form-error">{validationError}</div> : null}
+        {validationError ? <div className="form-error">{validationError}</div> : null}
 
-          <div className="farm-form__actions">
-            <button className="button button--ghost" type="button" onClick={() => navigate('/landowner/farms')}>
-              Cancel
-            </button>
-            <button className="button button--primary" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving farm...' : 'Save changes'}
-            </button>
-          </div>
-        </form>
-      </div>
+        <div className="farm-form__actions">
+          <button className="button button--outline" type="button" onClick={() => navigate('/landowner/farms')}>
+            Cancel
+          </button>
+          <button className="button button--primary" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Saving farm...' : 'Save changes'}
+          </button>
+        </div>
+      </form>
 
       <Toast type={toast.type} message={toast.message} onClose={() => setToast({ type: '', message: '' })} />
     </section>

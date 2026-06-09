@@ -349,3 +349,9 @@ a { color: inherit; text-decoration: none; }
 .sa-badge-yellow { background:var(--yellow-light); color:#8B6914; }
 .sa-badge-red    { background:#FEE2E2; color:var(--red); }
 .sa-badge-blue   { background:#EFF6FF; color:var(--blue); }
+
+/* ── Dark mode badge / shared utility overrides ── */
+[data-theme="dark"] .sa-badge-yellow { color: #fcd34d; }
+[data-theme="dark"] .sa-badge-red    { background: rgba(220,38,38,0.12);  color: #f87171; }
+[data-theme="dark"] .sa-badge-blue   { background: rgba(59,130,246,0.12); color: #60a5fa; }
+[data-theme="dark"] .sa-feature-card-coming { color: #fcd34d; }

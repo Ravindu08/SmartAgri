@@ -99,39 +99,25 @@ export default function MyFarms() {
         <div className="farm-grid">
           {filteredFarms.map((farm) => (
             <article key={farm.id} className="farm-card">
-              <div className="farm-card__heading">
-                <div>
+              <div className="farm-card__image">
+                <div className="farm-card__image-placeholder">🌾</div>
+                <span className="farm-card__season-badge">{farm.season}</span>
+              </div>
+              <div className="farm-card__body">
+                <div className="farm-card__heading">
                   <p className="farm-card__name">{farm.farm_name}</p>
-                  <p className="farm-card__meta">{farm.location}</p>
+                  <p className="farm-card__meta">📍 {farm.location}</p>
                 </div>
-                <span className="farm-card__season">{farm.season}</span>
-              </div>
-
-              <div className="farm-card__details">
-                <div>
-                  <strong>Size</strong>
-                  <p>{farm.farm_size} acres</p>
+                <div className="farm-card__details">
+                  <div><span>Size</span><strong>{farm.farm_size} acres</strong></div>
+                  <div><span>Soil</span><strong>{farm.soil_type}</strong></div>
+                  <div><span>Owner ID</span><strong>{farm.owner_id}</strong></div>
                 </div>
-                <div>
-                  <strong>Soil</strong>
-                  <p>{farm.soil_type}</p>
+                <div className="farm-card__actions">
+                  <Link className="button button--outline" to={`/landowner/farms/${farm.id}`}>View</Link>
+                  <Link className="button button--outline" to={`/landowner/farms/edit/${farm.id}`}>✏️ Edit</Link>
+                  <button className="button button--danger" type="button" onClick={() => handleDelete(farm)}>Delete</button>
                 </div>
-                <div>
-                  <strong>Owner ID</strong>
-                  <p>{farm.owner_id}</p>
-                </div>
-              </div>
-
-              <div className="farm-card__actions">
-                <Link className="button button--ghost" to={`/landowner/farms/${farm.id}`}>
-                  View
-                </Link>
-                <Link className="button button--ghost" to={`/landowner/farms/edit/${farm.id}`}>
-                  Edit
-                </Link>
-                <button className="button button--ghost button--danger" type="button" onClick={() => handleDelete(farm)}>
-                  Delete
-                </button>
               </div>
             </article>
           ))}

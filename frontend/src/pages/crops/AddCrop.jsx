@@ -91,14 +91,14 @@ export default function AddCrop() {
 
   return (
     <section className="crop-form-page">
-      <div className="crop-form-panel">
-        <div>
-          <p className="section__label">Add Crop</p>
-          <h1>Create a new crop record</h1>
-          <p className="section__copy">Capture planting details, growth stage, and harvest expectations for this farm.</p>
-        </div>
+      <div className="crop-form-header">
+        <p className="section__label">Add Crop</p>
+        <h1>Create a new crop record</h1>
+        <p>Capture planting details, growth stage, and harvest expectations for this farm.</p>
+      </div>
 
-        <form className="crop-form" onSubmit={handleSubmit}>
+      <form className="crop-form" onSubmit={handleSubmit}>
+        <div className="crop-form__grid">
           <label>
             Farm
             <select name="farm_id" value={formData.farm_id} onChange={handleChange} required>
@@ -156,20 +156,20 @@ export default function AddCrop() {
               ))}
             </select>
           </label>
+        </div>
 
-          {validationError ? <div className="form-error">{validationError}</div> : null}
-          {isLoading ? <div className="form-loading">Loading farms...</div> : null}
+        {validationError ? <div className="form-error">{validationError}</div> : null}
+        {isLoading ? <div className="form-loading">Loading farms...</div> : null}
 
-          <div className="crop-form__actions">
-            <button className="button button--ghost" type="button" onClick={() => navigate('/landowner/crops')}>
-              Cancel
-            </button>
-            <button className="button button--primary" type="submit" disabled={isSubmitting || isLoading}>
-              {isSubmitting ? 'Saving crop...' : 'Save crop'}
-            </button>
-          </div>
-        </form>
-      </div>
+        <div className="crop-form__actions">
+          <button className="button button--outline" type="button" onClick={() => navigate('/landowner/crops')}>
+            Cancel
+          </button>
+          <button className="button button--primary" type="submit" disabled={isSubmitting || isLoading}>
+            {isSubmitting ? 'Saving crop...' : 'Save crop'}
+          </button>
+        </div>
+      </form>
 
       <Toast type={toast.type} message={toast.message} onClose={() => setToast({ type: '', message: '' })} />
     </section>
