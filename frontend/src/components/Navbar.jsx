@@ -4,9 +4,45 @@ import { clearAuthSession, getAuthSession } from '../services/api';
 import { useApp } from '../context/AppContext';
 
 const NAV_T = {
-  en: { home: 'Home', about: 'Contact', features: 'Features', marketplace: 'Marketplace', howItWorks: 'How It Works', contact: 'About', cropRec: 'Crop AI', guidance: 'Guidance', weather: 'Weather', yield: 'Yield & Price' },
-  si: { home: 'මුල් පිටුව', about: 'සම්බන්ධය', features: 'විශේෂාංග', marketplace: 'වෙළඳසැල', howItWorks: 'ක්‍රමය', contact: 'අප ගැන', cropRec: 'බෝග AI', guidance: 'මාර්ගෝපදේශය', weather: 'කාලගුණය', yield: 'අස්වැන්න' },
-  ta: { home: 'முகப்பு', about: 'தொடர்பு', features: 'அம்சங்கள்', marketplace: 'சந்தை', howItWorks: 'எப்படி', contact: 'எங்களை பற்றி', cropRec: 'பயிர் AI', guidance: 'வழிகாட்டி', weather: 'வானிலை', yield: 'மகசூல்' },
+  en: {
+    home: 'Home',
+    cropRec: 'Crop Recommendation',
+    cropGuide: 'Crop Guidance',
+    yieldPrice: 'Yield & Price',
+    weather: 'Weather',
+    aboutUs: 'About Us',
+    contactUs: 'Contact Us',
+    myFarms: '🌱 My Farms',
+    logout: 'Logout',
+    login: 'Login',
+    register: 'Register',
+  },
+  si: {
+    home: 'මුල් පිටුව',
+    cropRec: 'බෝග නිර්දේශ',
+    cropGuide: 'බෝග මාර්ගෝපදේශ',
+    yieldPrice: 'අස්වැන්න සහ මිල',
+    weather: 'කාලගුණය',
+    aboutUs: 'අප ගැන',
+    contactUs: 'සම්බන්ධ කරගන්න',
+    myFarms: '🌱 මගේ ගොවිපළ',
+    logout: 'ලොග් අවුට්',
+    login: 'ලොගින්',
+    register: 'ලියාපදිංචිය',
+  },
+  ta: {
+    home: 'முகப்பு',
+    cropRec: 'பயிர் பரிந்துரை',
+    cropGuide: 'பயிர் வழிகாட்டி',
+    yieldPrice: 'மகசூல் & விலை',
+    weather: 'வானிலை',
+    aboutUs: 'எங்களை பற்றி',
+    contactUs: 'தொடர்பு',
+    myFarms: '🌱 என் பண்ணைகள்',
+    logout: 'வெளியேறு',
+    login: 'உள்நுழை',
+    register: 'பதிவு செய்',
+  },
 };
 
 export default function Navbar() {
@@ -36,15 +72,15 @@ export default function Navbar() {
 
       <nav className={`navbar__links${menuOpen ? ' open' : ''}`}>
         <Link to="/" className="nav-link" onClick={close}>{t.home}</Link>
-        <Link to="/about" className="nav-link" onClick={close}>{t.contact}</Link>
-        <Link to="/crop-recommendation" className="nav-link" onClick={close}>{t.features}</Link>
-        <Link to="/marketplace" className="nav-link" onClick={close}>{t.marketplace}</Link>
-        <Link to="/crop-guidance" className="nav-link" onClick={close}>{t.howItWorks}</Link>
+        <Link to="/crop-recommendation" className="nav-link" onClick={close}>{t.cropRec}</Link>
+        <Link to="/crop-guidance" className="nav-link" onClick={close}>{t.cropGuide}</Link>
+        <Link to="/yield-price" className="nav-link" onClick={close}>{t.yieldPrice}</Link>
         <Link to="/wx" className="nav-link" onClick={close}>{t.weather}</Link>
-        <Link to="/about" className="nav-link" onClick={close}>{t.about}</Link>
+        <Link to="/about" className="nav-link" onClick={close}>{t.aboutUs}</Link>
+        <Link to="/contact" className="nav-link" onClick={close}>{t.contactUs}</Link>
 
         {isSignedIn && user.role === 'Land Owner' && (
-          <Link className="navbar__farm-link" to="/landowner/farms" onClick={close}>🌱 My Farms</Link>
+          <Link className="navbar__farm-link" to="/landowner/farms" onClick={close}>{t.myFarms}</Link>
         )}
       </nav>
 
@@ -65,12 +101,12 @@ export default function Navbar() {
               <span className="navbar__role">{user.role}</span>
               <span className="navbar__user">{user.full_name}</span>
             </span>
-            <button className="navbar__logout" type="button" onClick={handleLogout}>Logout</button>
+            <button className="navbar__logout" type="button" onClick={handleLogout}>{t.logout}</button>
           </>
         ) : (
           <>
-            <Link className="navbar__login" to="/login" onClick={close}>Login</Link>
-            <Link className="navbar__register" to="/register" onClick={close}>Register</Link>
+            <Link className="navbar__login" to="/login" onClick={close}>{t.login}</Link>
+            <Link className="navbar__register" to="/register" onClick={close}>{t.register}</Link>
           </>
         )}
         <button className="nav-hamburger" type="button" aria-label="Toggle menu" onClick={() => setMenuOpen(o => !o)}>

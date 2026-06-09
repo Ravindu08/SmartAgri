@@ -8,7 +8,7 @@
 
 /* ── Hero ── */
 .wx-hero {
-  background: linear-gradient(135deg, #0d47a1 0%, #1565c0 40%, #1976d2 70%, #0288d1 100%);
+  background: var(--grad-hero);
   padding: 48px 28px 52px;
   position: relative;
   overflow: hidden;
@@ -27,7 +27,7 @@
   position: absolute;
   width: 240px; height: 240px;
   border-radius: 50%;
-  background: rgba(135,206,235,0.08);
+  background: rgba(251,192,45,0.07);
   bottom: -70px; left: -30px;
   pointer-events: none;
 }
@@ -111,11 +111,12 @@
 }
 .wx-select:focus {
   outline: none;
-  border-color: #1565c0;
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 3px rgba(15,90,42,0.12);
 }
 .wx-fetch-btn {
   padding: 12px 24px;
-  background: linear-gradient(135deg, #1565c0, #0288d1);
+  background: var(--grad-primary);
   color: #fff;
   border: none;
   border-radius: var(--radius-sm);
@@ -142,7 +143,7 @@
 .wx-spinner {
   width: 36px; height: 36px;
   border: 3px solid var(--border);
-  border-top-color: #1565c0;
+  border-top-color: var(--green-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -211,8 +212,9 @@
 }
 .wx-stat-card:hover { box-shadow: var(--shadow-sm); }
 .wx-stat-highlight {
-  background: #FFF3CD;
-  border-color: #FFC107;
+  background: var(--yellow-light);
+  border-color: var(--yellow-accent);
+  border-width: 2px;
 }
 .wx-stat-wide {
   grid-column: span 2;
@@ -291,7 +293,7 @@
   font-size: 0.875rem;
   transition: background var(--tr);
 }
-.wx-forecast-row:hover { background: #F0F7FF; }
+.wx-forecast-row:hover { background: var(--green-subtle); }
 .wx-fc-date { font-weight: 600; color: var(--text); }
 .wx-fc-icon { font-size: 1.2rem; text-align: center; }
 .wx-fc-cond { color: var(--text-mid); }
@@ -309,7 +311,7 @@
   text-align: right;
   padding: 0 4px;
 }
-.wx-source a { color: #1565c0; text-decoration: none; }
+.wx-source a { color: var(--accent); text-decoration: none; }
 .wx-source a:hover { text-decoration: underline; }
 
 /* ══════════════════════════════════════════════════════
@@ -328,7 +330,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.2px;
-  color: #1565c0;
+  color: var(--green-primary);
   margin-bottom: 8px;
 }
 .wx-info-title {
@@ -363,7 +365,7 @@
 .wx-preview-card:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-lg);
-  border-color: rgba(21,101,192,0.25);
+  border-color: rgba(15,90,42,0.28);
 }
 .wx-preview-icon {
   font-size: 28px;
@@ -390,9 +392,9 @@
 .wx-preview-tags span {
   font-size: 11px;
   font-weight: 600;
-  color: #1565c0;
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
+  color: var(--green-primary);
+  background: var(--green-light);
+  border: 1px solid rgba(15,90,42,0.20);
   border-radius: 99px;
   padding: 3px 10px;
 }
@@ -462,7 +464,7 @@
 .wx-season-card:hover {
   background: var(--card);
   box-shadow: var(--shadow-sm);
-  border-color: rgba(21,101,192,0.2);
+  border-color: rgba(15,90,42,0.22);
 }
 .wx-season-icon { font-size: 22px; margin-bottom: 8px; }
 .wx-season-name {
@@ -474,8 +476,8 @@
 .wx-season-months {
   font-size: 11px;
   font-weight: 700;
-  color: #1565c0;
-  background: #EFF6FF;
+  color: var(--green-primary);
+  background: var(--green-light);
   border-radius: 99px;
   padding: 2px 9px;
   display: inline-block;
@@ -524,14 +526,14 @@
 [data-theme="dark"] .wx-fc-max  { color: #f87171; }
 [data-theme="dark"] .wx-fc-min  { color: #60a5fa; }
 [data-theme="dark"] .wx-fc-rain { color: #38bdf8; }
-[data-theme="dark"] .wx-source a { color: #60a5fa; }
+[data-theme="dark"] .wx-source a { color: var(--accent); }
 
-[data-theme="dark"] .wx-info-label { color: #60a5fa; }
+[data-theme="dark"] .wx-info-label { color: var(--accent); }
 
 [data-theme="dark"] .wx-preview-tags span {
-  color: #60a5fa;
-  background: rgba(59,130,246,0.12);
-  border-color: rgba(59,130,246,0.25);
+  color: var(--accent);
+  background: var(--green-light);
+  border-color: rgba(124,197,118,0.28);
 }
 
 [data-theme="dark"] .wx-zone-wet {
@@ -548,8 +550,8 @@
 }
 
 [data-theme="dark"] .wx-season-months {
-  color: #60a5fa;
-  background: rgba(59,130,246,0.12);
+  color: var(--accent);
+  background: var(--green-light);
 }
 
 /* Advice cards — dark overrides */

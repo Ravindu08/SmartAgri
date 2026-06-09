@@ -11,9 +11,9 @@
 ═══════════════════════════════════════════════════════════ */
 :root {
   /* ── Brand greens ── */
-  --green-primary:  #2E7D32;
-  --green-dark:     #1B5E20;
-  --green-mid:      #388E3C;
+  --green-primary:  #0F5A2A;
+  --green-dark:     #073A18;
+  --green-mid:      #2E7D32;
   --green-light:    #E8F5E9;
   --green-subtle:   #F1F8F1;
   --yellow-accent:  #FBC02D;
@@ -33,11 +33,11 @@
   /* ── Adaptive surfaces (used in farm/crop/auth cards) ── */
   --surface-1:         rgba(0, 0, 0, 0.03);
   --surface-2:         rgba(0, 0, 0, 0.05);
-  --surface-hover:     rgba(46, 125, 50, 0.07);
+  --surface-hover:     rgba(15, 90, 42, 0.07);
   --surface-border:    rgba(0, 0, 0, 0.09);
   --input-bg:          #FFFFFF;
   --input-border:      #D1D5DB;
-  --input-focus:       #2E7D32;
+  --input-focus:       #0F5A2A;
   --nav-bg:            rgba(255, 255, 255, 0.96);
   --mobile-nav-bg:     rgba(255, 255, 255, 0.99);
   --modal-bg:          #FFFFFF;
@@ -45,8 +45,8 @@
   --about-section-bg:  rgba(46, 125, 50, 0.03);
 
   /* ── Accent (theme-adaptive) ── */
-  --accent:       #2E7D32;
-  --accent-dark:  #1B5E20;
+  --accent:       #0F5A2A;
+  --accent-dark:  #073A18;
   --accent-light: #E8F5E9;
   --accent-text:  #FFFFFF;
 
@@ -62,10 +62,10 @@
 
   /* ── Shadows ── */
   --shadow-sm:     0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md:     0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05);
-  --shadow-lg:     0 10px 30px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.06);
-  --shadow-xl:     0 20px 48px rgba(0,0,0,0.12), 0 8px 20px rgba(0,0,0,0.07);
-  --shadow-green:  0 8px 24px rgba(46,125,50,0.25);
+  --shadow-md:     0 4px 16px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.06);
+  --shadow-lg:     0 10px 32px rgba(0,0,0,0.13), 0 4px 14px rgba(0,0,0,0.08);
+  --shadow-xl:     0 22px 52px rgba(0,0,0,0.15), 0 8px 22px rgba(0,0,0,0.09);
+  --shadow-green:  0 8px 24px rgba(15,90,42,0.30);
   --shadow-yellow: 0 6px 18px rgba(251,192,45,0.30);
   --shadow-card:   0 4px 24px rgba(0,0,0,0.09);
 
@@ -73,10 +73,11 @@
   --ff: 'Poppins','Noto Sans Sinhala','Noto Sans Tamil',sans-serif;
 
   /* ── Gradients ── */
-  --grad-primary: linear-gradient(135deg, #1B5E20 0%, #2E7D32 50%, #388E3C 100%);
-  --grad-hero:    linear-gradient(135deg, #1B5E20 0%, #2E7D32 40%, #33691E 100%);
-  --grad-card:    linear-gradient(145deg, #ffffff 0%, #f9fbf9 100%);
-  --grad-yellow:  linear-gradient(135deg, #FBC02D, #F9A825);
+  --grad-primary:   linear-gradient(135deg, #073A18 0%, #0F5A2A 50%, #2E7D32 100%);
+  --grad-hero:      linear-gradient(135deg, #073A18 0%, #0F5A2A 40%, #194D29 100%);
+  --grad-farm-hero: linear-gradient(160deg, rgba(7,58,24,0.93) 0%, rgba(15,90,42,0.88) 55%, rgba(25,77,41,0.84) 100%);
+  --grad-card:      linear-gradient(145deg, #ffffff 0%, #f9fbf9 100%);
+  --grad-yellow:    linear-gradient(135deg, #FBC02D, #F9A825);
 
   /* ── Shape ── */
   --radius:    20px;
@@ -130,6 +131,30 @@
   --green-light:  rgba(124, 197, 118, 0.14);
   --green-subtle: rgba(124, 197, 118, 0.08);
   --yellow-light: rgba(251, 192, 45, 0.12);
+
+  /* Brand greens lightened so text is visible on dark backgrounds */
+  --green-primary: #7cc576;
+  --green-dark:    #5ca45a;
+  --green-mid:     #86efac;
+}
+
+/* ML-page action buttons: now have light-green bg in dark mode, need dark text for contrast */
+[data-theme="dark"] .btn,
+[data-theme="dark"] .btn:hover:not(:disabled),
+[data-theme="dark"] .guidance-generate-btn,
+[data-theme="dark"] .guidance-mode-tab.active,
+[data-theme="dark"] .guidance-tab-btn.active,
+[data-theme="dark"] .stage-badge.current,
+[data-theme="dark"] .today-badge,
+[data-theme="dark"] .mb.on,
+[data-theme="dark"] .cult-btn-open,
+[data-theme="dark"] .cult-btn-open:hover,
+[data-theme="dark"] .yp-btn-primary,
+[data-theme="dark"] .yp-btn-primary:hover:not(:disabled),
+[data-theme="dark"] .yp-pill.active,
+[data-theme="dark"] .yp-use-yield-btn,
+[data-theme="dark"] .cult-day-num.today {
+  color: var(--accent-text);
 }
 
 /* ── Dark mode body ── */
