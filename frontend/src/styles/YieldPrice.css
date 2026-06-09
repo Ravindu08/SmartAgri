@@ -562,3 +562,42 @@
   color: var(--green-primary);
   font-weight: 600;
 }
+
+/* ══════════════════════════════════════════════════════
+   DARK MODE OVERRIDES
+══════════════════════════════════════════════════════ */
+
+/* Input focus/hover */
+[data-theme="dark"] .yp-field input:focus,
+[data-theme="dark"] .yp-field select:focus,
+[data-theme="dark"] .yp-field input:hover:not(:focus),
+[data-theme="dark"] .yp-field select:hover:not(:focus) { background: var(--card); }
+
+/* Weather advisory banner */
+[data-theme="dark"] .yp-wx-banner {
+  background: rgba(59,130,246,0.08);
+  border-color: rgba(59,130,246,0.22);
+}
+[data-theme="dark"] .yp-wx-title     { color: #93c5fd; }
+[data-theme="dark"] .yp-wx-row-label { color: #93c5fd; }
+
+/* Weather quality tags — poor/high (pink) */
+[data-theme="dark"] .yp-wx-tag-poor,
+[data-theme="dark"] .yp-wx-tag-high {
+  background: rgba(244,63,94,0.12);
+  color: #fb7185;
+  border-color: rgba(244,63,94,0.28);
+}
+
+/* Nudge warning */
+[data-theme="dark"] .yp-wx-nudge {
+  background: rgba(251,192,45,0.08);
+  border-color: rgba(251,192,45,0.22);
+  color: #fde68a;
+}
+
+/* Price result card labels */
+[data-theme="dark"] .yp-price-row-label  { color: #fcd34d; }
+[data-theme="dark"] .yp-price-row-value  { color: #fde68a; }
+[data-theme="dark"] .yp-price-hero-label { color: #fcd34d; }
+[data-theme="dark"] .yp-price-hero-unit  { color: #fde68a; }

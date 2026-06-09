@@ -12,7 +12,7 @@ ALLOWED_REGISTRATION_ROLES = {UserRole.TRADER, UserRole.LAND_OWNER}
 
 ROLE_REDIRECT_PATHS = {
     UserRole.ADMIN: "/dashboard/admin",
-    UserRole.LAND_OWNER: "/dashboard/land-owner",
+    UserRole.LAND_OWNER: "/landowner/dashboard",
     UserRole.TRADER: "/dashboard/trader",
     UserRole.VISITOR: "/marketplace",
 }
