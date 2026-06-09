@@ -33,3 +33,13 @@ Thumbs.db
 # Frontend build artifacts
 frontend/node_modules/
 frontend/dist/
+
+# Log files
+*.log
+backend/*.log
+
+# Dev/test helper files
+frontend/public/test-login.html
+
+# Scratch notes
+PostgreSQL.txt

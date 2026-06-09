@@ -1552,3 +1552,155 @@
 
 /* ── Threat body info row spans ── */
 .threat-row span { display: block; }
+
+/* ══════════════════════════════════════════════════════
+   DARK MODE OVERRIDES
+══════════════════════════════════════════════════════ */
+
+/* Weather alert banners */
+[data-theme="dark"] .guidance-wx-warning {
+  background: rgba(245,158,11,0.10);
+  border-color: rgba(245,158,11,0.45);
+}
+[data-theme="dark"] .guidance-wx-warning .guidance-wx-title  { color: #fcd34d; }
+[data-theme="dark"] .guidance-wx-warning .guidance-wx-detail { color: #fde68a; }
+[data-theme="dark"] .guidance-wx-risk {
+  background: rgba(244,63,94,0.10);
+  border-color: rgba(244,63,94,0.45);
+}
+[data-theme="dark"] .guidance-wx-risk .guidance-wx-title  { color: #fb7185; }
+[data-theme="dark"] .guidance-wx-risk .guidance-wx-detail { color: #fda4af; }
+[data-theme="dark"] .guidance-wx-action {
+  background: rgba(34,197,94,0.10);
+  border-color: rgba(34,197,94,0.40);
+}
+[data-theme="dark"] .guidance-wx-action .guidance-wx-title  { color: #4ade80; }
+[data-theme="dark"] .guidance-wx-action .guidance-wx-detail { color: #86efac; }
+[data-theme="dark"] .guidance-wx-info {
+  background: rgba(59,130,246,0.10);
+  border-color: rgba(59,130,246,0.40);
+}
+[data-theme="dark"] .guidance-wx-info .guidance-wx-title  { color: #60a5fa; }
+[data-theme="dark"] .guidance-wx-info .guidance-wx-detail { color: #93c5fd; }
+
+/* Fertilization header */
+[data-theme="dark"] .fert-header {
+  background: rgba(124,58,237,0.14);
+  border-bottom-color: rgba(124,58,237,0.25);
+  color: #c4b5fd;
+}
+[data-theme="dark"] .fert-day { color: #a78bfa; }
+
+/* Input focus/hover */
+[data-theme="dark"] .guidance-selector select:focus,
+[data-theme="dark"] .guidance-selector input[type="date"]:focus,
+[data-theme="dark"] .guidance-selector select:hover:not(:focus),
+[data-theme="dark"] .guidance-selector input[type="date"]:hover:not(:focus) {
+  background: var(--card);
+}
+
+/* Irrigation items */
+[data-theme="dark"] .irrig-item {
+  background: rgba(59,130,246,0.08);
+  border-color: rgba(59,130,246,0.22);
+}
+[data-theme="dark"] .irrig-item label { color: #60a5fa; }
+[data-theme="dark"] .irrig-notes { color: #fde68a; }
+[data-theme="dark"] .irrig-item--critical {
+  background: rgba(251,192,45,0.10);
+  border-color: rgba(251,192,45,0.25);
+}
+[data-theme="dark"] .irrig-item--critical label { color: #fcd34d; }
+
+/* Threat headers */
+[data-theme="dark"] .threat-header.sev-high {
+  background: rgba(220,38,38,0.10);
+  border-bottom-color: rgba(220,38,38,0.25);
+}
+[data-theme="dark"] .threat-header.sev-medium {
+  background: rgba(245,158,11,0.10);
+  border-bottom-color: rgba(245,158,11,0.25);
+}
+[data-theme="dark"] .sev-badge.sev-high   { background: rgba(252,165,165,0.15); color: #f87171; }
+[data-theme="dark"] .sev-badge.sev-medium { background: rgba(252,211,77,0.15);  color: #fcd34d; }
+[data-theme="dark"] .threat-row.treat     { color: #60a5fa; }
+
+/* Threat action rows */
+[data-theme="dark"] .threat-action-row--prev {
+  background: rgba(34,197,94,0.08);
+  border-color: rgba(34,197,94,0.20);
+}
+[data-theme="dark"] .threat-action-row--prev .threat-action-label { color: #4ade80; }
+[data-theme="dark"] .threat-action-row--prev .threat-action-text  { color: #86efac; }
+[data-theme="dark"] .threat-action-row--treat {
+  background: rgba(59,130,246,0.08);
+  border-color: rgba(59,130,246,0.20);
+}
+[data-theme="dark"] .threat-action-row--treat .threat-action-label { color: #60a5fa; }
+[data-theme="dark"] .threat-action-row--treat .threat-action-text  { color: #93c5fd; }
+
+/* Activity icon backgrounds */
+[data-theme="dark"] .act-prepare   { background: rgba(255,152,0,0.14); }
+[data-theme="dark"] .act-plant     { background: rgba(76,175,80,0.14);  }
+[data-theme="dark"] .act-water     { background: rgba(33,150,243,0.14); }
+[data-theme="dark"] .act-fertilize { background: rgba(156,39,176,0.14); }
+[data-theme="dark"] .act-weed      { background: rgba(233,30,99,0.14);  }
+[data-theme="dark"] .act-train     { background: rgba(0,150,136,0.14);  }
+[data-theme="dark"] .act-monitor   { background: rgba(255,193,7,0.14);  }
+[data-theme="dark"] .act-spray     { background: rgba(63,81,181,0.14);  }
+[data-theme="dark"] .act-harvest   { background: rgba(255,87,34,0.14);  }
+[data-theme="dark"] .act-thin      { background: rgba(139,195,74,0.14); }
+
+/* Harvest countdown banners */
+[data-theme="dark"] .harvest-countdown--ready {
+  background: rgba(34,197,94,0.10);
+  border-color: rgba(34,197,94,0.45);
+  color: #4ade80;
+}
+[data-theme="dark"] .harvest-countdown--upcoming {
+  background: rgba(245,158,11,0.10);
+  border-color: rgba(245,158,11,0.45);
+  color: #fcd34d;
+}
+[data-theme="dark"] .harvest-countdown--past {
+  background: rgba(239,68,68,0.10);
+  border-color: rgba(239,68,68,0.45);
+  color: #f87171;
+}
+
+/* Cultivation badges & warnings */
+[data-theme="dark"] .cult-error {
+  background: rgba(251,192,45,0.10);
+  border-color: rgba(251,192,45,0.25);
+  color: #fcd34d;
+}
+[data-theme="dark"] .cult-overdue-badge {
+  background: rgba(251,192,45,0.14);
+  color: #fcd34d;
+  border-color: rgba(251,192,45,0.30);
+}
+[data-theme="dark"] .cult-status-badge.status-completed {
+  background: rgba(59,130,246,0.12);
+  color: #60a5fa;
+  border-color: rgba(59,130,246,0.25);
+}
+[data-theme="dark"] .cult-status-badge.status-overdue {
+  background: rgba(251,192,45,0.12);
+  color: #fcd34d;
+  border-color: rgba(251,192,45,0.28);
+}
+[data-theme="dark"] .cult-task-chip.status-overdue {
+  background: rgba(251,192,45,0.12);
+  border-color: rgba(251,192,45,0.30);
+}
+[data-theme="dark"] .cult-warn-overdue {
+  background: rgba(251,192,45,0.10);
+  border-bottom-color: rgba(251,192,45,0.22);
+}
+[data-theme="dark"] .cult-warn-due { background: rgba(251,192,45,0.06); }
+[data-theme="dark"] .cult-warn-label,
+[data-theme="dark"] .cult-warn-due .cult-warn-label { color: #fcd34d; }
+
+/* Abandon button */
+[data-theme="dark"] .cult-btn-abandon       { background: rgba(220,38,38,0.10); color: #f87171; border-color: rgba(220,38,38,0.25); }
+[data-theme="dark"] .cult-btn-abandon:hover { background: rgba(220,38,38,0.18); }

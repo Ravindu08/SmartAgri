@@ -108,39 +108,25 @@ export default function MyCrops() {
         <div className="crop-grid">
           {filteredCrops.map((crop) => (
             <article key={crop.id} className="crop-card">
-              <div className="crop-card__heading">
-                <div>
+              <div className="crop-card__image">
+                <div className="crop-card__image-placeholder">🌱</div>
+                <span className={`crop-card__status-badge crop-card__status-badge--${(crop.status || '').toLowerCase().replace(/\s/g,'-')}`}>{crop.status}</span>
+              </div>
+              <div className="crop-card__body">
+                <div className="crop-card__heading">
                   <p className="crop-card__name">{crop.crop_name}</p>
                   <p className="crop-card__meta">{crop.crop_type}</p>
                 </div>
-                <span className="crop-card__status">{crop.status}</span>
-              </div>
-
-              <div className="crop-card__details">
-                <div>
-                  <strong>Farm</strong>
-                  <p>{crop.farm_name}</p>
+                <div className="crop-card__details">
+                  <div><span>Farm</span><strong>{crop.farm_name}</strong></div>
+                  <div><span>Stage</span><strong>{crop.growth_stage}</strong></div>
+                  <div><span>Harvest</span><strong>{new Date(crop.expected_harvest_date).toLocaleDateString()}</strong></div>
                 </div>
-                <div>
-                  <strong>Stage</strong>
-                  <p>{crop.growth_stage}</p>
+                <div className="crop-card__actions">
+                  <Link className="button button--outline" to={`/landowner/crops/${crop.id}`}>View</Link>
+                  <Link className="button button--outline" to={`/landowner/crops/edit/${crop.id}`}>✏️ Edit</Link>
+                  <button className="button button--danger" type="button" onClick={() => handleDelete(crop)}>Delete</button>
                 </div>
-                <div>
-                  <strong>Harvest</strong>
-                  <p>{new Date(crop.expected_harvest_date).toLocaleDateString()}</p>
-                </div>
-              </div>
-
-              <div className="crop-card__actions">
-                <Link className="button button--ghost" to={`/landowner/crops/${crop.id}`}>
-                  View
-                </Link>
-                <Link className="button button--ghost" to={`/landowner/crops/edit/${crop.id}`}>
-                  Edit
-                </Link>
-                <button className="button button--ghost button--danger" type="button" onClick={() => handleDelete(crop)}>
-                  Delete
-                </button>
               </div>
             </article>
           ))}

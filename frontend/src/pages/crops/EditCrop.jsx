@@ -105,14 +105,14 @@ export default function EditCrop() {
 
   return (
     <section className="crop-form-page">
-      <div className="crop-form-panel">
-        <div>
-          <p className="section__label">Edit Crop</p>
-          <h1>Update crop details</h1>
-          <p className="section__copy">Adjust the crop record, stage, and harvest plan for this farm.</p>
-        </div>
+      <div className="crop-form-header">
+        <p className="section__label">Edit Crop</p>
+        <h1>Update crop details</h1>
+        <p>Adjust the crop record, stage, and harvest plan for this farm.</p>
+      </div>
 
-        <form className="crop-form" onSubmit={handleSubmit}>
+      <form className="crop-form" onSubmit={handleSubmit}>
+        <div className="crop-form__grid">
           <label>
             Farm
             <select name="farm_id" value={formData.farm_id} onChange={handleChange} required>
@@ -170,19 +170,19 @@ export default function EditCrop() {
               ))}
             </select>
           </label>
+        </div>
 
-          {validationError ? <div className="form-error">{validationError}</div> : null}
+        {validationError ? <div className="form-error">{validationError}</div> : null}
 
-          <div className="crop-form__actions">
-            <button className="button button--ghost" type="button" onClick={() => navigate('/landowner/crops')}>
-              Cancel
-            </button>
-            <button className="button button--primary" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving crop...' : 'Save changes'}
-            </button>
-          </div>
-        </form>
-      </div>
+        <div className="crop-form__actions">
+          <button className="button button--outline" type="button" onClick={() => navigate('/landowner/crops')}>
+            Cancel
+          </button>
+          <button className="button button--primary" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Saving crop...' : 'Save changes'}
+          </button>
+        </div>
+      </form>
 
       <Toast type={toast.type} message={toast.message} onClose={() => setToast({ type: '', message: '' })} />
     </section>

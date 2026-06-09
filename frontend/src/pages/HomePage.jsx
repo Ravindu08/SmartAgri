@@ -4,24 +4,9 @@ import FeatureCard from '../components/FeatureCard';
 import { fetchBackendHealth } from '../services/api';
 
 const features = [
-  {
-    title: 'AI Crop Recommendation',
-    description:
-      'Get smart crop suggestions based on soil data, weather, and farm conditions to improve yield and reduce risk.',
-    icon: 'AI',
-  },
-  {
-    title: 'Smart Farming Calendar',
-    description:
-      'Plan planting, irrigation, fertilization, and harvesting with a clear calendar built for practical farm planning.',
-    icon: 'SC',
-  },
-  {
-    title: 'Agricultural Marketplace',
-    description:
-      'Connect farmers, traders, and land owners in a simple marketplace for products, services, and opportunities.',
-    icon: 'AM',
-  },
+  { title: 'AI Crop Intelligence', description: 'Get AI-powered crop recommendations and insights tailored to your land.', icon: '🤖' },
+  { title: 'Smart Farm Insights', description: 'Real-time data on weather, soil health, and farm metrics in one dashboard.', icon: '📊' },
+  { title: 'Trusted Marketplace', description: 'Buy, sell, and connect with trusted traders and land owners easily.', icon: '🏪' },
 ];
 
 export default function HomePage() {
@@ -48,65 +33,70 @@ export default function HomePage() {
   }, []);
 
   return (
-    <main>
-      <section id="home" className="hero">
-        <div className="hero__overlay" />
-        <div className="hero__content">
-          <p className="hero__eyebrow">Smart Agricultural Decision Support System</p>
-          <h1>SmartAgri</h1>
-          <p className="hero__subtitle">AI-Powered Agricultural Decision Support System</p>
-          <p className="hero__text">
-            A modern university final year project that helps farmers make better decisions through
-            intelligent recommendations, planning tools, and a connected agricultural ecosystem.
+    <main className="home-page">
+      {/* Hero */}
+      <section className="home-hero">
+        <div className="home-hero__overlay" />
+        <div className="home-hero__content">
+          <div className="home-hero__badge">🤖 AI-POWERED AGRICULTURE</div>
+          <h1 className="home-hero__title">
+            Empowering Farmers.<br />
+            Enriching <span className="home-hero__highlight">Future.</span>
+          </h1>
+          <p className="home-hero__text">
+            SmartAgri brings AI and data together to help you make smarter decisions, increase productivity, and grow sustainably.
           </p>
           <div className={`connection-badge connection-badge--${connectionState}`}>
-            Backend status:{' '}
-            {connectionState === 'connected'
-              ? 'Connected to FastAPI'
-              : connectionState === 'offline'
-              ? 'Backend offline'
-              : 'Checking connection...'}
+            {connectionState === 'connected' ? '🟢 Connected to SmartAgri Backend — All Systems Operational'
+             : connectionState === 'offline' ? '🔴 Backend offline'
+             : '⏳ Checking connection...'}
           </div>
-          <div className="hero__actions">
-            <Link className="button button--primary" to="/login">
-              Get Started
-            </Link>
-            <Link className="button button--ghost" to="/marketplace">
-              Visit Marketplace
-            </Link>
-            <a className="button button--ghost" href="#features">
-              Explore Features
-            </a>
+          <div className="home-hero__actions">
+            <Link className="home-btn home-btn--primary" to="/marketplace">Explore Marketplace →</Link>
+            <Link className="home-btn home-btn--outline" to="/about">Learn More →</Link>
+          </div>
+        </div>
+        <div className="home-hero__cards">
+          <div className="home-float-card">
+            <div className="home-float-card__icon home-float-card__icon--green">🌱</div>
+            <div>
+              <div className="home-float-card__label">Soil Health Score</div>
+              <div className="home-float-card__value">82<span>/100</span></div>
+              <div className="home-float-card__status">● Healthy</div>
+            </div>
+          </div>
+          <div className="home-float-card">
+            <div className="home-float-card__icon home-float-card__icon--blue">🌤️</div>
+            <div>
+              <div className="home-float-card__label">Weather Forecast</div>
+              <div className="home-float-card__value">28°C</div>
+              <div className="home-float-card__status">Partly Cloudy</div>
+            </div>
+          </div>
+          <div className="home-float-card">
+            <div className="home-float-card__icon home-float-card__icon--yellow">🌾</div>
+            <div>
+              <div className="home-float-card__label">Crop Recommendation</div>
+              <div className="home-float-card__value">High Yield</div>
+              <div className="home-float-card__status">Maize</div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section id="about" className="section section--about">
-        <div className="section__intro">
-          <p className="section__label">About</p>
-          <h2>Built for practical farm decision making</h2>
-          <p>
-            SmartAgri combines simple design with useful agricultural intelligence so students and
-            users can present a polished, real-world system idea.
-          </p>
+      {/* About strip */}
+      <section className="home-about">
+        <div className="home-about__left">
+          <p className="section__label">ABOUT SMARTAGRI</p>
+          <h2>Technology that grows<br />with your farm</h2>
+          <p>SmartAgri is an intelligent platform designed to support farmers and land owners with real-time insights, AI-driven recommendations, and a trusted marketplace.</p>
+          <Link className="home-about__link" to="/about">Learn more about us →</Link>
         </div>
-      </section>
-
-      <section id="features" className="section section--features">
-        <div className="section__intro section__intro--center">
-          <p className="section__label">Features</p>
-          <h2>Three core tools in one platform</h2>
-        </div>
-
-        <div className="feature-grid">
-          {features.map((feature) => (
-            <FeatureCard
-              key={feature.title}
-              title={feature.title}
-              description={feature.description}
-              icon={feature.icon}
-            />
-          ))}
+        <div className="home-about__right">
+          <p className="section__label">OUR FEATURES</p>
+          <div className="home-features-grid">
+            {features.map(f => <FeatureCard key={f.title} title={f.title} description={f.description} icon={f.icon} />)}
+          </div>
         </div>
       </section>
     </main>

@@ -1094,3 +1094,86 @@
   .rw, .xai-card, .cal-card, .ci-card, .cmp-card { padding: 0; margin: 0 0 16px; }
   .res { box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* ══════════════════════════════════════════════════════
+   DARK MODE OVERRIDES
+══════════════════════════════════════════════════════ */
+
+/* Weather autofill banners */
+[data-theme="dark"] .wx-autofill-badge {
+  background: rgba(59,130,246,0.10);
+  border-color: rgba(59,130,246,0.25);
+  color: #93c5fd;
+}
+[data-theme="dark"] .wx-autofill-badge strong { color: #60a5fa; }
+[data-theme="dark"] .wx-autofill-hint {
+  background: var(--border-soft);
+  border-color: var(--border);
+  color: var(--muted);
+}
+[data-theme="dark"] .wx-autofill-hint strong { color: #60a5fa; }
+[data-theme="dark"] .wx-live-tag {
+  background: rgba(59,130,246,0.12);
+  border-color: rgba(59,130,246,0.25);
+  color: #60a5fa;
+}
+[data-theme="dark"] .fi.wx-filled {
+  border-color: #60a5fa;
+  background: rgba(59,130,246,0.08);
+}
+
+/* Input focus/hover backgrounds */
+[data-theme="dark"] .fi:focus,
+[data-theme="dark"] .fs:focus,
+[data-theme="dark"] .fi:hover:not(:focus),
+[data-theme="dark"] .fs:hover:not(:focus) { background: var(--card); }
+[data-theme="dark"] .fi.warn  { background: rgba(217,119,6,0.10); }
+[data-theme="dark"] .fi.err   { background: rgba(220,38,38,0.10); }
+
+/* Alert bars */
+[data-theme="dark"] .alert-error {
+  background: rgba(220,38,38,0.10);
+  border-color: rgba(220,38,38,0.25);
+  color: #fca5a5;
+}
+[data-theme="dark"] .alert-demo {
+  background: rgba(251,192,45,0.10);
+  border-color: rgba(251,192,45,0.25);
+}
+[data-theme="dark"] .alert-demo-title { color: #fcd34d; }
+[data-theme="dark"] .alert-demo-body  { color: #fde68a; }
+[data-theme="dark"] .alert-warn {
+  background: rgba(251,192,45,0.08);
+  border-color: rgba(251,192,45,0.22);
+}
+[data-theme="dark"] .alert-warn-title { color: #fcd34d; }
+[data-theme="dark"] .alert-warn-item  { color: #fde68a; }
+
+/* XAI feature icon backgrounds */
+[data-theme="dark"] .xai-feat-icon-ok { background: rgba(74,222,128,0.15);  }
+[data-theme="dark"] .xai-feat-icon-lo { background: rgba(252,211,77,0.15);  }
+[data-theme="dark"] .xai-feat-icon-hi { background: rgba(252,165,165,0.15); }
+[data-theme="dark"] .xai-feat-icon-na { background: rgba(209,213,219,0.10); }
+
+/* XAI status badges */
+[data-theme="dark"] .xb-ok { background: rgba(74,222,128,0.15);  color: #4ade80; }
+[data-theme="dark"] .xb-lo { background: rgba(252,211,77,0.15);  color: #fcd34d; }
+[data-theme="dark"] .xb-hi { background: rgba(252,165,165,0.15); color: #f87171; }
+[data-theme="dark"] .xb-na { background: rgba(209,213,219,0.10); color: var(--muted); }
+
+/* Suitability badges */
+[data-theme="dark"] .sb-ok { background: rgba(74,222,128,0.15);  color: #4ade80; }
+[data-theme="dark"] .sb-lo { background: rgba(252,211,77,0.15);  color: #fcd34d; }
+[data-theme="dark"] .sb-hi { background: rgba(252,165,165,0.15); color: #f87171; }
+
+/* Compare confidence pills */
+[data-theme="dark"] .cp-hi { background: rgba(74,222,128,0.15);  color: #4ade80; }
+[data-theme="dark"] .cp-md { background: rgba(252,211,77,0.15);  color: #fcd34d; }
+[data-theme="dark"] .cp-lo { background: rgba(252,165,165,0.15); color: #f87171; }
+
+/* History panel */
+[data-theme="dark"] .hist-clear       { background: rgba(220,38,38,0.12); }
+[data-theme="dark"] .hist-clear:hover { background: rgba(220,38,38,0.22); }
+[data-theme="dark"] .hist-conf-hi { background: rgba(74,222,128,0.15);  color: #4ade80; }
+[data-theme="dark"] .hist-conf-md { background: rgba(252,211,77,0.15);  color: #fcd34d; }
+[data-theme="dark"] .hist-conf-lo { background: rgba(252,165,165,0.15); color: #f87171; }

@@ -3,22 +3,15 @@ import { Link } from 'react-router-dom';
 export default function MarketplacePage() {
   return (
     <main className="marketplace-page">
-      <section className="marketplace-card">
-        <p className="section__label">Marketplace</p>
-        <h1>Public agricultural marketplace</h1>
-        <p>
-          Visitors can browse marketplace content and the landing page without creating an account.
-        </p>
-
+      <div className="marketplace-hero">
+        <div className="marketplace-hero__illustration">🛒</div>
+        <h1 className="marketplace-hero__title">SmartAgri Marketplace</h1>
+        <p className="marketplace-hero__sub">A trusted place to connect, trade, and grow together.<br />Buy, sell, and discover the best opportunities in agriculture.</p>
         <div className="marketplace-actions">
-          <Link className="button button--primary" to="/">
-            Back to landing page
-          </Link>
-          <Link className="button button--ghost" to="/login">
-            Login
-          </Link>
+          <Link className="button button--outline" to="/">← Back to Landing</Link>
+          <Link className="button button--primary" to="/login">Login to Continue →</Link>
         </div>
-      </section>
+      </div>
     </main>
   );
 }
