@@ -45,9 +45,9 @@
 .nav-brand-text {
   font-family: var(--ff);
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--green-primary);
-  letter-spacing: -0.3px;
+  letter-spacing: -0.4px;
   line-height: 1.1;
 }
 
@@ -157,7 +157,7 @@
 .lang-btn.on {
   background: var(--green-primary);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(46,125,50,0.30);
+  box-shadow: 0 2px 8px rgba(15,90,42,0.35);
 }
 
 .lang-btn:not(.on):hover { color: var(--green-primary); }

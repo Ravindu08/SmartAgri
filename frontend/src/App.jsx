@@ -29,6 +29,7 @@ import CropGuidance from './pages/CropGuidance';
 import YieldPrice from './pages/YieldPrice';
 import Weather from './pages/Weather';
 import About from './pages/About';
+import ContactPage from './pages/ContactPage';
 import { T } from './data/translations';
 
 // ── Styles ────────────────────────────────────────────────────────────────────
@@ -83,8 +84,8 @@ function AppRoutes() {
         <Route path="/marketplace" element={<MarketplacePage />} />
 
         {/* Dashboards */}
-        <Route path="/dashboard/admin"      element={<DashboardPage title="Admin Dashboard"      role="Admin"       summary="Review platform activity, users, and system operations."              primaryLink="/marketplace" primaryLabel="Open platform view"   highlights={[{ title:'User oversight',  description:'Monitor registered traders and land owners across the system.' },{ title:'Platform control', description:'Maintain the marketplace and administrative workflows.' }]} />} />
-        <Route path="/dashboard/trader"     element={<DashboardPage title="Trader Dashboard"     role="Trader"      summary="Manage products, trade opportunities, and marketplace activity."      primaryLink="/marketplace" primaryLabel="Open marketplace"      highlights={[{ title:'Market listings', description:'Track product listings and trading opportunities in one place.' },{ title:'Buyer activity', description:'Review interest from land owners and buyers across the platform.' }]} />} />
+        <Route path="/dashboard/admin"      element={<DashboardPage title="Admin Dashboard"      role="Admin"       summary="Review platform activity, users, and system operations."              primaryLink="/marketplace" primaryLabel="Open platform view"   highlights={[{ title:'User oversight',  description:'Monitor registered traders and land owners across the system.' },{ title:'Platform control', description:'Maintain the marketplace and administrative workflows.' }]} stats={[{icon:'👥',label:'Total Users',value:'1,248'},{icon:'🌾',label:'Land Owners',value:'832'},{icon:'📦',label:'Traders',value:'416'},{icon:'📋',label:'Active Listings',value:'320'}]} />} />
+        <Route path="/dashboard/trader"     element={<DashboardPage title="Trader Dashboard"     role="Trader"      summary="Manage products, trade opportunities, and marketplace activity."      primaryLink="/marketplace" primaryLabel="Open marketplace"      highlights={[{ title:'Market listings', description:'Track product listings and trading opportunities in one place.' },{ title:'Buyer activity', description:'Review interest from land owners and buyers across the platform.' }]} stats={[{icon:'📋',label:'Active Listings',value:'12'},{icon:'🛒',label:'Total Orders',value:'27'},{icon:'💰',label:'Revenue',value:'Rs. 245K'},{icon:'💬',label:'Messages',value:'5'}]} />} />
 
         {/* Part 1 — ML tool pages */}
         <Route path="/crop-recommendation" element={<CropRecommendationPage />} />
@@ -92,12 +93,13 @@ function AppRoutes() {
         <Route path="/wx"                  element={<WeatherPage />} />
         <Route path="/yield-price"         element={<YieldPricePage />} />
         <Route path="/about"               element={<AboutPage />} />
+        <Route path="/contact"             element={<ContactPage />} />
       </Route>
 
       {/* Land Owner section (protected layout) */}
       <Route path="/landowner" element={<LandOwnerLayout />}>
         <Route index element={<Navigate to="/landowner/dashboard" replace />} />
-        <Route path="dashboard" element={<DashboardPage title="Land Owner Dashboard" role="Land Owner" summary="Manage land resources, collaborations, and service requests." primaryLink="/marketplace" primaryLabel="Browse marketplace" highlights={[{ title:'Land opportunities', description:'Organize land access, availability, and partnership requests.' },{ title:'Farming support', description:'Coordinate the services and tools that support your land use.' }]} />} />
+        <Route path="dashboard" element={<DashboardPage title="Land Owner Dashboard" role="Land Owner" summary="Manage land resources, collaborations, and service requests." primaryLink="/marketplace" primaryLabel="Browse marketplace" highlights={[{ title:'Land opportunities', description:'Organize land access, availability, and partnership requests.' },{ title:'Farming support', description:'Coordinate the services and tools that support your land use.' }]} stats={[{icon:'🌾',label:'My Farms',value:'3'},{icon:'🌱',label:'My Crops',value:'8'},{icon:'🧺',label:'Upcoming Harvest',value:'2'},{icon:'🌤️',label:'Weather Today',value:'28°C'}]} />} />
         <Route path="farms"          element={<MyFarms />} />
         <Route path="farms/add"      element={<AddFarm />} />
         <Route path="farms/edit/:id" element={<EditFarm />} />

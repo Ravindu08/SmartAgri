@@ -5,6 +5,7 @@
  */
 import { Outlet, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
+import Footer from './Footer';
 import { useApp } from '../context/AppContext';
 
 export default function AppLayout() {
@@ -30,6 +31,7 @@ export default function AppLayout() {
       <main>
         <Outlet context={{ lang, setLang, weather, setWeather, setPage }} />
       </main>
+      <Footer />
     </>
   );
 }

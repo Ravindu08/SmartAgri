@@ -16,6 +16,27 @@ const ABOUT_T = {
     techTitle:      "Technology",
     techSub:        "Built with modern, accessible tools",
     comingSoon:     "Coming Soon",
+    missionLabel:   "MISSION & VISION",
+    missionTitle:   "What drives us",
+    missionSub:     "We believe every Sri Lankan farmer deserves access to the best agricultural intelligence.",
+    missionCardTitle: "Our Mission",
+    missionCardText:  "Empower Sri Lankan farmers and land owners with AI-driven insights to make better crop decisions, reduce losses, and improve livelihoods — for free.",
+    visionCardTitle: "Our Vision",
+    visionCardText:  "A future where every farmer has the same quality of agricultural intelligence, regardless of where they are or what resources they have.",
+    impactLabel:    "IMPACT",
+    impactTitle:    "Designed for real-world results",
+    impactNums: [
+      { num: "4",    suffix: "",  label: "AI-Powered Tools" },
+      { num: "5",    suffix: "+", label: "Crop Guidance Modules" },
+      { num: "25",   suffix: "+", label: "Sri Lankan Districts" },
+      { num: "100",  suffix: "%", label: "Open Source" },
+    ],
+    contactTitle:   "Contact Us",
+    contactSub:     "Have questions or feedback? Reach out to the SmartAgri team.",
+    contactEmail:   "Email",
+    contactProject: "Project",
+    contactProjectVal: "Academic Final Year Project — University of Sri Lanka",
+    contactNote:    "SmartAgri is an open-source academic project. Contributions and feedback are welcome.",
   },
   si: {
     heroBadge:      "ව්‍යාපෘතිය ගැන",
@@ -32,6 +53,27 @@ const ABOUT_T = {
     techTitle:      "තාක්ෂණය",
     techSub:        "නවීන, ප්‍රවේශ හැකි මෙවලම් සමඟ ගොඩ නගන ලදී",
     comingSoon:     "ළඟදීම",
+    missionLabel:   "මෙහෙවර සහ දැක්ම",
+    missionTitle:   "අපව ගෙනයන්නේ කුමක්ද",
+    missionSub:     "ශ්‍රී ලාංකික සෑම ගොවියෙකුම හොඳම කෘෂිකාර්මික බුද්ධිය ලැබිය යුතු බව අපි විශ්වාස කරමු.",
+    missionCardTitle: "අපගේ මෙහෙවර",
+    missionCardText:  "ශ්‍රී ලාංකික ගොවීන් සහ ඉඩම් හිමිකරුවන් AI-ධාවිත විශ්ලේෂණ සමඟ සවිබල ගැන්වීම — නොමිලේ.",
+    visionCardTitle: "අපගේ දැක්ම",
+    visionCardText:  "සෑම ගොවියෙකුටම ඔවුන් සිටින ස්ථානය හෝ ඔවුන් සතු සම්පත් නොසලකා හොඳම කෘෂිකාර්මික බුද්ධිය ලැබෙන අනාගතයක්.",
+    impactLabel:    "බලපෑම",
+    impactTitle:    "සැබෑ ප්‍රතිඵල සඳහා සැලසුම් කරන ලදී",
+    impactNums: [
+      { num: "4",    suffix: "",  label: "AI-ශක්‍ය මෙවලම්" },
+      { num: "5",    suffix: "+", label: "බෝග මාර්ගෝපදේශ" },
+      { num: "25",   suffix: "+", label: "ශ්‍රී ලාංකික දිස්ත්‍රික්ක" },
+      { num: "100",  suffix: "%", label: "විවෘත මූලාශ්‍ර" },
+    ],
+    contactTitle:   "සම්බන්ධ කරගන්න",
+    contactSub:     "ප්‍රශ්න හෝ ප්‍රතිපෝෂණ ඇතිද? SmartAgri කණ්ඩායමට සම්බන්ධ වන්න.",
+    contactEmail:   "ඊ-තැපෑල",
+    contactProject: "ව්‍යාපෘතිය",
+    contactProjectVal: "ශ්‍රී ලාංකා විශ්ව විද්‍යාලයේ අධ්‍යයනික අවසාන වසර ව්‍යාපෘතිය",
+    contactNote:    "SmartAgri යනු විවෘත-මූලාශ්‍ර අධ්‍යයනික ව්‍යාපෘතියකි. දායකත්ව සහ ප්‍රතිපෝෂණ සාදරයෙන් පිළිගනිමු.",
   },
   ta: {
     heroBadge:      "இந்த திட்டத்தைப் பற்றி",
@@ -48,6 +90,27 @@ const ABOUT_T = {
     techTitle:      "தொழில்நுட்பம்",
     techSub:        "நவீன, அணுகக்கூடிய கருவிகளுடன் கட்டப்பட்டது",
     comingSoon:     "விரைவில்",
+    missionLabel:   "நோக்கம் & தொலைநோக்கு",
+    missionTitle:   "எங்களை இயக்குவது என்ன",
+    missionSub:     "ஒவ்வொரு இலங்கை விவசாயியும் சிறந்த வேளாண் நுண்ணறிவை அணுக தகுதியானவர் என்று நாங்கள் நம்புகிறோம்.",
+    missionCardTitle: "எங்கள் நோக்கம்",
+    missionCardText:  "இலங்கை விவசாயிகள் மற்றும் நில உரிமையாளர்களை AI நுண்ணறிவுடன் வலுப்படுத்துவது — இலவசமாக.",
+    visionCardTitle: "எங்கள் தொலைநோக்கு",
+    visionCardText:  "ஒவ்வொரு விவசாயியும் அவர்கள் இருக்கும் இடம் அல்லது வளங்களைப் பொருட்படுத்தாமல் சிறந்த வேளாண் நுண்ணறிவை பெறும் எதிர்காலம்.",
+    impactLabel:    "தாக்கம்",
+    impactTitle:    "உண்மையான முடிவுகளுக்கு வடிவமைக்கப்பட்டது",
+    impactNums: [
+      { num: "4",    suffix: "",  label: "AI கருவிகள்" },
+      { num: "5",    suffix: "+", label: "பயிர் வழிகாட்டல்" },
+      { num: "25",   suffix: "+", label: "இலங்கை மாவட்டங்கள்" },
+      { num: "100",  suffix: "%", label: "திறந்த மூலம்" },
+    ],
+    contactTitle:   "தொடர்பு கொள்ளுங்கள்",
+    contactSub:     "கேள்விகள் அல்லது கருத்துக்கள் உள்ளதா? SmartAgri குழுவை தொடர்பு கொள்ளுங்கள்.",
+    contactEmail:   "மின்னஞ்சல்",
+    contactProject: "திட்டம்",
+    contactProjectVal: "இலங்கை பல்கலைக்கழக கல்வி இறுதி ஆண்டு திட்டம்",
+    contactNote:    "SmartAgri ஒரு திறந்த மூல கல்வி திட்டம். பங்களிப்புகளும் கருத்துக்களும் வரவேற்கப்படுகின்றன.",
   },
 };
 
@@ -120,6 +183,39 @@ export default function About({ lang }) {
 
       <div className="about-body">
 
+        {/* ── Mission & Vision ── */}
+        <section className="about-section about-mission-section">
+          <div className="about-section-label">{t.missionLabel}</div>
+          <h2 className="about-section-title">{t.missionTitle}</h2>
+          <p className="about-section-sub">{t.missionSub}</p>
+          <div className="about-mv-grid">
+            <div className="about-mv-card about-mv-card--mission">
+              <div className="about-mv-icon">🎯</div>
+              <h3 className="about-mv-title">{t.missionCardTitle}</h3>
+              <p className="about-mv-text">{t.missionCardText}</p>
+            </div>
+            <div className="about-mv-card about-mv-card--vision">
+              <div className="about-mv-icon">🔭</div>
+              <h3 className="about-mv-title">{t.visionCardTitle}</h3>
+              <p className="about-mv-text">{t.visionCardText}</p>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Impact Numbers ── */}
+        <section className="about-section about-impact-section">
+          <div className="about-section-label">{t.impactLabel}</div>
+          <h2 className="about-section-title">{t.impactTitle}</h2>
+          <div className="about-impact-grid">
+            {t.impactNums.map((item, i) => (
+              <div key={i} className="about-impact-card" style={{ animationDelay: `${i * 0.08}s` }}>
+                <div className="about-impact-num">{item.num}<span className="about-impact-suffix">{item.suffix}</span></div>
+                <div className="about-impact-label">{item.label}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* ── Problem + Solution ── */}
         <div className="about-ps-grid">
           <div className="about-ps-card about-ps-card--problem">
@@ -191,6 +287,34 @@ export default function About({ lang }) {
               </div>
             ))}
           </div>
+        </section>
+
+        {/* ── Contact ── */}
+        <section id="contact" className="about-section about-contact-section">
+          <div className="about-section-label">Contact</div>
+          <h2 className="about-section-title">{t.contactTitle}</h2>
+          <p className="about-section-sub">{t.contactSub}</p>
+
+          <div className="about-contact-grid">
+            <div className="about-contact-card">
+              <div className="about-contact-icon">📧</div>
+              <div className="about-contact-label">{t.contactEmail}</div>
+              <a className="about-contact-value" href="mailto:induwara.ihalavithana@gmail.com">
+                induwara.ihalavithana@gmail.com
+              </a>
+            </div>
+            <div className="about-contact-card">
+              <div className="about-contact-icon">🎓</div>
+              <div className="about-contact-label">{t.contactProject}</div>
+              <div className="about-contact-value">{t.contactProjectVal}</div>
+            </div>
+            <div className="about-contact-card">
+              <div className="about-contact-icon">💬</div>
+              <div className="about-contact-label">GitHub</div>
+              <div className="about-contact-value">SmartAgri — Open Source</div>
+            </div>
+          </div>
+          <p className="about-contact-note">{t.contactNote}</p>
         </section>
 
       </div>

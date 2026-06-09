@@ -31,9 +31,9 @@
 .guidance-wx-action .guidance-wx-title  { color: #14532D; }
 .guidance-wx-action .guidance-wx-detail { color: #166534; }
 
-.guidance-wx-info { background: #EFF6FF; border-color: #3B82F6; }
-.guidance-wx-info .guidance-wx-title  { color: #1E3A8A; }
-.guidance-wx-info .guidance-wx-detail { color: #1E40AF; }
+.guidance-wx-info { background: var(--green-subtle); border-color: rgba(15,90,42,0.35); }
+.guidance-wx-info .guidance-wx-title  { color: var(--green-dark); }
+.guidance-wx-info .guidance-wx-detail { color: var(--green-primary); }
 
 /* ══════════════════════════════════════════════════════
    PAGE LAYOUT
@@ -178,7 +178,7 @@
 .guidance-selector input[type="date"]:focus {
   border-color: var(--green-primary);
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(46,125,50,0.12);
+  box-shadow: 0 0 0 3px rgba(15,90,42,0.14);
 }
 .guidance-selector select:hover:not(:focus),
 .guidance-selector input[type="date"]:hover:not(:focus) {
@@ -215,7 +215,7 @@
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.16), transparent);
   transition: left 0.5s ease;
 }
-.guidance-generate-btn:hover { background: var(--green-dark); transform: translateY(-1px); box-shadow: 0 10px 28px rgba(46,125,50,0.38); }
+.guidance-generate-btn:hover { background: var(--green-dark); transform: translateY(-1px); box-shadow: 0 10px 28px rgba(15,90,42,0.42); }
 .guidance-generate-btn:hover::before { left: 150%; }
 .guidance-generate-btn:active { transform: translateY(0); }
 
@@ -256,7 +256,7 @@
   margin-bottom: 20px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 16px 48px rgba(27,94,32,0.35);
+  box-shadow: 0 16px 48px rgba(7,58,24,0.42);
   animation: fadeInUp 0.4s ease;
 }
 .guidance-crop-header::before {
@@ -426,7 +426,7 @@
 .guidance-timeline { display: flex; flex-direction: column; gap: 10px; }
 
 .guidance-stage { border-radius: var(--radius-sm); overflow: hidden; border: 1.5px solid var(--border); transition: border-color var(--tr); }
-.guidance-stage:hover { border-color: rgba(46,125,50,0.3); }
+.guidance-stage:hover { border-color: rgba(15,90,42,0.32); }
 
 .guidance-stage-header {
   display: flex;
@@ -439,7 +439,7 @@
   user-select: none;
 }
 .guidance-stage-header:hover { background: var(--green-subtle); }
-.guidance-stage-header.active-stage { background: var(--green-light); border-color: rgba(46,125,50,0.3); }
+.guidance-stage-header.active-stage { background: var(--green-light); border-color: rgba(15,90,42,0.32); }
 
 .stage-icon  { font-size: 22px; flex-shrink: 0; }
 .stage-info  { flex: 1; min-width: 0; }
@@ -490,7 +490,7 @@
 }
 .activity-card:hover {
   background: var(--card);
-  border-color: rgba(46,125,50,0.25);
+  border-color: rgba(15,90,42,0.28);
   box-shadow: var(--shadow-sm);
   transform: translateX(2px);
 }
@@ -755,7 +755,7 @@
 }
 .harvest-block:hover {
   background: var(--card);
-  border-color: rgba(46,125,50,0.25);
+  border-color: rgba(15,90,42,0.28);
   box-shadow: var(--shadow-sm);
 }
 .harvest-block label {
@@ -862,7 +862,7 @@
   box-shadow: var(--shadow-sm);
 }
 .cult-session-card:hover {
-  border-color: rgba(46,125,50,0.3);
+  border-color: rgba(15,90,42,0.32);
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
@@ -942,7 +942,7 @@
 .cult-btn-open    { background: var(--green-primary); color: #fff; border-color: var(--green-primary); box-shadow: var(--shadow-green); }
 .cult-btn-open:hover { background: var(--green-dark); }
 
-.cult-btn-done    { background: var(--green-light); color: var(--green-primary); border-color: rgba(46,125,50,0.25); }
+.cult-btn-done    { background: var(--green-light); color: var(--green-primary); border-color: rgba(15,90,42,0.28); }
 .cult-btn-done:hover { background: #C8E6C9; }
 
 .cult-btn-skip    { background: var(--border-soft); color: var(--muted); }
@@ -1087,7 +1087,7 @@
 
 .cult-cal-today-btn {
   padding: 5px 14px;
-  border: 1.5px solid rgba(46,125,50,0.3);
+  border: 1.5px solid rgba(15,90,42,0.32);
   border-radius: var(--radius-sm);
   background: var(--green-light);
   color: var(--green-primary);
@@ -1144,7 +1144,7 @@
 .cult-task-chip:hover { transform: scale(1.15); box-shadow: var(--shadow-md); }
 .cult-task-chip.status-pending  { background: var(--border-soft); border-color: var(--border); }
 .cult-task-chip.status-overdue  { background: #FEF3C7; border-color: #FCD34D; }
-.cult-task-chip.status-done     { background: var(--green-light); border-color: rgba(46,125,50,0.3); }
+.cult-task-chip.status-done     { background: var(--green-light); border-color: rgba(15,90,42,0.32); }
 .cult-task-chip.status-skipped  { background: var(--border-soft); border-color: var(--border); opacity: 0.45; }
 
 .cult-chip-legend {
@@ -1250,7 +1250,7 @@
 .harvest-grid--top { margin-bottom: 16px; }
 .harvest-block--highlight {
   background: var(--green-light);
-  border-color: rgba(46,125,50,0.25);
+  border-color: rgba(15,90,42,0.28);
 }
 .harvest-block--highlight label { color: var(--green-primary); }
 .harvest-val { font-weight: 700; font-size: 14px; margin: 0; color: var(--text); }
