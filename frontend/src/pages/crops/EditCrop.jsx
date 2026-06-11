@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getCrop, updateCrop } from '../../services/cropService';
 import { getFarms } from '../../services/farmService';
+import { useApp } from '../../context/AppContext';
+import { LAND_T } from '../../data/translations';
 import Toast from '../../components/Toast';
 
 const GROWTH_STAGES = ['Seed', 'Germination', 'Vegetative', 'Flowering', 'Fruiting', 'Harvest'];
@@ -10,6 +12,9 @@ const STATUSES = ['Active', 'Completed', 'Failed'];
 export default function EditCrop() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { lang } = useApp();
+  const t = LAND_T[lang] || LAND_T.en;
+
   const [farms, setFarms] = useState([]);
   const [formData, setFormData] = useState({
     farm_id: '',
@@ -57,14 +62,14 @@ export default function EditCrop() {
   };
 
   const validate = () => {
-    if (!formData.crop_name.trim()) return 'Crop name is required.';
-    if (!formData.crop_type.trim()) return 'Crop type is required.';
-    if (!formData.category.trim()) return 'Crop category is required.';
-    if (!formData.farm_id) return 'Farm selection is required.';
-    if (!formData.planting_date) return 'Planting date is required.';
-    if (!formData.expected_harvest_date) return 'Expected harvest date is required.';
+    if (!formData.crop_name.trim()) return t.valCropName;
+    if (!formData.crop_type.trim()) return t.valCropType;
+    if (!formData.category.trim()) return t.valCropCategory;
+    if (!formData.farm_id) return t.valFarmRequired;
+    if (!formData.planting_date) return t.valPlantingDate;
+    if (!formData.expected_harvest_date) return t.valHarvestDate;
     if (new Date(formData.expected_harvest_date) <= new Date(formData.planting_date)) {
-      return 'Expected harvest date must be after planting date.';
+      return t.valHarvestAfterPlanting;
     }
     return '';
   };
@@ -100,23 +105,23 @@ export default function EditCrop() {
   };
 
   if (isLoading) {
-    return <div className="crop-loading">Loading crop details...</div>;
+    return <div className="crop-loading">{t.loadingCropDetails}</div>;
   }
 
   return (
     <section className="crop-form-page">
       <div className="crop-form-header">
-        <p className="section__label">Edit Crop</p>
-        <h1>Update crop details</h1>
-        <p>Adjust the crop record, stage, and harvest plan for this farm.</p>
+        <p className="section__label">{t.editCropLabel}</p>
+        <h1>{t.updateCropDetails}</h1>
+        <p>{t.editCropDesc}</p>
       </div>
 
       <form className="crop-form" onSubmit={handleSubmit}>
         <div className="crop-form__grid">
           <label>
-            Farm
+            {t.farmField}
             <select name="farm_id" value={formData.farm_id} onChange={handleChange} required>
-              <option value="">Select a farm</option>
+              <option value="">{t.selectFarmPh}</option>
               {farms.map((farm) => (
                 <option key={farm.id} value={farm.id}>
                   {farm.farm_name} — {farm.location}
@@ -125,19 +130,19 @@ export default function EditCrop() {
             </select>
           </label>
           <label>
-            Crop Name
+            {t.cropNameField}
             <input name="crop_name" value={formData.crop_name} onChange={handleChange} required />
           </label>
           <label>
-            Crop Type
+            {t.cropTypeField}
             <input name="crop_type" value={formData.crop_type} onChange={handleChange} required />
           </label>
           <label>
-            Crop Category
+            {t.cropCategoryField}
             <input name="category" value={formData.category} onChange={handleChange} required />
           </label>
           <label>
-            Growth Stage
+            {t.growthStageField}
             <select name="growth_stage" value={formData.growth_stage} onChange={handleChange}>
               {GROWTH_STAGES.map((stage) => (
                 <option key={stage} value={stage}>
@@ -147,11 +152,11 @@ export default function EditCrop() {
             </select>
           </label>
           <label>
-            Planting Date
+            {t.plantingDateField}
             <input name="planting_date" type="date" value={formData.planting_date} onChange={handleChange} required />
           </label>
           <label>
-            Expected Harvest Date
+            {t.harvestDateField}
             <input
               name="expected_harvest_date"
               type="date"
@@ -161,7 +166,7 @@ export default function EditCrop() {
             />
           </label>
           <label>
-            Status
+            {t.statusField}
             <select name="status" value={formData.status} onChange={handleChange}>
               {STATUSES.map((status) => (
                 <option key={status} value={status}>
@@ -176,10 +181,10 @@ export default function EditCrop() {
 
         <div className="crop-form__actions">
           <button className="button button--outline" type="button" onClick={() => navigate('/landowner/crops')}>
-            Cancel
+            {t.cancelBtn}
           </button>
           <button className="button button--primary" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving crop...' : 'Save changes'}
+            {isSubmitting ? t.savingCropDots2 : t.saveChangesCropBtn}
           </button>
         </div>
       </form>
