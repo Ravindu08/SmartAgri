@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { getCrops, updateCrop } from '../../services/cropService';
+import { getCrops, deleteCrop } from '../../services/cropService';
 import { listCultivations, abandonCultivation } from '../../utils/cultivationApi';
 import { getAuthSession } from '../../services/api';
 import { CROP_EMOJI } from '../../data/cropData';
@@ -36,7 +36,6 @@ export default function MyCultivations() {
   const [startCrop,       setStartCrop]       = useState('');
   const [crops,           setCrops]           = useState([]);
   const [sessions,        setSessions]        = useState([]);
-  const [allSessions,     setAllSessions]     = useState([]);
   const [isLoading,       setIsLoading]       = useState(true);
   const [abandonTarget,   setAbandonTarget]   = useState(null);
   const [isAbandoning,    setIsAbandoning]    = useState(false);
@@ -55,7 +54,6 @@ export default function MyCultivations() {
       const allSess = cultData.sessions || [];
       setCrops(active);
       setSessions(allSess.filter(s => s.status === 'active'));
-      setAllSessions(allSess);
     } catch (err) {
       setToast({ type: 'error', message: err.message });
     } finally {
@@ -88,8 +86,8 @@ export default function MyCultivations() {
     const { crop, session } = abandonTarget;
     try {
       if (session) await abandonCultivation(userId, session.id);
-      await updateCrop(crop.id, { status: 'Failed' });
-      setToast({ type: 'success', message: `${crop.crop_name} cultivation abandoned.` });
+      await deleteCrop(crop.id);
+      setToast({ type: 'success', message: `${crop.crop_name} has been removed.` });
       await loadData();
     } catch (err) {
       setToast({ type: 'error', message: err.message });
@@ -222,42 +220,14 @@ export default function MyCultivations() {
         </div>
       )}
 
-      {/* Abandoned sessions history */}
-      {allSessions.filter(s => s.status === 'abandoned').length > 0 && (
-        <div style={{ marginTop: 32 }}>
-          <div className="cult-section-divider">Abandoned Sessions</div>
-          <div className="cult-list">
-            {allSessions.filter(s => s.status === 'abandoned').map(s => {
-              const prog = sessionProgress(s);
-              return (
-                <div key={s.id} className="cult-session-card abandoned">
-                  <div className="cult-card-top">
-                    <div>
-                      <div className="cult-card-crop">{CROP_EMOJI[s.crop] || '🌱'} {s.crop}</div>
-                      <div className="cult-card-sub">📅 {new Date(s.planting_date).toLocaleDateString()}</div>
-                    </div>
-                    <span className="cult-status-badge status-abandoned">Abandoned</span>
-                  </div>
-                  <div className="cult-progress-bar">
-                    <div className="cult-progress-fill" style={{ width: `${prog.pct}%` }} />
-                  </div>
-                  <div className="cult-card-footer">
-                    <span>{prog.done}/{prog.total} tasks completed</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {abandonTarget && (
         <div className="modal-overlay">
           <div className="modal-panel">
             <h2>Abandon Cultivation</h2>
             <p>
-              Stop cultivating <strong>{abandonTarget.crop.crop_name}</strong>? This will mark the crop
-              as abandoned{abandonTarget.session ? ' and end the tracking session' : ''}.
+              Abandon <strong>{abandonTarget.crop.crop_name}</strong>? This will permanently delete the crop
+              {abandonTarget.session ? ' and its tracking session' : ''}. There is no way to undo this.
             </p>
             <div className="modal-actions">
               <button className="button button--ghost" type="button" onClick={() => setAbandonTarget(null)}>
