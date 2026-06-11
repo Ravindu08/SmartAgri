@@ -47,7 +47,7 @@ const FAQS = [
       },
       {
         q: 'Can I abandon a cultivation?',
-        a: 'Yes. From My Crops or My Cultivations, find the crop and click Abandon. This ends the tracking session and marks the crop as failed. Abandoned sessions appear at the bottom of My Cultivations for reference.',
+        a: 'Yes. From My Crops, My Cultivations, or a crop\'s detail page, find the crop and click Abandon. This permanently deletes the crop and its tracking session — no record is kept. This action cannot be undone.',
       },
       {
         q: 'Why is my expected harvest date fixed at 120 days?',

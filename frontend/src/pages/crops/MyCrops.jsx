@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getCrops, updateCrop } from '../../services/cropService';
+import { getCrops, deleteCrop } from '../../services/cropService';
 import { listCultivations, abandonCultivation } from '../../utils/cultivationApi';
 import { getAuthSession } from '../../services/api';
 import { CROP_EMOJI } from '../../data/cropData';
@@ -75,8 +75,8 @@ export default function MyCrops() {
     const { crop, session } = abandonTarget;
     try {
       if (session) await abandonCultivation(userId, session.id);
-      await updateCrop(crop.id, { status: 'Failed' });
-      setToast({ type: 'success', message: `${crop.crop_name} cultivation abandoned.` });
+      await deleteCrop(crop.id);
+      setToast({ type: 'success', message: `${crop.crop_name} has been removed.` });
       await loadData();
     } catch (err) {
       setToast({ type: 'error', message: err.message });
@@ -189,8 +189,8 @@ export default function MyCrops() {
           <div className="modal-panel">
             <h2>Abandon Cultivation</h2>
             <p>
-              Stop cultivating <strong>{abandonTarget.crop.crop_name}</strong>? This will mark the crop
-              as abandoned{abandonTarget.session ? ' and end the tracking session' : ''}.
+              Abandon <strong>{abandonTarget.crop.crop_name}</strong>? This will permanently delete the crop
+              {abandonTarget.session ? ' and its tracking session' : ''}. There is no way to undo this.
             </p>
             <div className="modal-actions">
               <button className="button button--ghost" type="button" onClick={() => setAbandonTarget(null)}>
