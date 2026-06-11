@@ -22,6 +22,10 @@ import MyCrops from './pages/crops/MyCrops';
 import AddCrop from './pages/crops/AddCrop';
 import EditCrop from './pages/crops/EditCrop';
 import CropDetails from './pages/crops/CropDetails';
+import MyCultivations from './pages/cultivations/MyCultivations';
+import LandOwnerDashboard from './pages/landowner/LandOwnerDashboard';
+import Settings from './pages/landowner/Settings';
+import HelpSupport from './pages/landowner/HelpSupport';
 
 // ── Part 1: ML / Guidance / Weather pages ────────────────────────────────────
 import CropRecommendation from './pages/CropRecommendation';
@@ -99,7 +103,7 @@ function AppRoutes() {
       {/* Land Owner section (protected layout) */}
       <Route path="/landowner" element={<LandOwnerLayout />}>
         <Route index element={<Navigate to="/landowner/dashboard" replace />} />
-        <Route path="dashboard" element={<DashboardPage title="Land Owner Dashboard" role="Land Owner" summary="Manage land resources, collaborations, and service requests." primaryLink="/marketplace" primaryLabel="Browse marketplace" highlights={[{ title:'Land opportunities', description:'Organize land access, availability, and partnership requests.' },{ title:'Farming support', description:'Coordinate the services and tools that support your land use.' }]} stats={[{icon:'🌾',label:'My Farms',value:'3'},{icon:'🌱',label:'My Crops',value:'8'},{icon:'🧺',label:'Upcoming Harvest',value:'2'},{icon:'🌤️',label:'Weather Today',value:'28°C'}]} />} />
+        <Route path="dashboard" element={<LandOwnerDashboard />} />
         <Route path="farms"          element={<MyFarms />} />
         <Route path="farms/add"      element={<AddFarm />} />
         <Route path="farms/edit/:id" element={<EditFarm />} />
@@ -108,6 +112,9 @@ function AppRoutes() {
         <Route path="crops/add"      element={<AddCrop />} />
         <Route path="crops/edit/:id" element={<EditCrop />} />
         <Route path="crops/:id"      element={<CropDetails />} />
+        <Route path="cultivations"   element={<MyCultivations />} />
+        <Route path="settings"       element={<Settings />} />
+        <Route path="help"           element={<HelpSupport />} />
       </Route>
 
       {/* Catch-all */}

@@ -49,6 +49,7 @@
   --accent-dark:  #073A18;
   --accent-light: #E8F5E9;
   --accent-text:  #FFFFFF;
+  --primary:      var(--accent);
 
   /* ── Page gradient ── */
   --page-bg: radial-gradient(circle at top left, rgba(46,125,50,0.08), transparent 35%),

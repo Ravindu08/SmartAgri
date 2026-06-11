@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.models.user import UserRole
 
@@ -13,3 +14,15 @@ class UserRead(BaseModel):
     email: EmailStr
     role: UserRole
     created_at: datetime
+    profile_image: Optional[str] = None
+
+
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = Field(default=None, min_length=2, max_length=255)
+    email: Optional[EmailStr] = None
+    profile_image: Optional[str] = None
+
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=8, max_length=255)

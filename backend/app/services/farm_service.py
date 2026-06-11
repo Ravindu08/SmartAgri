@@ -11,9 +11,14 @@ def create_farm(db: Session, farm_in: FarmCreate, owner_id: int) -> Farm:
     farm = Farm(
         farm_name=farm_in.farm_name,
         location=farm_in.location,
+        district=farm_in.district,
         farm_size=farm_in.farm_size,
+        size_unit=farm_in.size_unit,
         soil_type=farm_in.soil_type,
+        irrigation_type=farm_in.irrigation_type,
+        cultivated_crops=farm_in.cultivated_crops,
         season=farm_in.season,
+        image_data=farm_in.image_data,
         owner_id=owner_id,
     )
     db.add(farm)
@@ -23,7 +28,9 @@ def create_farm(db: Session, farm_in: FarmCreate, owner_id: int) -> Farm:
 
 
 def get_farms_by_owner(db: Session, owner_id: int) -> list[Farm]:
-    return db.execute(select(Farm).where(Farm.owner_id == owner_id).order_by(Farm.created_at.desc())).scalars().all()
+    return db.execute(
+        select(Farm).where(Farm.owner_id == owner_id).order_by(Farm.created_at.desc())
+    ).scalars().all()
 
 
 def get_farm_by_owner(db: Session, farm_id: UUID, owner_id: int) -> Farm | None:
@@ -33,16 +40,9 @@ def get_farm_by_owner(db: Session, farm_id: UUID, owner_id: int) -> Farm | None:
 
 
 def update_farm(db: Session, farm: Farm, farm_in: FarmUpdate) -> Farm:
-    if farm_in.farm_name is not None:
-        farm.farm_name = farm_in.farm_name
-    if farm_in.location is not None:
-        farm.location = farm_in.location
-    if farm_in.farm_size is not None:
-        farm.farm_size = farm_in.farm_size
-    if farm_in.soil_type is not None:
-        farm.soil_type = farm_in.soil_type
-    if farm_in.season is not None:
-        farm.season = farm_in.season
+    # Only update fields that were explicitly included in the request payload
+    for field in farm_in.model_fields_set:
+        setattr(farm, field, getattr(farm_in, field))
 
     db.add(farm)
     db.commit()

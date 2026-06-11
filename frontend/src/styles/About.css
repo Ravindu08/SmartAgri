@@ -493,3 +493,12 @@ a.about-contact-value:hover { text-decoration: underline; color: var(--accent); 
 }
 [data-theme="dark"] .about-mv-card--vision .about-mv-title { color: #93c5fd; }
 [data-theme="dark"] .about-mv-card--vision .about-mv-text  { color: #bfdbfe; opacity: 1; }
+
+[data-theme="dark"] .about-ps-card--solution {
+  background: rgba(15,90,42,0.14);
+  border-color: rgba(124,197,118,0.20);
+}
+[data-theme="dark"] .about-ps-card--solution .about-ps-title { color: var(--green-primary); }
+[data-theme="dark"] .about-ps-card--solution .about-ps-text  { color: var(--green-mid); opacity: 1; }
+
+[data-theme="dark"] .about-module-soon { color: #fcd34d; }

@@ -97,6 +97,9 @@ export const CROP_EMOJI = {
   "Beans":"🫘","Black Gram":"🫘","Cucumber":"🥒","Kohila":"🌿","Menari (Proso Millet)":"🌾","Mustard":"🌼","Sweet Potato (Bathala)":"🍠",
 };
 
+/** All 41 crops used in the SmartAgri ML model, sorted alphabetically. */
+export const ALL_CROPS = Object.keys(CROP_YIELD_PER_ACRE).sort();
+
 export const FEAT_ICONS = {
   "N":"🌿","P":"⚗️","K":"💧","Temperature":"🌡️","Rainfall":"🌧️",
   "pH":"🧪","Humidity":"💨","NPK_Sum":"🌱","N_P_Ratio":"⚖️",

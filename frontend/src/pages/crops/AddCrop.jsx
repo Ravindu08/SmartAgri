@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { createCrop } from '../../services/cropService';
-import { getFarms } from '../../services/farmService';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { createCrop, getCropsByFarm } from '../../services/cropService';
+import { getFarm, getFarms } from '../../services/farmService';
+import { CROP_EMOJI } from '../../data/cropData';
+import { useApp } from '../../context/AppContext';
+import { LAND_T } from '../../data/translations';
 import Toast from '../../components/Toast';
 
 const GROWTH_STAGES = ['Seed', 'Germination', 'Vegetative', 'Flowering', 'Fruiting', 'Harvest'];
@@ -10,10 +13,19 @@ const STATUSES = ['Active', 'Completed', 'Failed'];
 export default function AddCrop() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const farmIdParam = searchParams.get('farm_id');
+  const { lang } = useApp();
+  const t = LAND_T[lang] || LAND_T.en;
+
   const [farms, setFarms] = useState([]);
+  const [contextFarm, setContextFarm] = useState(null);
+  const [existingCrops, setExistingCrops] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [formData, setFormData] = useState({
-    farm_id: searchParams.get('farm_id') || '',
+    farm_id: farmIdParam || '',
     crop_name: '',
+    crop_name_other: '',
     crop_type: '',
     category: '',
     growth_stage: GROWTH_STAGES[0],
@@ -21,59 +33,67 @@ export default function AddCrop() {
     expected_harvest_date: '',
     status: STATUSES[0],
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState({ type: 'success', message: '' });
   const [validationError, setValidationError] = useState('');
 
   useEffect(() => {
-    const loadFarms = async () => {
+    const loadData = async () => {
       try {
-        const response = await getFarms();
-        setFarms(response);
+        const promises = [getFarms()];
+        if (farmIdParam) {
+          promises.push(getFarm(farmIdParam));
+          promises.push(getCropsByFarm(farmIdParam));
+        }
+        const [farmsData, farmData, cropsData] = await Promise.all(promises);
+        setFarms(farmsData);
+        if (farmData) setContextFarm(farmData);
+        if (cropsData) setExistingCrops(cropsData);
       } catch (error) {
         setToast({ type: 'error', message: error.message });
       } finally {
         setIsLoading(false);
       }
     };
+    loadData();
+  }, [farmIdParam]);
 
-    loadFarms();
-  }, []);
+  const plannedCrops = contextFarm?.cultivated_crops
+    ? contextFarm.cultivated_crops.split(',').map(c => c.trim()).filter(Boolean)
+    : [];
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((current) => ({ ...current, [name]: value }));
+  const effectiveCropName =
+    formData.crop_name === '__other__' ? formData.crop_name_other : formData.crop_name;
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const validate = () => {
-    if (!formData.crop_name.trim()) return 'Crop name is required.';
-    if (!formData.crop_type.trim()) return 'Crop type is required.';
-    if (!formData.category.trim()) return 'Crop category is required.';
-    if (!formData.farm_id) return 'Farm selection is required.';
-    if (!formData.planting_date) return 'Planting date is required.';
-    if (!formData.expected_harvest_date) return 'Expected harvest date is required.';
-    if (new Date(formData.expected_harvest_date) <= new Date(formData.planting_date)) {
-      return 'Expected harvest date must be after planting date.';
-    }
+    if (!effectiveCropName.trim()) return t.valCropName;
+    if (!formData.crop_type.trim()) return t.valCropType;
+    if (!formData.category.trim()) return t.valCropCategory;
+    if (!formData.farm_id) return t.valFarmRequired;
+    if (!formData.planting_date) return t.valPlantingDate;
+    if (!formData.expected_harvest_date) return t.valHarvestDate;
+    if (new Date(formData.expected_harvest_date) <= new Date(formData.planting_date))
+      return t.valHarvestAfterPlanting;
     return '';
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setValidationError('');
-
-    const errorMessage = validate();
-    if (errorMessage) {
-      setValidationError(errorMessage);
-      return;
-    }
+    const err = validate();
+    if (err) { setValidationError(err); return; }
 
     setIsSubmitting(true);
     try {
       await createCrop({
         farm_id: formData.farm_id,
-        crop_name: formData.crop_name.trim(),
+        crop_name: effectiveCropName.trim(),
         crop_type: formData.crop_type.trim(),
         category: formData.category.trim(),
         growth_stage: formData.growth_stage,
@@ -81,7 +101,11 @@ export default function AddCrop() {
         expected_harvest_date: formData.expected_harvest_date,
         status: formData.status,
       });
-      navigate('/landowner/crops', { replace: true });
+      if (farmIdParam) {
+        navigate(`/landowner/farms/${farmIdParam}`, { replace: true });
+      } else {
+        navigate('/landowner/crops', { replace: true });
+      }
     } catch (error) {
       setToast({ type: 'error', message: error.message });
     } finally {
@@ -91,53 +115,178 @@ export default function AddCrop() {
 
   return (
     <section className="crop-form-page">
+
+      {farmIdParam && (
+        <div className="add-crop-context">
+          <Link className="add-crop-back" to={`/landowner/farms/${farmIdParam}`}>
+            {t.backToFarmLink(contextFarm ? contextFarm.farm_name : 'Farm')}
+          </Link>
+
+          {contextFarm && (
+            <div className="add-crop-farm-banner">
+              {contextFarm.image_data && (
+                <img
+                  className="add-crop-farm-banner__img"
+                  src={contextFarm.image_data}
+                  alt={contextFarm.farm_name}
+                />
+              )}
+              <div className="add-crop-farm-banner__info">
+                <h2 className="add-crop-farm-banner__name">{contextFarm.farm_name}</h2>
+                <div className="add-crop-farm-banner__meta">
+                  {contextFarm.district && (
+                    <span className="add-crop-farm-badge">📍 {contextFarm.district}</span>
+                  )}
+                  <span>{contextFarm.farm_size} {contextFarm.size_unit}</span>
+                  <span>{contextFarm.soil_type}</span>
+                  <span>{contextFarm.season} {t.seasonSuffix}</span>
+                  {contextFarm.irrigation_type && <span>{contextFarm.irrigation_type}</span>}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="add-crop-summary">
+            <div className="add-crop-summary__header">
+              <h3>{t.currentlyCultivating}</h3>
+              <span className="add-crop-summary__count">
+                {t.cropCountBadge(existingCrops.length)}
+              </span>
+            </div>
+
+            {isLoading ? (
+              <p className="add-crop-summary__empty">{t.loadingDots}</p>
+            ) : existingCrops.length === 0 ? (
+              <p className="add-crop-summary__empty">{t.noExistingCrops}</p>
+            ) : (
+              <div className="add-crop-summary__grid">
+                {existingCrops.map(crop => (
+                  <Link
+                    key={crop.id}
+                    className="add-crop-summary-card"
+                    to={`/landowner/crops/${crop.id}`}
+                  >
+                    <span className="add-crop-summary-card__emoji">
+                      {CROP_EMOJI[crop.crop_name] || '🌱'}
+                    </span>
+                    <div className="add-crop-summary-card__body">
+                      <strong>{crop.crop_name}</strong>
+                      <span className="add-crop-summary-card__stage">{crop.growth_stage}</span>
+                    </div>
+                    <span className={`add-crop-summary-card__status status--${(crop.status || '').toLowerCase()}`}>
+                      {crop.status}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="crop-form-header">
-        <p className="section__label">Add Crop</p>
-        <h1>Create a new crop record</h1>
-        <p>Capture planting details, growth stage, and harvest expectations for this farm.</p>
+        <p className="section__label">{t.addCropLabel}</p>
+        <h1>{t.recordNewCult}</h1>
+        <p>{t.addCropDesc}</p>
       </div>
 
       <form className="crop-form" onSubmit={handleSubmit}>
         <div className="crop-form__grid">
+
           <label>
-            Farm
-            <select name="farm_id" value={formData.farm_id} onChange={handleChange} required>
-              <option value="">Select a farm</option>
-              {farms.map((farm) => (
-                <option key={farm.id} value={farm.id}>
-                  {farm.farm_name} — {farm.location}
-                </option>
-              ))}
-            </select>
+            {t.farmField}
+            {farmIdParam && contextFarm ? (
+              <input
+                className="input--readonly"
+                value={`${contextFarm.farm_name}${contextFarm.district ? ` — ${contextFarm.district}` : ''}`}
+                readOnly
+              />
+            ) : (
+              <select name="farm_id" value={formData.farm_id} onChange={handleChange} required>
+                <option value="">{t.selectFarmPh}</option>
+                {farms.map((farm) => (
+                  <option key={farm.id} value={farm.id}>
+                    {farm.farm_name} — {farm.location}
+                  </option>
+                ))}
+              </select>
+            )}
+          </label>
+
+          <label>
+            {t.cropNameField}
+            {plannedCrops.length > 0 ? (
+              <select name="crop_name" value={formData.crop_name} onChange={handleChange} required>
+                <option value="">{t.selectCropPh}</option>
+                {plannedCrops.map(c => (
+                  <option key={c} value={c}>{CROP_EMOJI[c] || '🌱'} {c}</option>
+                ))}
+                <option value="__other__">{t.otherCropOpt}</option>
+              </select>
+            ) : (
+              <input
+                name="crop_name"
+                value={formData.crop_name}
+                onChange={handleChange}
+                required
+                placeholder="e.g. Chilli"
+              />
+            )}
+          </label>
+
+          {formData.crop_name === '__other__' && (
+            <label>
+              {t.cropNameSpecify}
+              <input
+                name="crop_name_other"
+                value={formData.crop_name_other}
+                onChange={handleChange}
+                required
+                placeholder={t.cropNamePh}
+              />
+            </label>
+          )}
+
+          <label>
+            {t.cropTypeField}
+            <input
+              name="crop_type"
+              value={formData.crop_type}
+              onChange={handleChange}
+              required
+              placeholder={t.cropTypePh}
+            />
           </label>
           <label>
-            Crop Name
-            <input name="crop_name" value={formData.crop_name} onChange={handleChange} required />
+            {t.cropCategoryField}
+            <input
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              required
+              placeholder={t.cropCategoryPh}
+            />
           </label>
           <label>
-            Crop Type
-            <input name="crop_type" value={formData.crop_type} onChange={handleChange} required />
-          </label>
-          <label>
-            Crop Category
-            <input name="category" value={formData.category} onChange={handleChange} required />
-          </label>
-          <label>
-            Growth Stage
+            {t.growthStageField}
             <select name="growth_stage" value={formData.growth_stage} onChange={handleChange}>
               {GROWTH_STAGES.map((stage) => (
-                <option key={stage} value={stage}>
-                  {stage}
-                </option>
+                <option key={stage} value={stage}>{stage}</option>
               ))}
             </select>
           </label>
           <label>
-            Planting Date
-            <input name="planting_date" type="date" value={formData.planting_date} onChange={handleChange} required />
+            {t.plantingDateField}
+            <input
+              name="planting_date"
+              type="date"
+              value={formData.planting_date}
+              onChange={handleChange}
+              required
+            />
           </label>
           <label>
-            Expected Harvest Date
+            {t.harvestDateField}
             <input
               name="expected_harvest_date"
               type="date"
@@ -147,26 +296,36 @@ export default function AddCrop() {
             />
           </label>
           <label>
-            Status
+            {t.statusField}
             <select name="status" value={formData.status} onChange={handleChange}>
               {STATUSES.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
+                <option key={status} value={status}>{status}</option>
               ))}
             </select>
           </label>
         </div>
 
-        {validationError ? <div className="form-error">{validationError}</div> : null}
-        {isLoading ? <div className="form-loading">Loading farms...</div> : null}
+        {validationError && <div className="form-error">{validationError}</div>}
+        {isLoading && <div className="form-loading">{t.loadingDots}</div>}
 
         <div className="crop-form__actions">
-          <button className="button button--outline" type="button" onClick={() => navigate('/landowner/crops')}>
-            Cancel
+          <button
+            className="button button--outline"
+            type="button"
+            onClick={() =>
+              farmIdParam
+                ? navigate(`/landowner/farms/${farmIdParam}`)
+                : navigate('/landowner/crops')
+            }
+          >
+            {t.cancelBtn}
           </button>
-          <button className="button button--primary" type="submit" disabled={isSubmitting || isLoading}>
-            {isSubmitting ? 'Saving crop...' : 'Save crop'}
+          <button
+            className="button button--primary"
+            type="submit"
+            disabled={isSubmitting || isLoading}
+          >
+            {isSubmitting ? t.savingCropDots : t.saveCropBtn}
           </button>
         </div>
       </form>
