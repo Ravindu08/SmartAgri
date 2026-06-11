@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getCrop } from '../../services/cropService';
-import { listCultivations } from '../../utils/cultivationApi';
+import { getCrop, deleteCrop } from '../../services/cropService';
+import { listCultivations, abandonCultivation } from '../../utils/cultivationApi';
 import { getAuthSession } from '../../services/api';
 import { useApp } from '../../context/AppContext';
 import { LAND_T } from '../../data/translations';
@@ -24,10 +24,13 @@ export default function CropDetails() {
   const { user } = getAuthSession();
   const userId = user?.id ? String(user.id) : null;
 
-  const [crop,       setCrop]       = useState(null);
-  const [cultStatus, setCultStatus] = useState(null);
-  const [isLoading,  setIsLoading]  = useState(true);
-  const [toast,      setToast]      = useState({ type: 'success', message: '' });
+  const [crop,          setCrop]          = useState(null);
+  const [cultStatus,    setCultStatus]    = useState(null);
+  const [cultSession,   setCultSession]   = useState(null);
+  const [isLoading,     setIsLoading]     = useState(true);
+  const [showAbandon,   setShowAbandon]   = useState(false);
+  const [isAbandoning,  setIsAbandoning]  = useState(false);
+  const [toast,         setToast]         = useState({ type: 'success', message: '' });
 
   useEffect(() => {
     const load = async () => {
@@ -38,8 +41,13 @@ export default function CropDetails() {
             ? listCultivations(userId).catch(() => ({ sessions: [] }))
             : Promise.resolve({ sessions: [] }),
         ]);
+        const allSessions = cultData.sessions || [];
+        const matchedSession = allSessions.find(
+          s => s.crop.toLowerCase() === cropData?.crop_name?.toLowerCase()
+        ) || null;
         setCrop(cropData);
-        setCultStatus(resolveCultStatus(cultData.sessions || [], cropData?.crop_name));
+        setCultStatus(resolveCultStatus(allSessions, cropData?.crop_name));
+        setCultSession(matchedSession);
       } catch (error) {
         setToast({ type: 'error', message: error.message });
       } finally {
@@ -48,6 +56,20 @@ export default function CropDetails() {
     };
     load();
   }, [id, userId]);
+
+  const confirmAbandon = async () => {
+    setIsAbandoning(true);
+    try {
+      if (cultSession && userId) await abandonCultivation(userId, cultSession.id);
+      await deleteCrop(id);
+      navigate('/landowner/crops');
+    } catch (err) {
+      setToast({ type: 'error', message: err.message });
+      setShowAbandon(false);
+    } finally {
+      setIsAbandoning(false);
+    }
+  };
 
   if (isLoading) return <div className="crop-loading">{t.loadingCropDetails}</div>;
 
@@ -119,8 +141,35 @@ export default function CropDetails() {
 
         <div className="crop-detail-footer">
           <Link className="button button--outline" to="/landowner/crops">{t.allCropsLink}</Link>
+          <button
+            className="button button--danger"
+            type="button"
+            onClick={() => setShowAbandon(true)}
+          >
+            Abandon Crop
+          </button>
         </div>
       </div>
+
+      {showAbandon && (
+        <div className="modal-overlay">
+          <div className="modal-panel">
+            <h2>Abandon Crop</h2>
+            <p>
+              Abandon <strong>{crop.crop_name}</strong>? This will permanently delete the crop
+              {cultSession ? ' and its tracking session' : ''}. There is no way to undo this.
+            </p>
+            <div className="modal-actions">
+              <button className="button button--ghost" type="button" onClick={() => setShowAbandon(false)}>
+                Cancel
+              </button>
+              <button className="button button--danger" type="button" onClick={confirmAbandon} disabled={isAbandoning}>
+                {isAbandoning ? 'Abandoning…' : 'Yes, Abandon'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Toast type={toast.type} message={toast.message} onClose={() => setToast({ type: '', message: '' })} />
     </section>
