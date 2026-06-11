@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import CultivationTracker from "../components/CultivationTracker";
 import WeatherLocationPicker from "../components/WeatherLocationPicker";
+import { getAuthSession } from "../services/api";
 import "../styles/CropGuidance.css";
 
 // Guidance endpoints live on the ML service (port 8000).
@@ -705,6 +707,8 @@ export default function CropGuidance({ lang, t, weather, setWeather }) {
   const [mode, setMode]                 = useState("guide");   // guide | cultivations
   const [selected, setSelected]         = useState(null);
   const [plantingDate, setPlantingDate] = useState(null);
+  const { user } = getAuthSession();
+  const isLandOwner = user?.role === 'Land Owner';
 
   const handleSelect = useCallback((crop, date) => {
     setSelected(crop);
@@ -732,7 +736,7 @@ export default function CropGuidance({ lang, t, weather, setWeather }) {
           className={`guidance-mode-tab${mode === "cultivations" ? " active" : ""}`}
           onClick={() => setMode("cultivations")}
         >
-          🌱 {t.myCultivations}
+          🌱 {t.myCultivations}{!isLandOwner ? " 🔒" : ""}
         </button>
       </div>
 
@@ -743,8 +747,21 @@ export default function CropGuidance({ lang, t, weather, setWeather }) {
               <GuidanceEmptyInfo lang={lang} />
             </>
           : <GuidanceDetail   cropName={selected} plantingDate={plantingDate} t={t} onBack={handleBack} weather={weather} />
+      ) : !isLandOwner ? (
+        <div className="cult-auth-wall">
+          <div className="cult-auth-wall__icon">🔒</div>
+          <h2 className="cult-auth-wall__title">Land Owner Access Only</h2>
+          <p className="cult-auth-wall__desc">
+            My Cultivations is a personal scheduling tool for registered Land Owners.
+            Log in with a Land Owner account to track your crop calendar, manage tasks, and monitor harvest progress.
+          </p>
+          <div className="cult-auth-wall__actions">
+            <Link className="button button--primary" to="/login">Log in as Land Owner</Link>
+            <Link className="button button--outline" to="/register">Register</Link>
+          </div>
+        </div>
       ) : (
-        <CultivationTracker t={t} lang={lang} />
+        <CultivationTracker t={t} lang={lang} userId={String(user.id)} />
       )}
     </div>
   );

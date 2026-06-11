@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
-import { getUserId } from "../utils/userId";
+import { useState, useEffect, useCallback, useRef } from "react";
 import * as API from "../utils/cultivationApi";
+import { getFarms } from "../services/farmService";
+import { createCrop } from "../services/cropService";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const ACT_META = {
@@ -483,32 +484,54 @@ function MyCultivationsList({ sessions, loading, error, t, onStart, onOpen, onAb
   );
 }
 
-// ── StartCultivationForm ──────────────────────────────────────────────────────
-function StartCultivationForm({ t, userId, onBack, onCreate }) {
-  const [crops, setCrops]     = useState([]);
-  const [crop, setCrop]       = useState("");
-  const [date, setDate]       = useState(todayStr());
-  const [district, setDistrict] = useState("");
-  const [saving, setSaving]   = useState(false);
-  const [error, setError]     = useState("");
+// ── helpers ───────────────────────────────────────────────────────────────────
+function addDays(dateStr, n) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const dt = new Date(y, m - 1, d + n);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+}
 
-  // Guidance endpoint lives on the ML service (port 8000); use empty base for Vite proxy.
-  const API_BASE = "";
+// ── StartCultivationForm ──────────────────────────────────────────────────────
+function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop }) {
+  const [cropList, setCropList] = useState([]);
+  const [farms,    setFarms]    = useState([]);
+  const [crop,     setCrop]     = useState(defaultCrop || "");
+  const [date,     setDate]     = useState(todayStr());
+  const [farmId,   setFarmId]   = useState("");
+  const [saving,   setSaving]   = useState(false);
+  const [error,    setError]    = useState("");
 
   useEffect(() => {
-    fetch(`${API_BASE}/guidance`)
+    fetch("/guidance")
       .then(r => r.json())
-      .then(d => setCrops(d.crops || []))
+      .then(d => setCropList(d.crops || []))
       .catch(() => {});
+    getFarms().then(setFarms).catch(() => {});
   }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!crop || !date) return;
+    if (!crop || !date || !farmId) return;
     setSaving(true);
     setError("");
     try {
-      const session = await API.startCultivation(userId, crop, date, district || null);
+      const selectedFarm = farms.find(f => String(f.id) === String(farmId));
+      const harvestDate  = addDays(date, 120);
+
+      await createCrop({
+        farm_id:               farmId,
+        crop_name:             crop,
+        crop_type:             crop,
+        category:              "General",
+        growth_stage:          "Seed",
+        planting_date:         date,
+        expected_harvest_date: harvestDate,
+        status:                "Active",
+      });
+
+      const session = await API.startCultivation(
+        userId, crop, date, selectedFarm?.district || null
+      );
       onCreate(session);
     } catch (err) {
       setError(err.message || "Failed to start cultivation");
@@ -534,7 +557,7 @@ function StartCultivationForm({ t, userId, onBack, onCreate }) {
           <label>{t.selectCrop}</label>
           <select value={crop} onChange={e => setCrop(e.target.value)} required>
             <option value="">{t.selectCropPh}</option>
-            {crops.map(c => <option key={c} value={c}>{c}</option>)}
+            {cropList.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <div>
@@ -547,15 +570,17 @@ function StartCultivationForm({ t, userId, onBack, onCreate }) {
           />
         </div>
         <div>
-          <label>{t.district} <span style={{ fontWeight: 400, opacity: .7 }}>({t.optional})</span></label>
-          <select value={district} onChange={e => setDistrict(e.target.value)}>
-            <option value="">{t.selectDistrictPh}</option>
-            {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+          <label>Farm</label>
+          <select value={farmId} onChange={e => setFarmId(e.target.value)} required>
+            <option value="">Select a farm…</option>
+            {farms.map(f => (
+              <option key={f.id} value={f.id}>{f.farm_name}</option>
+            ))}
           </select>
         </div>
       </div>
       {error && <div className="cult-error">{error}</div>}
-      <button className="guidance-generate-btn" type="submit" disabled={!crop || saving}>
+      <button className="guidance-generate-btn" type="submit" disabled={!crop || !farmId || saving}>
         {saving ? "⏳ " + t.creating : "🌱 " + t.startCultivation}
       </button>
     </form>
@@ -563,12 +588,11 @@ function StartCultivationForm({ t, userId, onBack, onCreate }) {
 }
 
 // ── Main export ───────────────────────────────────────────────────────────────
-export default function CultivationTracker({ t }) {
-  const userId = getUserId();
+export default function CultivationTracker({ t, userId, initialSessionId, initialView, initialCrop, onExternalBack }) {
   // Guidance endpoint lives on the ML service (port 8000); use empty base for Vite proxy.
   const API_BASE = "";
 
-  const [view, setView]               = useState("list");  // list | start | dashboard
+  const [view, setView]               = useState(initialView || "list");  // list | start | dashboard
   const [sessions, setSessions]       = useState([]);
   const [activeSession, setActiveSession] = useState(null);
   const [guidanceData, setGuidanceData]   = useState(null);
@@ -589,6 +613,17 @@ export default function CultivationTracker({ t }) {
   }, [userId]);
 
   useEffect(() => { loadSessions(); }, [loadSessions]);
+
+  // Auto-open a specific session when launched from My Crops
+  const initialOpenDone = useRef(false);
+  useEffect(() => {
+    if (!initialSessionId || initialOpenDone.current || loading || !sessions.length || view !== "list") return;
+    const target = sessions.find(s => s.id === initialSessionId);
+    if (target) {
+      initialOpenDone.current = true;
+      openSession(target);
+    }
+  }, [sessions, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleCreate(session) {
     setSessions(prev => [session, ...prev]);
@@ -645,8 +680,9 @@ export default function CultivationTracker({ t }) {
       <StartCultivationForm
         t={t}
         userId={userId}
-        onBack={() => setView("list")}
+        onBack={onExternalBack || (() => setView("list"))}
         onCreate={handleCreate}
+        defaultCrop={initialCrop}
       />
     );
   }
@@ -657,7 +693,7 @@ export default function CultivationTracker({ t }) {
         session={activeSession}
         guidanceData={guidanceData}
         t={t}
-        onBack={() => { setView("list"); setActiveSession(null); }}
+        onBack={onExternalBack || (() => { setView("list"); setActiveSession(null); })}
         onUpdateTask={handleUpdateTask}
         onAbandon={handleAbandon}
       />

@@ -16,6 +16,9 @@ const ABOUT_T = {
     techTitle:      "Technology",
     techSub:        "Built with modern, accessible tools",
     comingSoon:     "Coming Soon",
+    sysLabel:       "System",
+    teamLabel:      "Team",
+    stackLabel:     "Stack",
     missionLabel:   "MISSION & VISION",
     missionTitle:   "What drives us",
     missionSub:     "We believe every Sri Lankan farmer deserves access to the best agricultural intelligence.",
@@ -53,6 +56,9 @@ const ABOUT_T = {
     techTitle:      "තාක්ෂණය",
     techSub:        "නවීන, ප්‍රවේශ හැකි මෙවලම් සමඟ ගොඩ නගන ලදී",
     comingSoon:     "ළඟදීම",
+    sysLabel:       "පද්ධතිය",
+    teamLabel:      "කණ්ඩායම",
+    stackLabel:     "තාක්ෂණ",
     missionLabel:   "මෙහෙවර සහ දැක්ම",
     missionTitle:   "අපව ගෙනයන්නේ කුමක්ද",
     missionSub:     "ශ්‍රී ලාංකික සෑම ගොවියෙකුම හොඳම කෘෂිකාර්මික බුද්ධිය ලැබිය යුතු බව අපි විශ්වාස කරමු.",
@@ -90,6 +96,9 @@ const ABOUT_T = {
     techTitle:      "தொழில்நுட்பம்",
     techSub:        "நவீன, அணுகக்கூடிய கருவிகளுடன் கட்டப்பட்டது",
     comingSoon:     "விரைவில்",
+    sysLabel:       "அமைப்பு",
+    teamLabel:      "குழு",
+    stackLabel:     "தொழில்நுட்பம்",
     missionLabel:   "நோக்கம் & தொலைநோக்கு",
     missionTitle:   "எங்களை இயக்குவது என்ன",
     missionSub:     "ஒவ்வொரு இலங்கை விவசாயியும் சிறந்த வேளாண் நுண்ணறிவை அணுக தகுதியானவர் என்று நாங்கள் நம்புகிறோம்.",
@@ -232,7 +241,7 @@ export default function About({ lang }) {
 
         {/* ── Modules ── */}
         <section className="about-section">
-          <div className="about-section-label">System</div>
+          <div className="about-section-label">{t.sysLabel}</div>
           <h2 className="about-section-title">{t.modulesTitle}</h2>
           <p className="about-section-sub">{t.modulesSub}</p>
 
@@ -257,7 +266,7 @@ export default function About({ lang }) {
 
         {/* ── Team ── */}
         <section className="about-section">
-          <div className="about-section-label">Team</div>
+          <div className="about-section-label">{t.teamLabel}</div>
           <h2 className="about-section-title">{t.teamTitle}</h2>
           <p className="about-section-sub">{t.teamSub}</p>
 
@@ -274,7 +283,7 @@ export default function About({ lang }) {
 
         {/* ── Tech Stack ── */}
         <section className="about-section">
-          <div className="about-section-label">Stack</div>
+          <div className="about-section-label">{t.stackLabel}</div>
           <h2 className="about-section-title">{t.techTitle}</h2>
           <p className="about-section-sub">{t.techSub}</p>
 

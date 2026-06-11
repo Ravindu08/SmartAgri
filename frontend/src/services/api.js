@@ -68,3 +68,23 @@ export function loginUser(payload) {
     body: JSON.stringify(payload),
   });
 }
+
+export function updateUserProfile(payload) {
+  return request('/auth/me', { method: 'PUT', body: JSON.stringify(payload) });
+}
+
+export function changePassword(payload) {
+  return request('/auth/me/password', { method: 'PUT', body: JSON.stringify(payload) });
+}
+
+export function deleteAccount() {
+  return request('/auth/me', { method: 'DELETE' });
+}
+
+export function updateUserInSession(user) {
+  localStorage.setItem('smartagri_user', JSON.stringify(user));
+}
+
+export function updateUserAvatar(profile_image) {
+  return request('/auth/me', { method: 'PUT', body: JSON.stringify({ profile_image }) });
+}

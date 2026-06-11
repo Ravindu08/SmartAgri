@@ -583,6 +583,14 @@
 [data-theme="dark"] .yp-wx-title     { color: var(--accent); }
 [data-theme="dark"] .yp-wx-row-label { color: var(--accent); }
 
+/* Weather quality tags — average/medium (amber text was #6d4c00, invisible on dark) */
+[data-theme="dark"] .yp-wx-tag-average,
+[data-theme="dark"] .yp-wx-tag-medium {
+  background: rgba(251,192,45,0.12);
+  color: #fcd34d;
+  border-color: rgba(251,192,45,0.28);
+}
+
 /* Weather quality tags — poor/high (pink) */
 [data-theme="dark"] .yp-wx-tag-poor,
 [data-theme="dark"] .yp-wx-tag-high {

@@ -23,6 +23,7 @@ def create_crop(db: Session, payload: CropCreate, owner_id: int) -> Crop:
         planting_date=payload.planting_date,
         expected_harvest_date=payload.expected_harvest_date,
         status=payload.status,
+        season=payload.season,
     )
     db.add(crop)
     db.commit()
@@ -65,6 +66,8 @@ def update_crop(db: Session, crop: Crop, payload: CropUpdate) -> Crop:
         crop.expected_harvest_date = payload.expected_harvest_date
     if payload.status is not None:
         crop.status = payload.status
+    if payload.season is not None:
+        crop.season = payload.season
 
     db.add(crop)
     db.commit()

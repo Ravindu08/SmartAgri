@@ -30,6 +30,7 @@ class CropBase(BaseModel):
     planting_date: date
     expected_harvest_date: date
     status: CropStatus
+    season: Optional[str] = Field(default=None, max_length=32)
 
 
 class CropCreate(CropBase):
@@ -51,6 +52,7 @@ class CropUpdate(BaseModel):
     planting_date: Optional[date] = None
     expected_harvest_date: Optional[date] = None
     status: Optional[CropStatus] = None
+    season: Optional[str] = Field(default=None, max_length=32)
 
     @field_validator("expected_harvest_date")
     @classmethod
@@ -74,6 +76,7 @@ class CropRead(BaseModel):
     planting_date: date
     expected_harvest_date: date
     status: CropStatus
+    season: Optional[str] = None
     farm_name: str
     created_at: datetime
     updated_at: datetime
