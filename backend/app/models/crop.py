@@ -1,4 +1,5 @@
 from datetime import date, datetime, timezone
+from typing import Optional
 from uuid import UUID, uuid4
 
 from sqlalchemy import Date, DateTime, ForeignKey, String
@@ -31,6 +32,7 @@ class Crop(Base):
     planting_date: Mapped[date] = mapped_column(Date, nullable=False)
     expected_harvest_date: Mapped[date] = mapped_column(Date, nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
+    season: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
