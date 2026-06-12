@@ -106,6 +106,23 @@ export default function DashboardPage({ primaryLink, role, stats = [] }) {
   const navigate = useNavigate();
   const { lang } = useApp();
   const session = getAuthSession();
+
+  // Guard: redirect unauthenticated users and wrong-role users
+  if (!session.user) {
+    navigate('/login', { replace: true });
+    return null;
+  }
+  if (session.user.role !== role) {
+    const roleRoutes = {
+      'Admin': '/dashboard/admin',
+      'Trader': '/dashboard/trader',
+      'Land Owner': '/landowner/dashboard',
+    };
+    const dest = roleRoutes[session.user.role] || '/';
+    navigate(dest, { replace: true });
+    return null;
+  }
+
   const userName = session.user?.full_name || 'SmartAgri user';
   const userId   = session.user?.id ? String(session.user.id) : null;
 
@@ -118,18 +135,33 @@ export default function DashboardPage({ primaryLink, role, stats = [] }) {
       getFarms().catch(() => []),
       getCrops().catch(() => []),
       listCultivations(userId).catch(() => ({ sessions: [] })),
-    ]).then(([farms, crops, cultData]) => {
+    ]).then(async ([farms, crops, cultData]) => {
       const now   = new Date();
       const in30  = new Date(now.getTime() + 30 * 86400000);
       const upcomingCount = crops.filter(c => {
         const d = new Date(c.expected_harvest_date);
         return d >= now && d <= in30;
       }).length;
+
+      let weatherVal = '—';
+      const district = farms.find(f => f.district)?.district;
+      if (district) {
+        try {
+          const wr = await fetch(`/weather?district=${encodeURIComponent(district)}`);
+          if (wr.ok) {
+            const wd = await wr.json();
+            const temp = wd.current?.temperature;
+            const icon = wd.current?.condition_icon || '🌤️';
+            if (temp !== undefined) weatherVal = `${Math.round(temp)}°C ${icon}`;
+          }
+        } catch {}
+      }
+
       setLiveStats([
         { icon: '🌾', label: 'My Farms',         value: String(farms.length)  },
         { icon: '🌱', label: 'My Crops',         value: String(crops.length)  },
         { icon: '🧺', label: 'Upcoming Harvest', value: String(upcomingCount) },
-        { icon: '🌤️', label: 'Weather Today',    value: '—'                   },
+        { icon: '🌤️', label: 'Weather Today',    value: weatherVal            },
       ]);
       setActiveCultivations((cultData.sessions || []).filter(s => s.status === 'active'));
     });
@@ -198,7 +230,7 @@ export default function DashboardPage({ primaryLink, role, stats = [] }) {
           <div className="dash-cultivations">
             <div className="dash-cultivations__header">
               <h2>🌱 Active Cultivations</h2>
-              <Link className="button button--outline" to="/crop-guidance">View all →</Link>
+              <Link className="button button--outline" to="/landowner/cultivations">View all →</Link>
             </div>
             {activeCultivations.map(cult => {
               const tasks   = Object.values(cult.tasks || {});

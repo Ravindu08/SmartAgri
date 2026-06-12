@@ -33,6 +33,7 @@ export default function MyCrops() {
   const [sessions,     setSessions]     = useState([]);
   const [isLoading,    setIsLoading]    = useState(true);
   const [searchText,   setSearchText]   = useState('');
+  const [statusFilter, setStatusFilter] = useState('Active');
   const [toast,        setToast]        = useState({ type: 'success', message: '' });
   const [abandonTarget, setAbandonTarget] = useState(null);
   const [isAbandoning,  setIsAbandoning]  = useState(false);
@@ -46,8 +47,8 @@ export default function MyCrops() {
           ? listCultivations(userId).catch(() => ({ sessions: [] }))
           : Promise.resolve({ sessions: [] }),
       ]);
-      setCrops(cropData.filter(c => c.status === 'Active'));
-      setSessions((cultData.sessions || []).filter(s => s.status === 'active'));
+      setCrops(cropData);
+      setSessions(cultData.sessions || []);
     } catch (err) {
       setToast({ type: 'error', message: err.message });
     } finally {
@@ -57,17 +58,21 @@ export default function MyCrops() {
 
   useEffect(() => { loadData(); }, []);
 
-  function getSession(cropName) {
-    return sessions.find(s => s.crop.toLowerCase() === cropName.toLowerCase()) || null;
+  function getSession(crop) {
+    return sessions.find(s =>
+      (crop.id && s.crop_id && s.crop_id === String(crop.id)) ||
+      s.crop.toLowerCase() === crop.crop_name.toLowerCase()
+    ) || null;
   }
 
   const filtered = useMemo(() => {
+    const bySt = statusFilter === 'All' ? crops : crops.filter(c => c.status === statusFilter);
     const q = searchText.trim().toLowerCase();
-    if (!q) return crops;
-    return crops.filter(c =>
+    if (!q) return bySt;
+    return bySt.filter(c =>
       [c.crop_name, c.crop_type, c.farm_name].filter(Boolean).join(' ').toLowerCase().includes(q)
     );
-  }, [crops, searchText]);
+  }, [crops, searchText, statusFilter]);
 
   const confirmAbandon = async () => {
     if (!abandonTarget) return;
@@ -90,16 +95,33 @@ export default function MyCrops() {
     <section className="crop-page">
       <div className="crop-page__header">
         <div>
-          <p className="section__label">Current Cultivations</p>
+          <p className="section__label">{lt.cultivationTracking}</p>
           <h1>{lt.myCropsTitle}</h1>
-          <p className="section__copy">All crops currently being cultivated on your farms.</p>
+          <p className="section__copy">{lt.myCropsDesc}</p>
         </div>
       </div>
 
       <div className="crop-toolbar">
+        <div className="crop-status-tabs">
+          {[
+            { key: 'Active',    label: lt.statusActiveTab    },
+            { key: 'Completed', label: lt.statusCompletedTab },
+            { key: 'Failed',    label: lt.statusFailedTab    },
+            { key: 'All',       label: lt.statusAllTab       },
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              className={`crop-status-tab${statusFilter === key ? ' active' : ''}`}
+              onClick={() => setStatusFilter(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <input
           className="crop-search"
-          placeholder="Search by crop name, type, or farm…"
+          placeholder={lt.searchCropsPh}
           value={searchText}
           onChange={e => setSearchText(e.target.value)}
         />
@@ -109,15 +131,15 @@ export default function MyCrops() {
         <div className="crop-loading">{lt.loadingCropsDots}</div>
       ) : filtered.length === 0 ? (
         <div className="crop-empty">
-          <p>No active crops found.</p>
+          <p>{lt.noCropsFound}</p>
           <Link className="button button--primary" to="/landowner/cultivations">
-            Start a Cultivation
+            {lt.startTrackingBtn}
           </Link>
         </div>
       ) : (
         <div className="crop-grid">
           {filtered.map(crop => {
-            const session = getSession(crop.crop_name);
+            const session = getSession(crop);
             const prog = session ? sessionProgress(session) : null;
             const emoji = CROP_EMOJI[crop.crop_name] || '🌱';
 
@@ -125,7 +147,7 @@ export default function MyCrops() {
               <article key={crop.id} className="crop-card">
                 <div className="crop-card__image crop-card__image--emoji">
                   <span className="crop-card__emoji">{emoji}</span>
-                  <span className="crop-card__status-badge crop-card__status-badge--active">Active</span>
+                  <span className={`crop-card__status-badge crop-card__status-badge--${(crop.status || 'active').toLowerCase()}`}>{crop.status}</span>
                 </div>
                 <div className="crop-card__body">
                   <div className="crop-card__heading">
@@ -134,7 +156,7 @@ export default function MyCrops() {
                   </div>
                   <div className="crop-card__details">
                     <div><span>{lt.farmCardLabel}</span><strong>{crop.farm_name || '—'}</strong></div>
-                    <div><span>Started</span><strong>{new Date(crop.planting_date).toLocaleDateString()}</strong></div>
+                    <div><span>{lt.startedLabel}</span><strong>{new Date(crop.planting_date).toLocaleDateString()}</strong></div>
                     <div><span>{lt.harvestCardLabel}</span><strong>{new Date(crop.expected_harvest_date).toLocaleDateString()}</strong></div>
                   </div>
 
@@ -143,9 +165,9 @@ export default function MyCrops() {
                       <div className="crop-card__cult-row">
                         <span className="crop-card__cult-label">🌱 {lt.dayPrefix} {prog.elapsed ?? '—'}</span>
                         {prog.overdue > 0 && (
-                          <span className="crop-card__cult-overdue">⚠ {prog.overdue} overdue</span>
+                          <span className="crop-card__cult-overdue">⚠ {prog.overdue} {lt.statOverdue}</span>
                         )}
-                        <span className="crop-card__cult-active">Tracking 🟢</span>
+                        <span className="crop-card__cult-active">{lt.trackingBadge}</span>
                       </div>
                       <div className="crop-card__cult-track">
                         <div className="crop-card__cult-bar">
@@ -166,7 +188,7 @@ export default function MyCrops() {
                         type="button"
                         onClick={() => navigate('/landowner/cultivations', { state: { sessionId: session.id } })}
                       >
-                        📊 Track
+                        {lt.trackBtn}
                       </button>
                     )}
                     <button
@@ -174,7 +196,7 @@ export default function MyCrops() {
                       type="button"
                       onClick={() => setAbandonTarget({ crop, session })}
                     >
-                      Abandon
+                      {lt.abandonBtn}
                     </button>
                   </div>
                 </div>
@@ -187,9 +209,9 @@ export default function MyCrops() {
       {abandonTarget && (
         <div className="modal-overlay">
           <div className="modal-panel">
-            <h2>Abandon Cultivation</h2>
+            <h2>{lt.abandonCultivationTitle}</h2>
             <p>
-              Abandon <strong>{abandonTarget.crop.crop_name}</strong>? This will permanently delete the crop
+              {lt.abandonBtn} <strong>{abandonTarget.crop.crop_name}</strong>? This will permanently delete the crop
               {abandonTarget.session ? ' and its tracking session' : ''}. There is no way to undo this.
             </p>
             <div className="modal-actions">
@@ -197,7 +219,7 @@ export default function MyCrops() {
                 {lt.cancelBtn}
               </button>
               <button className="button button--danger" type="button" onClick={confirmAbandon} disabled={isAbandoning}>
-                {isAbandoning ? 'Abandoning…' : 'Yes, Abandon'}
+                {isAbandoning ? lt.abandoningDots : lt.yesAbandonBtn}
               </button>
             </div>
           </div>

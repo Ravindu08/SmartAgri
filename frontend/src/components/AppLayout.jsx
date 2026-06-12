@@ -18,7 +18,7 @@ export default function AppLayout() {
       home: '/',
       'crop-recommendation': '/crop-recommendation',
       'crop-guidance': '/crop-guidance',
-      weather: '/weather',
+      weather: '/wx',
       'yield-price': '/yield-price',
       about: '/about',
     };

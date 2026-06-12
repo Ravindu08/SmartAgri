@@ -22,7 +22,7 @@ python ml_service/app.py
 ```bash
 cd backend
 python -m alembic upgrade head       # first run only — creates DB tables
-python auth_main.py
+uvicorn app.main:app --reload --port 8001
 # http://localhost:8001/docs
 ```
 

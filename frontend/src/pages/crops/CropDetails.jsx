@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getCrop, deleteCrop } from '../../services/cropService';
+import { getCrop, deleteCrop, updateCrop } from '../../services/cropService';
 import { listCultivations, abandonCultivation } from '../../utils/cultivationApi';
 import { getAuthSession } from '../../services/api';
 import { useApp } from '../../context/AppContext';
@@ -28,6 +28,7 @@ export default function CropDetails() {
   const [cultStatus,    setCultStatus]    = useState(null);
   const [cultSession,   setCultSession]   = useState(null);
   const [isLoading,     setIsLoading]     = useState(true);
+  const [isCompleting,  setIsCompleting]  = useState(false);
   const [showAbandon,   setShowAbandon]   = useState(false);
   const [isAbandoning,  setIsAbandoning]  = useState(false);
   const [toast,         setToast]         = useState({ type: 'success', message: '' });
@@ -42,8 +43,9 @@ export default function CropDetails() {
             : Promise.resolve({ sessions: [] }),
         ]);
         const allSessions = cultData.sessions || [];
-        const matchedSession = allSessions.find(
-          s => s.crop.toLowerCase() === cropData?.crop_name?.toLowerCase()
+        const matchedSession = allSessions.find(s =>
+          (cropData?.id && s.crop_id && s.crop_id === String(cropData.id)) ||
+          s.crop.toLowerCase() === cropData?.crop_name?.toLowerCase()
         ) || null;
         setCrop(cropData);
         setCultStatus(resolveCultStatus(allSessions, cropData?.crop_name));
@@ -56,6 +58,20 @@ export default function CropDetails() {
     };
     load();
   }, [id, userId]);
+
+  const handleComplete = async () => {
+    setIsCompleting(true);
+    try {
+      await updateCrop(id, { status: 'Completed' });
+      setCrop(prev => ({ ...prev, status: 'Completed' }));
+      setCultStatus('Completed');
+      setToast({ type: 'success', message: `${crop.crop_name} marked as completed.` });
+    } catch (err) {
+      setToast({ type: 'error', message: err.message });
+    } finally {
+      setIsCompleting(false);
+    }
+  };
 
   const confirmAbandon = async () => {
     setIsAbandoning(true);
@@ -125,7 +141,7 @@ export default function CropDetails() {
               <span className="detail-row__value">{displayStatus}</span>
             </div>
             <div className="detail-row">
-              <span className="detail-row__label">Started Date</span>
+              <span className="detail-row__label">{t.startedLabel}</span>
               <span className="detail-row__value">
                 {crop.planting_date ? new Date(crop.planting_date).toLocaleDateString() : '—'}
               </span>
@@ -141,12 +157,23 @@ export default function CropDetails() {
 
         <div className="crop-detail-footer">
           <Link className="button button--outline" to="/landowner/crops">{t.allCropsLink}</Link>
+          <Link className="button button--outline" to={`/landowner/crops/edit/${id}`}>{t.editCropLink}</Link>
+          {crop.status !== 'Completed' && (
+            <button
+              className="button button--primary"
+              type="button"
+              onClick={handleComplete}
+              disabled={isCompleting}
+            >
+              {isCompleting ? t.completingDots : t.markCompleteBtn}
+            </button>
+          )}
           <button
             className="button button--danger"
             type="button"
             onClick={() => setShowAbandon(true)}
           >
-            Abandon Crop
+            {t.abandonBtn}
           </button>
         </div>
       </div>
@@ -154,17 +181,17 @@ export default function CropDetails() {
       {showAbandon && (
         <div className="modal-overlay">
           <div className="modal-panel">
-            <h2>Abandon Crop</h2>
+            <h2>{t.abandonCropTitle}</h2>
             <p>
-              Abandon <strong>{crop.crop_name}</strong>? This will permanently delete the crop
+              {t.abandonBtn} <strong>{crop.crop_name}</strong>? This will permanently delete the crop
               {cultSession ? ' and its tracking session' : ''}. There is no way to undo this.
             </p>
             <div className="modal-actions">
               <button className="button button--ghost" type="button" onClick={() => setShowAbandon(false)}>
-                Cancel
+                {t.cancelBtn}
               </button>
               <button className="button button--danger" type="button" onClick={confirmAbandon} disabled={isAbandoning}>
-                {isAbandoning ? 'Abandoning…' : 'Yes, Abandon'}
+                {isAbandoning ? t.abandoningDots : t.yesAbandonBtn}
               </button>
             </div>
           </div>

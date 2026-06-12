@@ -8,6 +8,7 @@ import Toast from '../../components/Toast';
 
 const GROWTH_STAGES = ['Seed', 'Germination', 'Vegetative', 'Flowering', 'Fruiting', 'Harvest'];
 const STATUSES = ['Active', 'Completed', 'Failed'];
+const SEASONS = ['Maha', 'Yala', 'Year-round'];
 
 export default function EditCrop() {
   const { id } = useParams();
@@ -25,6 +26,7 @@ export default function EditCrop() {
     planting_date: '',
     expected_harvest_date: '',
     status: STATUSES[0],
+    season: '',
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,6 +46,7 @@ export default function EditCrop() {
           planting_date: cropResponse.planting_date,
           expected_harvest_date: cropResponse.expected_harvest_date,
           status: cropResponse.status,
+          season: cropResponse.season || '',
         });
         setFarms(farmsResponse);
       } catch (error) {
@@ -95,6 +98,7 @@ export default function EditCrop() {
         planting_date: formData.planting_date,
         expected_harvest_date: formData.expected_harvest_date,
         status: formData.status,
+        season: formData.season || null,
       });
       navigate('/landowner/crops', { replace: true });
     } catch (error) {
@@ -172,6 +176,15 @@ export default function EditCrop() {
                 <option key={status} value={status}>
                   {status}
                 </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            {t.seasonField || 'Season'}
+            <select name="season" value={formData.season} onChange={handleChange}>
+              <option value="">{t.selectSeasonPh || 'Select season…'}</option>
+              {SEASONS.map((s) => (
+                <option key={s} value={s}>{s}</option>
               ))}
             </select>
           </label>

@@ -72,13 +72,23 @@ export default function FarmDetails() {
     if (!modalForm.crop_name) { setModalError(t.pleaseSelectCrop); return; }
     if (!modalForm.planting_date) { setModalError(t.pleaseSelectDate); return; }
 
-    const planting = new Date(modalForm.planting_date);
-    const harvest = new Date(planting);
-    harvest.setDate(harvest.getDate() + 120);
-    const harvestStr = harvest.toISOString().split('T')[0];
-
     setIsStarting(true);
     try {
+      // Fetch crop-specific duration from ML service (port 8000 via Vite proxy)
+      let duration = 120;
+      try {
+        const gr = await fetch(`/guidance/${encodeURIComponent(modalForm.crop_name)}`);
+        const gd = await gr.json();
+        const stages = gd.data?.stages || [];
+        const maxDay = stages.reduce((m, s) => Math.max(m, s.day_end || 0), 0);
+        duration = maxDay > 0 ? maxDay : (gd.data?.duration_days || 120);
+      } catch {}
+
+      const planting = new Date(modalForm.planting_date);
+      const harvest = new Date(planting);
+      harvest.setDate(harvest.getDate() + duration);
+      const harvestStr = harvest.toISOString().split('T')[0];
+
       await createCrop({
         farm_id: id,
         crop_name: modalForm.crop_name,
