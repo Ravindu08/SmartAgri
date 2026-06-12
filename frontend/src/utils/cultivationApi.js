@@ -14,12 +14,14 @@ async function req(method, path, body) {
   return r.json();
 }
 
-export const startCultivation = (userId, crop, plantingDate, district) =>
+export const startCultivation = (userId, crop, plantingDate, district, cropId, farmId) =>
   req("POST", "/cultivation", {
     user_id:       userId,
     crop,
     planting_date: plantingDate,
     district:      district || null,
+    crop_id:       cropId  || null,
+    farm_id:       farmId  || null,
   });
 
 export const listCultivations = (userId) =>

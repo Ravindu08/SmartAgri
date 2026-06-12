@@ -31,15 +31,16 @@ export default function MyCultivations() {
   const userId     = user?.id ? String(user.id) : null;
   const location   = useLocation();
 
-  const [view,            setView]            = useState('list');
-  const [activeSessionId, setActiveSessionId] = useState(null);
-  const [startCrop,       setStartCrop]       = useState('');
-  const [crops,           setCrops]           = useState([]);
-  const [sessions,        setSessions]        = useState([]);
-  const [isLoading,       setIsLoading]       = useState(true);
-  const [abandonTarget,   setAbandonTarget]   = useState(null);
-  const [isAbandoning,    setIsAbandoning]    = useState(false);
-  const [toast,           setToast]           = useState({ type: 'success', message: '' });
+  const [view,              setView]              = useState('list');
+  const [activeSessionId,   setActiveSessionId]   = useState(null);
+  const [startCrop,         setStartCrop]         = useState('');
+  const [startExistingCrop, setStartExistingCrop] = useState(null);
+  const [crops,             setCrops]             = useState([]);
+  const [sessions,          setSessions]          = useState([]);
+  const [isLoading,         setIsLoading]         = useState(true);
+  const [abandonTarget,     setAbandonTarget]     = useState(null);
+  const [isAbandoning,      setIsAbandoning]      = useState(false);
+  const [toast,             setToast]             = useState({ type: 'success', message: '' });
 
   const loadData = async () => {
     setIsLoading(true);
@@ -50,10 +51,8 @@ export default function MyCultivations() {
           ? listCultivations(userId).catch(() => ({ sessions: [] }))
           : Promise.resolve({ sessions: [] }),
       ]);
-      const active = cropData.filter(c => c.status === 'Active');
-      const allSess = cultData.sessions || [];
-      setCrops(active);
-      setSessions(allSess.filter(s => s.status === 'active'));
+      setCrops(cropData.filter(c => c.status === 'Active'));
+      setSessions(cultData.sessions || []);
     } catch (err) {
       setToast({ type: 'error', message: err.message });
     } finally {
@@ -69,14 +68,20 @@ export default function MyCultivations() {
     }
   }, []);
 
-  function getSession(cropName) {
-    return sessions.find(s => s.crop.toLowerCase() === cropName.toLowerCase()) || null;
+  function getSession(crop) {
+    return sessions.find(s =>
+      (s.status === 'active') && (
+        (crop.id && s.crop_id && s.crop_id === String(crop.id)) ||
+        s.crop.toLowerCase() === crop.crop_name.toLowerCase()
+      )
+    ) || null;
   }
 
   function goBack() {
     setView('list');
     setActiveSessionId(null);
     setStartCrop('');
+    setStartExistingCrop(null);
     loadData();
   }
 
@@ -97,27 +102,26 @@ export default function MyCultivations() {
     }
   };
 
-  // ── Inline tracker view ────────────────────────────────────────────────────
-  if (view === 'tracker') {
-    return (
-      <section className="crop-page">
-        <CultivationTracker
-          key={activeSessionId || 'new-' + startCrop}
-          t={t}
-          userId={userId}
-          initialSessionId={activeSessionId || undefined}
-          initialView={activeSessionId ? undefined : 'start'}
-          initialCrop={startCrop || undefined}
-          onExternalBack={goBack}
-        />
-        <Toast type={toast.type} message={toast.message} onClose={() => setToast({ type: '', message: '' })} />
-      </section>
-    );
-  }
-
-  // ── Crop list view ─────────────────────────────────────────────────────────
+  // ── Render in a stable section so the fadeInUp animation doesn't replay on view switch
   return (
     <section className="crop-page">
+      {view === 'tracker' ? (
+        <>
+          <CultivationTracker
+            key={activeSessionId || 'new-' + startCrop}
+            t={t}
+            userId={userId}
+            initialSessionId={activeSessionId || undefined}
+            initialView={activeSessionId ? undefined : 'start'}
+            initialCrop={startCrop || undefined}
+            existingCropData={startExistingCrop || undefined}
+            onExternalBack={goBack}
+          />
+          <Toast type={toast.type} message={toast.message} onClose={() => setToast({ type: '', message: '' })} />
+        </>
+      ) : (
+        // ── Crop list view ──────────────────────────────────────────────────
+        <>
       <div className="crop-page__header" style={{ marginBottom: 0 }}>
         <div>
           <p className="section__label">{lt.cultivationTracking}</p>
@@ -130,7 +134,7 @@ export default function MyCultivations() {
             type="button"
             onClick={() => { setStartCrop(''); setActiveSessionId(null); setView('tracker'); }}
           >
-            🌱 Start New Cultivation
+            {lt.startNewCultBtn}
           </button>
         </div>
       </div>
@@ -144,7 +148,7 @@ export default function MyCultivations() {
       ) : (
         <div className="cult-crop-list">
           {crops.map(crop => {
-            const session = getSession(crop.crop_name);
+            const session = getSession(crop);
             const prog    = session ? sessionProgress(session) : null;
             const emoji   = CROP_EMOJI[crop.crop_name] || '🌱';
 
@@ -160,16 +164,16 @@ export default function MyCultivations() {
                       <span className="cult-crop-card__farm">📍 {crop.farm_name || '—'}</span>
                     </div>
                     <span className={`cult-status-badge status-${session ? 'active' : 'pending'}`}>
-                      {session ? 'Tracking' : 'No Tracking'}
+                      {session ? lt.trackingBadge : lt.noTrackingBadge}
                     </span>
                   </div>
 
                   <div className="cult-crop-card__meta">
-                    Started: <strong>{new Date(crop.planting_date).toLocaleDateString()}</strong>
+                    {lt.startedLabel}: <strong>{new Date(crop.planting_date).toLocaleDateString()}</strong>
                     &nbsp;·&nbsp;
-                    Harvest: <strong>{new Date(crop.expected_harvest_date).toLocaleDateString()}</strong>
+                    {lt.harvestCardLabel}: <strong>{new Date(crop.expected_harvest_date).toLocaleDateString()}</strong>
                     {prog?.elapsed !== null && prog?.elapsed !== undefined && (
-                      <>&nbsp;·&nbsp;Day <strong>{prog.elapsed}</strong></>
+                      <>&nbsp;·&nbsp;{lt.dayPrefix} <strong>{prog.elapsed}</strong></>
                     )}
                   </div>
 
@@ -181,7 +185,7 @@ export default function MyCultivations() {
                       <span className="cult-crop-card__prog-label">
                         {prog.done}/{prog.total} tasks · {prog.pct}%
                         {prog.overdue > 0 && (
-                          <span className="cult-overdue-badge" style={{ marginLeft: 8 }}>⚠ {prog.overdue} overdue</span>
+                          <span className="cult-overdue-badge" style={{ marginLeft: 8 }}>⚠ {prog.overdue} {lt.statOverdue}</span>
                         )}
                       </span>
                     </div>
@@ -194,15 +198,20 @@ export default function MyCultivations() {
                         type="button"
                         onClick={() => { setActiveSessionId(session.id); setView('tracker'); }}
                       >
-                        📊 Open Tracking
+                        {lt.openTrackingBtn}
                       </button>
                     ) : (
                       <button
                         className="cult-btn cult-btn-open"
                         type="button"
-                        onClick={() => { setStartCrop(crop.crop_name); setActiveSessionId(null); setView('tracker'); }}
+                        onClick={() => {
+                          setStartCrop(crop.crop_name);
+                          setStartExistingCrop(crop);
+                          setActiveSessionId(null);
+                          setView('tracker');
+                        }}
                       >
-                        ▶ Start Tracking
+                        {lt.startTrackingBtn}
                       </button>
                     )}
                     <button
@@ -210,7 +219,7 @@ export default function MyCultivations() {
                       type="button"
                       onClick={() => setAbandonTarget({ crop, session })}
                     >
-                      Abandon
+                      {lt.abandonBtn}
                     </button>
                   </div>
                 </div>
@@ -224,9 +233,9 @@ export default function MyCultivations() {
       {abandonTarget && (
         <div className="modal-overlay">
           <div className="modal-panel">
-            <h2>Abandon Cultivation</h2>
+            <h2>{lt.abandonCultivationTitle}</h2>
             <p>
-              Abandon <strong>{abandonTarget.crop.crop_name}</strong>? This will permanently delete the crop
+              {lt.abandonBtn} <strong>{abandonTarget.crop.crop_name}</strong>? This will permanently delete the crop
               {abandonTarget.session ? ' and its tracking session' : ''}. There is no way to undo this.
             </p>
             <div className="modal-actions">
@@ -239,7 +248,7 @@ export default function MyCultivations() {
                 onClick={confirmAbandon}
                 disabled={isAbandoning}
               >
-                {isAbandoning ? 'Abandoning…' : 'Yes, Abandon'}
+                {isAbandoning ? lt.abandoningDots : lt.yesAbandonBtn}
               </button>
             </div>
           </div>
@@ -247,6 +256,8 @@ export default function MyCultivations() {
       )}
 
       <Toast type={toast.type} message={toast.message} onClose={() => setToast({ type: '', message: '' })} />
+        </>
+      )}
     </section>
   );
 }
