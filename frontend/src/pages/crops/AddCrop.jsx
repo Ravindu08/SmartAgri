@@ -9,6 +9,7 @@ import Toast from '../../components/Toast';
 
 const GROWTH_STAGES = ['Seed', 'Germination', 'Vegetative', 'Flowering', 'Fruiting', 'Harvest'];
 const STATUSES = ['Active', 'Completed', 'Failed'];
+const SEASONS = ['Maha', 'Yala', 'Year-round'];
 
 export default function AddCrop() {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ export default function AddCrop() {
     planting_date: '',
     expected_harvest_date: '',
     status: STATUSES[0],
+    season: '',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -100,6 +102,7 @@ export default function AddCrop() {
         planting_date: formData.planting_date,
         expected_harvest_date: formData.expected_harvest_date,
         status: formData.status,
+        season: formData.season || null,
       });
       if (farmIdParam) {
         navigate(`/landowner/farms/${farmIdParam}`, { replace: true });
@@ -300,6 +303,15 @@ export default function AddCrop() {
             <select name="status" value={formData.status} onChange={handleChange}>
               {STATUSES.map((status) => (
                 <option key={status} value={status}>{status}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            {t.seasonField || 'Season'}
+            <select name="season" value={formData.season} onChange={handleChange}>
+              <option value="">{t.selectSeasonPh || 'Select season…'}</option>
+              {SEASONS.map((s) => (
+                <option key={s} value={s}>{s}</option>
               ))}
             </select>
           </label>

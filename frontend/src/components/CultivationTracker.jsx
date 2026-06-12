@@ -492,14 +492,15 @@ function addDays(dateStr, n) {
 }
 
 // ── StartCultivationForm ──────────────────────────────────────────────────────
-function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop }) {
-  const [cropList, setCropList] = useState([]);
-  const [farms,    setFarms]    = useState([]);
-  const [crop,     setCrop]     = useState(defaultCrop || "");
-  const [date,     setDate]     = useState(todayStr());
-  const [farmId,   setFarmId]   = useState("");
-  const [saving,   setSaving]   = useState(false);
-  const [error,    setError]    = useState("");
+function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existingCropData }) {
+  const [cropList,         setCropList]         = useState([]);
+  const [farms,            setFarms]            = useState([]);
+  const [crop,             setCrop]             = useState(defaultCrop || "");
+  const [date,             setDate]             = useState(todayStr());
+  const [farmId,           setFarmId]           = useState(existingCropData?.farm_id ? String(existingCropData.farm_id) : "");
+  const [guidanceDuration, setGuidanceDuration] = useState(120);
+  const [saving,           setSaving]           = useState(false);
+  const [error,            setError]            = useState("");
 
   useEffect(() => {
     fetch("/guidance")
@@ -509,28 +510,48 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop }) {
     getFarms().then(setFarms).catch(() => {});
   }, []);
 
+  // Fetch crop-specific duration whenever the selected crop changes
+  useEffect(() => {
+    if (!crop) return;
+    fetch(`/guidance/${encodeURIComponent(crop)}`)
+      .then(r => r.json())
+      .then(d => {
+        const stages = d.data?.stages || [];
+        const maxDay = stages.reduce((m, s) => Math.max(m, s.day_end || 0), 0);
+        setGuidanceDuration(maxDay > 0 ? maxDay : (d.data?.duration_days || 120));
+      })
+      .catch(() => setGuidanceDuration(120));
+  }, [crop]);
+
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!crop || !date || !farmId) return;
+    if (!crop || !date) return;
+    if (!existingCropData && !farmId) return;
     setSaving(true);
     setError("");
     try {
-      const selectedFarm = farms.find(f => String(f.id) === String(farmId));
-      const harvestDate  = addDays(date, 120);
+      const resolvedFarmId = existingCropData ? String(existingCropData.farm_id || farmId) : farmId;
+      const selectedFarm   = farms.find(f => String(f.id) === String(resolvedFarmId));
+      const harvestDate    = addDays(date, guidanceDuration);
 
-      await createCrop({
-        farm_id:               farmId,
-        crop_name:             crop,
-        crop_type:             crop,
-        category:              "General",
-        growth_stage:          "Seed",
-        planting_date:         date,
-        expected_harvest_date: harvestDate,
-        status:                "Active",
-      });
+      let cropId = existingCropData ? String(existingCropData.id) : null;
+
+      if (!existingCropData) {
+        const newCrop = await createCrop({
+          farm_id:               resolvedFarmId,
+          crop_name:             crop,
+          crop_type:             crop,
+          category:              "General",
+          growth_stage:          "Seed",
+          planting_date:         date,
+          expected_harvest_date: harvestDate,
+          status:                "Active",
+        });
+        cropId = newCrop?.id ? String(newCrop.id) : null;
+      }
 
       const session = await API.startCultivation(
-        userId, crop, date, selectedFarm?.district || null
+        userId, crop, date, selectedFarm?.district || null, cropId, resolvedFarmId
       );
       onCreate(session);
     } catch (err) {
@@ -539,6 +560,8 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop }) {
       setSaving(false);
     }
   }
+
+  const farmSelectRequired = !existingCropData;
 
   return (
     <form className="guidance-selector" onSubmit={handleSubmit}>
@@ -552,13 +575,17 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop }) {
       </button>
       <h2>🌱 {t.startCultivation}</h2>
       <p>{t.startCultivationSub}</p>
-      <div className="guidance-selector-row cult-form-three-col">
+      <div className={`guidance-selector-row${farmSelectRequired ? " cult-form-three-col" : " cult-form-two-col"}`}>
         <div>
           <label>{t.selectCrop}</label>
-          <select value={crop} onChange={e => setCrop(e.target.value)} required>
-            <option value="">{t.selectCropPh}</option>
-            {cropList.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
+          {existingCropData ? (
+            <input type="text" value={crop} readOnly />
+          ) : (
+            <select value={crop} onChange={e => setCrop(e.target.value)} required>
+              <option value="">{t.selectCropPh}</option>
+              {cropList.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          )}
         </div>
         <div>
           <label>{t.plantingDate}</label>
@@ -569,18 +596,20 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop }) {
             required
           />
         </div>
-        <div>
-          <label>Farm</label>
-          <select value={farmId} onChange={e => setFarmId(e.target.value)} required>
-            <option value="">Select a farm…</option>
-            {farms.map(f => (
-              <option key={f.id} value={f.id}>{f.farm_name}</option>
-            ))}
-          </select>
-        </div>
+        {farmSelectRequired && (
+          <div>
+            <label>Farm</label>
+            <select value={farmId} onChange={e => setFarmId(e.target.value)} required>
+              <option value="">Select a farm…</option>
+              {farms.map(f => (
+                <option key={f.id} value={f.id}>{f.farm_name}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
       {error && <div className="cult-error">{error}</div>}
-      <button className="guidance-generate-btn" type="submit" disabled={!crop || !farmId || saving}>
+      <button className="guidance-generate-btn" type="submit" disabled={!crop || (farmSelectRequired && !farmId) || saving}>
         {saving ? "⏳ " + t.creating : "🌱 " + t.startCultivation}
       </button>
     </form>
@@ -588,7 +617,7 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop }) {
 }
 
 // ── Main export ───────────────────────────────────────────────────────────────
-export default function CultivationTracker({ t, userId, initialSessionId, initialView, initialCrop, onExternalBack }) {
+export default function CultivationTracker({ t, userId, initialSessionId, initialView, initialCrop, existingCropData, onExternalBack }) {
   // Guidance endpoint lives on the ML service (port 8000); use empty base for Vite proxy.
   const API_BASE = "";
 
@@ -683,6 +712,7 @@ export default function CultivationTracker({ t, userId, initialSessionId, initia
         onBack={onExternalBack || (() => setView("list"))}
         onCreate={handleCreate}
         defaultCrop={initialCrop}
+        existingCropData={existingCropData}
       />
     );
   }

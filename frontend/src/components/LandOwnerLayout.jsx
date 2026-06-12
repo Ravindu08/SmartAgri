@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, Outlet, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import { useApp } from '../context/AppContext';
 import { getAuthSession } from '../services/api';
@@ -26,24 +25,21 @@ const LO_LAYOUT_T = {
 };
 
 export default function LandOwnerLayout() {
-  const navigate = useNavigate();
   const { lang } = useApp();
   const t = LO_LAYOUT_T[lang] || LO_LAYOUT_T.en;
   const { user } = getAuthSession();
   const location = useLocation();
 
-  useEffect(() => {
-    if (!user || user.role !== 'Land Owner') {
-      navigate('/login', { replace: true });
-    }
-  }, [user, navigate]);
+  if (!user || user.role !== 'Land Owner') {
+    return <Navigate to="/login" replace />;
+  }
 
   const navItems = [
     { to: '/landowner/dashboard',     icon: '📊', label: t.dashboard },
     { to: '/landowner/farms',         icon: '🌾', label: t.myFarms },
     { to: '/landowner/crops',         icon: '🌿', label: t.myCrops },
     { to: '/landowner/cultivations',  icon: '📅', label: t.myCultivations },
-    { to: '/crop-recommendation',     icon: '🤖', label: t.advisories },
+    { to: '/crop-guidance',            icon: '🤖', label: t.advisories },
     { to: '/marketplace',             icon: '🏪', label: t.marketplace },
     { to: '/landowner/settings',       icon: '⚙️', label: t.settings },
     { to: '/landowner/help',           icon: '❓', label: t.helpSupport },

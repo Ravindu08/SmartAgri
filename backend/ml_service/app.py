@@ -27,6 +27,27 @@ _SSL_CTX.options |= getattr(ssl, "OP_IGNORE_UNEXPECTED_EOF", 0)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("smartagri")
 
+# ── Database (shared PostgreSQL at :5432) ─────────────────────────────────────
+# NOTE: run this service as 'uvicorn ml_service.app:app' from the backend/ dir,
+# NOT as 'uvicorn app:app' from ml_service/. The latter puts this file in
+# sys.modules["app"], blocking imports from backend/app/.
+import sys as _sys
+_backend_dir = str(Path(__file__).parent.parent)
+if _backend_dir not in _sys.path:
+    _sys.path.insert(0, _backend_dir)
+
+try:
+    from app.db.database import SessionLocal as _SessionLocal
+    from app.models.cultivation import CultivationSession as _CultivationSession
+    from app.models.cultivation import CultivationTask as _CultivationTask
+    from sqlalchemy.orm import Session as _OrmSession
+    from sqlalchemy import select as _select
+    _DB_AVAILABLE = True
+    logger.info("[OK] Cultivation DB (PostgreSQL) connected")
+except Exception as _db_err:
+    _DB_AVAILABLE = False
+    logger.warning("[WARN] Cultivation DB unavailable: %s — sessions will be in-memory only", _db_err)
+
 app = FastAPI(
     title="SMARTAGRI ML Service",
     description="Explainable dual-mode crop recommendation for Sri Lanka",
@@ -35,7 +56,9 @@ app = FastAPI(
 
 _cors_origins = os.getenv(
     "SMARTAGRI_CORS_ORIGINS",
-    "http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:3000"
+    "http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:3000,"
+    "http://localhost:4173,http://127.0.0.1:4173,http://127.0.0.1:5173,"
+    "http://127.0.0.1:5174,http://127.0.0.1:5175"
 ).split(",")
 
 app.add_middleware(
@@ -918,14 +941,17 @@ import calendar as _calendar
 import uuid as _uuid
 from datetime import date as _date, timedelta as _timedelta
 
-_cultivations: Dict[str, Dict] = {}  # userId → {sessionId → session}
+# In-memory fallback (used only when DB is unavailable)
+_cultivations_fallback: Dict[str, Dict] = {}
 
 
 class StartCultivationRequest(BaseModel):
     user_id:       str
     crop:          str
-    planting_date: str   # ISO date YYYY-MM-DD
+    planting_date: str            # ISO date YYYY-MM-DD
     district:      Optional[str] = None
+    crop_id:       Optional[str] = None   # UUID of the crops table row
+    farm_id:       Optional[str] = None   # UUID of the farms table row
 
 
 class TaskStatusUpdate(BaseModel):
@@ -943,7 +969,7 @@ def _gen_cultivation_tasks(crop_data: dict, planting_date_str: str) -> list:
     for stage in crop_data.get("stages", []):
         for i, act in enumerate(stage.get("activities", [])):
             day   = act.get("day", 0)
-            sched = pd + _timedelta(days=day)
+            sched = max(pd + _timedelta(days=day), today)
             tasks.append({
                 "id":             f"s-{stage['id']}-{i}",
                 "type":           act.get("type", "monitor"),
@@ -952,14 +978,14 @@ def _gen_cultivation_tasks(crop_data: dict, planting_date_str: str) -> list:
                 "why":            act.get("why", ""),
                 "day":            day,
                 "scheduled_date": sched.isoformat(),
-                "stage_id":       stage["id"],
+                "stage_id":       str(stage["id"]),
                 "stage_name":     stage.get("name", ""),
-                "status":         "overdue" if sched < today else "pending",
+                "status":         "pending",
             })
 
     for i, fert in enumerate(crop_data.get("fertilization", [])):
         day   = fert.get("day", 0)
-        sched = pd + _timedelta(days=day)
+        sched = max(pd + _timedelta(days=day), today)
         apps  = fert.get("applications", [])
         mat   = apps[0]["material"] if apps else fert.get("timing", "Fertilize")
         tasks.append({
@@ -972,7 +998,7 @@ def _gen_cultivation_tasks(crop_data: dict, planting_date_str: str) -> list:
             "scheduled_date": sched.isoformat(),
             "stage_id":       "fertilization",
             "stage_name":     "Fertilization",
-            "status":         "overdue" if sched < today else "pending",
+            "status":         "pending",
         })
 
     irrigation = crop_data.get("irrigation", {})
@@ -986,7 +1012,7 @@ def _gen_cultivation_tasks(crop_data: dict, planting_date_str: str) -> list:
         w = 0
         d = start_d
         while d <= end_d:
-            sched = pd + _timedelta(days=d)
+            sched = max(pd + _timedelta(days=d), today)
             tasks.append({
                 "id":             f"irr-{stage['id']}-w{w}",
                 "type":           "water",
@@ -995,9 +1021,9 @@ def _gen_cultivation_tasks(crop_data: dict, planting_date_str: str) -> list:
                 "why":            "",
                 "day":            d,
                 "scheduled_date": sched.isoformat(),
-                "stage_id":       stage["id"],
+                "stage_id":       str(stage["id"]),
                 "stage_name":     stage.get("name", ""),
-                "status":         "overdue" if sched < today else "pending",
+                "status":         "pending",
             })
             d += 7
             w += 1
@@ -1005,51 +1031,216 @@ def _gen_cultivation_tasks(crop_data: dict, planting_date_str: str) -> list:
     return tasks
 
 
+def _session_to_dict(session: "_CultivationSession") -> dict:
+    tasks_dict = {}
+    for task in (session.tasks or []):
+        tasks_dict[task.id] = {
+            "id":             task.id,
+            "type":           task.type,
+            "title":          task.title,
+            "description":    task.description or "",
+            "why":            task.why or "",
+            "day":            task.day,
+            "scheduled_date": task.scheduled_date,
+            "stage_id":       task.stage_id,
+            "stage_name":     task.stage_name,
+            "status":         task.status,
+        }
+    return {
+        "id":            str(session.id),
+        "user_id":       session.user_id,
+        "crop":          session.crop,
+        "crop_id":       str(session.crop_id) if session.crop_id else None,
+        "farm_id":       str(session.farm_id) if session.farm_id else None,
+        "planting_date": session.planting_date,
+        "district":      session.district,
+        "created_at":    session.created_at.date().isoformat() if session.created_at else None,
+        "status":        session.status,
+        "tasks":         tasks_dict,
+    }
+
+
 @app.post("/cultivation", status_code=201)
 def start_cultivation(req: StartCultivationRequest):
     crop_data = crop_guidance_db.get(req.crop)
     if crop_data is None:
         raise HTTPException(404, f"No guidance for crop: {req.crop}")
+
+    task_list = _gen_cultivation_tasks(crop_data, req.planting_date)
+    logger.info("cultivation started | user=%s crop=%s tasks=%d", req.user_id[:8], req.crop, len(task_list))
+
+    if _DB_AVAILABLE:
+        try:
+            import uuid as _u
+            db: "_OrmSession" = _SessionLocal()
+            try:
+                crop_uuid  = _u.UUID(req.crop_id)  if req.crop_id  else None
+                farm_uuid  = _u.UUID(req.farm_id)  if req.farm_id  else None
+                session_obj = _CultivationSession(
+                    user_id=req.user_id,
+                    crop=req.crop,
+                    crop_id=crop_uuid,
+                    farm_id=farm_uuid,
+                    planting_date=req.planting_date,
+                    district=req.district,
+                    status="active",
+                )
+                db.add(session_obj)
+                db.flush()
+                for t in task_list:
+                    db.add(_CultivationTask(
+                        id=f"{session_obj.id}-{t['id']}",
+                        session_id=session_obj.id,
+                        type=t["type"],
+                        title=t["title"],
+                        description=t.get("description", ""),
+                        why=t.get("why", ""),
+                        day=t["day"],
+                        scheduled_date=t["scheduled_date"],
+                        stage_id=t["stage_id"],
+                        stage_name=t["stage_name"],
+                        status=t["status"],
+                    ))
+                db.commit()
+                db.refresh(session_obj)
+                return _session_to_dict(session_obj)
+            finally:
+                db.close()
+        except Exception as exc:
+            logger.exception("DB cultivation create failed, falling back to memory: %s", exc)
+
+    # ── fallback: in-memory ───────────────────────────────────────────────────
     session_id = str(_uuid.uuid4())
-    tasks      = _gen_cultivation_tasks(crop_data, req.planting_date)
     session = {
         "id":            session_id,
         "user_id":       req.user_id,
         "crop":          req.crop,
+        "crop_id":       req.crop_id,
+        "farm_id":       req.farm_id,
         "planting_date": req.planting_date,
         "district":      req.district,
         "created_at":    _date.today().isoformat(),
         "status":        "active",
-        "tasks":         {t["id"]: t for t in tasks},
+        "tasks":         {f"{session_id}-{t['id']}": {**t, "id": f"{session_id}-{t['id']}"} for t in task_list},
     }
-    _cultivations.setdefault(req.user_id, {})[session_id] = session
-    logger.info("cultivation started | user=%s crop=%s tasks=%d", req.user_id[:8], req.crop, len(tasks))
+    _cultivations_fallback.setdefault(req.user_id, {})[session_id] = session
     return session
 
 
 @app.get("/cultivation/{user_id}")
 def list_cultivations(user_id: str):
-    sessions = list(_cultivations.get(user_id, {}).values())
+    if _DB_AVAILABLE:
+        try:
+            db: "_OrmSession" = _SessionLocal()
+            try:
+                rows = db.execute(
+                    _select(_CultivationSession)
+                    .where(_CultivationSession.user_id == user_id)
+                    .order_by(_CultivationSession.created_at.desc())
+                ).unique().scalars().all()
+                return {"sessions": [_session_to_dict(r) for r in rows]}
+            finally:
+                db.close()
+        except Exception as exc:
+            logger.exception("DB cultivation list failed: %s", exc)
+
+    sessions = list(_cultivations_fallback.get(user_id, {}).values())
     return {"sessions": sessions}
 
 
 @app.put("/cultivation/{user_id}/{session_id}/task/{task_id}")
 def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: TaskStatusUpdate):
-    session = _cultivations.get(user_id, {}).get(session_id)
+    if body.status not in ("done", "skipped", "pending", "overdue"):
+        raise HTTPException(400, "status must be: done | skipped | pending | overdue")
+
+    if _DB_AVAILABLE:
+        try:
+            db: "_OrmSession" = _SessionLocal()
+            try:
+                import uuid as _u
+                try:
+                    s_uuid = _u.UUID(session_id)
+                except ValueError:
+                    raise HTTPException(404, "Session not found")
+                session_obj = db.execute(
+                    _select(_CultivationSession).where(
+                        _CultivationSession.id == s_uuid,
+                        _CultivationSession.user_id == user_id,
+                    )
+                ).unique().scalar_one_or_none()
+                if session_obj is None:
+                    raise HTTPException(404, "Session not found")
+                task_obj = db.execute(
+                    _select(_CultivationTask).where(
+                        _CultivationTask.id == task_id,
+                        _CultivationTask.session_id == s_uuid,
+                    )
+                ).scalar_one_or_none()
+                if task_obj is None:
+                    raise HTTPException(404, "Task not found")
+                task_obj.status = body.status
+                db.commit()
+                return {
+                    "id":             task_obj.id,
+                    "type":           task_obj.type,
+                    "title":          task_obj.title,
+                    "description":    task_obj.description or "",
+                    "why":            task_obj.why or "",
+                    "day":            task_obj.day,
+                    "scheduled_date": task_obj.scheduled_date,
+                    "stage_id":       task_obj.stage_id,
+                    "stage_name":     task_obj.stage_name,
+                    "status":         task_obj.status,
+                }
+            finally:
+                db.close()
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("DB task update failed: %s", exc)
+
+    # ── fallback ──────────────────────────────────────────────────────────────
+    session = _cultivations_fallback.get(user_id, {}).get(session_id)
     if not session:
         raise HTTPException(404, "Session not found")
     task = session["tasks"].get(task_id)
     if not task:
         raise HTTPException(404, "Task not found")
-    if body.status not in ("done", "skipped", "pending", "overdue"):
-        raise HTTPException(400, "status must be: done | skipped | pending | overdue")
     task["status"] = body.status
     return task
 
 
 @app.delete("/cultivation/{user_id}/{session_id}", status_code=204)
 def abandon_cultivation(user_id: str, session_id: str):
-    user_sess = _cultivations.get(user_id, {})
+    if _DB_AVAILABLE:
+        try:
+            db: "_OrmSession" = _SessionLocal()
+            try:
+                import uuid as _u
+                try:
+                    s_uuid = _u.UUID(session_id)
+                except ValueError:
+                    raise HTTPException(404, "Session not found")
+                session_obj = db.execute(
+                    _select(_CultivationSession).where(
+                        _CultivationSession.id == s_uuid,
+                        _CultivationSession.user_id == user_id,
+                    )
+                ).unique().scalar_one_or_none()
+                if session_obj is None:
+                    raise HTTPException(404, "Session not found")
+                session_obj.status = "abandoned"
+                db.commit()
+                return
+            finally:
+                db.close()
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("DB cultivation abandon failed: %s", exc)
+
+    # ── fallback ──────────────────────────────────────────────────────────────
+    user_sess = _cultivations_fallback.get(user_id, {})
     if session_id not in user_sess:
         raise HTTPException(404, "Session not found")
     user_sess[session_id]["status"] = "abandoned"
@@ -1325,18 +1516,16 @@ async def get_weather(district: str, season: Optional[str] = None):
         f"&timezone={tz}"
     )
 
-    def _sync_fetch(u: str) -> dict:
-        with httpx.Client(timeout=20.0, headers={"User-Agent": "SmartAgri/1.0"}, verify=_SSL_CTX) as c:
-            r = c.get(u)
-            r.raise_for_status()
-            return r.json()
-
     try:
-        loop = asyncio.get_running_loop()
-        forecast_raw, archive_raw = await asyncio.gather(
-            loop.run_in_executor(None, _sync_fetch, forecast_url),
-            loop.run_in_executor(None, _sync_fetch, archive_url),
-        )
+        async with httpx.AsyncClient(timeout=25.0, headers={"User-Agent": "SmartAgri/1.0"}) as client:
+            forecast_resp, archive_resp = await asyncio.gather(
+                client.get(forecast_url),
+                client.get(archive_url),
+            )
+        forecast_resp.raise_for_status()
+        archive_resp.raise_for_status()
+        forecast_raw = forecast_resp.json()
+        archive_raw  = archive_resp.json()
     except httpx.HTTPStatusError as e:
         logger.error("Open-Meteo HTTP error: %s", e.response.text)
         raise HTTPException(502, f"Weather API error: {e.response.status_code}")
