@@ -168,7 +168,7 @@ const TEAM = [
 const TECH_STACK = [
   { icon: "⚛️",  name: "React 18",    desc: "Frontend framework" },
   { icon: "⚡",  name: "Vite",        desc: "Build tool" },
-  { icon: "🐍",  name: "Python / Flask", desc: "Backend API" },
+  { icon: "🐍",  name: "Python / FastAPI", desc: "Backend API" },
   { icon: "🤖",  name: "Scikit-learn", desc: "ML model" },
   { icon: "🌐",  name: "Open-Meteo",  desc: "Weather data" },
   { icon: "🎨",  name: "Plain CSS",   desc: "Design system" },
@@ -309,7 +309,7 @@ export default function About({ lang }) {
               <div className="about-contact-icon">📧</div>
               <div className="about-contact-label">{t.contactEmail}</div>
               <a className="about-contact-value" href="mailto:induwara.ihalavithana@gmail.com">
-                induwara.ihalavithana@gmail.com
+                induwara.ihalavithana@<wbr />gmail.com
               </a>
             </div>
             <div className="about-contact-card">
