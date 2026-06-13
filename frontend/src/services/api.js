@@ -21,13 +21,16 @@ async function request(path, options = {}) {
     ...options,
   });
 
-  if (response.status === 401) {
-    clearAuthSession();
-    window.location.href = '/login';
-    throw new Error('Session expired. Please log in again.');
-  }
-
   const data = await response.json().catch(() => ({}));
+
+  if (response.status === 401) {
+    const msg = data?.detail ?? data?.message ?? 'Session expired. Please log in again.';
+    if (window.location.pathname !== '/login') {
+      clearAuthSession();
+      window.location.href = '/login';
+    }
+    throw new Error(msg);
+  }
 
   if (!response.ok) {
     const rawMessage = data?.detail ?? data?.message ?? data ?? 'Request failed';

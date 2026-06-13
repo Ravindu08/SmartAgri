@@ -1,35 +1,37 @@
-# SmartAgri — AI Crop Recommendation System for Sri Lanka
+# SmartAgri — AI-Powered Agribusiness Platform for Sri Lanka
 
-**v5.3.0** | Random Forest + XGBoost | Trilingual | Explainable AI
+**ML Service v5.3 · Main API v0.1** | Multi-role platform | AI Crop Recommendation | Farm Management | Trilingual
 
-AI-powered crop recommendation for Sri Lankan farmers. Enter your soil and climate conditions, get the best crop suggestion with a full explanation of why — in English, Sinhala, or Tamil.
+Full-stack web application for Sri Lankan agribusiness. Farmers get AI-driven crop recommendations and lifecycle guidance; land owners manage farms, crops, and cultivation sessions; traders and admins access role-specific dashboards.
 
 For complete documentation see [DOCS.md](DOCS.md).
 
 ---
 
-## Quick Start (3 terminals)
+## Quick Start
 
-### Terminal 1 — ML Service (port 8000)
+### One command (recommended)
+
+Double-click **`start.bat`** — kills any old processes on ports 8000/8001/5173, then opens three terminal windows.
+
+### Manual start (3 terminals)
+
+**Terminal 1 — Auth / Farm / Crop Service (port 8001)**
 ```bash
 cd backend
-pip install -r requirements.txt
-python ml_service/app.py
-# http://localhost:8000/docs
-```
-
-### Terminal 2 — Auth / Farm / Crop Service (port 8001)
-```bash
-cd backend
-python -m alembic upgrade head       # first run only — creates DB tables
+python -m alembic upgrade head    # first run only — creates DB tables
 uvicorn app.main:app --reload --port 8001
 # http://localhost:8001/docs
 ```
 
-> **PostgreSQL required.** Database `smartagri` must exist.
-> The `.env` file holds the `DATABASE_URL`. The admin user is auto-created on startup.
+**Terminal 2 — ML Service (port 8000)**
+```bash
+cd backend
+uvicorn ml_service.app:app --reload --port 8000
+# http://localhost:8000/docs
+```
 
-### Terminal 3 — Frontend (port 5173)
+**Terminal 3 — Frontend (port 5173)**
 ```bash
 cd frontend
 npm install
@@ -37,14 +39,32 @@ npm run dev
 # http://localhost:5173
 ```
 
+### Prerequisites
+
+- Python 3.10+
+- Node.js 18+
+- PostgreSQL — database `smartagri` must exist before first run
+
+### Environment setup
+
+Copy `backend/.env.example` to `backend/.env` and set at minimum:
+
+```
+DATABASE_URL=postgresql://user:password@localhost:5432/smartagri
+SECRET_KEY=your-secret-key
+```
+
+The admin user (`admin@smartagri.lk` / `Admin@12345`) is created automatically on first startup.
+
 ### Tests
+
 ```bash
 python -m pytest backend/tests/ -v
 ```
 
 ---
 
-## Two Prediction Modes
+## Two ML Prediction Modes
 
 | Mode | Input | Accuracy |
 |---|---|---|
@@ -57,25 +77,40 @@ python -m pytest backend/tests/ -v
 
 | Layer | Technologies |
 |---|---|
-| API | Python · FastAPI · Uvicorn · Pydantic |
-| ML | scikit-learn (Random Forest) · XGBoost · NumPy · joblib |
-| Training only | pandas |
-| Tests only | pytest · httpx |
-| Frontend | React 18 · Vite 5 |
+| ML API (port 8000) | Python · FastAPI · Uvicorn · scikit-learn · XGBoost · NumPy · joblib |
+| Main API (port 8001) | Python · FastAPI · Uvicorn · SQLAlchemy · PostgreSQL · Alembic · JWT |
+| Frontend | React 18 · React Router v6 · Vite 5 · Axios |
+
+---
+
+## User Roles
+
+| Role | Access | How created |
+|---|---|---|
+| **Admin** | Admin dashboard, full platform oversight | Auto-created on startup |
+| **Land Owner** | Landowner portal — farms, crops, cultivations | Self-register at `/register` |
+| **Trader** | Trader dashboard, marketplace | Self-register at `/register` |
+| **Visitor** | Public pages only | — |
 
 ---
 
 ## Features
 
+**AI Tools**
 - 34 Sri Lankan crops · 15 agro zones · 25 districts · 34 soil types
 - RF + XGBoost soft-voting ensemble with temperature-scaled confidence
-- Per-prediction XAI via RF decision path traversal (no SHAP library)
-- Crop-specific planting calendar
-- Outlier warnings (±3σ detection)
-- Prediction history (localStorage)
-- Soil identification guide
-- **Crop Guidance** — full lifecycle guide per crop: growth stages, fertilization schedule, disease & pest management, harvest guide
-- **Cultivation Tracker** — auto-generated task schedule for an active growing season; track tasks as pending / done / skipped / overdue
-- **Weather & Farm Advisory** — live conditions + 7-day forecast (Open-Meteo) with actionable farm advice for any of the 25 districts
-- **Yield & Price Calculator** — estimate expected yield and revenue based on crop, land size, and market prices
-- Full trilingual UI: English / සිංහල / தமிழ්
+- Per-prediction explainable AI (XAI) via RF decision path traversal — no SHAP library
+- Crop-specific planting calendar and outlier warnings (±3σ)
+- Prediction history (localStorage, last 10)
+- Full crop lifecycle guide — growth stages, fertilisation schedule, disease & pest management, harvest guide
+- Cultivation tracker — auto-generated task schedule, DB-persisted, task status tracking
+- Weather & farm advisory — Open-Meteo live conditions + 7-day forecast for all 25 districts
+- Yield & price calculator
+
+**Platform**
+- JWT authentication (30-minute tokens)
+- Land owner portal: Farm CRUD, Crop CRUD, Cultivation sessions
+- Role-based dashboards (Admin, Trader)
+- Marketplace page
+- Dark mode / light mode (persisted in localStorage)
+- Full trilingual UI: English / සිංහල / தமிழ்
