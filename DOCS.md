@@ -1,6 +1,6 @@
 # SmartAgri — Complete Project Documentation
 
-**Version 5.3.0** | AI Crop Recommendation System for Sri Lanka
+**ML Service v5.3 · Main API v0.1** | AI-Powered Agribusiness Platform for Sri Lanka
 
 ---
 
@@ -21,83 +21,111 @@
 
 ## 1. What This Project Is
 
-SmartAgri is an AI-powered crop recommendation system built for Sri Lankan farmers. A farmer enters their soil conditions, climate data, and farm location, and the system recommends the most suitable crop — with a full explanation of why that crop was chosen.
+SmartAgri is an AI-powered agribusiness platform built for Sri Lanka. It has two distinct halves that work together:
 
-**The problem it solves:** Sri Lanka has 34 commonly grown crops, 15 agro-climatic zones, 25 districts, and 33 soil types. Choosing the right crop for your specific conditions is complex, especially for smallholder farmers without access to agricultural extension services.
+**ML Tools (port 8000):** A farmer enters their soil and climate data and the system recommends the best crop with a full explanation of why — using a trained Random Forest + XGBoost ensemble. Supporting tools include a crop lifecycle guide, a cultivation task tracker, a weather advisory, and a yield/price calculator. Everything works in English, Sinhala (සිංහල), and Tamil (தமிழ்).
 
-**What the system does:**
-- Takes soil and climate data as input (or just basic farm info for a quick estimate)
-- Runs it through a trained ML ensemble (Random Forest + XGBoost)
-- Returns the top 3 recommended crops with confidence scores
-- Explains *why* each crop was recommended (which factors helped, which didn't)
-- Shows a planting calendar specific to the recommended crop
-- Warns if any input values are unusually extreme
-- Works in English, Sinhala (සිංහල), and Tamil (தமிழ்)
+**Platform (port 8001):** A multi-role web platform where land owners manage their farms, registered crops, and cultivation sessions in a persistent database. Traders and admins get role-specific dashboards. JWT authentication controls access; all platform data lives in PostgreSQL.
+
+**The problem it solves:** Sri Lanka has 34 commonly grown crops, 15 agro-climatic zones, 25 districts, and 33 soil types. Smallholder farmers without access to agricultural extension services need decision support — both for choosing what to grow and for managing an active growing season.
 
 ---
 
 ## 2. Technology Stack
 
-### Backend — Runtime (`requirements.txt`)
+### ML Service — Runtime (`requirements.txt`, port 8000)
 
 | Technology | Version | What it does in this project |
 |---|---|---|
-| **Python** | 3.10+ | The language the entire backend runs in. |
-| **FastAPI** | 0.115.0 | Web framework. Defines all API endpoints (`/predict/full`, `/predict/simple`, `/health`, `/meta`). Handles HTTP routing, request parsing, and automatic response serialisation. |
-| **Uvicorn** | 0.30.0 | ASGI server. Actually runs FastAPI — listens on port 8000 and hands incoming HTTP requests to FastAPI. FastAPI alone cannot serve traffic without it. |
-| **Pydantic** | 2.7.0 | Data validation. Every API request is checked against a schema before the ML model sees it — e.g. pH must be 3.0–10.0, Season must be Maha/Yala/Year-round. FastAPI uses Pydantic automatically via type annotations. |
-| **scikit-learn** | 1.5.0 | ML toolkit. Provides `RandomForestClassifier`, `VotingClassifier`, `LabelEncoder`, `train_test_split`, `GridSearchCV`. The Random Forest sub-model is also used for XAI (explainability). |
-| **XGBoost** | 3.2.0 | Gradient boosted tree model. The second model in the ensemble. XGBoost learns sequentially — each tree corrects the errors of the previous one. Paired with Random Forest, the two cover each other's weaknesses. |
-| **joblib** | 1.4.2 | Serialisation. Saves trained models to `.pkl` files and loads them on server startup. Without it we would have to retrain from scratch every time the server starts. |
-| **NumPy** | 1.26.4 | Numerical computing. All array operations: building input vectors, probability calculations, temperature scaling, XAI impurity math. |
-| **httpx** | 0.27.0 | HTTP client. Used by the `/weather` endpoint to call the Open-Meteo forecast and archive APIs. Also used by FastAPI's `TestClient` in tests. |
+| **Python** | 3.10+ | Language the entire backend runs in |
+| **FastAPI** | 0.115.0 | Web framework for all ML API endpoints |
+| **Uvicorn** | ≥0.30.0 | ASGI server — runs FastAPI on port 8000 |
+| **Pydantic** | 2.7.0 | Request validation — pH must be 3–10, Season must be Maha/Yala/Year-round, etc. |
+| **scikit-learn** | 1.5.0 | `RandomForestClassifier`, `VotingClassifier`, `LabelEncoder`, `GridSearchCV` |
+| **XGBoost** | 3.2.0 | Second model in the ensemble; sequential boosting covers RF's weaknesses |
+| **joblib** | 1.4.2 | Saves and loads trained models as `.pkl` files |
+| **NumPy** | 1.26.4 | Array operations, input vector construction, XAI impurity math |
+| **httpx** | 0.27.0 | HTTP client for calling Open-Meteo forecast and archive APIs |
+| **python-dotenv** | ≥1.0.1 | Loads `backend/.env` for both services |
 
-### Backend — Dev & Training (`requirements-dev.txt`)
+### Main API — Runtime (`requirements.txt`, port 8001)
 
-These are only needed on the development machine — not in the production API container.
+| Technology | Version | What it does in this project |
+|---|---|---|
+| **FastAPI** | 0.115.0 | Web framework — auth, farms, crops routes |
+| **Uvicorn** | ≥0.30.0 | ASGI server — runs the main API on port 8001 |
+| **SQLAlchemy** | ≥2.0.0 | ORM — `User`, `Farm`, `Crop`, `CultivationSession`, `CultivationTask` models |
+| **psycopg2-binary** | ≥2.9.9 | PostgreSQL driver |
+| **Alembic** | ≥1.13.0 | Database schema migrations |
+| **python-jose** | ≥3.3.0 | JWT creation and verification |
+| **passlib** | ≥1.7.4 | Password hashing (pbkdf2_sha256) |
+| **pydantic-settings** | ≥2.4.0 | Settings management |
+| **email-validator** | ≥2.2.0 | Email field validation in Pydantic schemas |
+
+### Backend — Dev & Training Only (`requirements-dev.txt`)
 
 | Technology | What it does |
 |---|---|
-| **pandas** | Reads the training CSV, does feature engineering with named columns, builds the one-hot encoded feature matrix. Only used in training scripts, not in the running API. |
-| **pytest** | Test runner. Runs the API tests in `backend/tests/test_api.py`. |
+| **pandas** | Reads the training CSV and does feature engineering — only used in training scripts |
+| **pytest** | Test runner for `backend/tests/` |
 
 ### Frontend
 
 | Technology | Version | What it does in this project |
 |---|---|---|
-| **React** | 18.3.1 | UI framework. Manages all state (form inputs, prediction results, active language, prediction history), re-renders components reactively when data changes. |
-| **React DOM** | 18.3.1 | Renders React component trees into actual browser HTML. React and React DOM are separate packages — React describes the UI, React DOM writes it to the page. |
-| **Vite** | 5.4.0 | Build tool and dev server. Compiles JSX to JavaScript, proxies `/predict`, `/health`, and `/meta` API calls to the backend (so CORS is never an issue in development), and produces the optimised production bundle. |
+| **React** | 18.3.1 | UI framework — component tree, state management |
+| **React DOM** | 18.3.1 | Renders React to the browser |
+| **React Router** | 6.26.0 | Client-side routing — 20+ routes across public, auth, ML-tool, and landowner pages |
+| **Axios** | ≥1.6.0 | HTTP client for platform API calls (farm/crop services) |
+| **Vite** | 5.4.0 | Build tool and dev server — proxies `/auth`, `/api` to port 8001 and ML routes to port 8000 |
 
-**Notable: no UI component library, no CSS framework, no state management library (Redux/Zustand).** All components are hand-written, all styles are plain CSS with variables. This keeps the bundle small and removes build complexity.
+**Notable: no UI component library, no CSS framework, no state management library.** All components are hand-written; all styles are plain CSS with variables.
 
 ---
 
 ## 3. Project Structure
 
 ```
-SMARTAGRI_project/
-├── .gitignore                          # Ignores .pkl files, node_modules, .env files
-├── README.md                           # Quick-start guide
-├── DOCS.md                             # This file — complete documentation
+SmartAgri/
+├── .gitignore
+├── README.md
+├── DOCS.md
+├── start.bat                           # One-click launcher — starts all 3 services
+├── start-backend.bat                   # Starts port 8001 only
+├── start-frontend.bat                  # Starts frontend only
+├── Crop_Details.docx                   # Reference crop data document
+│
+├── docs/                               # Project reference documents
+│   ├── Client Approval Letter.pdf
+│   ├── Proposal_Report_CST_Group_07.pdf
+│   ├── SmartAgri Presentation.pdf
+│   └── Zone.txt
+│
+├── data/                               # Datasets
+│   └── merged_all_crops_clean.csv      # Training dataset (also in backend/datasets/)
 │
 ├── backend/
-│   ├── requirements.txt                # Runtime dependencies (API server)
+│   ├── requirements.txt                # Runtime dependencies (both services)
 │   ├── requirements-dev.txt            # Training + test dependencies
-│   ├── .env.example                    # Template for environment variables
+│   ├── .env                            # Active environment variables (git-ignored)
+│   ├── .env.example                    # Template
+│   ├── alembic.ini                     # Alembic configuration
+│   │
+│   ├── alembic/
+│   │   └── versions/                   # Migration files (6 applied migrations)
 │   │
 │   ├── datasets/
 │   │   ├── merged_all_crops_clean.csv  # Training dataset: 17,768 rows, 34 crops
-│   │   └── standardize_dataset.py      # Reproducible cleaning script for the CSV
+│   │   └── standardize_dataset.py      # Reproducible cleaning script
 │   │
 │   ├── ai_models/
 │   │   └── training/
-│   │       ├── train_full_model.py     # Trains the RF+XGBoost ensemble
-│   │       ├── train_simplified_model.py # Trains the quick-predict RF model
-│   │       ├── generate_guidance.py    # Generates crop_guidance.json for 41 crops
+│   │       ├── train_full_model.py
+│   │       ├── train_simplified_model.py
+│   │       ├── generate_guidance.py
 │   │       └── models/                 # Generated by training (git-ignored)
-│   │           ├── crop_info.json      # Ideal ranges for all 34 crops (manually curated)
-│   │           ├── crop_guidance.json  # Full lifecycle guidance for 41 crops
+│   │           ├── crop_info.json
+│   │           ├── crop_guidance.json
 │   │           ├── crop_model_full.pkl
 │   │           ├── crop_model_simple.pkl
 │   │           ├── label_encoder_full.pkl
@@ -106,53 +134,122 @@ SMARTAGRI_project/
 │   │           └── model_info_simple.pkl
 │   │
 │   ├── ml_service/
-│   │   └── app.py                      # FastAPI application (the running API)
+│   │   └── app.py                      # ML FastAPI app (port 8000)
+│   │
+│   ├── app/                            # Main FastAPI app (port 8001)
+│   │   ├── main.py                     # App factory, CORS, lifespan, router registration
+│   │   ├── api/
+│   │   │   └── auth.py                 # /auth/* endpoints (register, login, me, password, delete)
+│   │   ├── routers/
+│   │   │   ├── farm.py                 # /api/farms/* endpoints
+│   │   │   └── crop.py                 # /api/crops/* and /api/farms/{id}/crops endpoints
+│   │   ├── models/
+│   │   │   ├── user.py                 # User, UserRole enum
+│   │   │   ├── farm.py                 # Farm
+│   │   │   ├── crop.py                 # Crop (with relationship to Farm)
+│   │   │   └── cultivation.py          # CultivationSession, CultivationTask
+│   │   ├── schemas/
+│   │   │   ├── auth.py                 # UserRegister, UserLogin, AuthResponse
+│   │   │   ├── user.py                 # UserRead, UserUpdate, PasswordChange
+│   │   │   ├── farm.py                 # FarmCreate, FarmRead, FarmUpdate
+│   │   │   └── crop.py                 # CropCreate, CropRead, CropUpdate
+│   │   ├── services/
+│   │   │   ├── auth.py                 # User CRUD, ensure_admin_user, role→redirect map
+│   │   │   ├── farm_service.py         # Farm CRUD
+│   │   │   └── crop_service.py         # Crop CRUD
+│   │   ├── core/
+│   │   │   ├── security.py             # JWT creation/verification, password hashing
+│   │   │   └── deps.py                 # get_db, get_current_user, get_current_land_owner
+│   │   └── db/
+│   │       └── database.py             # SQLAlchemy engine, SessionLocal, Base
 │   │
 │   └── tests/
-│       ├── __init__.py
-│       └── test_api.py                 # 14 API tests (pytest)
+│       └── test_api.py                 # 14 ML API tests (pytest)
 │
 └── frontend/
-    ├── index.html                      # Single HTML entry point
-    ├── package.json                    # npm scripts and dependency list
-    ├── vite.config.js                  # Vite config + API proxy rules
-    ├── .env.example                    # Template for VITE_API_URL
+    ├── index.html
+    ├── package.json
+    ├── vite.config.js                  # Vite config + proxy rules (8001 and 8000)
+    ├── .env.local                      # Active env vars (git-ignored)
+    ├── .env.example
     │
     ├── public/
     │   └── favicon.svg
     │
     └── src/
-        ├── main.jsx                    # React app entry point
-        ├── App.jsx                     # Root component: holds lang/page/weather state; routes to 4 pages
+        ├── main.jsx                    # React entry point
+        ├── App.jsx                     # Router tree — all routes defined here
+        ├── styles.css                  # Page and component styles
         │
-        ├── components/                 # Reusable UI pieces
-        │   ├── Navbar.jsx              # Top navigation + language switcher
+        ├── context/
+        │   └── AppContext.jsx          # Global state: lang, weather, theme (dark/light)
+        │
+        ├── components/                 # Shared UI components
+        │   ├── AppLayout.jsx           # Navbar + Outlet for all public/ML pages
+        │   ├── LandOwnerLayout.jsx     # Sidebar + Outlet for /landowner/* pages
+        │   ├── Navbar.jsx              # Top nav, language switcher, theme toggle, auth state
+        │   ├── Footer.jsx
+        │   ├── Toast.jsx               # Toast notification component
+        │   ├── CropPicker.jsx          # Shared crop selector
         │   ├── SuitBar.jsx             # Confidence percentage bar
-        │   ├── XAIFeatureCard.jsx      # Feature contribution bars (XAI display)
-        │   ├── CalendarCard.jsx        # Planting and harvest calendar
+        │   ├── XAIFeatureCard.jsx      # Feature contribution bars
+        │   ├── CalendarCard.jsx        # Planting/harvest calendar
         │   ├── CompareCard.jsx         # Top-3 crops comparison table
-        │   ├── HistoryPanel.jsx        # Last 10 predictions (localStorage)
-        │   ├── WeatherLocationPicker.jsx # Compact district picker + live weather banner (shared across pages)
-        │   └── CultivationTracker.jsx  # Active cultivation sessions; task status tracking
+        │   ├── HistoryPanel.jsx        # Prediction history (localStorage)
+        │   ├── FeatureCard.jsx
+        │   ├── WeatherLocationPicker.jsx  # District picker + live weather banner
+        │   └── CultivationTracker.jsx  # Cultivation task tracking UI
         │
         ├── pages/
-        │   ├── CropRecommendation.jsx  # Main page: form + prediction results
-        │   ├── CropGuidance.jsx        # Crop lifecycle guide + cultivation tracker
-        │   ├── YieldPrice.jsx          # Yield & price/revenue calculator
-        │   └── Weather.jsx             # Dedicated weather & farm advisory page
+        │   ├── HomePage.jsx            # Landing page (public)
+        │   ├── LoginPage.jsx           # Login form (standalone, no Navbar)
+        │   ├── RegisterPage.jsx        # Register form — Land Owner or Trader only
+        │   ├── MarketplacePage.jsx
+        │   ├── DashboardPage.jsx       # Reusable dashboard shell (Admin + Trader)
+        │   ├── About.jsx
+        │   ├── ContactPage.jsx
+        │   ├── CropRecommendation.jsx  # ML: full/quick predict form + results
+        │   ├── CropGuidance.jsx        # ML: crop lifecycle guide + cultivation tracker
+        │   ├── YieldPrice.jsx          # ML: yield & revenue calculator
+        │   ├── Weather.jsx             # ML: weather & farm advisory
+        │   ├── farms/
+        │   │   ├── MyFarms.jsx
+        │   │   ├── AddFarm.jsx
+        │   │   ├── EditFarm.jsx
+        │   │   └── FarmDetails.jsx
+        │   ├── crops/
+        │   │   ├── MyCrops.jsx
+        │   │   ├── AddCrop.jsx
+        │   │   ├── EditCrop.jsx
+        │   │   └── CropDetails.jsx
+        │   ├── cultivations/
+        │   │   └── MyCultivations.jsx
+        │   └── landowner/
+        │       ├── LandOwnerDashboard.jsx
+        │       ├── Settings.jsx
+        │       └── HelpSupport.jsx
+        │
+        ├── services/
+        │   ├── api.js                  # Base fetch wrapper, auth session helpers, /auth endpoints
+        │   ├── farmService.js          # /api/farms/* calls
+        │   ├── cropService.js          # /api/crops/* calls
+        │   ├── cultivationApi.js       # /cultivation/* calls (ML service)
+        │   └── userId.js               # Derives a stable user_id for ML cultivation sessions
         │
         ├── data/
         │   ├── translations.js         # All UI strings in EN / SI / TA
         │   ├── cropData.js             # Crop labels, emoji, yield data, soil guide helpers
         │   └── districtZones.js        # District → agro zone mapping (25 districts)
         │
+        ├── utils/                      # Shared utility functions
+        │
         └── styles/
-            ├── globals.css             # CSS variables, reset, body styles
-            ├── Navbar.css              # Navbar component styles
-            ├── CropRecommendation.css  # Crop recommendation page styles
-            ├── CropGuidance.css        # Crop guidance page styles
-            ├── YieldPrice.css          # Yield & price calculator styles
-            └── Weather.css             # Weather page styles
+            ├── globals.css             # CSS variables, dark/light theme tokens
+            ├── Navbar.css
+            ├── CropRecommendation.css
+            ├── CropGuidance.css
+            ├── YieldPrice.css
+            └── Weather.css
 ```
 
 ---
@@ -160,59 +257,102 @@ SMARTAGRI_project/
 ## 4. How to Run
 
 ### Prerequisites
+
 - Python 3.10+
 - Node.js 18+
+- PostgreSQL — database `smartagri` must exist
 
-### Backend
+### Environment variables
+
+Copy `backend/.env.example` to `backend/.env`:
+
+```
+PROJECT_NAME=Smart Agribusiness Decision Support System
+DATABASE_URL=postgresql://user:password@localhost:5432/smartagri
+SECRET_KEY=your-secret-key-here
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+SMARTAGRI_CORS_ORIGINS=http://localhost:5173
+
+# Optional — defaults shown
+ADMIN_EMAIL=admin@smartagri.lk
+ADMIN_PASSWORD=Admin@12345
+ADMIN_FULL_NAME=System Administrator
+```
+
+Copy `frontend/.env.example` to `frontend/.env.local`:
+
+```
+# Leave empty for Vite dev proxy (recommended for local dev)
+VITE_API_URL=
+
+# Set only for production deployments
+# VITE_API_URL=https://api.yourdomain.com
+```
+
+### First run: database migration
 
 ```bash
 cd backend
+python -m alembic upgrade head
+```
 
-# Install runtime dependencies
-pip install -r requirements.txt
+This creates all five tables: `users`, `farms`, `crops`, `cultivation_sessions`, `cultivation_tasks`.
 
-# Install training/dev dependencies (first time or after retraining)
+### Start all services
+
+**Option A — One command:**
+```
+start.bat
+```
+Opens three terminal windows (kills old processes on 8000/8001/5173 first).
+
+**Option B — Three terminals:**
+
+```bash
+# Terminal 1 — Main API (auth, farms, crops) — port 8001
+cd backend
+uvicorn app.main:app --reload --port 8001
+
+# Terminal 2 — ML Service — port 8000
+cd backend
+uvicorn ml_service.app:app --reload --port 8000
+
+# Terminal 3 — Frontend — port 5173
+cd frontend
+npm install     # first run only
+npm run dev
+```
+
+### Train ML models (first run or after dataset changes)
+
+```bash
+cd backend
 pip install -r requirements-dev.txt
-
-# Train models (run once, or after dataset changes — takes 3-5 minutes)
 python ai_models/training/train_full_model.py
 python ai_models/training/train_simplified_model.py
-
-# Start the API server
-python ml_service/app.py
-# Runs at http://localhost:8000
-# Swagger UI at http://localhost:8000/docs
+python ai_models/training/generate_guidance.py   # optional — regenerates crop_guidance.json
 ```
 
-### Frontend
+Training takes 3–5 minutes and writes `.pkl` files to `backend/ml_service/models/`.
+
+### Run tests
 
 ```bash
-cd frontend
-npm install
-npm run dev
-# Runs at http://localhost:5173
-```
-
-Vite's dev server automatically proxies `/predict/*`, `/health`, `/meta`, `/guidance/*`, `/cultivation/*`, and `/weather` to `localhost:8000` — no CORS configuration needed.
-
-### Run Tests
-
-```bash
-# From project root
 python -m pytest backend/tests/ -v
 ```
 
-### Environment Variables
+### Default admin account
 
-Copy `backend/.env.example` to `backend/.env` and set:
-```
-SMARTAGRI_CORS_ORIGINS=https://yourdomain.com
-```
+The admin user is created automatically when the main API starts for the first time:
 
-Copy `frontend/.env.example` to `frontend/.env.local` and set:
-```
-VITE_API_URL=https://api.yourdomain.com
-```
+| Field | Default |
+|---|---|
+| Email | admin@smartagri.lk |
+| Password | Admin@12345 |
+| Role | Admin |
+
+Override with `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_FULL_NAME` in `.env`.
 
 ---
 
@@ -237,10 +377,10 @@ Seven raw numeric inputs are expanded to 13 by adding derived features:
 | `N_K_Ratio` | N / (K + 1) | Same rationale |
 | `P_K_Ratio` | P / (K + 1) | Same rationale |
 | `NPK_Sum` | N + P + K | Total nutrient load |
-| `Rainfall_Temp_Ratio` | Rainfall / (Temperature + 1) | Climate stress index — high rain + low temp is different from high rain + high temp |
+| `Rainfall_Temp_Ratio` | Rainfall / (Temperature + 1) | Climate stress index |
 | `pH_Squared` | pH² | pH has a non-linear effect; squaring amplifies deviations from neutral |
 
-Four categorical features (Soil_Type, Agro_Zone, Irrigation, Season) are then one-hot encoded, giving a final feature vector of ~50+ columns.
+Four categorical features (Soil_Type, Agro_Zone, Irrigation, Season) are one-hot encoded, giving a final feature vector of ~50+ columns.
 
 ### The Ensemble
 
@@ -259,180 +399,211 @@ Input vector (50+ features)
     Final confidence scores
 ```
 
-**Random Forest:** Trains 300 decision trees independently (bagging). Each tree sees a random subset of features and data. Their votes are averaged. Good at low-variance predictions, handles diverse feature types well.
+**Random Forest:** 300 trees trained independently (bagging). Good at low-variance predictions, handles diverse feature types well.
 
-**XGBoost:** Trains trees sequentially — each tree learns from the mistakes of the previous one (boosting). Captures complex feature interactions that RF misses. Uses `hist` method for speed, `subsample=0.8` and `colsample_bytree=0.8` for regularisation.
+**XGBoost:** Trees trained sequentially — each corrects the previous one (boosting). Captures complex feature interactions RF misses.
 
-**Soft Voting:** Both models output a probability distribution over 34 crops. The two distributions are averaged. This almost always beats either model alone.
+**Soft Voting:** Both models output a probability distribution over 34 crops. The distributions are averaged — this almost always beats either model alone.
 
 ### Calibration (Temperature Scaling)
-
-The raw ensemble probabilities are often overconfident (e.g. 97% when the true accuracy is ~90%). Temperature scaling corrects this:
 
 ```
 p_calibrated = softmax(log(p_raw) / T)
 ```
 
-Where `T` is a scalar found by minimising the Negative Log-Likelihood on a held-out calibration set (15% of data, never seen during training). For this model, T ≈ 0.60 — meaning the ensemble was underconfident and calibration sharpens its predictions.
-
-**The calibration set is strictly separate from both training and test data** (3-way 70/15/15 split). Using training data to find T would overfit the temperature parameter.
+`T` is found by minimising Negative Log-Likelihood on a held-out calibration set (15% of data). For this model T ≈ 0.60 — the ensemble was underconfident; calibration sharpens predictions.
 
 ### Train / Cal / Test Split
 
 ```
 17,768 rows
 │
-├── 70% Training   (12,436 rows) → fits RF and XGBoost
-├── 15% Calibration (2,666 rows) → finds optimal temperature T
-└── 15% Test        (2,666 rows) → measures final accuracy (never used in fitting)
+├── 70% Training    (12,436 rows) → fits RF and XGBoost
+├── 15% Calibration  (2,666 rows) → finds optimal temperature T
+└── 15% Test         (2,666 rows) → measures final accuracy
 ```
 
 All splits use stratified sampling to ensure every crop is proportionally represented.
 
 ### Explainable AI (XAI)
 
-For every Full Analysis prediction, the system computes *per-prediction* feature contributions — not just global model importance.
+For every Full Analysis prediction, the system computes per-prediction feature contributions:
 
-**Method:** Random Forest decision path traversal.
-1. Find all trees in the RF that voted for the predicted crop (up to 50 trees).
+1. Find all RF trees that voted for the predicted crop (up to 50 trees).
 2. Walk each tree's decision path for this specific input.
-3. At each split node, compute the impurity reduction (how much that split reduced uncertainty).
+3. At each split node, compute the impurity reduction.
 4. Accumulate impurity reduction per feature across all trees.
 5. Normalise to sum to 1.
 
-**Direction:** Each feature's direction (`positive` / `negative` / `neutral`) is computed by comparing the user's value against the crop's ideal range from `crop_info.json`:
-- `positive` → value is within the ideal range (supporting factor)
-- `negative` → value is outside the ideal range (limiting factor)
-- `neutral` → no ideal range data available
-
-This approach requires no external SHAP library and runs in ~10ms per prediction.
+**Direction** (`positive` / `negative` / `neutral`) is computed by comparing the user's value against the crop's ideal range in `crop_info.json`. No SHAP library required; runs in ~10ms per prediction.
 
 ---
 
 ## 6. Backend Architecture
 
-`backend/ml_service/app.py` is a single-file FastAPI application. At startup it:
+The backend is **two independent FastAPI applications**, both started from the `backend/` directory.
 
-1. Loads 6 pickle files from `models/` (both models + both label encoders + both model infos)
-2. Loads `crop_info.json` (ideal ranges for 34 crops)
-3. Loads `crop_guidance.json` (full lifecycle guidance for 41 crops)
-4. Pre-computes `feature_columns` as a set for O(1) lookup during inference
-5. Extracts the RF sub-model from the ensemble via `named_estimators_["rf"]` — used for XAI
-6. Loads training statistics (mean/std for outlier detection) from `model_info_full.pkl`
-7. Reads the calibration temperature T from `model_info_full.pkl`
+### ML Service — `ml_service/app.py` (port 8000)
 
-**Weather module:** The `/weather` endpoint calls the Open-Meteo forecast API and archive API in parallel using `httpx` (run via `asyncio.run_in_executor` to keep the endpoint non-blocking). It derives the current Sri Lanka season (Maha / Yala / Year-round) from the calendar date, fetches the season-to-date accumulated rainfall from the archive, and generates contextual farm advisory messages based on current temperature, humidity, wind, and forecast rain.
+Single-file FastAPI app. At startup it:
+1. Loads 6 pickle files from `models/` (both models + encoders + model infos)
+2. Loads `crop_info.json` (ideal ranges for 34 crops) and `crop_guidance.json` (lifecycle data for 41 crops)
+3. Pre-computes `feature_columns` as a set for O(1) lookup during inference
+4. Extracts the RF sub-model from the ensemble via `named_estimators_["rf"]` for XAI
+5. Loads training statistics (mean/std) from `model_info_full.pkl` for outlier detection
+6. Reads calibration temperature T from `model_info_full.pkl`
 
-**Cultivation tracker:** An in-memory dict (`_cultivations`) stores per-user cultivation sessions. When a session is started (`POST /cultivation`), the system reads the crop's lifecycle data from `crop_guidance.json` and auto-generates a date-stamped task list covering all growth-stage activities, fertilization events, and irrigation checks. Task statuses (`pending` / `done` / `skipped` / `overdue`) can be updated via `PUT`. Note: sessions are stored in process memory and are lost on server restart. For production use, replace with a database.
+**Inference path (no pandas):** Input dicts are converted directly to NumPy arrays via `_build_full_input()` / `_build_simple_input()`. One-hot encoding is replicated by building a `{col_val: 1}` dict and reading columns in saved feature order.
 
-**Inference path (no pandas):** At prediction time, the input dict is converted directly to a NumPy array using `_build_full_input()` / `_build_simple_input()`. This manually replicates the one-hot encoding by building a dict of `{col_val: 1}` entries and reading them out in the saved feature column order. pandas is not needed at inference time.
+**Prediction cache:** Process-local LRU dict (max 500 entries). Identical inputs return immediately without running the model.
 
-**Prediction cache:** Results are cached in a process-local dict (max 500 entries, LRU eviction). Identical inputs return immediately without running the model again. Note: with multiple server workers, each worker has its own cache — use Redis for shared caching.
+**Outlier detection:** Values more than ±3 standard deviations from training mean trigger a warning in the response.
 
-**Outlier detection:** Input values more than ±3 standard deviations from the training mean trigger a warning in the response. The means and standard deviations come from the training set statistics saved in `model_info_full.pkl`.
+**Cultivation tracker (ML service):** `POST /cultivation` reads `crop_guidance.json` and auto-generates a date-stamped task list. Sessions are persisted to PostgreSQL via the main API — the ML service calls the cultivation endpoints which in turn persist to the database.
+
+**Weather module:** `/weather` calls Open-Meteo forecast and archive APIs in parallel via `httpx`. Derives the current Sri Lanka season (Maha/Yala/Year-round) from the calendar date and generates contextual farm advisory messages.
+
+### Main API — `app/main.py` (port 8001)
+
+Full-featured FastAPI app with PostgreSQL persistence. At startup it auto-creates the admin user if none exists (`ensure_admin_user`).
+
+**Module layout:**
+
+| Module | Responsibility |
+|---|---|
+| `api/auth.py` | `/auth/*` — register, login, `/me` (read/update/password/delete) |
+| `routers/farm.py` | `/api/farms/*` — CRUD, land-owner-only |
+| `routers/crop.py` | `/api/crops/*` and `/api/farms/{id}/crops` — CRUD, land-owner-only |
+| `models/` | SQLAlchemy ORM models: User, Farm, Crop, CultivationSession, CultivationTask |
+| `schemas/` | Pydantic request/response models |
+| `services/` | Business logic layer (auth, farm, crop CRUD) |
+| `core/security.py` | JWT creation/verification, password hashing (pbkdf2_sha256) |
+| `core/deps.py` | FastAPI dependencies: `get_db`, `get_current_user`, `get_current_land_owner` |
+| `db/database.py` | SQLAlchemy engine, `SessionLocal`, declarative `Base` |
+
+**Database schema:**
+
+| Table | Primary Key | Notes |
+|---|---|---|
+| `users` | `id` (int) | `email` unique; `role` enum: Admin/Land Owner/Trader/Visitor |
+| `farms` | `id` (UUID) | `owner_id` → users.id |
+| `crops` | `id` (UUID) | `farm_id` → farms.id (CASCADE), `owner_id` → users.id |
+| `cultivation_sessions` | `id` (UUID) | `crop_id` → crops.id (SET NULL), `farm_id` → farms.id (SET NULL) |
+| `cultivation_tasks` | `id` (varchar) | `session_id` → cultivation_sessions.id (CASCADE) |
+
+**Authentication flow:**
+1. Client sends credentials to `POST /auth/login` or `POST /auth/register`
+2. Server returns a JWT access token (30-minute expiry)
+3. Client stores token in localStorage; attaches it as `Authorization: Bearer <token>` on subsequent requests
+4. `get_current_user` dependency decodes the token on every protected route
+5. `get_current_land_owner` additionally checks `role == Land Owner`
+6. 401 responses cause the frontend to clear the session and redirect to `/login`
 
 ---
 
 ## 7. Frontend Architecture
 
-### Component Tree
+### Routing
 
-```
-App.jsx                              ← holds: lang, currentPage, weather (shared across pages)
-│
-├── Navbar.jsx                       ← props: lang, setLang, currentPage, setPage
-│
-└── <page> (rendered based on currentPage)
-    │
-    ├── CropRecommendation.jsx       ← holds: form state, result, history, isMock
-    │   ├── WeatherLocationPicker.jsx
-    │   ├── HistoryPanel.jsx
-    │   └── (after prediction)
-    │       ├── SuitBar.jsx
-    │       ├── XAIFeatureCard.jsx
-    │       ├── CalendarCard.jsx
-    │       └── CompareCard.jsx
-    │
-    ├── CropGuidance.jsx             ← holds: mode (guide|cultivations), selected crop, planting date
-    │   ├── WeatherLocationPicker.jsx
-    │   ├── GuidanceSelector          (inline sub-component)
-    │   ├── GuidanceDetail            (inline sub-component with 7 tabs)
-    │   └── CultivationTracker.jsx
-    │
-    ├── YieldPrice.jsx               ← holds: yield form, price form, calculated results
-    │   └── WeatherLocationPicker.jsx
-    │
-    └── Weather.jsx                  ← holds: selected district, weather data
-```
+All routes are defined in `App.jsx` using React Router v6:
 
-### State Management
+| Path | Component | Auth required |
+|---|---|---|
+| `/login` | `LoginPage` | No (standalone, no Navbar) |
+| `/register` | `RegisterPage` | No (standalone, no Navbar) |
+| `/` | `HomePage` | No |
+| `/marketplace` | `MarketplacePage` | No |
+| `/dashboard/admin` | `DashboardPage` (Admin) | — (no guard yet) |
+| `/dashboard/trader` | `DashboardPage` (Trader) | — |
+| `/crop-recommendation` | `CropRecommendation` | No |
+| `/crop-guidance` | `CropGuidance` | No |
+| `/wx` | `Weather` | No |
+| `/yield-price` | `YieldPrice` | No |
+| `/about` | `About` | No |
+| `/contact` | `ContactPage` | No |
+| `/landowner/dashboard` | `LandOwnerDashboard` | Land Owner JWT |
+| `/landowner/farms` | `MyFarms` | Land Owner JWT |
+| `/landowner/farms/add` | `AddFarm` | Land Owner JWT |
+| `/landowner/farms/edit/:id` | `EditFarm` | Land Owner JWT |
+| `/landowner/farms/:id` | `FarmDetails` | Land Owner JWT |
+| `/landowner/crops` | `MyCrops` | Land Owner JWT |
+| `/landowner/crops/add` | `AddCrop` | Land Owner JWT |
+| `/landowner/crops/edit/:id` | `EditCrop` | Land Owner JWT |
+| `/landowner/crops/:id` | `CropDetails` | Land Owner JWT |
+| `/landowner/cultivations` | `MyCultivations` | Land Owner JWT |
+| `/landowner/settings` | `Settings` | Land Owner JWT |
+| `/landowner/help` | `HelpSupport` | Land Owner JWT |
 
-State is split between `App.jsx` (global) and each page component (local). No external state library is used.
+### Layouts
 
-**Global state in `App.jsx`:**
+**`AppLayout`** wraps all public and ML-tool pages. It renders the shared `Navbar` and passes shared state (`lang`, `setLang`, `weather`, `setWeather`, `setPage`) via React Router's `useOutletContext`. Wrapper components in `App.jsx` (e.g. `CropRecommendationPage`) bridge the outlet context to the props the original ML pages expect.
+
+**`LandOwnerLayout`** wraps all `/landowner/*` routes. It renders a sidebar navigation and checks JWT state, redirecting unauthenticated users to `/login`.
+
+### Global State — `AppContext`
 
 | State | Type | Purpose |
 |---|---|---|
-| `lang` | `"en" \| "si" \| "ta"` | Active language — passed to all pages and children |
-| `page` | string | Active page key (`"crop-recommendation"`, `"crop-guidance"`, `"yield-price"`, `"weather"`) |
-| `weather` | object or null | Latest fetched weather data — shared across pages via `WeatherLocationPicker` |
+| `lang` | `"en" \| "si" \| "ta"` | Active language — passed to all pages |
+| `weather` | object or null | Latest fetched weather — shared across pages |
+| `theme` | `"dark" \| "light"` | UI theme — persisted to localStorage as `sa-theme` |
+| `toggleTheme` | function | Flips between dark and light mode |
 
-**Local state in `CropRecommendation.jsx`:**
+### Auth Session — `services/api.js`
 
-| State | Type | Purpose |
-|---|---|---|
-| `result` | object or null | The full API response after a prediction |
-| `history` | array | Last 10 predictions, loaded from localStorage |
-| `isMock` | boolean | True when the backend is unreachable — shows an orange warning banner |
-| `soilGuide` | boolean | Controls the soil identification modal |
-| Form fields | strings/numbers | Controlled inputs: N, P, K, Temperature, etc. |
+JWT token and user object are stored in localStorage (`smartagri_token`, `smartagri_user`). The `request()` wrapper attaches the token as a Bearer header on every call. A 401 response clears the session and redirects to `/login`.
+
+### Vite Proxy
+
+In development, all API traffic is proxied by Vite — no CORS configuration needed:
+
+| Path prefix | Target |
+|---|---|
+| `/auth`, `/api`, `/health` | `http://localhost:8001` (Main API) |
+| `/predict`, `/weather`, `/cultivation`, `/guidance`, `/meta` | `http://localhost:8000` (ML Service) |
 
 ### Persistence
-- **localStorage** (`smartagri_history`): Stores the last 10 prediction results. Written by `saveToHistory()` in `HistoryPanel.jsx` after every successful prediction.
-- **sessionStorage**: Form inputs are persisted across page refreshes so the farmer doesn't lose their data.
+
+| Store | Key | Contents |
+|---|---|---|
+| localStorage | `smartagri_token` | JWT access token |
+| localStorage | `smartagri_user` | Serialised user object |
+| localStorage | `smartagri_history` | Last 10 ML predictions |
+| localStorage | `sa-theme` | `"dark"` or `"light"` |
+| sessionStorage | form fields | Crop recommendation form inputs (survives page refresh) |
 
 ### Translations
 
-All UI text lives in `src/data/translations.js` as a single object keyed by language code:
-```js
-{ en: { title: "...", ... }, si: { title: "...", ... }, ta: { title: "...", ... } }
-```
-Components receive a `t` prop (the current language's strings) rather than calling a translation function. This is intentionally simple — no i18n library.
+All UI text lives in `src/data/translations.js` keyed by language code. Components receive a `t` prop (the current language's string map). No i18n library — deliberately simple.
 
 ### Mock Fallback
 
-If the `/health` check on startup fails (backend not running), `isMock` is set to `true`. The app shows a prominent orange banner and generates a random mock result so the UI is always navigable for development and demos.
+If the `/health` check on startup fails (backend not running), `isMock` is set to `true` in `CropRecommendation`. The app shows an orange warning banner and generates a random mock result so the ML UI is always navigable without a running backend.
 
 ---
 
 ## 8. API Reference
 
-### `GET /health`
+### ML Service (port 8000)
 
-Returns server status, loaded model types and accuracy, calibration temperature, and active feature flags.
+#### `GET /health`
 
 ```json
 {
   "status": "ok",
   "version": "5.3.0",
-  "full_model": {
-    "loaded": true,
-    "accuracy": 0.9021,
-    "type": "VotingClassifier(RF+XGBoost)",
-    "calibration_T": 0.6053,
-    "train_stats_src": "model_info"
-  },
+  "full_model": { "loaded": true, "accuracy": 0.9021, "type": "VotingClassifier(RF+XGBoost)", "calibration_T": 0.6053 },
   "simple_model": { "loaded": true, "accuracy": 0.4690 },
   "crop_info_crops": 34,
   "cache_entries": 0
 }
 ```
 
-### `GET /meta`
+#### `GET /meta`
 
-Returns all valid input values. The frontend uses this to build dropdown lists, keeping them in sync with the backend without hardcoding values.
+Returns all valid input values (soil types, zones, districts, seasons, irrigation types). The frontend uses this to build dropdowns.
 
-### `POST /predict/full`
+#### `POST /predict/full`
 
 **Request:**
 ```json
@@ -444,16 +615,7 @@ Returns all valid input values. The frontend uses this to build dropdown lists, 
 }
 ```
 
-**Validation rules:**
-| Field | Range |
-|---|---|
-| N | 0 – 300 kg/ha |
-| P | 0 – 200 kg/ha |
-| K | 0 – 300 kg/ha |
-| Temperature | 5 – 45 °C |
-| Rainfall | 0 – 5000 mm |
-| pH | 3.0 – 10.0 |
-| Humidity | 0 – 100 % |
+**Validation:** N 0–300, P 0–200, K 0–300, Temperature 5–45°C, Rainfall 0–5000 mm, pH 3.0–10.0, Humidity 0–100%.
 
 **Response:**
 ```json
@@ -464,295 +626,236 @@ Returns all valid input values. The frontend uses this to build dropdown lists, 
     "recommended_crop": "Tomato",
     "confidence": 0.87,
     "low_confidence": false,
-    "top_3": [
-      { "crop": "Tomato",  "confidence": 0.87, "crop_info": { ... } },
-      { "crop": "Chilli",  "confidence": 0.43, "crop_info": { ... } },
-      { "crop": "Capsicum","confidence": 0.21, "crop_info": { ... } }
-    ],
-    "explanations": ["Rainfall 1050 mm · 27°C", ...],
-    "xai_features": [
-      {
-        "feature": "Rainfall", "label": "Rainfall",
-        "label_si": "වර්ෂාපතනය", "label_ta": "மழைவீழ்ச்சி",
-        "score": 0.22, "direction": "positive",
-        "value": 1050, "ideal_min": 600, "ideal_max": 1200
-      }
-    ],
+    "top_3": [{ "crop": "Tomato", "confidence": 0.87, "crop_info": {} }],
+    "xai_features": [{ "feature": "Rainfall", "score": 0.22, "direction": "positive", "value": 1050, "ideal_min": 600, "ideal_max": 1200 }],
     "xai_is_global": false,
-    "xai_summary": {
-      "en": "Tomato was recommended because your Rainfall...",
-      "si": "...", "ta": "..."
-    },
+    "xai_summary": { "en": "...", "si": "...", "ta": "..." },
     "warnings": [],
-    "planting_calendar": {
-      "plant_start": 4, "plant_end": 5,
-      "harvest_start": 7, "harvest_end": 9
-    },
-    "crop_info": { "crop_duration_min": 75, "rainfall_min": 600, ... }
+    "planting_calendar": { "plant_start": 4, "plant_end": 5, "harvest_start": 7, "harvest_end": 9 },
+    "crop_info": {}
   }
 }
 ```
 
-**Field notes:**
-- `direction`: `"positive"` = value within ideal range. `"negative"` = outside ideal range. `"neutral"` = no ideal range data.
-- `xai_is_global`: Always `false` for full mode (contributions are per-prediction). Always `true` for simple mode (uses global RF feature importances).
-- `low_confidence`: `true` when top confidence < 60%. The frontend shows a caution badge.
-- `planting_calendar`: Harvest window is derived from the recommended crop's duration (crop-specific), not a fixed season-wide window.
+#### `POST /predict/simple`
 
-### `POST /predict/simple`
-
-**Request:**
 ```json
-{
-  "Soil_Type": "Sandy Loam", "Agro_Zone": "Dry Zone",
-  "Irrigation": "Rainfed", "Season": "Yala",
-  "District": "Ampara"
-}
+{ "Soil_Type": "Sandy Loam", "Agro_Zone": "Dry Zone", "Irrigation": "Rainfed", "Season": "Yala", "District": "Ampara" }
 ```
-District is optional. Temperature, Rainfall, and Humidity are also optional — if provided (e.g. from the live weather widget), they are used as additional features and the mode is reported as `"simple_weather"`. Response structure is identical to `/predict/full`.
+
+`District` is optional. If `Temperature`, `Rainfall`, or `Humidity` are provided (e.g. from the weather widget), mode is reported as `"simple_weather"`. Response structure identical to `/predict/full`.
+
+#### `GET /guidance`
+
+Returns sorted list of all 41 crops that have lifecycle guidance. `{ "crops": [...], "total": 41 }`
+
+#### `GET /guidance/{crop_name}`
+
+Full lifecycle data for one crop: growth stages, fertilisation schedule, irrigation, diseases, pests, risks, harvest guide. Returns `404` if no guidance exists.
+
+#### `POST /cultivation`
+
+Starts a cultivation session. Auto-generates a task list from `crop_guidance.json` dated from `planting_date`.
+
+```json
+{ "user_id": "user-abc", "crop": "Tomato", "planting_date": "2026-06-01", "district": "Kandy" }
+```
+
+Returns `201` with the full session including all generated tasks.
+
+#### `GET /cultivation/{user_id}`
+
+Returns all cultivation sessions (with tasks) for a user.
+
+#### `PUT /cultivation/{user_id}/{session_id}/task/{task_id}`
+
+Updates task status: `done` | `skipped` | `pending` | `overdue`.
+
+#### `DELETE /cultivation/{user_id}/{session_id}`
+
+Marks session as `"abandoned"`. Returns `204`.
+
+#### `GET /weather?district={district}`
+
+Live conditions + 7-day forecast (Open-Meteo) + season-to-date rainfall + farm advisory messages for one of the 25 Sri Lankan districts. Returns `400` for unknown district, `502`/`503` if upstream API is unreachable.
 
 ---
 
-### `GET /guidance`
+### Main API (port 8001)
 
-Returns a sorted list of all crops that have lifecycle guidance available.
+#### Auth — `POST /auth/register`
 
-```json
-{ "crops": ["Banana", "Bean", "Carrot", ...], "total": 41 }
-```
-
-### `GET /guidance/{crop_name}`
-
-Returns the full lifecycle data for a crop: growth stages with daily activities, fertilization schedule, irrigation requirements, disease management, pest management, risk factors, and harvest guide.
+Registers a new **Land Owner** or **Trader** account (Admin cannot self-register).
 
 ```json
-{
-  "success": true,
-  "crop": "Tomato",
-  "data": {
-    "scientific_name": "Solanum lycopersicum",
-    "overview": "...",
-    "duration": { "min": 75, "max": 120 },
-    "stages": [ { "id": "land_prep", "name": "Land Preparation", ... } ],
-    "fertilization": [ { "timing": "Basal", "day": 0, "applications": [...] } ],
-    "irrigation": { "frequency": "...", "method": "...", "critical_stages": [...] },
-    "diseases": [ { "name": "Early Blight", "severity": "high", ... } ],
-    "pests": [ { "name": "Whitefly", "severity": "medium", ... } ],
-    "risks": [...],
-    "harvest": { "indicators": [...], "method": "...", "yield": "..." }
-  }
-}
+{ "full_name": "Sunil Perera", "email": "sunil@example.com", "password": "Secret@123", "role": "Land Owner" }
 ```
 
-Returns `404` if no guidance exists for the requested crop.
+Returns `201` with `{ access_token, token_type, redirect_to, user }`. `redirect_to` is `/landowner/dashboard` for Land Owner, `/dashboard/trader` for Trader.
+
+#### Auth — `POST /auth/login`
+
+```json
+{ "email": "sunil@example.com", "password": "Secret@123" }
+```
+
+Returns the same `AuthResponse` shape. Returns `401` for wrong credentials.
+
+#### Auth — `GET /auth/me`
+
+Returns the current user. Requires Bearer token.
+
+#### Auth — `PUT /auth/me`
+
+Updates `full_name`, `email`, or `profile_image` (base64 string). Requires Bearer token.
+
+#### Auth — `PUT /auth/me/password`
+
+```json
+{ "current_password": "...", "new_password": "..." }
+```
+
+Returns `400` if `current_password` is wrong.
+
+#### Auth — `DELETE /auth/me`
+
+Deletes the authenticated user's account. Returns `204`.
 
 ---
 
-### `POST /cultivation`
+#### Farms — all require Land Owner JWT
 
-Starts a new cultivation session for a user and crop. Auto-generates a full task list from the crop's lifecycle data.
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/farms` | Create a farm |
+| `GET` | `/api/farms` | List the user's farms |
+| `GET` | `/api/farms/{id}` | Get one farm |
+| `PUT` | `/api/farms/{id}` | Update a farm |
+| `DELETE` | `/api/farms/{id}` | Delete a farm |
 
-**Request:**
-```json
-{
-  "user_id": "user-abc",
-  "crop": "Tomato",
-  "planting_date": "2026-06-01",
-  "district": "Kandy"
-}
-```
-
-**Response (201):** The full session object including all generated tasks with scheduled dates and initial statuses (`pending` or `overdue` based on today's date).
+**Farm fields:** `farm_name`, `location`, `district`, `farm_size`, `size_unit` (default `"acres"`), `soil_type`, `irrigation_type`, `cultivated_crops`, `season`, `image_data` (base64, optional).
 
 ---
 
-### `GET /cultivation/{user_id}`
+#### Crops — all require Land Owner JWT
 
-Returns all cultivation sessions for a user.
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/crops` | Create a crop record |
+| `GET` | `/api/crops` | List all crops for the user |
+| `GET` | `/api/crops/{id}` | Get one crop |
+| `PUT` | `/api/crops/{id}` | Update a crop |
+| `DELETE` | `/api/crops/{id}` | Delete a crop |
+| `GET` | `/api/farms/{farm_id}/crops` | List all crops for a specific farm |
 
-```json
-{ "sessions": [ { "id": "...", "crop": "Tomato", "status": "active", "tasks": {...} } ] }
-```
-
-### `PUT /cultivation/{user_id}/{session_id}/task/{task_id}`
-
-Updates the status of a single task. Status must be one of: `done`, `skipped`, `pending`, `overdue`.
-
-```json
-{ "status": "done" }
-```
-
-### `DELETE /cultivation/{user_id}/{session_id}`
-
-Marks a cultivation session as `"abandoned"`. Returns `204 No Content`.
-
----
-
-### `GET /weather?district={district}`
-
-Fetches live weather conditions and a 7-day forecast for the specified district using the Open-Meteo API. Also returns season-to-date accumulated rainfall (from the archive API) and contextual farm advisory messages.
-
-**Query parameter:** `district` — one of the 25 Sri Lankan districts (see `/meta` for the full list).
-
-**Response:**
-```json
-{
-  "district": "Kandy",
-  "latitude": 7.2906,
-  "longitude": 80.6337,
-  "current": {
-    "temperature": 28.4,
-    "humidity": 76.0,
-    "wind_kph": 12.0,
-    "rainfall_mm": 0.0,
-    "condition": "Partly Cloudy",
-    "condition_icon": "⛅",
-    "weather_code": 2
-  },
-  "forecast": [
-    {
-      "date": "2026-06-06",
-      "max_temp": 31.2, "min_temp": 22.1,
-      "rain_mm": 0.0, "precip_prob": 15.0,
-      "humidity": 78.0, "wind_kph": 14.0,
-      "condition": "Partly Cloudy", "icon": "⛅"
-    }
-  ],
-  "advice": [
-    {
-      "type": "action",
-      "icon": "☀️",
-      "title": "Good Conditions for Field Work",
-      "detail": "Low rainfall and moderate humidity create favourable conditions..."
-    }
-  ],
-  "season_name": "Yala",
-  "season_start": "2026-05-01",
-  "season_actual_mm": 142.3,
-  "seasonal_rainfall": { "Maha": 1000, "Yala": 700, "Year-round": 2000 },
-  "source": "Open-Meteo (open-meteo.com)"
-}
-```
-
-Returns `400` for an unknown district, `502`/`503` if the upstream weather API is unreachable.
+**Crop fields:** `farm_id`, `crop_name`, `crop_type`, `category`, `growth_stage`, `planting_date`, `expected_harvest_date`, `status`, `season` (optional). Crops are cascade-deleted when their farm is deleted.
 
 ---
 
 ## 9. Project Evolution
 
-The project went through 5 major versions. Each version is described below.
-
 ### v1.0 — Original baseline
-- Single FastAPI backend with `/predict/full` only
+
+- Single FastAPI ML backend with `/predict/full` only
 - Plain `RandomForestClassifier` with `GridSearchCV`
-- 34 crop datasets, raw merged CSV
 - Basic JSON response — crop name and confidence score only
 - No explanations, no language support, no frontend
 
 ### v2.0 — Bug fixes and dataset standardisation
-- **Critical bug fixed:** Confidence score was using the class label integer as an array index instead of the predicted class index — completely wrong probabilities.
-- Dataset cleaned: crop names normalised, irrigation collapsed to 3 canonical values (Rainfed / Irrigated / Supplemental), seasons to 3 canonical values (Maha / Yala / Year-round).
-- `standardize_dataset.py` written for reproducible cleaning.
-- `requirements.txt` added.
+
+- **Critical bug fixed:** Confidence score used the class label integer as an array index instead of the predicted class index — completely wrong probabilities.
+- Dataset cleaned: crop names normalised; irrigation collapsed to 3 canonical values; seasons to 3.
+- `standardize_dataset.py` added for reproducible cleaning.
 
 ### v3.0 — React frontend and full crop coverage
+
 - React + Vite frontend built from scratch.
 - Trilingual UI: English, සිංහල, தமிழ்.
-- District picker with automatic agro-zone resolution (25 districts, 15 zones).
+- District picker with automatic agro-zone resolution.
 - Two-mode form: Quick Predict + Full Analysis.
-- Suitability bars, result card, crop info card.
-- `crop_info.json` expanded to cover all 34 crops with ideal ranges.
+- `crop_info.json` expanded to cover all 34 crops.
 
 ### v4.0 — Explainable AI and UX improvements
-- **Per-prediction XAI** via RF decision path traversal — no external SHAP library.
-- XAI card with contribution bars and ideal-range direction badges.
-- Natural-language XAI summary generated in all 3 languages.
+
+- Per-prediction XAI via RF decision path traversal.
+- Natural-language XAI summary in all 3 languages.
 - Out-of-distribution detection (±3σ warnings).
 - `low_confidence` flag (< 60%).
-- Planting calendar added.
-- Crop comparison table (top-3 side-by-side).
+- Planting calendar and crop comparison table (top-3).
 
-### v5.0 — Ensemble model for accuracy
-- Full mode switched from single RF to **soft-voting ensemble: RF + ExtraTrees + HGB×2**.
+### v5.0 — Ensemble model
+
+- Full mode switched from single RF to soft-voting ensemble: RF + ExtraTrees + HGB×2.
 - Top-1 accuracy: 87% → 90%. Top-3: 98% → 99%.
-- Temperature scaling (calibration) added — confidence scores are now properly calibrated.
+- Temperature scaling (calibration) added.
 
 ### v5.1 — Bug fixes and code organisation
-**Backend fixes:**
-- `TRAIN_STATS` now loaded dynamically from `model_info_full.pkl` — stays in sync after retraining.
-- XAI feature direction correctly computed from value vs ideal range.
-- Planting calendar harvest window derived per-crop from crop duration.
-- 3-way 70/15/15 split for calibration (was using a training subset — data leakage).
-- `predict_simple` DataFrame mutation fixed with `.copy()`.
-- `reload=False` in production entry point.
-- Logging via `logger.*` instead of bare `print()`.
 
-**Frontend fixes:**
-- Mock fallback shows visible orange warning banner.
-- XAI bars normalised relative to top feature (was broken — most bars showed 100%).
-- Compare table "Crop" header now translated in all 3 languages.
-- Prediction history panel (localStorage, last 10 results).
-- Soil identification guide modal.
+- `TRAIN_STATS` now loaded from `model_info_full.pkl` — stays in sync after retraining.
+- 3-way 70/15/15 split for calibration (previous version had data leakage).
+- 882-line monolith split into 9 focused files; CSS and translations extracted.
+- Prediction history panel, soil identification guide modal added.
 
-**Code organisation:**
-- 882-line monolith split into 9 focused files.
-- All CSS extracted to separate files.
-- All translations extracted to `translations.js`.
-- Static crop/soil data extracted to `cropData.js`.
-- `DISTRICT_TO_ZONES` duplication removed.
+### v5.2 — Technology reduction and model improvement
+
+- Ensemble simplified: ExtraTrees + HGB×2 replaced by **XGBoost**. Two models instead of four. Accuracy maintained at ~90%.
+- **pandas removed from inference:** input arrays now built directly as NumPy arrays.
+- **scipy removed entirely:** `minimize_scalar` replaced with a 15-line golden-section search (scipy was a 50MB dependency used for one function call).
+- XAI extraction bug fixed: RF sub-model extracted from ensemble via `named_estimators_["rf"]`.
+- All 14 tests pass.
 
 ### v5.3 — New feature modules
 
-**Crop Guidance module:**
-- `generate_guidance.py` added — generates `crop_guidance.json` covering lifecycle data for 41 crops (growth stages, fertilization schedule, irrigation guide, disease management, pest management, risk factors, harvest guide).
-- `GET /guidance` and `GET /guidance/{crop_name}` endpoints added.
-- `CropGuidance.jsx` page added: crop selector → tabbed lifecycle detail view with weather-contextual alerts per tab.
+- **Crop Guidance:** `GET /guidance` and `GET /guidance/{crop_name}` added; `CropGuidance.jsx` page.
+- **Cultivation Tracker:** cultivation endpoints added; `CultivationTracker.jsx` component.
+- **Weather & Farm Advisory:** `GET /weather` endpoint; `Weather.jsx` page; `WeatherLocationPicker.jsx` shared component.
+- **Yield & Price Calculator:** `YieldPrice.jsx` page added.
 
-**Cultivation Tracker:**
-- `POST /cultivation`, `GET /cultivation/{user_id}`, `PUT /cultivation/{user_id}/{session_id}/task/{task_id}`, `DELETE /cultivation/{user_id}/{session_id}` endpoints added.
-- On session start, all growth-stage activities, fertilization events, and irrigation checks are auto-scheduled from the planting date.
-- `CultivationTracker.jsx` component added; accessible from the Crop Guidance page.
+### v6.0 — Multi-role platform
 
-**Weather & Farm Advisory page:**
-- `GET /weather?district=` endpoint added. Calls Open-Meteo forecast and archive APIs in parallel.
-- Returns current conditions, 7-day forecast, season-to-date rainfall, and contextual farm advisory messages.
-- `Weather.jsx` dedicated page added; `WeatherLocationPicker.jsx` shared component added for inline weather display across all pages.
-- `httpx` promoted from dev-only to a runtime dependency.
-
-**Yield & Price Calculator:**
-- `YieldPrice.jsx` page added: calculates expected yield and estimated revenue based on crop, land size, seed quality, crop condition, and market price.
-
-### v5.2 — Technology reduction and model improvement
-- **Ensemble simplified:** ExtraTrees + HGB×2 replaced by **XGBoost**. Two models instead of four. Accuracy maintained at ~90%.
-- **pandas removed from inference:** Input arrays now built directly as NumPy arrays (`_build_full_input`, `_build_simple_input`). pandas is now a dev-only dependency.
-- **scipy removed entirely:** `minimize_scalar` replaced with a 15-line golden-section search. scipy was a 50MB dependency used for one function call.
-- **`uvicorn[standard]` simplified** to bare `uvicorn` — websocket and HTTP/2 extras not needed.
-- **`pytest` and `httpx` moved** from `requirements.txt` to `requirements-dev.txt`.
-- **XAI extraction fixed:** RF sub-model extracted from ensemble via `named_estimators_["rf"]` — previous code had a bug where it checked unfitted estimators and fell back to passing the entire VotingClassifier to the tree-traversal code.
-- **stale `default_values.json` deleted.**
-- All 14 tests pass.
+- **Second backend service added (port 8001):** FastAPI + SQLAlchemy + PostgreSQL. Handles auth, farms, crops, and cultivation persistence.
+- **JWT authentication:** register/login for Land Owner and Trader roles; Admin auto-created on startup.
+- **Land Owner portal:** full CRUD for farms, crops, and cultivation sessions with DB persistence.
+- **Role-based dashboards:** Admin and Trader dashboards.
+- **Marketplace page** added.
+- **React Router v6** routing with `AppLayout` and `LandOwnerLayout` shell components.
+- **Dark mode / light mode** with `data-theme` CSS variable, persisted to localStorage.
+- **Axios** added for platform API calls; `services/` layer added for farm and crop API functions.
+- Cultivation tracker sessions migrated from in-memory ML service storage to PostgreSQL (`cultivation_sessions` + `cultivation_tasks` tables, 2 Alembic migrations).
+- Frontend i18n expanded; `AppContext` updated to include theme state.
 
 ---
 
 ## 10. Design Decisions
 
-### Why no ORM, no database?
-Predictions are stateless — each request contains everything the model needs. There is nothing to persist on the server side. Prediction history is stored client-side in localStorage, which is the right place for per-user data in a frontend app.
+### Why two separate backend services?
 
-### Why no authentication?
-This is a public agricultural advisory tool. Adding auth would reduce access without adding value. For a production multi-tenant deployment (e.g. per-farmer personalisation), OAuth2 could be added via FastAPI's built-in security utilities.
+The ML service (`ml_service/app.py`) is stateless — it only needs the trained model files and the `crop_guidance.json` at startup. Keeping it separate from the database-backed main API means: the ML service has no dependency on PostgreSQL and can be deployed or scaled independently; the main API has no ML dependency.
+
+### Why PostgreSQL for the platform data?
+
+Farms, crops, and cultivation sessions need proper relational integrity (a crop belongs to a farm; cultivation tasks cascade-delete with their session). PostgreSQL with SQLAlchemy and Alembic migrations is the standard choice for this shape of data.
+
+### Why JWT stored in localStorage?
+
+Standard choice for a React SPA. The alternative (httpOnly cookies) requires same-origin or careful CORS+cookie configuration. The Vite proxy makes both services appear same-origin in development; for production, a reverse proxy (nginx) achieves the same. If XSS risk is a concern in production, switch to httpOnly cookies.
 
 ### Why no Redux or Zustand?
-The entire app is one page with one form. All state fits comfortably in a single `useState` tree in `CropRecommendation.jsx`. A state library would add dependencies and indirection with no benefit.
+
+Global state is minimal: language, theme, and current weather. These fit comfortably in a single `AppContext`. A state library would add dependencies and indirection with no benefit.
 
 ### Why plain CSS instead of Tailwind or a component library?
-Tailwind would be reasonable, but plain CSS with variables is zero-dependency, easy to read, and the styles here are simple enough that utility classes would not reduce complexity. Component libraries (MUI, Chakra) would dramatically increase bundle size for what is a form and a results card.
 
-### Why keep Random Forest for XAI instead of using XGBoost's built-in SHAP?
-XGBoost's `pred_contribs=True` requires calling `get_booster().predict(DMatrix(...), pred_contribs=True)` and parsing a shaped array across 34 classes. The RF path traversal code is already written, tested, and well-understood. For a 2-model ensemble that already includes RF, reusing it for XAI is the pragmatic choice.
+Zero-dependency, easy to read, and the styles here are simple enough that utility classes would not reduce complexity. Component libraries (MUI, Chakra) would significantly increase bundle size.
+
+### Why keep Random Forest for XAI instead of XGBoost's built-in SHAP?
+
+The RF path traversal code was already written, tested, and well-understood before XGBoost was added. Reusing it avoids adding complexity to the inference path. For a 2-model ensemble that already includes RF, it is the pragmatic choice.
 
 ### Why synthetic training data?
-The dataset (`merged_all_crops_clean.csv`) is synthetic — generated to reflect agronomic relationships from published Sri Lankan DOA crop guides, but not real field measurements. This is the primary weakness of the current system. Replacing it with real farmer data collected in the field would be the highest-impact improvement possible. Until then, the model is a decision-support tool, not a replacement for agronomic expertise.
 
-### Why temperature scaling instead of Platt scaling or isotonic regression?
-Temperature scaling has one parameter (T) and is non-overfitting by design. Platt scaling and isotonic regression have more parameters and can overfit a small calibration set. With 34 classes and ~2600 calibration samples, the simpler method is correct.
+`merged_all_crops_clean.csv` is synthetic — generated to reflect agronomic relationships from published Sri Lankan DOA crop guides, not real field measurements. This is the primary weakness. Replacing it with real farmer data would be the highest-impact improvement possible. Until then, the model is a decision-support tool, not a replacement for agronomic expertise.
+
+### Why temperature scaling for calibration?
+
+Temperature scaling has one parameter (T) and cannot overfit. Platt scaling and isotonic regression have more parameters and can overfit a small calibration set. With 34 classes and ~2,600 calibration samples, the simpler method is correct.

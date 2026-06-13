@@ -360,7 +360,7 @@
   font-size: 13.5px;
   font-weight: 600;
   color: var(--text);
-  word-break: break-all;
+  overflow-wrap: break-word;
   text-decoration: none;
   display: block;
 }

@@ -81,7 +81,11 @@ export default function Footer() {
           <ul className="footer-contact-list">
             <li>
               <span className="footer-contact-icon">📧</span>
-              <a href="mailto:induwara.ihalavithana@gmail.com">{t.emailVal}</a>
+              <a href="mailto:induwara.ihalavithana@gmail.com">
+                {t.emailVal.split('@').map((part, i, arr) =>
+                  i < arr.length - 1 ? <span key={i}>{part}@<wbr /></span> : <span key={i}>{part}</span>
+                )}
+              </a>
             </li>
             <li>
               <span className="footer-contact-icon">📍</span>
