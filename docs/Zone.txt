@@ -1,0 +1,27 @@
+| District         | Recommended agro-zone classification for system                                                                     |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Ampara**       | Dry Zone, Low Country Dry Zone, Eastern Dry Zone, Dry Zone with Irrigation                                          |
+| **Anuradhapura** | Dry Zone, Low Country Dry Zone, Northern Dry Zone, Dry Zone with Irrigation                                         |
+| **Badulla**      | Intermediate Zone, Mid Country Intermediate Zone, Up Country Intermediate Zone, Up Country Wet Zone                 |
+| **Batticaloa**   | Dry Zone, Low Country Dry Zone, Dry Coastal Zone, Eastern Dry Zone                                                  |
+| **Colombo**      | Wet Zone, Low Country Wet Zone                                                                                      |
+| **Galle**        | Wet Zone, Low Country Wet Zone                                                                                      |
+| **Gampaha**      | Wet Zone, Low Country Wet Zone                                                                                      |
+| **Hambantota**   | Dry Zone, Low Country Dry Zone, Dry Coastal Zone                                                                    |
+| **Jaffna**       | Dry Zone, Low Country Dry Zone, Dry Coastal Zone, Northern Dry Zone                                                 |
+| **Kalutara**     | Wet Zone, Low Country Wet Zone                                                                                      |
+| **Kandy**        | Wet Zone, Intermediate Zone, Mid Country Wet Zone, Mid Country Intermediate Zone                                    |
+| **Kegalle**      | Wet Zone, Mid Country Wet Zone                                                                                      |
+| **Kilinochchi**  | Dry Zone, Low Country Dry Zone, Dry Coastal Zone, Northern Dry Zone                                                 |
+| **Kurunegala**   | Dry Zone, Intermediate Zone, Low Country Intermediate Zone, Mid Country Intermediate Zone, Dry Zone with Irrigation |
+| **Mannar**       | Dry Zone, Low Country Dry Zone, Dry Coastal Zone, Northern Dry Zone                                                 |
+| **Matale**       | Dry Zone, Intermediate Zone, Mid Country Intermediate Zone, Up Country Intermediate Zone, Mahaweli H Zone           |
+| **Matara**       | Wet Zone, Intermediate Zone, Low Country Wet Zone, Low Country Intermediate Zone                                    |
+| **Monaragala**   | Dry Zone, Intermediate Zone, Low Country Dry Zone, Low Country Intermediate Zone                                    |
+| **Mullaitivu**   | Dry Zone, Low Country Dry Zone, Dry Coastal Zone, Northern Dry Zone                                                 |
+| **Nuwara Eliya** | Wet Zone, Intermediate Zone, Up Country Wet Zone, Up Country Intermediate Zone                                      |
+| **Polonnaruwa**  | Dry Zone, Low Country Dry Zone, Dry Zone with Irrigation, Mahaweli H Zone                                           |
+| **Puttalam**     | Dry Zone, Intermediate Zone, Low Country Dry Zone, Dry Coastal Zone, Low Country Intermediate Zone                  |
+| **Ratnapura**    | Wet Zone, Mid Country Wet Zone, Low Country Wet Zone                                                                |
+| **Trincomalee**  | Dry Zone, Low Country Dry Zone, Dry Coastal Zone, Eastern Dry Zone                                                  |
+| **Vavuniya**     | Dry Zone, Low Country Dry Zone, Northern Dry Zone                                                                   |

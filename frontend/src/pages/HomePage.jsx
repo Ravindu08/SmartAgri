@@ -1,8 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import FeatureCard from '../components/FeatureCard';
 import { fetchBackendHealth } from '../services/api';
 import { useApp } from '../context/AppContext';
+
+function useCountUp(target, duration = 1800, start = false) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!start) return;
+    let startTime = null;
+    const step = (ts) => {
+      if (!startTime) startTime = ts;
+      const progress = Math.min((ts - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(eased * target));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [target, duration, start]);
+  return count;
+}
 
 const HOME_T = {
   en: {
@@ -11,9 +28,9 @@ const HOME_T = {
     titleLine2: 'Enriching ',
     highlight: 'Future.',
     desc: 'SmartAgri brings AI and data together to help you make smarter decisions, increase productivity, and grow sustainably.',
-    connected: '🟢 Connected to SmartAgri Backend — All Systems Operational',
-    offline: '🔴 Backend offline',
-    checking: '⏳ Checking connection...',
+    connected: '✅ Platform Ready — all AI tools are live',
+    offline: '⚠️ Some features may be temporarily unavailable',
+    checking: '⏳ Loading...',
     btnMarket: 'Explore Marketplace →',
     btnLearn: 'Learn More →',
     cardSoilLabel: 'Soil Health Score', cardSoilStatus: '● Healthy',
@@ -66,9 +83,9 @@ const HOME_T = {
     titleLine2: 'අනාගතය ',
     highlight: 'පොහොසත් කිරීම.',
     desc: 'SmartAgri AI සහ දත්ත එකතු කරන්නේ ඔබට ස්මාර්ට් තීරණ ගැනීමට, නිෂ්පාදිතය වැඩිකිරීමට, සහ තිරසාරව ගොවිකිරීමට සහාය දීමටය.',
-    connected: '🟢 SmartAgri Backend සමඟ සම්බන්ධයි — සියලු පද්ධති ක්‍රියාශීලීය',
-    offline: '🔴 Backend නොමැත',
-    checking: '⏳ සම්බන්ධතාවය පරීක්ෂා කරමින්...',
+    connected: '✅ වේදිකාව සූදානම් — සියලු AI මෙවලම් ජීවතා',
+    offline: '⚠️ සමහර විශේෂාංග තාවකාලිකව නොමැත',
+    checking: '⏳ පූරණය කරමින්...',
     btnMarket: 'වෙළඳසැල ගවේෂණය →',
     btnLearn: 'තව දැනගන්න →',
     cardSoilLabel: 'ඉඩම් සෞඛ්‍ය ලකුණු', cardSoilStatus: '● සෞඛ්‍ය සම්පන්නය',
@@ -121,9 +138,9 @@ const HOME_T = {
     titleLine2: 'எதிர்காலத்தை ',
     highlight: 'வளர்ப்போம்.',
     desc: 'SmartAgri AI மற்றும் தரவை ஒருங்கிணைத்து, சிறந்த முடிவுகள் எடுக்கவும், உற்பத்தித்திறனை அதிகரிக்கவும், நிலையான விவசாயம் செய்யவும் உதவுகிறது.',
-    connected: '🟢 SmartAgri Backend உடன் இணைக்கப்பட்டது — அமைப்புகள் இயங்குகின்றன',
-    offline: '🔴 Backend இல்லை',
-    checking: '⏳ இணைப்பை சரிபார்க்கிறது...',
+    connected: '✅ தளம் தயார் — அனைத்து AI கருவிகளும் இயங்குகின்றன',
+    offline: '⚠️ சில அம்சங்கள் தற்காலிகமாக இல்லை',
+    checking: '⏳ ஏற்றுகிறது...',
     btnMarket: 'சந்தையை ஆராயுங்கள் →',
     btnLearn: 'மேலும் அறிக →',
     cardSoilLabel: 'மண் ஆரோக்கிய மதிப்பெண்', cardSoilStatus: '● ஆரோக்கியமானது',
@@ -172,10 +189,23 @@ const HOME_T = {
   },
 };
 
+function StatCardAnimated({ num, suffix, label, delay, inView }) {
+  const target = parseInt(num, 10);
+  const animated = useCountUp(target, 1600, inView);
+  return (
+    <div className="home-stat-card" style={{ animationDelay: delay }}>
+      <div className="home-stat-num">{animated}<span className="home-stat-suffix">{suffix}</span></div>
+      <div className="home-stat-label">{label}</div>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const { lang } = useApp();
   const t = HOME_T[lang] || HOME_T.en;
   const [connectionState, setConnectionState] = useState('checking');
+  const [statsInView, setStatsInView] = useState(false);
+  const statsRef = useRef(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -183,6 +213,20 @@ export default function HomePage() {
       .then(() => { if (isMounted) setConnectionState('connected'); })
       .catch(() => { if (isMounted) setConnectionState('offline'); });
     return () => { isMounted = false; };
+  }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('reveal--visible');
+          if (e.target === statsRef.current) setStatsInView(true);
+        }
+      }),
+      { threshold: 0.12 }
+    );
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    return () => observer.disconnect();
   }, []);
 
   return (
@@ -237,7 +281,7 @@ export default function HomePage() {
       </section>
 
       {/* ── About strip ── */}
-      <section className="home-about">
+      <section className="home-about reveal">
         <div className="home-about__left">
           <p className="section__label">{t.aboutLabel}</p>
           <h2>{t.aboutTitle.split('\n').map((line, i) => <span key={i}>{line}{i === 0 && <br />}</span>)}</h2>
@@ -253,23 +297,20 @@ export default function HomePage() {
       </section>
 
       {/* ── Stats ribbon ── */}
-      <section className="home-stats">
+      <section className="home-stats reveal" ref={statsRef}>
         <div className="home-stats-inner">
           <p className="section__label home-stats-label">{t.statsLabel}</p>
           <h2 className="home-stats-title">{t.statsTitle}</h2>
           <div className="home-stats-grid">
             {t.stats.map((s, i) => (
-              <div key={i} className="home-stat-card" style={{ animationDelay: `${i * 0.1}s` }}>
-                <div className="home-stat-num">{s.num}<span className="home-stat-suffix">{s.suffix}</span></div>
-                <div className="home-stat-label">{s.label}</div>
-              </div>
+              <StatCardAnimated key={i} num={s.num} suffix={s.suffix} label={s.label} delay={`${i * 0.1}s`} inView={statsInView} />
             ))}
           </div>
         </div>
       </section>
 
       {/* ── How It Works ── */}
-      <section className="home-how">
+      <section className="home-how reveal">
         <div className="home-how-inner">
           <div className="home-how-header">
             <p className="section__label">{t.howLabel}</p>
@@ -290,7 +331,7 @@ export default function HomePage() {
       </section>
 
       {/* ── AI Tools showcase ── */}
-      <section className="home-tools">
+      <section className="home-tools reveal">
         <div className="home-tools-inner">
           <div className="home-tools-header">
             <p className="section__label">{t.toolsLabel}</p>
