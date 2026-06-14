@@ -563,53 +563,68 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
 
   const farmSelectRequired = !existingCropData;
 
+  // When crop is already known (launched from a crop card), show simplified date-only form
+  if (existingCropData) {
+    return (
+      <form className="guidance-selector" onSubmit={handleSubmit}>
+        <button type="button" className="guidance-back-btn" style={{ marginBottom: 16 }} onClick={onBack}>
+          ← {t.backToList}
+        </button>
+        <div className="cult-start-known-crop">
+          <div className="cult-start-known-icon">🌱</div>
+          <div>
+            <h2>{t.startCultivation}</h2>
+            <p className="cult-start-known-name">{crop}</p>
+            <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>
+              {existingCropData.farm_name ? `📍 ${existingCropData.farm_name}` : ''}
+            </p>
+          </div>
+        </div>
+        <div className="guidance-selector-row guidance-selector-row--single">
+          <div>
+            <label>{t.plantingDate}</label>
+            <input type="date" value={date} onChange={e => setDate(e.target.value)} required />
+          </div>
+        </div>
+        {error && <div className="cult-error">{error}</div>}
+        <button className="guidance-generate-btn" type="submit" disabled={!crop || !date || saving}>
+          {saving ? "⏳ " + t.creating : "🌱 " + t.startCultivation}
+        </button>
+      </form>
+    );
+  }
+
   return (
     <form className="guidance-selector" onSubmit={handleSubmit}>
-      <button
-        type="button"
-        className="guidance-back-btn"
-        style={{ marginBottom: 16 }}
-        onClick={onBack}
-      >
+      <button type="button" className="guidance-back-btn" style={{ marginBottom: 16 }} onClick={onBack}>
         ← {t.backToList}
       </button>
       <h2>🌱 {t.startCultivation}</h2>
       <p>{t.startCultivationSub}</p>
-      <div className={`guidance-selector-row${farmSelectRequired ? " cult-form-three-col" : " cult-form-two-col"}`}>
+      <div className="guidance-selector-row cult-form-three-col">
         <div>
           <label>{t.selectCrop}</label>
-          {existingCropData ? (
-            <input type="text" value={crop} readOnly />
-          ) : (
-            <select value={crop} onChange={e => setCrop(e.target.value)} required>
-              <option value="">{t.selectCropPh}</option>
-              {cropList.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          )}
+          <select value={crop} onChange={e => setCrop(e.target.value)} required>
+            <option value="">{t.selectCropPh}</option>
+            {cropList.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
         </div>
         <div>
           <label>{t.plantingDate}</label>
-          <input
-            type="date"
-            value={date}
-            onChange={e => setDate(e.target.value)}
-            required
-          />
+          <input type="date" value={date} onChange={e => setDate(e.target.value)} required />
         </div>
-        {farmSelectRequired && (
-          <div>
-            <label>Farm</label>
-            <select value={farmId} onChange={e => setFarmId(e.target.value)} required>
-              <option value="">Select a farm…</option>
-              {farms.map(f => (
-                <option key={f.id} value={f.id}>{f.farm_name}</option>
-              ))}
-            </select>
-          </div>
-        )}
+        <div>
+          <label>Farm</label>
+          <select value={farmId} onChange={e => setFarmId(e.target.value)} required>
+            <option value="">Select a farm…</option>
+            {farms.map(f => (
+              <option key={f.id} value={f.id}>{f.farm_name}</option>
+            ))}
+          </select>
+        </div>
       </div>
       {error && <div className="cult-error">{error}</div>}
-      <button className="guidance-generate-btn" type="submit" disabled={!crop || (farmSelectRequired && !farmId) || saving}>
+      <button className="guidance-generate-btn" type="submit" disabled={!crop || !farmId || saving}>
         {saving ? "⏳ " + t.creating : "🌱 " + t.startCultivation}
       </button>
     </form>
