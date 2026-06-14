@@ -164,9 +164,11 @@ export default function Weather({ lang, onWeatherFetched }) {
   };
 
   const handleSelect = (e) => {
-    setDistrict(e.target.value);
+    const val = e.target.value;
+    setDistrict(val);
     setData(null);
     setError(null);
+    if (val) fetchWeather(val);
   };
 
   return (

@@ -5,8 +5,9 @@
       "name": "frontend",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "cwd": "C:\\Users\\induw\\OneDrive\\Documents\\Claude AI\\SMARTAGRI_project\\frontend",
-      "port": 5173
+      "cwd": "D:\\Claude AI\\Projects\\SmartAgri\\frontend",
+      "port": 5173,
+      "autoPort": false
     }
   ]
 }

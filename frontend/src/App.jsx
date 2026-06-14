@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes, useOutletContext } from 'react-router-dom';
+import { BrowserRouter, Link, Navigate, Route, Routes, useOutletContext } from 'react-router-dom';
 
 // ── Context ───────────────────────────────────────────────────────────────────
 import { AppProvider } from './context/AppContext';
@@ -20,7 +20,6 @@ import EditFarm from './pages/farms/EditFarm';
 import FarmDetails from './pages/farms/FarmDetails';
 import MyCrops from './pages/crops/MyCrops';
 import AddCrop from './pages/crops/AddCrop';
-import EditCrop from './pages/crops/EditCrop';
 import CropDetails from './pages/crops/CropDetails';
 import MyCultivations from './pages/cultivations/MyCultivations';
 import LandOwnerDashboard from './pages/landowner/LandOwnerDashboard';
@@ -39,6 +38,22 @@ import { T } from './data/translations';
 // ── Styles ────────────────────────────────────────────────────────────────────
 import './styles/globals.css';   // Design tokens (CSS variables, dark/light themes)
 import './styles.css';           // Page & component styles (uses variables from globals)
+
+// ── 404 Not Found ─────────────────────────────────────────────────────────────
+function NotFound() {
+  return (
+    <div className="not-found-page">
+      <div className="not-found-icon">🌾</div>
+      <div className="not-found-code">404</div>
+      <h1 className="not-found-title">Page Not Found</h1>
+      <p className="not-found-sub">The page you're looking for doesn't exist or may have been moved. Let's get you back on track.</p>
+      <div className="not-found-actions">
+        <Link to="/" className="not-found-btn not-found-btn--primary">← Back to Home</Link>
+        <Link to="/crop-recommendation" className="not-found-btn not-found-btn--outline">Try Crop Recommendation</Link>
+      </div>
+    </div>
+  );
+}
 
 // ── Wrapper components for Part 1 pages ──────────────────────────────────────
 // These read shared state from the Outlet context set by AppLayout,
@@ -98,6 +113,7 @@ function AppRoutes() {
         <Route path="/yield-price"         element={<YieldPricePage />} />
         <Route path="/about"               element={<AboutPage />} />
         <Route path="/contact"             element={<ContactPage />} />
+        <Route path="*"                    element={<NotFound />} />
       </Route>
 
       {/* Land Owner section (protected layout) */}
@@ -110,15 +126,12 @@ function AppRoutes() {
         <Route path="farms/:id"      element={<FarmDetails />} />
         <Route path="crops"          element={<MyCrops />} />
         <Route path="crops/add"      element={<AddCrop />} />
-        <Route path="crops/edit/:id" element={<EditCrop />} />
         <Route path="crops/:id"      element={<CropDetails />} />
         <Route path="cultivations"   element={<MyCultivations />} />
         <Route path="settings"       element={<Settings />} />
         <Route path="help"           element={<HelpSupport />} />
       </Route>
 
-      {/* Catch-all */}
-      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

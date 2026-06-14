@@ -104,20 +104,25 @@ export default function MyCrops() {
       <div className="crop-toolbar">
         <div className="crop-status-tabs">
           {[
-            { key: 'Active',    label: lt.statusActiveTab    },
-            { key: 'Completed', label: lt.statusCompletedTab },
-            { key: 'Failed',    label: lt.statusFailedTab    },
-            { key: 'All',       label: lt.statusAllTab       },
-          ].map(({ key, label }) => (
-            <button
-              key={key}
-              type="button"
-              className={`crop-status-tab${statusFilter === key ? ' active' : ''}`}
-              onClick={() => setStatusFilter(key)}
-            >
-              {label}
-            </button>
-          ))}
+            { key: 'Active',    label: lt.statusActiveTab,    icon: '🌱', color: 'active'    },
+            { key: 'Completed', label: lt.statusCompletedTab, icon: '✅', color: 'completed' },
+            { key: 'Failed',    label: lt.statusFailedTab,    icon: '❌', color: 'failed'    },
+            { key: 'All',       label: lt.statusAllTab,       icon: '📋', color: 'all'       },
+          ].map(({ key, label, icon, color }) => {
+            const count = key === 'All' ? crops.length : crops.filter(c => c.status === key).length;
+            return (
+              <button
+                key={key}
+                type="button"
+                className={`crop-status-tab crop-status-tab--${color}${statusFilter === key ? ' active' : ''}`}
+                onClick={() => setStatusFilter(key)}
+              >
+                <span className="crop-status-tab__icon">{icon}</span>
+                <span className="crop-status-tab__label">{label}</span>
+                <span className="crop-status-tab__count">{count}</span>
+              </button>
+            );
+          })}
         </div>
         <input
           className="crop-search"

@@ -80,7 +80,10 @@ export default function ContactPage() {
   const handleSubmit = e => {
     e.preventDefault();
     setSending(true);
-    setTimeout(() => { setSending(false); setSent(true); }, 1200);
+    const subject = encodeURIComponent(form.subject || 'SmartAgri Contact');
+    const body = encodeURIComponent(`Name: ${form.name}\nEmail: ${form.email}\n\n${form.message}`);
+    window.location.href = `mailto:induwara.ihalavithana@gmail.com?subject=${subject}&body=${body}`;
+    setTimeout(() => { setSending(false); setSent(true); }, 1000);
   };
 
   const handleReset = () => { setForm({ name: '', email: '', subject: '', message: '' }); setSent(false); };

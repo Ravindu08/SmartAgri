@@ -35,10 +35,10 @@ const NOTIF_COLORS = {
 function NotifCard({ type, icon, title, detail, onDismiss }) {
   const c = NOTIF_COLORS[type] || NOTIF_COLORS.info;
   return (
-    <div className="dash-notif-card" style={{ background: c.bg, borderColor: c.border }}>
+    <div className={`dash-notif-card dash-notif-card--${type || 'info'}`}>
       <span className="dash-notif-icon">{icon || c.icon}</span>
       <div className="dash-notif-body">
-        <strong style={{ color: c.color }}>{title}</strong>
+        <strong className="dash-notif-strong">{title}</strong>
         <p>{detail}</p>
       </div>
       {onDismiss && (
