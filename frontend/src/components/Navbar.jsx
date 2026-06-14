@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { clearAuthSession, getAuthSession } from '../services/api';
 import { useApp } from '../context/AppContext';
 
@@ -47,11 +47,17 @@ const NAV_T = {
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { lang, setLang, theme, toggleTheme } = useApp();
   const { user } = getAuthSession();
   const isSignedIn = Boolean(user);
   const [menuOpen, setMenuOpen] = useState(false);
   const t = NAV_T[lang] || NAV_T.en;
+
+  const isActive = (path) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
 
   const close = () => setMenuOpen(false);
 
@@ -71,13 +77,13 @@ export default function Navbar() {
       </Link>
 
       <nav className={`navbar__links${menuOpen ? ' open' : ''}`}>
-        <Link to="/" className="nav-link" onClick={close}>{t.home}</Link>
-        <Link to="/crop-recommendation" className="nav-link" onClick={close}>{t.cropRec}</Link>
-        <Link to="/crop-guidance" className="nav-link" onClick={close}>{t.cropGuide}</Link>
-        <Link to="/yield-price" className="nav-link" onClick={close}>{t.yieldPrice}</Link>
-        <Link to="/wx" className="nav-link" onClick={close}>{t.weather}</Link>
-        <Link to="/about" className="nav-link" onClick={close}>{t.aboutUs}</Link>
-        <Link to="/contact" className="nav-link" onClick={close}>{t.contactUs}</Link>
+        <Link to="/" className={`nav-link${isActive('/') ? ' nav-link--active' : ''}`} onClick={close}>{t.home}</Link>
+        <Link to="/crop-recommendation" className={`nav-link${isActive('/crop-recommendation') ? ' nav-link--active' : ''}`} onClick={close}>{t.cropRec}</Link>
+        <Link to="/crop-guidance" className={`nav-link${isActive('/crop-guidance') ? ' nav-link--active' : ''}`} onClick={close}>{t.cropGuide}</Link>
+        <Link to="/yield-price" className={`nav-link${isActive('/yield-price') ? ' nav-link--active' : ''}`} onClick={close}>{t.yieldPrice}</Link>
+        <Link to="/wx" className={`nav-link${isActive('/wx') ? ' nav-link--active' : ''}`} onClick={close}>{t.weather}</Link>
+        <Link to="/about" className={`nav-link${isActive('/about') ? ' nav-link--active' : ''}`} onClick={close}>{t.aboutUs}</Link>
+        <Link to="/contact" className={`nav-link${isActive('/contact') ? ' nav-link--active' : ''}`} onClick={close}>{t.contactUs}</Link>
 
         {isSignedIn && user.role === 'Land Owner' && (
           <Link className="navbar__farm-link" to="/landowner/farms" onClick={close}>{t.myFarms}</Link>
@@ -92,7 +98,8 @@ export default function Navbar() {
             </button>
           ))}
         </div>
-        <button className="navbar__theme-toggle" type="button" onClick={toggleTheme}>
+        <button className="navbar__theme-toggle" type="button" onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
           {theme === 'dark' ? '☀️' : '🌙'}
         </button>
         {isSignedIn ? (

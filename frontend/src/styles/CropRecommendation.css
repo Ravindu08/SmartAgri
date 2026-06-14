@@ -7,6 +7,26 @@
   padding-bottom: 72px;
 }
 
+/* Compact hero variant for crop recommendation */
+.hero.hero--compact {
+  min-height: unset;
+  padding: 28px 24px 20px;
+}
+.hero.hero--compact .hero-inner {
+  gap: 6px;
+  padding: 0;
+}
+.hero.hero--compact .hero-title {
+  font-size: clamp(1.4rem, 3.5vw, 2rem);
+  margin: 0;
+}
+.hero-sub--compact {
+  font-size: 0.88rem;
+  opacity: 0.85;
+  max-width: 58ch;
+  margin: 0 auto;
+}
+
 /* ── Weather auto-fill indicators ── */
 .wx-autofill-badge {
   margin-bottom: 12px;
@@ -1028,12 +1048,12 @@
    SOIL GUIDE MODAL
 ══════════════════════════════════════════════════════ */
 .soil-overlay {
-  position: fixed;
-  inset: 0;
+  position: fixed !important;
+  inset: 0 !important;
   background: rgba(17,24,39,0.55);
   backdrop-filter: blur(6px);
-  z-index: 2000;
-  display: flex;
+  z-index: 2000 !important;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   padding: 20px;

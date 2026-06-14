@@ -17,10 +17,30 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    try { localStorage.setItem('sa-theme', theme); } catch (_) {}
   }, [theme]);
 
-  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
+  // Auto-follow system theme changes only when user hasn't set an explicit preference
+  useEffect(() => {
+    const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
+    if (!mq) return;
+    const handler = (e) => {
+      try {
+        if (!localStorage.getItem('sa-theme')) {
+          setTheme(e.matches ? 'dark' : 'light');
+        }
+      } catch (_) {}
+    };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme((t) => {
+      const next = t === 'dark' ? 'light' : 'dark';
+      try { localStorage.setItem('sa-theme', next); } catch (_) {}
+      return next;
+    });
+  };
 
   return (
     <AppContext.Provider value={{ lang, setLang, weather, setWeather, theme, toggleTheme }}>

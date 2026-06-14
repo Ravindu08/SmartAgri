@@ -381,3 +381,56 @@ a { color: inherit; text-decoration: none; }
 [data-theme="dark"] .sa-badge-red    { background: rgba(220,38,38,0.12);  color: #f87171; }
 [data-theme="dark"] .sa-badge-blue   { background: rgba(59,130,246,0.12); color: #60a5fa; }
 [data-theme="dark"] .sa-feature-card-coming { color: #fcd34d; }
+
+/* ── Scroll reveal utility ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.reveal--visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Notification card semantic color tokens ── */
+:root {
+  --notif-danger-bg:      #fee2e2;
+  --notif-danger-border:  #fca5a5;
+  --notif-danger-color:   #991b1b;
+  --notif-warning-bg:     #fef3c7;
+  --notif-warning-border: #fde68a;
+  --notif-warning-color:  #92400e;
+  --notif-risk-bg:        #fef9c3;
+  --notif-risk-border:    #fde047;
+  --notif-risk-color:     #713f12;
+  --notif-info-bg:        #eff6ff;
+  --notif-info-border:    #bfdbfe;
+  --notif-info-color:     #1e40af;
+  --notif-action-bg:      #f0fdf4;
+  --notif-action-border:  #86efac;
+  --notif-action-color:   #166534;
+  --notif-task-bg:        #f5f3ff;
+  --notif-task-border:    #c4b5fd;
+  --notif-task-color:     #4c1d95;
+}
+[data-theme="dark"] {
+  --notif-danger-bg:      rgba(153,27,27,0.14);
+  --notif-danger-border:  rgba(252,165,165,0.28);
+  --notif-danger-color:   #fca5a5;
+  --notif-warning-bg:     rgba(146,64,14,0.14);
+  --notif-warning-border: rgba(253,230,138,0.28);
+  --notif-warning-color:  #fde68a;
+  --notif-risk-bg:        rgba(113,63,18,0.14);
+  --notif-risk-border:    rgba(253,224,71,0.28);
+  --notif-risk-color:     #fef08a;
+  --notif-info-bg:        rgba(30,64,175,0.14);
+  --notif-info-border:    rgba(191,219,254,0.28);
+  --notif-info-color:     #93c5fd;
+  --notif-action-bg:      rgba(22,101,52,0.14);
+  --notif-action-border:  rgba(134,239,172,0.28);
+  --notif-action-color:   #86efac;
+  --notif-task-bg:        rgba(76,29,149,0.14);
+  --notif-task-border:    rgba(196,181,253,0.28);
+  --notif-task-color:     #c4b5fd;
+}

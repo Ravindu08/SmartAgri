@@ -163,6 +163,9 @@ const MODULES = [
 
 const TEAM = [
   { name: "Induwara", role: "Full-Stack Developer & ML Integration", initial: "I" },
+  { name: "Dilini",   role: "Frontend Developer & UI Design", initial: "D" },
+  { name: "Nuha",     role: "Backend Developer & Database Design", initial: "N" },
+  { name: "Ravindu",  role: "API Integration & System Architecture", initial: "R" },
 ];
 
 const TECH_STACK = [

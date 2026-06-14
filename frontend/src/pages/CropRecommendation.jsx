@@ -60,30 +60,81 @@ function mockPredict(soilType, season, irrigation, inputs = {}) {
 }
 
 // ── Soil Guide Modal ──────────────────────────────────────────────────────────
+const SOIL_MODAL_T = {
+  en: {
+    title: '🪨 How to Identify Your Soil Type',
+    intro: 'Perform these simple field tests to identify your soil. Collect a sample from 10–20 cm depth. Moisten it slightly before testing.',
+    close: 'Close',
+    colType: 'Soil Type', colColour: 'Colour', colTexture: 'Texture / Feel',
+    colDrainage: 'Drainage', colIdentify: '🔍 How to Identify in the Field',
+    testTip: '💡 Field Test Tip',
+    testDesc: 'Take a small moist handful → squeeze it hard → open your palm and observe. Then roll it between your palms to form a ribbon.',
+  },
+  si: {
+    title: '🪨 ඔබේ පාංශු වර්ගය හඳුනාගන්නේ කෙසේද',
+    intro: 'ඔබේ පාංශු හඳුනාගැනීමට මෙම සරල ක්ෂේත්‍ර පරීක්ෂා සිදු කරන්න. 10-20 cm ගැඹුරෙන් සාම්පලයක් රැගෙන, ටිකක් තෙත් කිරීමෙන් පසු පරීක්ෂා කරන්න.',
+    close: 'වසන්න',
+    colType: 'පාංශු වර්ගය', colColour: 'වර්ණය', colTexture: 'ස්ථාරය / රූ ගතිය',
+    colDrainage: 'ජල බැස්ම', colIdentify: '🔍 ක්ෂේත්‍රයේ හඳුනාගන්නේ කෙසේද',
+    testTip: '💡 ක්ෂේත්‍ර පරීක්ෂා ඉඟිය',
+    testDesc: 'තෙත් ගොඩක් ගන්න → ශක්තිමත්ව මිරිකන්න → අත ඇරෙන්න නිරීක්ෂා කරන්න. ඉන්පසු රිබොනයක් සෑදීමට ළිවේ.',
+  },
+  ta: {
+    title: '🪨 உங்கள் மண் வகையை எவ்வாறு அடையாளம் காண்பது',
+    intro: 'உங்கள் மண்ணை அடையாளம் காண இந்த எளிய வயல் சோதனைகளை மேற்கொள்ளுங்கள். 10-20 செ.மீ ஆழத்தில் மாதிரி எடுக்கவும்.',
+    close: 'மூடு',
+    colType: 'மண் வகை', colColour: 'நிறம்', colTexture: 'தன்மை / உணர்வு',
+    colDrainage: 'நீர் வடிகால்', colIdentify: '🔍 வயலில் எப்படி அடையாளம் காண்பது',
+    testTip: '💡 வயல் சோதனை குறிப்பு',
+    testDesc: 'ஈரமான ஒரு கைப்பிடி மண் எடுக்கவும் → உறுதியாக அழுத்துங்கள் → உள்ளங்கையை திறந்து கவனியுங்கள்.',
+  },
+};
+
 function SoilGuideModal({ lang, t, onClose }) {
+  const [search, setSearch] = useState('');
+  const mt = SOIL_MODAL_T[lang] || SOIL_MODAL_T.en;
+  const filtered = search.trim()
+    ? SOIL_GUIDE_ROWS.filter(r => r.type.toLowerCase().includes(search.toLowerCase()))
+    : SOIL_GUIDE_ROWS;
+
   return (
     <div className="soil-overlay" onClick={onClose}>
-      <div className="soil-modal" onClick={e => e.stopPropagation()}>
+      <div className="soil-modal soil-modal--wide" onClick={e => e.stopPropagation()}>
         <div className="soil-modal-hdr">
-          <div className="soil-modal-title">🪨 {t.soilGuideTitle}</div>
-          <button className="soil-modal-close" onClick={onClose}>{t.soilGuideClose}</button>
+          <div className="soil-modal-title">{mt.title}</div>
+          <button className="soil-modal-close" onClick={onClose}>{mt.close}</button>
         </div>
-        <p className="soil-modal-intro">{t.soilGuideIntro}</p>
-        <table className="soil-guide-table">
-          <thead>
-            <tr>{t.soilGuideCols.map(h => <th key={h}>{h}</th>)}</tr>
-          </thead>
-          <tbody>
-            {SOIL_GUIDE_ROWS.map(row => (
-              <tr key={row.type}>
-                <td><span className="soil-type-name">{row.type}</span></td>
-                <td>{row.colour}</td>
-                <td>{row.texture}</td>
-                <td>{row.drainage}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <p className="soil-modal-intro">{mt.intro}</p>
+        <div className="soil-test-tip">
+          <strong>{mt.testTip}:</strong> {mt.testDesc}
+        </div>
+        <input
+          className="soil-modal-search"
+          type="text"
+          placeholder={lang === 'si' ? 'හොයන්න…' : lang === 'ta' ? 'தேடுங்கள்…' : 'Search soil type…'}
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        <div className="soil-cards-list">
+          {filtered.map(row => (
+            <div key={row.type} className="soil-info-card">
+              <div className="soil-info-card__header">
+                <span className="soil-info-card__name">{row.type}</span>
+                <span className="soil-info-card__drainage">{mt.colDrainage}: <strong>{row.drainage}</strong></span>
+              </div>
+              <div className="soil-info-card__meta">
+                <div><span className="soil-meta-label">{mt.colColour}:</span> {row.colour}</div>
+                <div><span className="soil-meta-label">{mt.colTexture}:</span> {row.texture}</div>
+              </div>
+              {(row.identify_en || row.identify_si || row.identify_ta) && (
+                <div className="soil-info-card__identify">
+                  <span className="soil-identify-label">{mt.colIdentify}:</span>
+                  <p>{lang === 'si' && row.identify_si ? row.identify_si : lang === 'ta' && row.identify_ta ? row.identify_ta : row.identify_en}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -91,7 +142,7 @@ function SoilGuideModal({ lang, t, onClose }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function CropRecommendation({ lang, setLang, setPage, weather, setWeather }) {
-  const [mode,       setMode]       = useState("simple");
+  const [mode,       setMode]       = useState("full");
   const [loading,    setLoading]    = useState(false);
   const [result,     setResult]     = useState(null);
   const [error,      setError]      = useState(null);
@@ -289,38 +340,22 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
     <div className="page-wrapper">
       <div className="app">
 
-        {/* ── Hero banner ─────────────────────────────────────────────────── */}
-        <div className="hero">
+        {/* ── Hero banner (compact) ────────────────────────────────────── */}
+        <div className="hero hero--compact">
           <div className="hero-inner">
             <div className="hero-badge">🌿 AI-Powered Agriculture</div>
             <h1 className="hero-title">
-              {lang === "si" ? <>බුද්ධිමත් <span>ගොවිතැන</span></> :
-               lang === "ta" ? <>நுண்ணிய <span>விவசாயம்</span></> :
-               <>Grow Smarter with <span>SmartAgri</span></>}
+              {lang === "si" ? <>AI <span>බෝග නිර්දේශය</span></> :
+               lang === "ta" ? <>AI <span>பயிர் பரிந்துரை</span></> :
+               <>AI Crop <span>Recommendation</span></>}
             </h1>
-            <p className="hero-sub">
+            <p className="hero-sub hero-sub--compact">
               {lang === "si"
-                ? "ශ්‍රී ලංකාවේ ගොවීන් සඳහා AI-ශක්තිය ගත් බෝග නිර්දේශ, දේශගුණය සහ වෙළඳපොල මිල ගණන්."
+                ? "ශ්‍රී ලංකාවේ කලාප, පාංශු වර්ග සහ ඍතු රටාවන්ට ගැලපෙන AI නිර්දේශ."
                 : lang === "ta"
-                ? "இலங்கையின் விவசாயிகளுக்கு AI-ஆதரவு பயிர் பரிந்துரை, காலநிலை மற்றும் சந்தை விலைகள்."
-                : "AI-powered crop recommendations tailored for Sri Lanka's agro-climatic zones, soil types, and seasonal patterns."}
+                ? "இலங்கையின் மண், தட்பவெப்பம் மற்றும் பருவத்திற்கு ஏற்ற AI பரிந்துரை."
+                : "Full-parameter AI analysis tailored for Sri Lanka's agro-climatic zones and seasonal patterns."}
             </p>
-            <div className="hero-stats">
-              <div className="hero-stat">
-                <div className="hero-stat-num">41</div>
-                <div className="hero-stat-lbl">{lang === "si" ? "බෝග" : lang === "ta" ? "பயிர்கள்" : "Crops"}</div>
-              </div>
-              <div className="hero-divider" />
-              <div className="hero-stat">
-                <div className="hero-stat-num">25</div>
-                <div className="hero-stat-lbl">{lang === "si" ? "දිස්ත්‍රික්ක" : lang === "ta" ? "மாவட்டங்கள்" : "Districts"}</div>
-              </div>
-              <div className="hero-divider" />
-              <div className="hero-stat">
-                <div className="hero-stat-num">AI</div>
-                <div className="hero-stat-lbl">{lang === "si" ? "ශ්‍රේණිගත" : lang === "ta" ? "இயக்கப்படுகிறது" : "Powered"}</div>
-              </div>
-            </div>
           </div>
         </div>
         <div className="hero-wave" />
@@ -333,19 +368,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
           t={t}
         />
 
-        {/* ── Mode toggle ─────────────────────────────────────────────────── */}
-        <div className={`mode-bar${history.length > 0 ? " mode-bar--spaced" : ""}`}>
-          <div className="mtog">
-            <button className={`mb${mode === "simple" ? " on" : ""}`}
-              onClick={() => { setMode("simple"); setResult(null); setError(null); setIsMock(false); }}>
-              {t.modeSimple}
-            </button>
-            <button className={`mb${mode === "full" ? " on" : ""}`}
-              onClick={() => { setMode("full"); setResult(null); setError(null); setIsMock(false); }}>
-              {t.modeFull}
-            </button>
-          </div>
-        </div>
+        {/* Mode is fixed to "full" — toggle hidden */}
 
         {/* ── Form card ───────────────────────────────────────────────────── */}
         <div className="card">

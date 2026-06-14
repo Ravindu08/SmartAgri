@@ -489,9 +489,8 @@ function GuidanceEmptyInfo({ lang }) {
 
 // ── Selector screen ────────────────────────────────────────────────────────
 function GuidanceSelector({ t, lang, onSelect }) {
-  const [crops, setCrops]   = useState([]);
-  const [crop, setCrop]     = useState("");
-  const [date, setDate]     = useState("");
+  const [crops, setCrops] = useState([]);
+  const [crop,  setCrop]  = useState("");
 
   useEffect(() => {
     fetch(`${API_BASE}/guidance`)
@@ -503,7 +502,7 @@ function GuidanceSelector({ t, lang, onSelect }) {
   function handleSubmit(e) {
     e.preventDefault();
     if (!crop) return;
-    onSelect(crop, date || null);
+    onSelect(crop, null);
   }
 
   return (
@@ -516,21 +515,13 @@ function GuidanceSelector({ t, lang, onSelect }) {
         </div>
       </div>
       <div className="guidance-selector-body">
-        <div className="guidance-selector-row">
+        <div className="guidance-selector-row guidance-selector-row--single">
           <div>
             <label>{t.selectCrop}</label>
             <select value={crop} onChange={e => setCrop(e.target.value)} required>
               <option value="">{t.selectCropPh}</option>
               {crops.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
-          </div>
-          <div>
-            <label>{t.plantingDate} <span className="label-hint">({t.plantingDateHint})</span></label>
-            <input
-              type="date"
-              value={date}
-              onChange={e => setDate(e.target.value)}
-            />
           </div>
         </div>
         <button className="guidance-generate-btn" type="submit" disabled={!crop}>

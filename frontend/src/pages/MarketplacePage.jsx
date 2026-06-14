@@ -16,6 +16,13 @@ const MKT_T = {
       { icon: '✅', title: 'Fair Prices', desc: 'Market-aligned pricing ensures fair deals for every farmer.' },
       { icon: '🌐', title: 'Wide Reach', desc: 'Connect with buyers and sellers across all regions of Sri Lanka.' },
     ],
+    previewLabel: 'COMING SOON — SAMPLE LISTINGS',
+    loginToView: 'Login to see live listings',
+    previewItems: [
+      { emoji: '🌾', name: 'Paddy (Samba)', price: 'Rs. 185/kg', loc: 'Anuradhapura' },
+      { emoji: '🌽', name: 'Maize', price: 'Rs. 95/kg', loc: 'Polonnaruwa' },
+      { emoji: '🧅', name: 'Red Onion', price: 'Rs. 210/kg', loc: 'Matale' },
+    ],
   },
   si: {
     title: 'SmartAgri වෙළඳසැල',
@@ -30,6 +37,13 @@ const MKT_T = {
       { icon: '✅', title: 'සාධාරණ මිල', desc: 'වෙළඳපොළ-ගැලපෙන මිළ නිර්ණය සෑම ගොවියෙකුටම සාධාරණ ගනු දෙනු සහතික කරයි.' },
       { icon: '🌐', title: 'පුළුල් ළඟාකමක්', desc: 'ශ්‍රී ලංකාවේ සියලු ප්‍රදේශ හරහා ගැනුම්කරුවන් සහ විකුණුම්කරුවන් සමඟ සම්බන්ධ වන්න.' },
     ],
+    previewLabel: 'ළඟදීම — නිදර්ශන ලැයිස්තු',
+    loginToView: 'සජීව ලැයිස්තු බැලීමට ලොගින් කරන්න',
+    previewItems: [
+      { emoji: '🌾', name: 'වී (සම්බා)', price: 'රු. 185/kg', loc: 'අනුරාධපුරය' },
+      { emoji: '🌽', name: 'ඉරිඟු', price: 'රු. 95/kg', loc: 'පොළොන්නරුව' },
+      { emoji: '🧅', name: 'රතු ළූනු', price: 'රු. 210/kg', loc: 'මාතලේ' },
+    ],
   },
   ta: {
     title: 'SmartAgri சந்தை',
@@ -43,6 +57,13 @@ const MKT_T = {
       { icon: '🔒', title: 'பாதுகாப்பான பரிவர்த்தனைகள்', desc: 'SmartAgri தளத்தில் அனைத்து வர்த்தகங்களும் பாதுகாப்பாக கையாளப்படுகின்றன.' },
       { icon: '✅', title: 'நியாயமான விலைகள்', desc: 'சந்தை-சீரமைந்த விலை நிர்ணயம் ஒவ்வொரு விவசாயிக்கும் நியாயமான ஒப்பந்தங்களை உறுதி செய்கிறது.' },
       { icon: '🌐', title: 'பரந்த வரம்பு', desc: 'இலங்கையின் அனைத்து பகுதிகளிலும் வாங்குபவர்கள் மற்றும் விற்பவர்களுடன் இணைக்கவும்.' },
+    ],
+    previewLabel: 'விரைவில் — மாதிரி பட்டியல்கள்',
+    loginToView: 'நேரடி பட்டியல்களை பார்க்க உள்நுழைக',
+    previewItems: [
+      { emoji: '🌾', name: 'நெல் (சம்பா)', price: 'ரூ. 185/kg', loc: 'அனுராதபுரம்' },
+      { emoji: '🌽', name: 'மக்காச்சோளம்', price: 'ரூ. 95/kg', loc: 'பொலன்னறுவை' },
+      { emoji: '🧅', name: 'சிவப்பு வெங்காயம்', price: 'ரூ. 210/kg', loc: 'மாத்தளை' },
     ],
   },
 };
@@ -71,6 +92,20 @@ export default function MarketplacePage() {
             <p className="marketplace-hero__sub">
               {t.sub.split('\n').map((line, i) => <span key={i}>{line}{i === 0 && <br />}</span>)}
             </p>
+            <div className="marketplace-preview">
+              <div className="marketplace-preview-label">{t.previewLabel}</div>
+              <div className="marketplace-preview-grid">
+                {t.previewItems.map((item, i) => (
+                  <div key={i} className="marketplace-preview-card">
+                    <div className="marketplace-preview-card__emoji">{item.emoji}</div>
+                    <div className="marketplace-preview-card__name">{item.name}</div>
+                    <div className="marketplace-preview-card__price">{item.price}</div>
+                    <div className="marketplace-preview-card__loc">📍 {item.loc}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="marketplace-preview-overlay">🔒 {t.loginToView}</div>
+            </div>
             <div className="marketplace-actions">
               <Link className="button button--outline" to="/">{t.btnBack}</Link>
               <Link className="button button--primary" to="/login">{t.btnLogin}</Link>

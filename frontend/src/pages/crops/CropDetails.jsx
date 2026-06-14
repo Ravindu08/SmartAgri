@@ -157,7 +157,6 @@ export default function CropDetails() {
 
         <div className="crop-detail-footer">
           <Link className="button button--outline" to="/landowner/crops">{t.allCropsLink}</Link>
-          <Link className="button button--outline" to={`/landowner/crops/edit/${id}`}>{t.editCropLink}</Link>
           {crop.status !== 'Completed' && (
             <button
               className="button button--primary"

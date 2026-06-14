@@ -91,7 +91,29 @@ export default function LoginPage() {
           <Link className="auth-logo" to="/">
             <span>🌿</span> <strong>Smart</strong>Agri
           </Link>
-          <div className="auth-split__illustration">🌾</div>
+          <div className="auth-split__illustration">
+            <svg viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'140px',height:'140px'}}>
+              <circle cx="80" cy="80" r="72" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5"/>
+              {/* Sun */}
+              <circle cx="110" cy="38" r="14" fill="#FBC02D" opacity="0.9"/>
+              {/* Ground */}
+              <ellipse cx="80" cy="130" rx="54" ry="10" fill="rgba(255,255,255,0.12)"/>
+              {/* Main stalk */}
+              <line x1="80" y1="128" x2="80" y2="60" stroke="#86efac" strokeWidth="3" strokeLinecap="round"/>
+              {/* Wheat head */}
+              <ellipse cx="80" cy="52" rx="6" ry="12" fill="#FBC02D" opacity="0.95"/>
+              <ellipse cx="73" cy="58" rx="5" ry="10" fill="#FBC02D" opacity="0.85" transform="rotate(-20 73 58)"/>
+              <ellipse cx="87" cy="58" rx="5" ry="10" fill="#FBC02D" opacity="0.85" transform="rotate(20 87 58)"/>
+              <ellipse cx="68" cy="67" rx="4" ry="8" fill="#FBC02D" opacity="0.7" transform="rotate(-30 68 67)"/>
+              <ellipse cx="92" cy="67" rx="4" ry="8" fill="#FBC02D" opacity="0.7" transform="rotate(30 92 67)"/>
+              {/* Leaves */}
+              <path d="M80 100 Q60 88 55 72" stroke="#86efac" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+              <path d="M80 90 Q100 78 105 62" stroke="#86efac" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+              {/* Soil lines */}
+              <line x1="52" y1="128" x2="108" y2="128" stroke="rgba(255,255,255,0.25)" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="60" y1="133" x2="100" y2="133" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </div>
           <h1 className="auth-split__title">{t.panelTitle}</h1>
           <p className="auth-split__copy">{t.panelCopy}</p>
           <div className="auth-who-can">
