@@ -6,7 +6,7 @@ import { listCultivations } from '../../utils/cultivationApi';
 import { getAuthSession } from '../../services/api';
 import { CROP_EMOJI, ALL_CROPS } from '../../data/cropData';
 import { useApp } from '../../context/AppContext';
-import { LAND_T } from '../../data/translations';
+import { LAND_T, SEA_LABELS, IRR_LABELS } from '../../data/translations';
 import Toast from '../../components/Toast';
 
 export default function FarmDetails() {
@@ -180,11 +180,11 @@ export default function FarmDetails() {
             </div>
             <div className="detail-row">
               <span className="detail-row__label">{t.irrigationRow}</span>
-              <span className="detail-row__value">{farm.irrigation_type || '—'}</span>
+              <span className="detail-row__value">{farm.irrigation_type ? (IRR_LABELS[lang]?.[farm.irrigation_type] || farm.irrigation_type) : '—'}</span>
             </div>
             <div className="detail-row">
               <span className="detail-row__label">{t.seasonRow}</span>
-              <span className="detail-row__value">{farm.season}</span>
+              <span className="detail-row__value">{SEA_LABELS[lang]?.[farm.season] || farm.season}</span>
             </div>
           </div>
 

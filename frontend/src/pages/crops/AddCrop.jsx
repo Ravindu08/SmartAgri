@@ -4,7 +4,7 @@ import { createCrop, getCropsByFarm } from '../../services/cropService';
 import { getFarm, getFarms } from '../../services/farmService';
 import { CROP_EMOJI } from '../../data/cropData';
 import { useApp } from '../../context/AppContext';
-import { LAND_T } from '../../data/translations';
+import { LAND_T, GROWTH_STAGE_LABELS, CROP_STATUS_LABELS, SEA_LABELS } from '../../data/translations';
 import Toast from '../../components/Toast';
 
 const GROWTH_STAGES = ['Seed', 'Germination', 'Vegetative', 'Flowering', 'Fruiting', 'Harvest'];
@@ -274,7 +274,7 @@ export default function AddCrop() {
             {t.growthStageField}
             <select name="growth_stage" value={formData.growth_stage} onChange={handleChange}>
               {GROWTH_STAGES.map((stage) => (
-                <option key={stage} value={stage}>{stage}</option>
+                <option key={stage} value={stage}>{GROWTH_STAGE_LABELS[lang]?.[stage] || stage}</option>
               ))}
             </select>
           </label>
@@ -302,7 +302,7 @@ export default function AddCrop() {
             {t.statusField}
             <select name="status" value={formData.status} onChange={handleChange}>
               {STATUSES.map((status) => (
-                <option key={status} value={status}>{status}</option>
+                <option key={status} value={status}>{CROP_STATUS_LABELS[lang]?.[status] || status}</option>
               ))}
             </select>
           </label>
@@ -311,7 +311,7 @@ export default function AddCrop() {
             <select name="season" value={formData.season} onChange={handleChange}>
               <option value="">{t.selectSeasonPh || 'Select season…'}</option>
               {SEASONS.map((s) => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s}>{SEA_LABELS[lang]?.[s] || s}</option>
               ))}
             </select>
           </label>
