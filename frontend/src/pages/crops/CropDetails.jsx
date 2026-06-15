@@ -4,7 +4,7 @@ import { getCrop, deleteCrop, updateCrop } from '../../services/cropService';
 import { listCultivations, abandonCultivation } from '../../utils/cultivationApi';
 import { getAuthSession } from '../../services/api';
 import { useApp } from '../../context/AppContext';
-import { LAND_T } from '../../data/translations';
+import { LAND_T, CROP_STATUS_LABELS } from '../../data/translations';
 import Toast from '../../components/Toast';
 
 function resolveCultStatus(sessions, cropName) {
@@ -103,8 +103,9 @@ export default function CropDetails() {
     );
   }
 
-  const displayStatus = cultStatus || crop.status;
-  const statusCls = displayStatus.toLowerCase().replace(/\s/g, '-');
+  const rawStatus = cultStatus || crop.status;
+  const displayStatus = CROP_STATUS_LABELS[lang]?.[rawStatus] || rawStatus;
+  const statusCls = rawStatus.toLowerCase().replace(/\s/g, '-');
 
   return (
     <section className="crop-detail-page">

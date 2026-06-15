@@ -9,13 +9,21 @@ import {
   updateUserInSession,
   updateUserAvatar,
 } from '../../services/api';
+import { useApp } from '../../context/AppContext';
+import { LAND_T } from '../../data/translations';
 import Toast from '../../components/Toast';
-
-const TABS = ['Profile', 'Security', 'Account'];
 
 export default function Settings() {
   const navigate       = useNavigate();
   const { user }       = getAuthSession();
+  const { lang }       = useApp();
+  const t              = LAND_T[lang] || LAND_T.en;
+
+  const TABS = [
+    { key: 'Profile',  label: t.settingsTabProfile,  icon: '👤' },
+    { key: 'Security', label: t.settingsTabSecurity, icon: '🔒' },
+    { key: 'Account',  label: t.settingsTabAccount,  icon: '⚠️' },
+  ];
 
   const [activeTab, setActiveTab] = useState('Profile');
   const [toast,     setToast]     = useState({ type: 'success', message: '' });
@@ -33,7 +41,7 @@ export default function Settings() {
   const handleProfileSave = async e => {
     e.preventDefault();
     if (!profileForm.full_name.trim()) {
-      setToast({ type: 'error', message: 'Full name is required.' }); return;
+      setToast({ type: 'error', message: t.settingsToastNameRequired }); return;
     }
     setProfileSaving(true);
     try {
@@ -42,7 +50,7 @@ export default function Settings() {
         email:     profileForm.email.trim() || undefined,
       });
       updateUserInSession(updated);
-      setToast({ type: 'success', message: 'Profile updated successfully.' });
+      setToast({ type: 'success', message: t.settingsToastProfileSaved });
     } catch (err) {
       setToast({ type: 'error', message: err.message });
     } finally {
@@ -64,10 +72,10 @@ export default function Settings() {
   const handlePwSave = async e => {
     e.preventDefault();
     if (pwForm.new_password !== pwForm.confirm_password) {
-      setToast({ type: 'error', message: 'New passwords do not match.' }); return;
+      setToast({ type: 'error', message: t.settingsToastPwMismatch }); return;
     }
     if (pwForm.new_password.length < 8) {
-      setToast({ type: 'error', message: 'New password must be at least 8 characters.' }); return;
+      setToast({ type: 'error', message: t.settingsToastPwShort }); return;
     }
     setPwSaving(true);
     try {
@@ -76,7 +84,7 @@ export default function Settings() {
         new_password:     pwForm.new_password,
       });
       setPwForm({ current_password: '', new_password: '', confirm_password: '' });
-      setToast({ type: 'success', message: 'Password changed successfully.' });
+      setToast({ type: 'success', message: t.settingsToastPwChanged });
     } catch (err) {
       setToast({ type: 'error', message: err.message });
     } finally {
@@ -91,7 +99,7 @@ export default function Settings() {
 
   const handleDelete = async () => {
     if (deleteConfirm.toLowerCase() !== 'delete') {
-      setToast({ type: 'error', message: 'Type "delete" to confirm.' }); return;
+      setToast({ type: 'error', message: t.settingsToastTypeDelete }); return;
     }
     setDeleteLoading(true);
     try {
@@ -111,7 +119,7 @@ export default function Settings() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      setToast({ type: 'error', message: 'Image must be under 2 MB.' }); return;
+      setToast({ type: 'error', message: t.settingsToastImgLarge }); return;
     }
     const reader = new FileReader();
     reader.onload = async ev => {
@@ -119,8 +127,7 @@ export default function Settings() {
       try {
         const updated = await updateUserAvatar(ev.target.result);
         updateUserInSession(updated);
-        setToast({ type: 'success', message: 'Profile photo updated.' });
-        // force re-read of user from storage
+        setToast({ type: 'success', message: t.settingsToastPhotoUpdated });
         window.location.reload();
       } catch (err) {
         setToast({ type: 'error', message: err.message });
@@ -136,7 +143,7 @@ export default function Settings() {
     try {
       const updated = await updateUserAvatar(null);
       updateUserInSession(updated);
-      setToast({ type: 'success', message: 'Profile photo removed.' });
+      setToast({ type: 'success', message: t.settingsToastPhotoRemoved });
       window.location.reload();
     } catch (err) {
       setToast({ type: 'error', message: err.message });
@@ -168,7 +175,7 @@ export default function Settings() {
         </div>
         <div style={{ flex: 1 }}>
           <div className="settings-user-name">{user?.full_name}</div>
-          <div className="settings-user-meta">{user?.email} · {user?.role} · Joined {joinDate}</div>
+          <div className="settings-user-meta">{user?.email} · {user?.role} · {t.settingsJoined} {joinDate}</div>
           {user?.profile_image && (
             <button
               className="settings-avatar-remove"
@@ -176,7 +183,7 @@ export default function Settings() {
               onClick={handleAvatarRemove}
               disabled={avatarSaving}
             >
-              {avatarSaving ? 'Saving…' : '✕ Remove photo'}
+              {avatarSaving ? t.settingsPhotoSaving : t.settingsRemovePhoto}
             </button>
           )}
         </div>
@@ -186,12 +193,12 @@ export default function Settings() {
       <div className="settings-tabs">
         {TABS.map(tab => (
           <button
-            key={tab}
-            className={`settings-tab${activeTab === tab ? ' active' : ''}`}
+            key={tab.key}
+            className={`settings-tab${activeTab === tab.key ? ' active' : ''}`}
             type="button"
-            onClick={() => setActiveTab(tab)}
+            onClick={() => setActiveTab(tab.key)}
           >
-            {tab === 'Profile' ? '👤' : tab === 'Security' ? '🔒' : '⚠️'} {tab}
+            {tab.icon} {tab.label}
           </button>
         ))}
       </div>
@@ -199,23 +206,23 @@ export default function Settings() {
       {/* ── Profile tab ──────────────────────────────────────────────────────── */}
       {activeTab === 'Profile' && (
         <div className="settings-panel">
-          <h2 className="settings-panel__title">Personal Details</h2>
-          <p className="settings-panel__sub">Update your name and email address.</p>
+          <h2 className="settings-panel__title">{t.settingsPersonalDetails}</h2>
+          <p className="settings-panel__sub">{t.settingsPersonalSub}</p>
           <form className="settings-form" onSubmit={handleProfileSave}>
             <div className="settings-field">
-              <label htmlFor="full_name">Full Name</label>
+              <label htmlFor="full_name">{t.settingsFullName}</label>
               <input
                 id="full_name"
                 name="full_name"
                 type="text"
                 value={profileForm.full_name}
                 onChange={handleProfileChange}
-                placeholder="Your full name"
+                placeholder={t.settingsFullName}
                 required
               />
             </div>
             <div className="settings-field">
-              <label htmlFor="email">Email Address</label>
+              <label htmlFor="email">{t.settingsEmail}</label>
               <input
                 id="email"
                 name="email"
@@ -227,17 +234,17 @@ export default function Settings() {
               />
             </div>
             <div className="settings-field settings-field--readonly">
-              <label>Role</label>
+              <label>{t.settingsRole}</label>
               <input type="text" value={user?.role || '—'} readOnly disabled />
-              <span className="settings-field__hint">Role cannot be changed.</span>
+              <span className="settings-field__hint">{t.settingsRoleHint}</span>
             </div>
             <div className="settings-field settings-field--readonly">
-              <label>Account ID</label>
+              <label>{t.settingsAccountId}</label>
               <input type="text" value={`LO-${String(user?.id || 0).padStart(6, '0')}`} readOnly disabled />
             </div>
             <div className="settings-actions">
               <button className="button button--primary" type="submit" disabled={profileSaving}>
-                {profileSaving ? 'Saving…' : '💾 Save Changes'}
+                {profileSaving ? t.settingsSaving : t.settingsSaveChanges}
               </button>
             </div>
           </form>
@@ -247,46 +254,46 @@ export default function Settings() {
       {/* ── Security tab ─────────────────────────────────────────────────────── */}
       {activeTab === 'Security' && (
         <div className="settings-panel">
-          <h2 className="settings-panel__title">Change Password</h2>
-          <p className="settings-panel__sub">Use a strong password of at least 8 characters.</p>
+          <h2 className="settings-panel__title">{t.settingsChangePassword}</h2>
+          <p className="settings-panel__sub">{t.settingsPasswordSub}</p>
           <form className="settings-form" onSubmit={handlePwSave}>
             <div className="settings-field">
-              <label htmlFor="current_password">Current Password</label>
+              <label htmlFor="current_password">{t.settingsCurrentPw}</label>
               <input
                 id="current_password"
                 name="current_password"
                 type="password"
                 value={pwForm.current_password}
                 onChange={handlePwChange}
-                placeholder="Enter current password"
+                placeholder={t.settingsCurrentPw}
                 required
               />
             </div>
             <div className="settings-field">
-              <label htmlFor="new_password">New Password</label>
+              <label htmlFor="new_password">{t.settingsNewPw}</label>
               <input
                 id="new_password"
                 name="new_password"
                 type="password"
                 value={pwForm.new_password}
                 onChange={handlePwChange}
-                placeholder="At least 8 characters"
+                placeholder={t.settingsNewPw}
                 required
               />
             </div>
             <div className="settings-field">
-              <label htmlFor="confirm_password">Confirm New Password</label>
+              <label htmlFor="confirm_password">{t.settingsConfirmPw}</label>
               <input
                 id="confirm_password"
                 name="confirm_password"
                 type="password"
                 value={pwForm.confirm_password}
                 onChange={handlePwChange}
-                placeholder="Repeat new password"
+                placeholder={t.settingsConfirmPw}
                 required
               />
               {pwForm.confirm_password && pwForm.new_password !== pwForm.confirm_password && (
-                <span className="settings-field__error">Passwords do not match.</span>
+                <span className="settings-field__error">{t.settingsPwMismatch}</span>
               )}
             </div>
             <div className="settings-actions">
@@ -295,7 +302,7 @@ export default function Settings() {
                 type="submit"
                 disabled={pwSaving || !pwForm.current_password || !pwForm.new_password}
               >
-                {pwSaving ? 'Changing…' : '🔒 Change Password'}
+                {pwSaving ? t.settingsChangingPw : t.settingsChangePwBtn}
               </button>
             </div>
           </form>
@@ -305,18 +312,18 @@ export default function Settings() {
       {/* ── Account tab ──────────────────────────────────────────────────────── */}
       {activeTab === 'Account' && (
         <div className="settings-panel">
-          <h2 className="settings-panel__title">Account Management</h2>
-          <p className="settings-panel__sub">Manage your account status and data.</p>
+          <h2 className="settings-panel__title">{t.settingsAccountMgmt}</h2>
+          <p className="settings-panel__sub">{t.settingsAccountMgmtSub}</p>
 
           <div className="settings-info-block">
             <div className="settings-info-row">
-              <span>Account status</span><strong className="settings-badge--active">Active</strong>
+              <span>{t.settingsAccountStatus}</span><strong className="settings-badge--active">{t.settingsActive}</strong>
             </div>
             <div className="settings-info-row">
-              <span>Member since</span><strong>{joinDate}</strong>
+              <span>{t.settingsMemberSince}</span><strong>{joinDate}</strong>
             </div>
             <div className="settings-info-row">
-              <span>Role</span><strong>{user?.role}</strong>
+              <span>{t.settingsRole}</span><strong>{user?.role}</strong>
             </div>
           </div>
 
@@ -324,8 +331,8 @@ export default function Settings() {
             <div className="settings-danger-header">
               <span className="settings-danger-icon">⚠️</span>
               <div>
-                <h3>Delete Account</h3>
-                <p>Permanently delete your account and all associated data. This cannot be undone.</p>
+                <h3>{t.settingsDeleteAccount}</h3>
+                <p>{t.settingsDeleteDesc}</p>
               </div>
             </div>
             <button
@@ -333,7 +340,7 @@ export default function Settings() {
               type="button"
               onClick={() => setShowDeleteModal(true)}
             >
-              Delete My Account
+              {t.settingsDeleteBtn}
             </button>
           </div>
         </div>
@@ -343,9 +350,9 @@ export default function Settings() {
       {showDeleteModal && (
         <div className="modal-overlay">
           <div className="modal-panel">
-            <h2>⚠️ Delete Account</h2>
+            <h2>{t.settingsDeleteModalTitle}</h2>
             <p>
-              This will permanently delete your account, all your farms, crops, and cultivation data.
+              {t.settingsDeleteModalDesc}
               <br /><br />
               Type <strong>delete</strong> below to confirm:
             </p>
@@ -354,7 +361,7 @@ export default function Settings() {
               type="text"
               value={deleteConfirm}
               onChange={e => setDeleteConfirm(e.target.value)}
-              placeholder="Type delete to confirm"
+              placeholder={t.settingsDeleteModalTypePh}
               autoFocus
             />
             <div className="modal-actions">
@@ -363,7 +370,7 @@ export default function Settings() {
                 type="button"
                 onClick={() => { setShowDeleteModal(false); setDeleteConfirm(''); }}
               >
-                Cancel
+                {t.settingsCancel}
               </button>
               <button
                 className="button button--danger"
@@ -371,7 +378,7 @@ export default function Settings() {
                 onClick={handleDelete}
                 disabled={deleteLoading || deleteConfirm.toLowerCase() !== 'delete'}
               >
-                {deleteLoading ? 'Deleting…' : 'Delete Account'}
+                {deleteLoading ? t.settingsDeletingDots : t.settingsDeleteModalBtn}
               </button>
             </div>
           </div>

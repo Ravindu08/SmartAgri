@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getFarm, updateFarm } from '../../services/farmService';
 import { DISTRICTS, IRRIGATION_TYPES, SEASONS, SIZE_UNITS, SOIL_TYPES } from '../../data/farmOptions';
 import { useApp } from '../../context/AppContext';
-import { LAND_T } from '../../data/translations';
+import { LAND_T, SEA_LABELS, IRR_LABELS } from '../../data/translations';
 import CropPicker from '../../components/CropPicker';
 import Toast from '../../components/Toast';
 
@@ -209,14 +209,14 @@ export default function EditFarm() {
             {t.irrigTypeField}
             <select name="irrigation_type" value={formData.irrigation_type} onChange={handleChange}>
               <option value="">{t.selectIrrigPh}</option>
-              {IRRIGATION_TYPES.map(i => <option key={i} value={i}>{i}</option>)}
+              {IRRIGATION_TYPES.map(i => <option key={i} value={i}>{IRR_LABELS[lang]?.[i] || i}</option>)}
             </select>
           </label>
 
           <label>
             {t.seasonField} <span className="req">*</span>
             <select name="season" value={formData.season} onChange={handleChange}>
-              {SEASONS.map(s => <option key={s} value={s}>{s}</option>)}
+              {SEASONS.map(s => <option key={s} value={s}>{SEA_LABELS[lang]?.[s] || s}</option>)}
             </select>
           </label>
         </div>

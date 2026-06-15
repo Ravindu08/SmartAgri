@@ -1773,6 +1773,7 @@
   display: flex; align-items: center; justify-content: center;
 }
 .crop-card__image-placeholder { font-size: 56px; opacity: 0.75; }
+.crop-card__emoji { font-size: 56px; line-height: 1; }
 .crop-card__status-badge {
   position: absolute; top: 12px; right: 12px;
   padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 700;
@@ -2187,6 +2188,8 @@
 .lo-dash-stat__icon  { font-size: 22px; }
 .lo-dash-stat__val   { font-size: 1.6rem; font-weight: 800; color: var(--text); line-height: 1; }
 .lo-dash-stat__lbl   { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.lo-dash-stat__hint  { font-size: 10px; color: var(--primary); font-weight: 600; margin-top: 2px; text-decoration: none; }
+.lo-dash-stat__hint:hover { text-decoration: underline; }
 .lo-dash-stat--warn .lo-dash-stat__val  { color: #d97706; }
 .lo-dash-stat--danger .lo-dash-stat__val { color: var(--danger); }
 [data-theme="dark"] .lo-dash-stat--warn .lo-dash-stat__val { color: #fbbf24; }
@@ -2474,6 +2477,7 @@
 
 @media (max-width: 600px) {
   .settings-tabs { flex-direction: column; }
+  .settings-tab { text-align: left; padding: 10px 14px; font-size: 14px; }
   .cult-crop-card { flex-direction: column; }
 }
 
@@ -2589,7 +2593,7 @@
   gap: 8px; transition: background .12s;
 }
 .help-faq-q:hover { background: var(--hover, var(--border)); }
-.help-faq-chevron { font-size: 11px; color: var(--muted); flex-shrink: 0; }
+.help-faq-chevron { font-size: 15px; color: var(--text-mid); flex-shrink: 0; font-weight: 700; }
 .help-faq-a {
   padding: 4px 18px 16px; font-size: 13px; color: var(--muted);
   line-height: 1.6; border-top: 1px solid var(--border);
@@ -2678,6 +2682,9 @@
 .dash-notif-card--action  .dash-notif-strong { color: var(--notif-action-color); }
 .dash-notif-card--task    .dash-notif-strong { color: var(--notif-task-color); }
 .dash-notif-strong { display: block; font-size: 13px; margin-bottom: 2px; font-weight: 700; }
+.dash-notif-card--clickable { cursor: pointer; transition: opacity .15s; }
+.dash-notif-card--clickable:hover { opacity: 0.85; }
+.dash-notif-action-hint { display: block; font-size: 11px; font-weight: 700; color: inherit; opacity: 0.7; margin-top: 4px; }
 
 /* ── Topbar notification panel ───────────────────────────────────────────── */
 .lo-topbar__notif-wrap {
@@ -2852,7 +2859,7 @@
 .lo-topbar__profile-wrap { position: relative; }
 .lo-topbar__profile-btn {
   display: flex; align-items: center; gap: 8px;
-  background: var(--card-bg); border: 1.5px solid var(--border);
+  background: var(--card); border: 1.5px solid var(--border);
   border-radius: 99px; padding: 5px 12px 5px 6px; cursor: pointer;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -2862,6 +2869,11 @@
   background: var(--accent); color: var(--accent-text);
   display: flex; align-items: center; justify-content: center;
   font-weight: 800; font-size: 0.8rem; flex-shrink: 0;
+  overflow: hidden;
+}
+.lo-topbar__profile-avatar img,
+.lo-topbar__profile-panel-avatar img {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
 }
 .lo-topbar__profile-info { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.25; }
 .lo-topbar__profile-name { font-size: 0.85rem; font-weight: 700; color: var(--text); }
@@ -2871,7 +2883,7 @@
 /* Profile panel dropdown */
 .lo-topbar__profile-panel {
   position: absolute; top: calc(100% + 8px); right: 0; z-index: 200;
-  background: var(--card-bg); border: 1.5px solid var(--border);
+  background: var(--card); border: 1.5px solid var(--border);
   border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
   min-width: 220px; overflow: hidden; animation: fadeInUp 0.15s ease;
 }
@@ -2885,6 +2897,7 @@
   background: var(--accent); color: var(--accent-text);
   display: flex; align-items: center; justify-content: center;
   font-weight: 800; font-size: 1rem; flex-shrink: 0;
+  overflow: hidden;
 }
 .lo-topbar__profile-panel-name { font-weight: 700; font-size: 0.92rem; color: var(--text); }
 .lo-topbar__profile-panel-role { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
@@ -2907,7 +2920,15 @@
 .lo-topbar__id  { display: none; }
 
 /* ── Task 8: Enhanced crop status tabs ────────────────────────────────────── */
-.crop-status-tab { display: flex; align-items: center; gap: 6px; padding: 8px 14px; }
+.crop-status-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.crop-status-tab {
+  display: flex; align-items: center; gap: 6px; padding: 8px 14px;
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); cursor: pointer;
+  color: var(--text-mid, var(--muted)); font-family: var(--ff);
+  transition: background .15s, border-color .15s, color .15s;
+}
+.crop-status-tab:hover { background: var(--surface-1); border-color: var(--accent); color: var(--text); }
 .crop-status-tab__icon { font-size: 1rem; }
 .crop-status-tab__label { font-weight: 600; font-size: 0.85rem; }
 .crop-status-tab__count {
@@ -2917,11 +2938,12 @@
   background: rgba(0,0,0,0.08); color: inherit;
   transition: background 0.2s;
 }
+[data-theme="dark"] .crop-status-tab__count { background: rgba(255,255,255,0.10); }
 .crop-status-tab--active.active  .crop-status-tab__count { background: rgba(255,255,255,0.3); }
 .crop-status-tab--active.active  { background: var(--accent); color: #fff; border-color: var(--accent); }
 .crop-status-tab--completed.active { background: #16a34a; color: #fff; border-color: #16a34a; }
 .crop-status-tab--failed.active   { background: #dc2626; color: #fff; border-color: #dc2626; }
-.crop-status-tab--all.active      { background: var(--text); color: var(--card-bg); border-color: var(--text); }
+.crop-status-tab--all.active      { background: var(--text); color: var(--card); border-color: var(--text); }
 
 /* ── Task 11: Simplified start-tracking form ─────────────────────────────── */
 .cult-start-known-crop {

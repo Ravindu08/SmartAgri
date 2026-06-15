@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getCrop, updateCrop } from '../../services/cropService';
 import { getFarms } from '../../services/farmService';
 import { useApp } from '../../context/AppContext';
-import { LAND_T } from '../../data/translations';
+import { LAND_T, GROWTH_STAGE_LABELS, CROP_STATUS_LABELS, SEA_LABELS } from '../../data/translations';
 import Toast from '../../components/Toast';
 
 const GROWTH_STAGES = ['Seed', 'Germination', 'Vegetative', 'Flowering', 'Fruiting', 'Harvest'];
@@ -150,7 +150,7 @@ export default function EditCrop() {
             <select name="growth_stage" value={formData.growth_stage} onChange={handleChange}>
               {GROWTH_STAGES.map((stage) => (
                 <option key={stage} value={stage}>
-                  {stage}
+                  {GROWTH_STAGE_LABELS[lang]?.[stage] || stage}
                 </option>
               ))}
             </select>
@@ -174,7 +174,7 @@ export default function EditCrop() {
             <select name="status" value={formData.status} onChange={handleChange}>
               {STATUSES.map((status) => (
                 <option key={status} value={status}>
-                  {status}
+                  {CROP_STATUS_LABELS[lang]?.[status] || status}
                 </option>
               ))}
             </select>
@@ -184,7 +184,7 @@ export default function EditCrop() {
             <select name="season" value={formData.season} onChange={handleChange}>
               <option value="">{t.selectSeasonPh || 'Select season…'}</option>
               {SEASONS.map((s) => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s}>{SEA_LABELS[lang]?.[s] || s}</option>
               ))}
             </select>
           </label>

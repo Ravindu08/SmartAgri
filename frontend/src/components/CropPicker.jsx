@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { ALL_CROPS, CROP_EMOJI } from '../data/cropData';
+import { useApp } from '../context/AppContext';
+import { LAND_T } from '../data/translations';
 
 export default function CropPicker({ selected = [], onChange }) {
+  const { lang } = useApp();
+  const t = LAND_T[lang] || LAND_T.en;
   const [search, setSearch] = useState('');
 
   const filtered = search.trim()
@@ -20,7 +24,6 @@ export default function CropPicker({ selected = [], onChange }) {
 
   return (
     <div className="crop-picker">
-      {/* Selected tags */}
       {selected.length > 0 && (
         <div className="crop-picker__tags">
           {selected.map(crop => (
@@ -32,16 +35,14 @@ export default function CropPicker({ selected = [], onChange }) {
         </div>
       )}
 
-      {/* Search */}
       <input
         className="crop-picker__search"
         type="text"
-        placeholder="Search crops…"
+        placeholder={t.cropPickerSearchPh}
         value={search}
         onChange={e => setSearch(e.target.value)}
       />
 
-      {/* Crop list */}
       <div className="crop-picker__list">
         {filtered.map(crop => {
           const active = selected.includes(crop);
@@ -59,7 +60,7 @@ export default function CropPicker({ selected = [], onChange }) {
           );
         })}
         {filtered.length === 0 && (
-          <p className="crop-picker__empty">No crops match "{search}"</p>
+          <p className="crop-picker__empty">{t.cropPickerEmpty(search)}</p>
         )}
       </div>
     </div>

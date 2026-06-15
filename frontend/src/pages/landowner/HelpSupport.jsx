@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useApp } from '../../context/AppContext';
+import { LAND_T } from '../../data/translations';
 
 const FAQS = [
   {
@@ -101,9 +103,11 @@ const CONTACT_CHANNELS = [
 ];
 
 export default function HelpSupport() {
-  const [openFaq, setOpenFaq]   = useState(null);
-  const [search,  setSearch]    = useState('');
-  const [openCat, setOpenCat]   = useState(null);
+  const { lang }               = useApp();
+  const t                      = LAND_T[lang] || LAND_T.en;
+  const [openFaq, setOpenFaq]  = useState(null);
+  const [search,  setSearch]   = useState('');
+  const [openCat, setOpenCat]  = useState(null);
 
   const toggle = key => setOpenFaq(prev => prev === key ? null : key);
 
@@ -122,12 +126,12 @@ export default function HelpSupport() {
 
       {/* Header */}
       <div className="help-hero">
-        <h1>❓ Help &amp; Support</h1>
-        <p>Find answers to common questions, or reach out to our team.</p>
+        <h1>{t.helpTitle}</h1>
+        <p>{t.helpSubtitle}</p>
         <input
           className="help-search"
           type="text"
-          placeholder="Search help articles…"
+          placeholder={t.helpSearchPh}
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
@@ -154,7 +158,7 @@ export default function HelpSupport() {
       {/* FAQs */}
       <div className="help-faq-sections">
         {filtered.length === 0 ? (
-          <div className="help-no-results">No results for "{search}". Try different keywords.</div>
+          <div className="help-no-results">{t.helpNoResults(search)}</div>
         ) : (
           filtered.map(cat => (
             <div key={cat.category} id={`help-cat-${cat.category}`} className="help-faq-category">
@@ -188,8 +192,8 @@ export default function HelpSupport() {
 
       {/* Contact channels */}
       <div className="help-contact-section">
-        <h2>📞 Contact Us</h2>
-        <p className="help-contact-sub">Can't find what you're looking for? Get in touch directly.</p>
+        <h2>{t.helpContactTitle}</h2>
+        <p className="help-contact-sub">{t.helpContactSub}</p>
         <div className="help-contact-grid">
           {CONTACT_CHANNELS.map(ch => (
             <div key={ch.label} className="help-contact-card">
@@ -206,7 +210,7 @@ export default function HelpSupport() {
 
       {/* System info */}
       <div className="help-sysinfo">
-        <h3>ℹ️ System Information</h3>
+        <h3>{t.helpSysInfoTitle}</h3>
         <div className="help-sysinfo-grid">
           <div><span>Platform</span><strong>SmartAgri Web v1.0</strong></div>
           <div><span>Weather Data</span><strong>Open-Meteo (open-meteo.com)</strong></div>
