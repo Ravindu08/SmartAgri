@@ -104,11 +104,15 @@ export default function Navbar() {
         </button>
         {isSignedIn ? (
           <>
-            <span className="navbar__session">
-              <span className="navbar__role">{user.role}</span>
-              <span className="navbar__user">{user.full_name}</span>
-            </span>
-            <button className="navbar__logout" type="button" onClick={handleLogout}>{t.logout}</button>
+            {!location.pathname.startsWith('/landowner') && (
+              <>
+                <span className="navbar__session">
+                  <span className="navbar__role">{user.role}</span>
+                  <span className="navbar__user">{user.full_name}</span>
+                </span>
+                <button className="navbar__logout" type="button" onClick={handleLogout}>{t.logout}</button>
+              </>
+            )}
           </>
         ) : (
           <>

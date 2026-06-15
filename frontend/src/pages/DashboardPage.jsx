@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { clearAuthSession, getAuthSession } from '../services/api';
 import { useApp } from '../context/AppContext';
-import { getFarms } from '../services/farmService';
-import { getCrops } from '../services/cropService';
-import { listCultivations } from '../utils/cultivationApi';
+
+const ROLE_LABELS = {
+  en: { Admin: 'Admin', Trader: 'Trader', 'Land Owner': 'Land Owner' },
+  si: { Admin: 'පරිපාලක', Trader: 'ව්‍යාපාරිකයා', 'Land Owner': 'ඉඩම් හිමිකරු' },
+  ta: { Admin: 'நிர்வாகி', Trader: 'வணிகர்', 'Land Owner': 'நில உரிமையாளர்' },
+};
 
 const DASH_UI = {
   en: { home: '🏠 Home', logout: 'Logout', market: '🏪 Visit Marketplace' },
@@ -124,48 +126,6 @@ export default function DashboardPage({ primaryLink, role, stats = [] }) {
   }
 
   const userName = session.user?.full_name || 'SmartAgri user';
-  const userId   = session.user?.id ? String(session.user.id) : null;
-
-  const [liveStats,          setLiveStats]          = useState(null);
-  const [activeCultivations, setActiveCultivations] = useState([]);
-
-  useEffect(() => {
-    if (role !== 'Land Owner' || !userId) return;
-    Promise.all([
-      getFarms().catch(() => []),
-      getCrops().catch(() => []),
-      listCultivations(userId).catch(() => ({ sessions: [] })),
-    ]).then(async ([farms, crops, cultData]) => {
-      const now   = new Date();
-      const in30  = new Date(now.getTime() + 30 * 86400000);
-      const upcomingCount = crops.filter(c => {
-        const d = new Date(c.expected_harvest_date);
-        return d >= now && d <= in30;
-      }).length;
-
-      let weatherVal = '—';
-      const district = farms.find(f => f.district)?.district;
-      if (district) {
-        try {
-          const wr = await fetch(`/weather?district=${encodeURIComponent(district)}`);
-          if (wr.ok) {
-            const wd = await wr.json();
-            const temp = wd.current?.temperature;
-            const icon = wd.current?.condition_icon || '🌤️';
-            if (temp !== undefined) weatherVal = `${Math.round(temp)}°C ${icon}`;
-          }
-        } catch {}
-      }
-
-      setLiveStats([
-        { icon: '🌾', label: 'My Farms',         value: String(farms.length)  },
-        { icon: '🌱', label: 'My Crops',         value: String(crops.length)  },
-        { icon: '🧺', label: 'Upcoming Harvest', value: String(upcomingCount) },
-        { icon: '🌤️', label: 'Weather Today',    value: weatherVal            },
-      ]);
-      setActiveCultivations((cultData.sessions || []).filter(s => s.status === 'active'));
-    });
-  }, [role, userId]);
 
   const handleLogout = () => {
     clearAuthSession();
@@ -184,7 +144,7 @@ export default function DashboardPage({ primaryLink, role, stats = [] }) {
           <div className="dash-card__identity">
             <div className="dash-card__avatar">{userName.charAt(0).toUpperCase()}</div>
             <div>
-              <div className="dash-card__role">{roleIcon} {role}</div>
+              <div className="dash-card__role">{roleIcon} {(ROLE_LABELS[lang] || ROLE_LABELS.en)[role] || role}</div>
               <div className="dash-card__user">{userName}</div>
             </div>
           </div>
@@ -199,9 +159,9 @@ export default function DashboardPage({ primaryLink, role, stats = [] }) {
           <p>{summary}</p>
         </div>
 
-        {(liveStats || stats).length > 0 && (
+        {stats.length > 0 && (
           <div className="dash-stats-row">
-            {(liveStats || stats).map(s => (
+            {stats.map(s => (
               <div key={s.label} className="dash-stat-tile">
                 <div className="dash-stat-tile__icon">{s.icon}</div>
                 <div className="dash-stat-tile__value">{s.value}</div>
@@ -226,43 +186,6 @@ export default function DashboardPage({ primaryLink, role, stats = [] }) {
           ))}
         </div>
 
-        {role === 'Land Owner' && activeCultivations.length > 0 && (
-          <div className="dash-cultivations">
-            <div className="dash-cultivations__header">
-              <h2>🌱 Active Cultivations</h2>
-              <Link className="button button--outline" to="/landowner/cultivations">View all →</Link>
-            </div>
-            {activeCultivations.map(cult => {
-              const tasks   = Object.values(cult.tasks || {});
-              const done    = tasks.filter(tk => tk.status === 'done').length;
-              const pct     = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
-              const elapsed = cult.planting_date
-                ? Math.floor((Date.now() - new Date(cult.planting_date).getTime()) / 86400000)
-                : null;
-              const overdue = tasks.filter(tk =>
-                tk.status !== 'done' && tk.status !== 'skipped' &&
-                tk.scheduled_date < new Date().toISOString().slice(0, 10)
-              ).length;
-              return (
-                <div key={cult.id} className="dash-cult-card">
-                  <div className="dash-cult-card__header">
-                    <span className="dash-cult-card__crop">{cult.crop}</span>
-                    <div className="dash-cult-card__meta">
-                      {elapsed !== null && <span className="dash-cult-card__day">Day {elapsed}</span>}
-                      {overdue > 0 && <span className="dash-cult-card__overdue">⚠ {overdue} overdue</span>}
-                    </div>
-                  </div>
-                  <div className="dash-cult-card__progress">
-                    <div className="dash-cult-card__bar">
-                      <div className="dash-cult-card__fill" style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className="dash-cult-card__pct">{done}/{tasks.length} · {pct}%</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
       </section>
     </main>
   );

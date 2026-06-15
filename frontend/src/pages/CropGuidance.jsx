@@ -2,8 +2,11 @@ import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import CultivationTracker from "../components/CultivationTracker";
 import WeatherLocationPicker from "../components/WeatherLocationPicker";
+import CustomSelect from "../components/CustomSelect";
 import { getAuthSession } from "../services/api";
 import "../styles/CropGuidance.css";
+import { getCropLabel } from "../data/cropData";
+import { ZONE_LABELS, FERT_TIMING_LABELS, STAGE_NAME_LABELS, PROPAGATION_LABELS } from "../data/translations";
 
 // Guidance endpoints live on the ML service (port 8000).
 // Use an empty base so Vite's dev-server proxy forwards /guidance → port 8000.
@@ -55,6 +58,16 @@ function tpl(str, ...vals) {
   return str.replace(/\{(\d+)\}/g, (_, i) => vals[i] ?? "");
 }
 
+// Picks the lang-specific field (_si / _ta), falls back to the English field
+function tF(obj, key, lang) {
+  if (!obj) return "";
+  if (lang !== "en") {
+    const loc = obj[`${key}_${lang}`];
+    if (loc) return loc;
+  }
+  return obj[key] ?? "";
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 function daysSincePlanting(plantingDate) {
   if (!plantingDate) return null;
@@ -84,7 +97,7 @@ function isToday(day, daysSince) {
 
 // ── Sub-components ─────────────────────────────────────────────────────────
 
-function ActivityCard({ act, daysSince, t }) {
+function ActivityCard({ act, daysSince, t, lang }) {
   const meta = ACT_META[act.type] || { icon: "📋", cls: "act-monitor" };
   const today = isToday(act.day, daysSince);
   return (
@@ -97,12 +110,12 @@ function ActivityCard({ act, daysSince, t }) {
           &nbsp;·&nbsp;
           <span className="activity-type-label">{t[ACT_KEY[act.type]] || act.type}</span>
         </div>
-        <div className="activity-title">{act.title}</div>
-        <div className="activity-desc">{act.description}</div>
+        <div className="activity-title">{tF(act, "title", lang)}</div>
+        <div className="activity-desc">{tF(act, "description", lang)}</div>
         {act.why && (
           <div className="activity-why">
             <span className="activity-why-label">{t.actWhy}:</span>
-            {act.why}
+            {tF(act, "why", lang)}
           </div>
         )}
       </div>
@@ -110,7 +123,7 @@ function ActivityCard({ act, daysSince, t }) {
   );
 }
 
-function StagesTab({ stages, daysSince, t }) {
+function StagesTab({ stages, daysSince, t, lang }) {
   const [open, setOpen] = useState(() => {
     if (daysSince === null) return 0;
     const idx = stages.findIndex(s => daysSince >= s.day_start && daysSince <= s.day_end);
@@ -130,7 +143,7 @@ function StagesTab({ stages, daysSince, t }) {
             >
               <span className="stage-icon">{stage.icon}</span>
               <div className="stage-info">
-                <div className="stage-name">{stage.name}</div>
+                <div className="stage-name">{STAGE_NAME_LABELS[lang]?.[stage.name] || stage.name}</div>
                 <div className="stage-days">
                   {stage.day_start < 0
                     ? `${Math.abs(stage.day_start)}d before → Day 0`
@@ -144,13 +157,13 @@ function StagesTab({ stages, daysSince, t }) {
             </div>
             {isOpen && (
               <div className="guidance-stage-body">
-                {stage.description && <p className="stage-desc">{stage.description}</p>}
+                {stage.description && <p className="stage-desc">{tF(stage, "description", lang)}</p>}
                 <div className="stage-activities-label">
                   {t.stageActivities}
                 </div>
                 <div className="activity-list">
                   {stage.activities.map((act, j) => (
-                    <ActivityCard key={j} act={act} daysSince={daysSince} t={t} />
+                    <ActivityCard key={j} act={act} daysSince={daysSince} t={t} lang={lang} />
                   ))}
                 </div>
               </div>
@@ -180,7 +193,7 @@ function WeatherTabBanner({ alerts }) {
   );
 }
 
-function FertTab({ fertilization, t, weather }) {
+function FertTab({ fertilization, t, weather, lang }) {
   const alerts = [];
   if (weather) {
     const rain7d   = weather.forecast?.slice(0, 2).reduce((s, d) => s + (d.rain_mm ?? 0), 0) ?? 0;
@@ -198,19 +211,19 @@ function FertTab({ fertilization, t, weather }) {
           <div className="fert-card" key={i}>
             <div className="fert-header">
               <span>🌿</span>
-              <span>{f.timing}</span>
+              <span>{FERT_TIMING_LABELS[lang]?.[f.timing] || f.timing}</span>
               {f.day >= 0 && <span className="fert-day">{t.stageDay} {f.day}</span>}
             </div>
             <div className="fert-body">
               <ul className="fert-app-list">
                 {f.applications.map((a, j) => (
                   <li key={j}>
-                    <span className="fert-mat">{a.material}</span>
-                    <span className="fert-rate">{a.rate} · {a.method}</span>
+                    <span className="fert-mat">{tF(a, "material", lang)}</span>
+                    <span className="fert-rate">{tF(a, "rate", lang)} · {tF(a, "method", lang)}</span>
                   </li>
                 ))}
               </ul>
-              {f.why && <div className="fert-why">💡 {f.why}</div>}
+              {f.why && <div className="fert-why">💡 {tF(f, "why", lang)}</div>}
             </div>
           </div>
         ))}
@@ -219,7 +232,7 @@ function FertTab({ fertilization, t, weather }) {
   );
 }
 
-function IrrigTab({ irrigation, t, weather }) {
+function IrrigTab({ irrigation, t, weather, lang }) {
   const alerts = [];
   if (weather) {
     const temperature = weather.season_avg_temp     ?? weather.current.temperature;
@@ -240,16 +253,16 @@ function IrrigTab({ irrigation, t, weather }) {
       <div className="irrigation-grid">
         <div className="irrig-item">
           <label>{t.irrigFreq}</label>
-          <p>{irrigation.frequency}</p>
+          <p>{tF(irrigation, "frequency", lang)}</p>
         </div>
         <div className="irrig-item">
           <label>{t.irrigMethod}</label>
-          <p>{irrigation.method}</p>
+          <p>{tF(irrigation, "method", lang)}</p>
         </div>
         {irrigation.critical_stages?.length > 0 && (
           <div className="irrig-item irrig-item--critical">
             <label>{t.criticalStages}</label>
-            <p>{irrigation.critical_stages.join(" · ")}</p>
+            <p>{(tF(irrigation, "critical_stages_text", lang) || irrigation.critical_stages.join(" · "))}</p>
           </div>
         )}
       </div>
@@ -257,30 +270,30 @@ function IrrigTab({ irrigation, t, weather }) {
         {irrigation.water_stress_signs?.length > 0 && (
           <div className="irrig-sign-group">
             <label>{t.waterStressSigns}</label>
-            <ul>{irrigation.water_stress_signs.map((s, i) => <li key={i}>{s}</li>)}</ul>
+            <ul>{(lang !== "en" && irrigation[`water_stress_signs_${lang}`] || irrigation.water_stress_signs).map((s, i) => <li key={i}>{s}</li>)}</ul>
           </div>
         )}
         {irrigation.over_watering_signs?.length > 0 && (
           <div className="irrig-sign-group">
             <label>{t.overWaterSigns}</label>
-            <ul>{irrigation.over_watering_signs.map((s, i) => <li key={i}>{s}</li>)}</ul>
+            <ul>{(lang !== "en" && irrigation[`over_watering_signs_${lang}`] || irrigation.over_watering_signs).map((s, i) => <li key={i}>{s}</li>)}</ul>
           </div>
         )}
       </div>
-      {irrigation.notes && <div className="irrig-notes">📝 {irrigation.notes}</div>}
+      {irrigation.notes && <div className="irrig-notes">📝 {tF(irrigation, "notes", lang)}</div>}
     </div>
   );
 }
 
-function ThreatCard({ item, type, t }) {
+function ThreatCard({ item, type, t, lang }) {
   const sev = item.severity || "low";
   return (
     <div className="threat-card">
       <div className={`threat-header sev-${sev}`}>
         <span>{type === "risk" ? (RISK_ICONS[item.type] || "⚠️") : SEV_ICONS[sev]}</span>
         <div className="threat-name-group">
-          <div className="threat-name">{item.name}</div>
-          {item.local_name && <div className="threat-local">{item.local_name}</div>}
+          <div className="threat-name">{tF(item, "name", lang)}</div>
+          {item.local_name && <div className="threat-local">{tF(item, "local_name", lang)}</div>}
           {type === "risk" && item.type && (
             <span className="risk-type-badge">{item.type}</span>
           )}
@@ -292,41 +305,41 @@ function ThreatCard({ item, type, t }) {
       <div className="threat-body">
         {item.cause && (
           <div className="threat-row">
-            <label>{t.cause}</label><span>{item.cause}</span>
+            <label>{t.cause}</label><span>{tF(item, "cause", lang)}</span>
           </div>
         )}
         {(item.symptoms || item.damage || item.description) && (
           <div className="threat-row">
             <label>{item.symptoms ? t.symptoms : item.damage ? t.damage : ""}</label>
-            <span>{item.symptoms || item.damage || item.description}</span>
+            <span>{tF(item, "symptoms", lang) || tF(item, "damage", lang) || tF(item, "description", lang)}</span>
           </div>
         )}
         {item.identification && (
           <div className="threat-row">
-            <label>{t.identification}</label><span>{item.identification}</span>
+            <label>{t.identification}</label><span>{tF(item, "identification", lang)}</span>
           </div>
         )}
         {(item.favorable_conditions || item.favorable) && (
           <div className="threat-row">
             <label>{t.favorable}</label>
-            <span>{item.favorable_conditions || item.favorable}</span>
+            <span>{tF(item, "favorable_conditions", lang) || tF(item, "favorable", lang)}</span>
           </div>
         )}
         {item.signs && (
           <div className="threat-row">
-            <label>{t.signs}</label><span>{item.signs}</span>
+            <label>{t.signs}</label><span>{tF(item, "signs", lang)}</span>
           </div>
         )}
         {item.prevention && (
           <div className="threat-action-row threat-action-row--prev">
             <div className="threat-action-label">🛡️ {t.prevention}</div>
-            <div className="threat-action-text">{item.prevention}</div>
+            <div className="threat-action-text">{tF(item, "prevention", lang)}</div>
           </div>
         )}
         {(item.treatment || item.mitigation) && (
           <div className="threat-action-row threat-action-row--treat">
             <div className="threat-action-label">💊 {item.treatment ? t.treatment : t.mitigation}</div>
-            <div className="threat-action-text">{item.treatment || item.mitigation}</div>
+            <div className="threat-action-text">{tF(item, "treatment", lang) || tF(item, "mitigation", lang)}</div>
           </div>
         )}
       </div>
@@ -334,7 +347,7 @@ function ThreatCard({ item, type, t }) {
   );
 }
 
-function HarvestTab({ harvest, t, daysSince }) {
+function HarvestTab({ harvest, t, daysSince, lang }) {
   const days = harvest.days_after_transplanting || harvest.days_after_sowing || harvest.days_after_planting;
 
   let countdownEl = null;
@@ -343,11 +356,11 @@ function HarvestTab({ harvest, t, daysSince }) {
     const inWindow = daysSince >= days.min && daysSince <= days.max;
     const past     = daysSince > days.max;
     if (inWindow) {
-      countdownEl = <div className="harvest-countdown harvest-countdown--ready">🧺 Harvest window is NOW — days {days.min}–{days.max}</div>;
+      countdownEl = <div className="harvest-countdown harvest-countdown--ready">{t.harvestWindowNow(days.min, days.max)}</div>;
     } else if (past) {
-      countdownEl = <div className="harvest-countdown harvest-countdown--past">⚠️ Harvest window has passed (day {days.max})</div>;
+      countdownEl = <div className="harvest-countdown harvest-countdown--past">{t.harvestWindowPast(days.max)}</div>;
     } else {
-      countdownEl = <div className="harvest-countdown harvest-countdown--upcoming">⏳ Harvest in ~{daysLeft} days (day {days.min}–{days.max})</div>;
+      countdownEl = <div className="harvest-countdown harvest-countdown--upcoming">{t.harvestWindowIn(daysLeft, days.min, days.max)}</div>;
     }
   }
 
@@ -371,26 +384,26 @@ function HarvestTab({ harvest, t, daysSince }) {
           <div className="harvest-block full-width">
             <label>{t.harvestIndicators}</label>
             <ul className="harvest-indicators">
-              {harvest.indicators.map((ind, i) => <li key={i}>{ind}</li>)}
+              {(lang !== "en" && harvest[`indicators_${lang}`] || harvest.indicators).map((ind, i) => <li key={i}>{ind}</li>)}
             </ul>
           </div>
         )}
         {harvest.method && (
           <div className="harvest-block">
             <label>{t.harvestMethod}</label>
-            <p>{harvest.method}</p>
+            <p>{tF(harvest, "method", lang)}</p>
           </div>
         )}
         {harvest.frequency && (
           <div className="harvest-block">
             <label>{t.harvestFreq}</label>
-            <p>{harvest.frequency}</p>
+            <p>{tF(harvest, "frequency", lang)}</p>
           </div>
         )}
         {harvest.post_harvest && (
           <div className="harvest-block full-width">
             <label>{t.postHarvest}</label>
-            <p>{harvest.post_harvest}</p>
+            <p>{tF(harvest, "post_harvest", lang)}</p>
           </div>
         )}
       </div>
@@ -400,12 +413,30 @@ function HarvestTab({ harvest, t, daysSince }) {
 
 // ── Empty info section (shown before a crop is selected) ───────────────────
 const GUIDE_TABS_INFO = [
-  { icon: "🌱", en: "Growth Stages",        si: "වර්ධන අදියර",        ta: "வளர்ச்சி நிலைகள்",       desc_en: "Track your crop's journey from germination to harvest with day-by-day stage guidance." },
-  { icon: "🌿", en: "Fertilization",        si: "පොහොර",               ta: "உரமிடல்",               desc_en: "Receive a full fertilization schedule with materials, rates, and timing for each stage." },
-  { icon: "💧", en: "Irrigation Guide",     si: "ජල කළමනාකරණය",      ta: "நீர்ப்பாசனம்",           desc_en: "Learn watering frequency, method, critical stages, and how to spot stress signs." },
-  { icon: "🔴", en: "Disease Management",   si: "රෝග කළමනාකරණය",     ta: "நோய் மேலாண்மை",         desc_en: "Identify threats early with symptoms, severity, prevention tips, and treatments." },
-  { icon: "🐛", en: "Pest Management",      si: "කෘමි කළමනාකරණය",    ta: "பூச்சி மேலாண்மை",       desc_en: "Know which pests to watch for, how to identify them, and how to control them." },
-  { icon: "🧺", en: "Harvest Guide",        si: "අස්වනු නෙළීම",       ta: "அறுவடை வழிகாட்டி",      desc_en: "Know exactly when and how to harvest, plus post-harvest handling for best quality." },
+  { icon: "🌱", en: "Growth Stages",        si: "වර්ධන අදියර",        ta: "வளர்ச்சி நிலைகள்",
+    desc_en: "Track your crop's journey from germination to harvest with day-by-day stage guidance.",
+    desc_si: "දිනෙන් දින අදියර මාර්ගෝපදේශය සමඟ බිත්තරයේ සිට අස්වනු නෙළීම දක්වා ඔබේ බෝගයේ ගමන ලුහුබඳින්න.",
+    desc_ta: "நாள்தோறும் நிலை வழிகாட்டுதல்களுடன் முளைத்தலில் இருந்து அறுவடை வரை உங்கள் பயிரின் பயணத்தை கண்காணிக்கவும்." },
+  { icon: "🌿", en: "Fertilization",        si: "පොහොර",               ta: "உரமிடல்",
+    desc_en: "Receive a full fertilization schedule with materials, rates, and timing for each stage.",
+    desc_si: "සෑම අදියරක් සඳහාම ද්‍රව්‍ය, අනුපාත සහ කාලය සහිත සම්පූර්ණ පොහොර සිනිදුව ලබා ගන්න.",
+    desc_ta: "ஒவ்வொரு நிலைக்கும் பொருட்கள், விகிதங்கள் மற்றும் நேரங்களுடன் முழுமையான உரமிடல் அட்டவணை பெறுங்கள்." },
+  { icon: "💧", en: "Irrigation Guide",     si: "ජල කළමනාකරණය",      ta: "நீர்ப்பாசனம்",
+    desc_en: "Learn watering frequency, method, critical stages, and how to spot stress signs.",
+    desc_si: "ජල දැමීමේ වාර ගණන, ක්‍රමය, ජීවිතාන්ත අදියර සහ ආතතිය දිරිගැන්වීමේ ලකුණු හඳුනා ගන්න.",
+    desc_ta: "நீர் பாய்ச்சும் அதிர்வெண், முறை, முக்கிய நிலைகள் மற்றும் அழுத்த அறிகுறிகளை கண்டறியுங்கள்." },
+  { icon: "🔴", en: "Disease Management",   si: "රෝග කළමනාකරණය",     ta: "நோய் மேலாண்மை",
+    desc_en: "Identify threats early with symptoms, severity, prevention tips, and treatments.",
+    desc_si: "රෝග ලක්ෂණ, බරපතලකම, වැළැක්වීමේ ඉඟි සහ ප්‍රතිකාර සමඟ තර්ජන කලාත්මකව හඳුනා ගන්න.",
+    desc_ta: "அறிகுறிகள், தீவிரம், தடுப்பு குறிப்புகள் மற்றும் சிகிச்சைகளுடன் அச்சுறுத்தல்களை முன்கூட்டியே கண்டறியுங்கள்." },
+  { icon: "🐛", en: "Pest Management",      si: "කෘමි කළමනාකරණය",    ta: "பூச்சி மேலாண்மை",
+    desc_en: "Know which pests to watch for, how to identify them, and how to control them.",
+    desc_si: "කුමන කෘමීන් නිරීක්ෂණය කළ යුතුද, ඒවා හඳුනා ගන්නේ කෙසේද සහ ඒවා පාලනය කරන්නේ කෙසේද දැන ගන්න.",
+    desc_ta: "எந்த பூச்சிகளை கவனிக்க வேண்டும், அவற்றை எவ்வாறு அடையாளம் காண்பது மற்றும் கட்டுப்படுத்துவது என்பதை அறியுங்கள்." },
+  { icon: "🧺", en: "Harvest Guide",        si: "අස්වනු නෙළීම",       ta: "அறுவடை வழிகாட்டி",
+    desc_en: "Know exactly when and how to harvest, plus post-harvest handling for best quality.",
+    desc_si: "කවදා, කෙසේ අස්වනු නෙළිය යුතුද සහ හොඳම ගුණාත්මකභාවය සඳහා අස්වනු-නෙළීමෙන් පසු හැසිරවීම දැන ගන්න.",
+    desc_ta: "எப்போது, எவ்வாறு அறுவடை செய்வது மற்றும் சிறந்த தரத்திற்காக அறுவடைக்கு பிந்தைய கையாளுதலை அறியுங்கள்." },
 ];
 
 const POPULAR_CROPS = [
@@ -425,7 +456,9 @@ function GuidanceEmptyInfo({ lang }) {
 
       {/* What the guide includes */}
       <div className="guidance-info-header">
-        <div className="guidance-info-label">WHAT YOU'LL GET</div>
+        <div className="guidance-info-label">
+          {lang === "si" ? "ඔබට ලැබෙන දේ" : lang === "ta" ? "நீங்கள் பெறுவது" : "WHAT YOU'LL GET"}
+        </div>
         <h2 className="guidance-info-title">
           {lang === "si" ? "ඔබේ සම්පූර්ණ ගොවිතැන් මාර්ගෝපදේශය" :
            lang === "ta" ? "உங்கள் முழுமையான விவசாய வழிகாட்டி" :
@@ -443,7 +476,7 @@ function GuidanceEmptyInfo({ lang }) {
           <div key={i} className="guidance-tab-preview-card">
             <div className="guidance-tab-preview-icon">{tab.icon}</div>
             <div className="guidance-tab-preview-title">{tab[lang] || tab.en}</div>
-            <div className="guidance-tab-preview-desc">{tab.desc_en}</div>
+            <div className="guidance-tab-preview-desc">{tab[`desc_${lang}`] || tab.desc_en}</div>
           </div>
         ))}
       </div>
@@ -456,7 +489,7 @@ function GuidanceEmptyInfo({ lang }) {
         <div className="guidance-popular-crops">
           {POPULAR_CROPS.map(({ name, emoji }) => (
             <div key={name} className="guidance-popular-chip">
-              <span>{emoji}</span> {name}
+              <span>{emoji}</span> {getCropLabel(name, lang)}
             </div>
           ))}
         </div>
@@ -489,8 +522,8 @@ function GuidanceEmptyInfo({ lang }) {
 
 // ── Selector screen ────────────────────────────────────────────────────────
 function GuidanceSelector({ t, lang, onSelect }) {
-  const [crops, setCrops] = useState([]);
-  const [crop,  setCrop]  = useState("");
+  const [crops,    setCrops]    = useState([]);
+  const [selected, setSelected] = useState("");
 
   useEffect(() => {
     fetch(`${API_BASE}/guidance`)
@@ -501,8 +534,8 @@ function GuidanceSelector({ t, lang, onSelect }) {
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (!crop) return;
-    onSelect(crop, null);
+    if (!selected) return;
+    onSelect(selected, null);
   }
 
   return (
@@ -518,13 +551,19 @@ function GuidanceSelector({ t, lang, onSelect }) {
         <div className="guidance-selector-row guidance-selector-row--single">
           <div>
             <label>{t.selectCrop}</label>
-            <select value={crop} onChange={e => setCrop(e.target.value)} required>
+            <CustomSelect
+              name="crop"
+              value={selected}
+              onChange={e => setSelected(e.target.value)}
+            >
               <option value="">{t.selectCropPh}</option>
-              {crops.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+              {crops.map(c => (
+                <option key={c} value={c}>{getCropLabel(c, lang)}</option>
+              ))}
+            </CustomSelect>
           </div>
         </div>
-        <button className="guidance-generate-btn" type="submit" disabled={!crop}>
+        <button className="guidance-generate-btn" type="submit" disabled={!selected}>
           🌱 {t.generateGuide}
         </button>
       </div>
@@ -533,7 +572,7 @@ function GuidanceSelector({ t, lang, onSelect }) {
 }
 
 // ── Detail screen ──────────────────────────────────────────────────────────
-function GuidanceDetail({ cropName, plantingDate, t, onBack, weather }) {
+function GuidanceDetail({ cropName, plantingDate, t, lang, onBack, weather }) {
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab]         = useState("growthStages");
@@ -552,9 +591,9 @@ function GuidanceDetail({ cropName, plantingDate, t, onBack, weather }) {
 
   const tabContent = () => {
     switch (tab) {
-      case "growthStages":   return <StagesTab stages={data.stages || []} daysSince={daysSince} t={t} />;
-      case "fertilization":  return <FertTab   fertilization={data.fertilization || []} t={t} weather={weather} />;
-      case "irrigationGuide":return <IrrigTab  irrigation={data.irrigation || {}} t={t} weather={weather} />;
+      case "growthStages":   return <StagesTab stages={data.stages || []} daysSince={daysSince} t={t} lang={lang} />;
+      case "fertilization":  return <FertTab   fertilization={data.fertilization || []} t={t} weather={weather} lang={lang} />;
+      case "irrigationGuide":return <IrrigTab  irrigation={data.irrigation || {}} t={t} weather={weather} lang={lang} />;
       case "diseaseMgmt": {
         const diseaseAlerts = [];
         if (weather) {
@@ -569,7 +608,7 @@ function GuidanceDetail({ cropName, plantingDate, t, onBack, weather }) {
           <div>
             <WeatherTabBanner alerts={diseaseAlerts} />
             <div className="threat-list">
-              {(data.diseases || []).map((d, i) => <ThreatCard key={i} item={d} type="disease" t={t} />)}
+              {(data.diseases || []).map((d, i) => <ThreatCard key={i} item={d} type="disease" t={t} lang={lang} />)}
             </div>
           </div>
         );
@@ -591,17 +630,17 @@ function GuidanceDetail({ cropName, plantingDate, t, onBack, weather }) {
           <div>
             <WeatherTabBanner alerts={pestAlerts} />
             <div className="threat-list">
-              {(data.pests || []).map((p, i) => <ThreatCard key={i} item={p} type="pest" t={t} />)}
+              {(data.pests || []).map((p, i) => <ThreatCard key={i} item={p} type="pest" t={t} lang={lang} />)}
             </div>
           </div>
         );
       }
       case "riskFactors":    return (
         <div className="threat-list">
-          {(data.risks || []).map((r, i) => <ThreatCard key={i} item={r} type="risk" t={t} />)}
+          {(data.risks || []).map((r, i) => <ThreatCard key={i} item={r} type="risk" t={t} lang={lang} />)}
         </div>
       );
-      case "harvestGuide":   return <HarvestTab harvest={data.harvest || {}} t={t} daysSince={daysSince} />;
+      case "harvestGuide":   return <HarvestTab harvest={data.harvest || {}} t={t} daysSince={daysSince} lang={lang} />;
       default: return null;
     }
   };
@@ -613,8 +652,8 @@ function GuidanceDetail({ cropName, plantingDate, t, onBack, weather }) {
       {/* Crop header */}
       <div className="guidance-crop-header">
         <h1>
-          {cropName}
-          {data.local_name && <span className="crop-local-name"> · {data.local_name}</span>}
+          {getCropLabel(cropName, lang)}
+          {lang === 'en' && data.local_name && <span className="crop-local-name"> · {data.local_name}</span>}
         </h1>
         {data.scientific_name && <p className="sci-name"><em>{data.scientific_name}</em>{data.family ? ` · ${data.family}` : ""}</p>}
         <div className="guidance-crop-meta">
@@ -624,7 +663,7 @@ function GuidanceDetail({ cropName, plantingDate, t, onBack, weather }) {
           {data.spacing && (
             <span>📐 {data.spacing.row_cm}×{data.spacing.plant_cm} cm</span>
           )}
-          {data.propagation && <span>🌱 {data.propagation}</span>}
+          {data.propagation && <span>🌱 {PROPAGATION_LABELS[lang]?.[data.propagation] || data.propagation}</span>}
           {plantingDate && daysSince !== null && (
             <span>📅 {t.stageDay} {daysSince} {t.noDays}</span>
           )}
@@ -633,7 +672,7 @@ function GuidanceDetail({ cropName, plantingDate, t, onBack, weather }) {
 
       {/* Overview */}
       {data.overview && (
-        <div className="guidance-overview">{data.overview}</div>
+        <div className="guidance-overview">{tF(data, "overview", lang)}</div>
       )}
 
       {/* Zones */}
@@ -642,7 +681,7 @@ function GuidanceDetail({ cropName, plantingDate, t, onBack, weather }) {
           <span className="guidance-zones-label">🗺 {t.suitableZones}</span>
           <div className="guidance-zone-chips">
             {data.zones.map(z => (
-              <span key={z} className="guidance-zone-chip">{z}</span>
+              <span key={z} className="guidance-zone-chip" title="Suitable growing zone for this crop">{ZONE_LABELS[lang]?.[z] || z}</span>
             ))}
           </div>
         </div>
@@ -715,21 +754,23 @@ export default function CropGuidance({ lang, t, weather, setWeather }) {
     <div className="guidance-page">
       <WeatherLocationPicker weather={weather} onWeatherFetched={setWeather} t={t} lang={lang} />
 
-      {/* Top-level mode switcher */}
-      <div className="guidance-mode-tabs">
-        <button
-          className={`guidance-mode-tab${mode === "guide" ? " active" : ""}`}
-          onClick={() => setMode("guide")}
-        >
-          📖 {t.cropGuideTab}
-        </button>
-        <button
-          className={`guidance-mode-tab${mode === "cultivations" ? " active" : ""}`}
-          onClick={() => setMode("cultivations")}
-        >
-          🌱 {t.myCultivations}{!isLandOwner ? " 🔒" : ""}
-        </button>
-      </div>
+      {/* Top-level mode switcher — hidden when viewing crop detail to reduce visual clutter */}
+      {!selected && (
+        <div className="guidance-mode-tabs">
+          <button
+            className={`guidance-mode-tab${mode === "guide" ? " active" : ""}`}
+            onClick={() => setMode("guide")}
+          >
+            📖 {t.cropGuideTab}
+          </button>
+          <button
+            className={`guidance-mode-tab${mode === "cultivations" ? " active" : ""}`}
+            onClick={() => setMode("cultivations")}
+          >
+            🌱 {t.myCultivations}{!isLandOwner ? " 🔒" : ""}
+          </button>
+        </div>
+      )}
 
       {mode === "guide" ? (
         !selected
@@ -737,18 +778,15 @@ export default function CropGuidance({ lang, t, weather, setWeather }) {
               <GuidanceSelector t={t} lang={lang} onSelect={handleSelect} />
               <GuidanceEmptyInfo lang={lang} />
             </>
-          : <GuidanceDetail   cropName={selected} plantingDate={plantingDate} t={t} onBack={handleBack} weather={weather} />
+          : <GuidanceDetail   cropName={selected} plantingDate={plantingDate} t={t} lang={lang} onBack={handleBack} weather={weather} />
       ) : !isLandOwner ? (
         <div className="cult-auth-wall">
           <div className="cult-auth-wall__icon">🔒</div>
-          <h2 className="cult-auth-wall__title">Land Owner Access Only</h2>
-          <p className="cult-auth-wall__desc">
-            My Cultivations is a personal scheduling tool for registered Land Owners.
-            Log in with a Land Owner account to track your crop calendar, manage tasks, and monitor harvest progress.
-          </p>
+          <h2 className="cult-auth-wall__title">{t.guidanceAuthTitle}</h2>
+          <p className="cult-auth-wall__desc">{t.guidanceAuthDesc}</p>
           <div className="cult-auth-wall__actions">
-            <Link className="button button--primary" to="/login">Log in as Land Owner</Link>
-            <Link className="button button--outline" to="/register">Register</Link>
+            <Link className="button button--primary" to="/login">{t.guidanceAuthLoginBtn}</Link>
+            <Link className="button button--outline" to="/register">{t.guidanceAuthRegister}</Link>
           </div>
         </div>
       ) : (

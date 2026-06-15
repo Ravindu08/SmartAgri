@@ -3,6 +3,10 @@ import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-d
 import Navbar from './Navbar';
 import { useApp } from '../context/AppContext';
 import { getAuthSession, clearAuthSession } from '../services/api';
+import { getCrops } from '../services/cropService';
+import { listCultivations } from '../utils/cultivationApi';
+import { getCropLabel } from '../data/cropData';
+import { LAND_T } from '../data/translations';
 
 const LO_LAYOUT_T = {
   en: {
@@ -11,8 +15,7 @@ const LO_LAYOUT_T = {
     marketplace: 'Marketplace', settings: 'Settings',
     helpSupport: 'Help & Support', landOwner: 'Land Owner',
     profileSettings: 'Profile Settings', logout: 'Log Out',
-    notifications: 'Notifications', viewDashboard: 'Check your dashboard',
-    viewDashboardSub: 'View all cultivation tasks and farming alerts.',
+    notifications: 'Notifications', noNotifications: 'No new notifications.',
   },
   si: {
     dashboard: 'ඩැෂ්බෝඩ්', myFarms: 'මගේ ගොවිපළ', myCrops: 'මගේ බෝග',
@@ -20,8 +23,7 @@ const LO_LAYOUT_T = {
     marketplace: 'වෙළඳසැල', settings: 'සැකසීම්',
     helpSupport: 'උදව් සහ සහාය', landOwner: 'ඉඩම් හිමිකරු',
     profileSettings: 'පැතිකඩ සැකසීම්', logout: 'ලොග් අවුට්',
-    notifications: 'දැනුම්දීම්', viewDashboard: 'ඩැෂ්බෝඩ් බලන්න',
-    viewDashboardSub: 'සියලු ගොවිතැන් කාර්යයන් සහ අනතුරු ඇඟවීම් බලන්න.',
+    notifications: 'දැනුම්දීම්', noNotifications: 'නව දැනුම්දීම් නොමැත.',
   },
   ta: {
     dashboard: 'டாஷ்போர்டு', myFarms: 'என் பண்ணைகள்', myCrops: 'என் பயிர்கள்',
@@ -29,8 +31,7 @@ const LO_LAYOUT_T = {
     marketplace: 'சந்தை', settings: 'அமைப்புகள்',
     helpSupport: 'உதவி & ஆதரவு', landOwner: 'நில உரிமையாளர்',
     profileSettings: 'சுயவிவர அமைப்புகள்', logout: 'வெளியேறு',
-    notifications: 'அறிவிப்புகள்', viewDashboard: 'டாஷ்போர்டை பார்க்கவும்',
-    viewDashboardSub: 'அனைத்து சாகுபடி பணிகள் மற்றும் விவசாய எச்சரிக்கைகளை பார்க்கவும்.',
+    notifications: 'அறிவிப்புகள்', noNotifications: 'புதிய அறிவிப்புகள் இல்லை.',
   },
 };
 
@@ -42,18 +43,105 @@ export default function LandOwnerLayout() {
   const navigate = useNavigate();
   const [notifOpen,   setNotifOpen]   = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [notifs,      setNotifs]      = useState([]);
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [dismissed, setDismissed] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('sa_dismissed_notifs') || '[]')); }
+    catch { return new Set(); }
+  });
   const profileRef = useRef(null);
+  const notifRef   = useRef(null);
 
-  // Close profile dropdown when clicking outside
   useEffect(() => {
     const handler = (e) => {
-      if (profileRef.current && !profileRef.current.contains(e.target)) {
-        setProfileOpen(false);
-      }
+      if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const userId = String(user.id);
+    const lt     = LAND_T[lang] || LAND_T.en;
+    const today  = new Date().toISOString().slice(0, 10);
+    const in7    = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+    const in3    = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
+
+    setNotifLoading(true);
+    Promise.all([
+      listCultivations(userId).catch(() => ({ sessions: [] })),
+      getCrops().catch(() => []),
+    ]).then(([cultData, crops]) => {
+      const allNotifs = [];
+      const sessions  = cultData.sessions || [];
+
+      for (const session of sessions) {
+        if (session.status !== 'active') continue;
+        const tasks     = Object.values(session.tasks || {});
+        const cropLabel = getCropLabel(session.crop, lang);
+
+        const overdue = tasks.filter(tk =>
+          tk.status !== 'done' && tk.status !== 'skipped' && tk.scheduled_date < today
+        );
+        if (overdue.length > 0) {
+          allNotifs.push({
+            id: `overdue-${session.id}`,
+            type: 'danger',
+            icon: '🚨',
+            title: lt.overdueTasks(overdue.length, cropLabel),
+            detail: overdue.slice(0, 3).map(tk => tk.title).join(', ') + (overdue.length > 3 ? ` +${overdue.length - 3}` : ''),
+            href: '/landowner/cultivations',
+          });
+        }
+
+        const upcoming = tasks.filter(tk =>
+          tk.status === 'pending' && tk.scheduled_date >= today && tk.scheduled_date <= in7
+        );
+        if (upcoming.length > 0) {
+          const next = upcoming.sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))[0];
+          const daysLeft = Math.floor((new Date(next.scheduled_date) - new Date(today)) / 86400000);
+          allNotifs.push({
+            id: `upcoming-${session.id}-${next.id}`,
+            type: 'task',
+            icon: '📅',
+            title: daysLeft === 0
+              ? lt.upcomingTaskToday(cropLabel, next.title)
+              : lt.upcomingTaskInDays(cropLabel, next.title, daysLeft),
+            detail: lt.upcomingTaskDetail(upcoming.length),
+            href: '/landowner/cultivations',
+          });
+        }
+      }
+
+      crops
+        .filter(cr => cr.status === 'Active' && cr.expected_harvest_date >= today && cr.expected_harvest_date <= in3)
+        .forEach(cr => {
+          const d         = Math.floor((new Date(cr.expected_harvest_date) - new Date(today)) / 86400000);
+          const cropLabel = getCropLabel(cr.crop_name, lang);
+          allNotifs.push({
+            id: `harvest-${cr.id}`,
+            type: 'warning',
+            icon: '🧺',
+            title: d === 0 ? lt.harvestTodayMsg(cropLabel) : lt.harvestInDaysMsg(d, cropLabel),
+            detail: lt.harvestDetailMsg(new Date(cr.expected_harvest_date).toLocaleDateString()),
+          });
+        });
+
+      setNotifs(allNotifs);
+      setNotifLoading(false);
+    });
+  }, [user?.id, lang]);
+
+  const dismissNotif = id => {
+    setDismissed(prev => {
+      const next = new Set(prev);
+      next.add(id);
+      localStorage.setItem('sa_dismissed_notifs', JSON.stringify([...next]));
+      return next;
+    });
+  };
 
   if (!user || user.role !== 'Land Owner') {
     return <Navigate to="/login" replace />;
@@ -79,6 +167,8 @@ export default function LandOwnerLayout() {
     ? user.full_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : 'LO';
 
+  const visibleNotifs = notifs.filter(n => !dismissed.has(n.id));
+
   return (
     <div className="lo-shell">
       <Navbar />
@@ -100,10 +190,12 @@ export default function LandOwnerLayout() {
           ))}
         </nav>
 
-        {/* Sidebar bottom — avatar + name (no ID) */}
+        {/* Sidebar bottom — avatar + name */}
         <div className="lo-sidebar__user">
           <div className="lo-sidebar__user-avatar lo-sidebar__user-avatar--large">
-            {initials}
+            {user?.profile_image
+              ? <img src={user.profile_image} alt={user.full_name || 'avatar'} />
+              : initials}
           </div>
           <div className="lo-sidebar__user-info">
             <div className="lo-sidebar__user-name">{user?.full_name || t.landOwner}</div>
@@ -120,7 +212,7 @@ export default function LandOwnerLayout() {
           <div className="lo-topbar__right">
 
             {/* Notification bell */}
-            <div className="lo-topbar__notif-wrap">
+            <div className="lo-topbar__notif-wrap" ref={notifRef}>
               <button
                 className="lo-topbar__notif-btn"
                 type="button"
@@ -128,25 +220,46 @@ export default function LandOwnerLayout() {
                 aria-label={t.notifications}
               >
                 🔔
-                <span className="lo-topbar__notif-dot" />
+                {visibleNotifs.length > 0
+                  ? <span className="lo-topbar__notif-badge">{visibleNotifs.length}</span>
+                  : <span className="lo-topbar__notif-dot" />}
               </button>
               {notifOpen && (
                 <div className="lo-topbar__notif-panel">
                   <div className="lo-topbar__notif-panel-header">
                     <span>{t.notifications}</span>
-                    <button type="button" onClick={() => setNotifOpen(false)}
-                      style={{background:'none',border:'none',cursor:'pointer',color:'var(--muted)',fontSize:'14px'}}>✕</button>
+                    <button
+                      type="button"
+                      onClick={() => setNotifOpen(false)}
+                      style={{background:'none',border:'none',cursor:'pointer',color:'var(--muted)',fontSize:'14px'}}
+                    >✕</button>
                   </div>
                   <div className="lo-topbar__notif-panel-body">
-                    <Link to="/landowner/dashboard" onClick={() => setNotifOpen(false)} style={{textDecoration:'none'}}>
-                      <div className="dash-notif-card dash-notif-card--info" style={{cursor:'pointer'}}>
-                        <span className="dash-notif-icon">ℹ️</span>
-                        <div className="dash-notif-body">
-                          <strong className="dash-notif-strong">{t.viewDashboard}</strong>
-                          <p>{t.viewDashboardSub}</p>
+                    {notifLoading ? (
+                      <p className="lo-topbar__notif-empty">…</p>
+                    ) : visibleNotifs.length === 0 ? (
+                      <p className="lo-topbar__notif-empty">{t.noNotifications}</p>
+                    ) : (
+                      visibleNotifs.map(n => (
+                        <div
+                          key={n.id}
+                          className={`dash-notif-card dash-notif-card--${n.type}${n.href ? ' dash-notif-card--clickable' : ''}`}
+                          onClick={() => { if (n.href) { navigate(n.href); setNotifOpen(false); } }}
+                        >
+                          <span className="dash-notif-icon">{n.icon}</span>
+                          <div className="dash-notif-body">
+                            <strong className="dash-notif-strong">{n.title}</strong>
+                            <p>{n.detail}</p>
+                          </div>
+                          <button
+                            className="dash-notif-dismiss"
+                            type="button"
+                            onClick={e => { e.stopPropagation(); dismissNotif(n.id); }}
+                            title="Dismiss"
+                          >✕</button>
                         </div>
-                      </div>
-                    </Link>
+                      ))
+                    )}
                   </div>
                 </div>
               )}
