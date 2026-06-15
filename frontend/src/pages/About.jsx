@@ -34,6 +34,7 @@ const ABOUT_T = {
       { num: "25",   suffix: "+", label: "Sri Lankan Districts" },
       { num: "100",  suffix: "%", label: "Open Source" },
     ],
+    contactLabel:   "Contact",
     contactTitle:   "Contact Us",
     contactSub:     "Have questions or feedback? Reach out to the SmartAgri team.",
     contactEmail:   "Email",
@@ -74,6 +75,7 @@ const ABOUT_T = {
       { num: "25",   suffix: "+", label: "ශ්‍රී ලාංකික දිස්ත්‍රික්ක" },
       { num: "100",  suffix: "%", label: "විවෘත මූලාශ්‍ර" },
     ],
+    contactLabel:   "සම්බන්ධතා",
     contactTitle:   "සම්බන්ධ කරගන්න",
     contactSub:     "ප්‍රශ්න හෝ ප්‍රතිපෝෂණ ඇතිද? SmartAgri කණ්ඩායමට සම්බන්ධ වන්න.",
     contactEmail:   "ඊ-තැපෑල",
@@ -114,6 +116,7 @@ const ABOUT_T = {
       { num: "25",   suffix: "+", label: "இலங்கை மாவட்டங்கள்" },
       { num: "100",  suffix: "%", label: "திறந்த மூலம்" },
     ],
+    contactLabel:   "தொடர்பு",
     contactTitle:   "தொடர்பு கொள்ளுங்கள்",
     contactSub:     "கேள்விகள் அல்லது கருத்துக்கள் உள்ளதா? SmartAgri குழுவை தொடர்பு கொள்ளுங்கள்.",
     contactEmail:   "மின்னஞ்சல்",
@@ -303,7 +306,7 @@ export default function About({ lang }) {
 
         {/* ── Contact ── */}
         <section id="contact" className="about-section about-contact-section">
-          <div className="about-section-label">Contact</div>
+          <div className="about-section-label">{t.contactLabel}</div>
           <h2 className="about-section-title">{t.contactTitle}</h2>
           <p className="about-section-sub">{t.contactSub}</p>
 

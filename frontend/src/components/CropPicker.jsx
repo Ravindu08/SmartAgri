@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ALL_CROPS, CROP_EMOJI } from '../data/cropData';
+import { ALL_CROPS, CROP_EMOJI, getCropLabel } from '../data/cropData';
 import { useApp } from '../context/AppContext';
 import { LAND_T } from '../data/translations';
 
@@ -8,8 +8,12 @@ export default function CropPicker({ selected = [], onChange }) {
   const t = LAND_T[lang] || LAND_T.en;
   const [search, setSearch] = useState('');
 
-  const filtered = search.trim()
-    ? ALL_CROPS.filter(c => c.toLowerCase().includes(search.trim().toLowerCase()))
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? ALL_CROPS.filter(c =>
+        c.toLowerCase().includes(q) ||
+        getCropLabel(c, lang).toLowerCase().includes(q)
+      )
     : ALL_CROPS;
 
   const toggle = (crop) => {
@@ -28,7 +32,7 @@ export default function CropPicker({ selected = [], onChange }) {
         <div className="crop-picker__tags">
           {selected.map(crop => (
             <span key={crop} className="crop-picker__tag">
-              {CROP_EMOJI[crop] || '🌱'} {crop}
+              {CROP_EMOJI[crop] || '🌱'} {getCropLabel(crop, lang)}
               <button type="button" className="crop-picker__tag-remove" onClick={() => remove(crop)}>✕</button>
             </span>
           ))}
@@ -54,7 +58,7 @@ export default function CropPicker({ selected = [], onChange }) {
               onClick={() => toggle(crop)}
             >
               <span className="crop-picker__item-emoji">{CROP_EMOJI[crop] || '🌱'}</span>
-              <span className="crop-picker__item-name">{crop}</span>
+              <span className="crop-picker__item-name">{getCropLabel(crop, lang)}</span>
               {active && <span className="crop-picker__item-check">✓</span>}
             </button>
           );

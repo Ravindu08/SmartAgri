@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { createCrop, getCropsByFarm } from '../../services/cropService';
 import { getFarm, getFarms } from '../../services/farmService';
-import { CROP_EMOJI } from '../../data/cropData';
+import { CROP_EMOJI, getCropLabel, getSoilLabel } from '../../data/cropData';
 import { useApp } from '../../context/AppContext';
-import { LAND_T, GROWTH_STAGE_LABELS, CROP_STATUS_LABELS, SEA_LABELS } from '../../data/translations';
+import { LAND_T, GROWTH_STAGE_LABELS, CROP_STATUS_LABELS, SEA_LABELS, IRR_LABELS } from '../../data/translations';
 import Toast from '../../components/Toast';
+import CustomSelect from '../../components/CustomSelect';
 
 const GROWTH_STAGES = ['Seed', 'Germination', 'Vegetative', 'Flowering', 'Fruiting', 'Harvest'];
 const STATUSES = ['Active', 'Completed', 'Failed'];
@@ -141,9 +142,9 @@ export default function AddCrop() {
                     <span className="add-crop-farm-badge">📍 {contextFarm.district}</span>
                   )}
                   <span>{contextFarm.farm_size} {contextFarm.size_unit}</span>
-                  <span>{contextFarm.soil_type}</span>
-                  <span>{contextFarm.season} {t.seasonSuffix}</span>
-                  {contextFarm.irrigation_type && <span>{contextFarm.irrigation_type}</span>}
+                  <span>{getSoilLabel(contextFarm.soil_type, lang)}</span>
+                  <span>{SEA_LABELS[lang]?.[contextFarm.season] || contextFarm.season} {t.seasonSuffix}</span>
+                  {contextFarm.irrigation_type && <span>{IRR_LABELS[lang]?.[contextFarm.irrigation_type] || contextFarm.irrigation_type}</span>}
                 </div>
               </div>
             </div>
@@ -173,11 +174,11 @@ export default function AddCrop() {
                       {CROP_EMOJI[crop.crop_name] || '🌱'}
                     </span>
                     <div className="add-crop-summary-card__body">
-                      <strong>{crop.crop_name}</strong>
-                      <span className="add-crop-summary-card__stage">{crop.growth_stage}</span>
+                      <strong>{getCropLabel(crop.crop_name, lang)}</strong>
+                      <span className="add-crop-summary-card__stage">{GROWTH_STAGE_LABELS[lang]?.[crop.growth_stage] || crop.growth_stage}</span>
                     </div>
                     <span className={`add-crop-summary-card__status status--${(crop.status || '').toLowerCase()}`}>
-                      {crop.status}
+                      {CROP_STATUS_LABELS[lang]?.[crop.status] || crop.status}
                     </span>
                   </Link>
                 ))}
@@ -205,27 +206,27 @@ export default function AddCrop() {
                 readOnly
               />
             ) : (
-              <select name="farm_id" value={formData.farm_id} onChange={handleChange} required>
+              <CustomSelect name="farm_id" value={formData.farm_id} onChange={handleChange}>
                 <option value="">{t.selectFarmPh}</option>
                 {farms.map((farm) => (
                   <option key={farm.id} value={farm.id}>
                     {farm.farm_name} — {farm.location}
                   </option>
                 ))}
-              </select>
+              </CustomSelect>
             )}
           </label>
 
           <label>
             {t.cropNameField}
             {plannedCrops.length > 0 ? (
-              <select name="crop_name" value={formData.crop_name} onChange={handleChange} required>
+              <CustomSelect name="crop_name" value={formData.crop_name} onChange={handleChange}>
                 <option value="">{t.selectCropPh}</option>
                 {plannedCrops.map(c => (
-                  <option key={c} value={c}>{CROP_EMOJI[c] || '🌱'} {c}</option>
+                  <option key={c} value={c}>{CROP_EMOJI[c] || '🌱'} {getCropLabel(c, lang)}</option>
                 ))}
                 <option value="__other__">{t.otherCropOpt}</option>
-              </select>
+              </CustomSelect>
             ) : (
               <input
                 name="crop_name"
@@ -272,11 +273,11 @@ export default function AddCrop() {
           </label>
           <label>
             {t.growthStageField}
-            <select name="growth_stage" value={formData.growth_stage} onChange={handleChange}>
+            <CustomSelect name="growth_stage" value={formData.growth_stage} onChange={handleChange}>
               {GROWTH_STAGES.map((stage) => (
                 <option key={stage} value={stage}>{GROWTH_STAGE_LABELS[lang]?.[stage] || stage}</option>
               ))}
-            </select>
+            </CustomSelect>
           </label>
           <label>
             {t.plantingDateField}
@@ -300,20 +301,20 @@ export default function AddCrop() {
           </label>
           <label>
             {t.statusField}
-            <select name="status" value={formData.status} onChange={handleChange}>
+            <CustomSelect name="status" value={formData.status} onChange={handleChange}>
               {STATUSES.map((status) => (
                 <option key={status} value={status}>{CROP_STATUS_LABELS[lang]?.[status] || status}</option>
               ))}
-            </select>
+            </CustomSelect>
           </label>
           <label>
             {t.seasonField || 'Season'}
-            <select name="season" value={formData.season} onChange={handleChange}>
+            <CustomSelect name="season" value={formData.season} onChange={handleChange}>
               <option value="">{t.selectSeasonPh || 'Select season…'}</option>
               {SEASONS.map((s) => (
                 <option key={s} value={s}>{SEA_LABELS[lang]?.[s] || s}</option>
               ))}
-            </select>
+            </CustomSelect>
           </label>
         </div>
 

@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { createFarm } from '../../services/farmService';
 import { DISTRICTS, IRRIGATION_TYPES, SEASONS, SIZE_UNITS, SOIL_TYPES } from '../../data/farmOptions';
 import { useApp } from '../../context/AppContext';
-import { LAND_T, SEA_LABELS, IRR_LABELS } from '../../data/translations';
+import { LAND_T, SEA_LABELS, IRR_LABELS, DISTRICT_LABELS } from '../../data/translations';
+import { getSoilLabel } from '../../data/cropData';
 import CropPicker from '../../components/CropPicker';
 import Toast from '../../components/Toast';
+import CustomSelect from '../../components/CustomSelect';
 
 export default function AddFarm() {
   const navigate = useNavigate();
@@ -136,10 +138,10 @@ export default function AddFarm() {
 
           <label>
             {t.districtField} <span className="req">*</span>
-            <select name="district" value={formData.district} onChange={handleChange} required>
+            <CustomSelect name="district" value={formData.district} onChange={handleChange}>
               <option value="">{t.selectDistrictPh}</option>
-              {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
+              {DISTRICTS.map(d => <option key={d} value={d}>{DISTRICT_LABELS[lang]?.[d] || d}</option>)}
+            </CustomSelect>
           </label>
 
           <label>
@@ -160,33 +162,33 @@ export default function AddFarm() {
                 placeholder="0.00"
                 required
               />
-              <select name="size_unit" value={formData.size_unit} onChange={handleChange}>
+              <CustomSelect name="size_unit" value={formData.size_unit} onChange={handleChange}>
                 {SIZE_UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-              </select>
+              </CustomSelect>
             </div>
           </label>
 
           <label>
             {t.soilTypeField} <span className="req">*</span>
-            <select name="soil_type" value={formData.soil_type} onChange={handleChange} required>
+            <CustomSelect name="soil_type" value={formData.soil_type} onChange={handleChange}>
               <option value="">{t.selectSoilPh}</option>
-              {SOIL_TYPES.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
+              {SOIL_TYPES.map(s => <option key={s} value={s}>{getSoilLabel(s, lang)}</option>)}
+            </CustomSelect>
           </label>
 
           <label>
             {t.irrigTypeField}
-            <select name="irrigation_type" value={formData.irrigation_type} onChange={handleChange}>
+            <CustomSelect name="irrigation_type" value={formData.irrigation_type} onChange={handleChange}>
               <option value="">{t.selectIrrigPh}</option>
               {IRRIGATION_TYPES.map(i => <option key={i} value={i}>{IRR_LABELS[lang]?.[i] || i}</option>)}
-            </select>
+            </CustomSelect>
           </label>
 
           <label>
             {t.seasonField} <span className="req">*</span>
-            <select name="season" value={formData.season} onChange={handleChange}>
+            <CustomSelect name="season" value={formData.season} onChange={handleChange}>
               {SEASONS.map(s => <option key={s} value={s}>{SEA_LABELS[lang]?.[s] || s}</option>)}
-            </select>
+            </CustomSelect>
           </label>
         </div>
 

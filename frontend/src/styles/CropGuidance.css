@@ -181,10 +181,31 @@
   box-shadow: 0 0 0 3px rgba(15,90,42,0.14);
 }
 .guidance-selector select:hover:not(:focus),
-.guidance-selector input[type="date"]:hover:not(:focus) {
+.guidance-selector input[type="date"]:hover:not(:focus),
+.guidance-crop-search:hover:not(:focus) {
   border-color: #9CA3AF;
   background: #fff;
 }
+
+/* Searchable crop input (replaces select) */
+.guidance-crop-search {
+  width: 100%;
+  padding: 10px 14px;
+  font-family: var(--ff);
+  font-size: 13.5px;
+  color: var(--text);
+  background: var(--border-soft);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: all 0.2s ease;
+}
+.guidance-crop-search:focus {
+  border-color: var(--green-primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(15,90,42,0.14);
+}
+[data-theme="dark"] .guidance-crop-search:focus { background: var(--card); }
 
 .guidance-generate-btn {
   margin-top: 20px;
@@ -1130,32 +1151,90 @@
 .cult-day-tasks { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 4px 10px; }
 
 .cult-task-chip {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  width: 32px; height: 32px;
+  width: 34px; height: 34px;
   border-radius: 9px;
   border: 1.5px solid transparent;
-  font-size: 16px;
+  font-size: 17px;
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s;
+  flex-shrink: 0;
 }
 .cult-task-chip:hover { transform: scale(1.15); box-shadow: var(--shadow-md); }
-.cult-task-chip.status-pending  { background: var(--border-soft); border-color: var(--border); }
-.cult-task-chip.status-overdue  { background: #FEF3C7; border-color: #FCD34D; }
-.cult-task-chip.status-done     { background: var(--green-light); border-color: rgba(15,90,42,0.32); }
-.cult-task-chip.status-skipped  { background: var(--border-soft); border-color: var(--border); opacity: 0.45; }
+.cult-task-chip.status-pending {
+  background: var(--border-soft);
+  border-color: var(--border);
+}
+.cult-task-chip.status-overdue {
+  background: #fee2e2;
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px rgba(220,38,38,0.15);
+}
+.cult-task-chip.status-done {
+  background: #dcfce7;
+  border-color: #16a34a;
+}
+.cult-task-chip.status-skipped {
+  background: var(--border-soft);
+  border-color: var(--border);
+  opacity: 0.45;
+}
 
+.cult-chip-icon { display: block; line-height: 1; pointer-events: none; }
+
+.cult-chip-badge {
+  position: absolute;
+  bottom: -4px; right: -4px;
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  font-size: 8px; font-weight: 900; line-height: 13px;
+  text-align: center;
+  border: 1.5px solid var(--card);
+  pointer-events: none;
+}
+.cult-chip-badge--done    { background: #16a34a; color: #fff; }
+.cult-chip-badge--overdue { background: #dc2626; color: #fff; }
+.cult-chip-badge--skipped { background: #6b7280; color: #fff; }
+
+/* Legend row */
 .cult-chip-legend {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   flex-wrap: wrap;
-  font-size: 11px;
-  color: var(--muted);
-  padding-top: 6px;
+  padding-top: 10px;
   border-top: 1px solid var(--border);
 }
+.cult-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.cult-legend-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid transparent;
+  flex-shrink: 0;
+}
+.cult-legend-chip.status-pending { background: var(--border-soft); border-color: var(--border); }
+.cult-legend-chip.status-overdue { background: #fee2e2; border-color: #dc2626; }
+.cult-legend-chip.status-done    { background: #dcfce7; border-color: #16a34a; }
+.cult-legend-chip.status-skipped { background: var(--border-soft); border-color: var(--border); opacity: 0.45; }
+.cult-legend-chip .cult-chip-badge {
+  width: 11px; height: 11px;
+  bottom: -3px; right: -3px;
+  font-size: 7px; line-height: 11px;
+}
+.cult-legend-label { color: var(--text); font-size: 12px; font-weight: 500; }
 
 /* ══════════════════════════════════════════════════════
    TASK MODAL
@@ -1690,8 +1769,21 @@
   border-color: rgba(251,192,45,0.28);
 }
 [data-theme="dark"] .cult-task-chip.status-overdue {
-  background: rgba(251,192,45,0.12);
-  border-color: rgba(251,192,45,0.30);
+  background: rgba(220,38,38,0.18);
+  border-color: rgba(220,38,38,0.55);
+  box-shadow: 0 0 0 2px rgba(220,38,38,0.10);
+}
+[data-theme="dark"] .cult-task-chip.status-done {
+  background: rgba(22,163,74,0.18);
+  border-color: rgba(22,163,74,0.45);
+}
+[data-theme="dark"] .cult-legend-chip.status-overdue {
+  background: rgba(220,38,38,0.18);
+  border-color: rgba(220,38,38,0.55);
+}
+[data-theme="dark"] .cult-legend-chip.status-done {
+  background: rgba(22,163,74,0.18);
+  border-color: rgba(22,163,74,0.45);
 }
 [data-theme="dark"] .cult-warn-overdue {
   background: rgba(251,192,45,0.10);

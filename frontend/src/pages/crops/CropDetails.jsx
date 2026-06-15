@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getCrop, deleteCrop, updateCrop } from '../../services/cropService';
+import { getCrop, deleteCrop } from '../../services/cropService';
 import { listCultivations, abandonCultivation } from '../../utils/cultivationApi';
 import { getAuthSession } from '../../services/api';
 import { useApp } from '../../context/AppContext';
+import { getCropLabel } from '../../data/cropData';
 import { LAND_T, CROP_STATUS_LABELS } from '../../data/translations';
 import Toast from '../../components/Toast';
 
@@ -28,7 +29,6 @@ export default function CropDetails() {
   const [cultStatus,    setCultStatus]    = useState(null);
   const [cultSession,   setCultSession]   = useState(null);
   const [isLoading,     setIsLoading]     = useState(true);
-  const [isCompleting,  setIsCompleting]  = useState(false);
   const [showAbandon,   setShowAbandon]   = useState(false);
   const [isAbandoning,  setIsAbandoning]  = useState(false);
   const [toast,         setToast]         = useState({ type: 'success', message: '' });
@@ -58,20 +58,6 @@ export default function CropDetails() {
     };
     load();
   }, [id, userId]);
-
-  const handleComplete = async () => {
-    setIsCompleting(true);
-    try {
-      await updateCrop(id, { status: 'Completed' });
-      setCrop(prev => ({ ...prev, status: 'Completed' }));
-      setCultStatus('Completed');
-      setToast({ type: 'success', message: `${crop.crop_name} marked as completed.` });
-    } catch (err) {
-      setToast({ type: 'error', message: err.message });
-    } finally {
-      setIsCompleting(false);
-    }
-  };
 
   const confirmAbandon = async () => {
     setIsAbandoning(true);
@@ -115,8 +101,8 @@ export default function CropDetails() {
         <div className="crop-detail-header">
           <div>
             <p className="section__label">{t.cropDetailsLabel}</p>
-            <h1>{crop.crop_name}</h1>
-            <p className="crop-detail-header__meta">{crop.crop_type}</p>
+            <h1>{getCropLabel(crop.crop_name, lang)}</h1>
+            <p className="crop-detail-header__meta">{getCropLabel(crop.crop_type, lang)}</p>
           </div>
           <span className={`crop-card__status-badge crop-card__status-badge--${statusCls}`}>
             {displayStatus}
@@ -135,7 +121,7 @@ export default function CropDetails() {
             </div>
             <div className="detail-row">
               <span className="detail-row__label">{t.cropTypeRow}</span>
-              <span className="detail-row__value">{crop.crop_type}</span>
+              <span className="detail-row__value">{getCropLabel(crop.crop_type, lang)}</span>
             </div>
             <div className="detail-row">
               <span className="detail-row__label">{t.statusRow}</span>
@@ -158,16 +144,6 @@ export default function CropDetails() {
 
         <div className="crop-detail-footer">
           <Link className="button button--outline" to="/landowner/crops">{t.allCropsLink}</Link>
-          {crop.status !== 'Completed' && (
-            <button
-              className="button button--primary"
-              type="button"
-              onClick={handleComplete}
-              disabled={isCompleting}
-            >
-              {isCompleting ? t.completingDots : t.markCompleteBtn}
-            </button>
-          )}
           <button
             className="button button--danger"
             type="button"
@@ -183,8 +159,7 @@ export default function CropDetails() {
           <div className="modal-panel">
             <h2>{t.abandonCropTitle}</h2>
             <p>
-              {t.abandonBtn} <strong>{crop.crop_name}</strong>? This will permanently delete the crop
-              {cultSession ? ' and its tracking session' : ''}. There is no way to undo this.
+              {t.abandonBtn} <strong>{getCropLabel(crop.crop_name, lang)}</strong>? {cultSession ? t.abandonCropMsg : t.abandonCropOnlyMsg}
             </p>
             <div className="modal-actions">
               <button className="button button--ghost" type="button" onClick={() => setShowAbandon(false)}>

@@ -1871,8 +1871,16 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 20px;
+  align-items: start;
 }
-.farm-form label, .crop-form label { display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text); }
+.farm-form label, .crop-form label { display: block; font-size: 13px; font-weight: 600; color: var(--text); }
+.farm-form label > input,
+.farm-form label > select,
+.farm-form label > textarea,
+.crop-form label > input,
+.crop-form label > select,
+.crop-form label > textarea { display: block; margin-top: 8px; }
+.farm-form label > .farm-form__size-inputs { margin-top: 8px; }
 .farm-form input, .crop-form input,
 .farm-form select, .crop-form select,
 .farm-form textarea, .crop-form textarea {
@@ -2044,6 +2052,39 @@
   from { transform: translateY(16px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
+
+/* ── Custom Select Dropdown ─────────────────────────────────────────────── */
+.csel { position: relative; width: 100%; }
+.csel__btn {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; min-height: 42px;
+  border: 1.5px solid var(--input-border); border-radius: var(--radius-sm);
+  background: var(--input-bg); color: var(--text);
+  font-family: var(--ff); font-size: 14px;
+  cursor: pointer; text-align: left;
+  transition: border-color var(--tr), box-shadow var(--tr);
+}
+.csel__btn--ph .csel__label { color: var(--muted); }
+.csel__btn:focus { outline: none; border-color: var(--input-focus); box-shadow: 0 0 0 3px rgba(15,90,42,0.12); }
+[data-theme="dark"] .csel__btn:focus { box-shadow: 0 0 0 3px rgba(124,197,118,0.18); }
+.csel--open .csel__btn { border-color: var(--input-focus); }
+.csel--disabled .csel__btn { opacity: 0.55; cursor: not-allowed; }
+.csel__label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.csel__arrow { margin-left: 8px; font-size: 10px; color: var(--muted); flex-shrink: 0; display: inline-block; transition: transform 0.15s ease; }
+.csel--open .csel__arrow { transform: rotate(180deg); }
+.csel__list {
+  position: absolute; left: 0; right: 0; top: calc(100% + 3px);
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); box-shadow: var(--shadow-lg);
+  z-index: 500; max-height: 220px; overflow-y: auto;
+}
+.csel__opt { padding: 10px 14px; font-size: 14px; color: var(--text); cursor: pointer; transition: background var(--tr); }
+.csel__opt:hover { background: var(--surface-2); }
+.csel__opt--sel { color: var(--green-primary); font-weight: 600; }
+.csel__opt--ph { color: var(--muted); }
+/* Farm-form layout integration */
+.farm-form label > .csel { margin-top: 8px; }
+.farm-form__size-inputs > .csel { flex: 0 0 140px; width: 140px; }
 
 /* ── Add Crop — farm context panel ──────────────────────────────────────── */
 .add-crop-context {
@@ -2703,6 +2744,17 @@
   width: 8px; height: 8px; border-radius: 50%;
   background: #dc2626; border: 2px solid var(--card);
 }
+.lo-topbar__notif-badge {
+  position: absolute; top: 1px; right: 1px;
+  min-width: 18px; height: 18px; border-radius: 9px;
+  background: #dc2626; color: #fff; font-size: 0.65rem;
+  font-weight: 700; line-height: 18px; text-align: center;
+  padding: 0 4px; border: 2px solid var(--card);
+}
+.lo-topbar__notif-empty {
+  padding: 20px 16px; text-align: center;
+  color: var(--muted); font-size: 0.85rem; margin: 0;
+}
 .lo-topbar__notif-panel {
   position: absolute; top: calc(100% + 10px); right: 0;
   width: 300px; background: var(--card);
@@ -2851,6 +2903,10 @@
   display: flex; align-items: center; justify-content: center;
   font-weight: 800; font-size: 1rem; flex-shrink: 0;
   box-shadow: 0 0 0 3px rgba(var(--accent-rgb, 45,127,60),0.18);
+  overflow: hidden;
+}
+.lo-sidebar__user-avatar--large img {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
 }
 .lo-sidebar__user-info { flex: 1; min-width: 0; }
 .lo-sidebar__user-role { font-size: 0.7rem; color: var(--muted); margin-top: 1px; }

@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { deleteFarm, getFarms } from '../../services/farmService';
 import { getCrops } from '../../services/cropService';
 import { useApp } from '../../context/AppContext';
-import { LAND_T, SEA_LABELS } from '../../data/translations';
+import { LAND_T, SEA_LABELS, IRR_LABELS } from '../../data/translations';
+import { getSoilLabel } from '../../data/cropData';
 import Toast from '../../components/Toast';
 
 export default function MyFarms() {
@@ -118,11 +119,11 @@ export default function MyFarms() {
                   </div>
                   <div>
                     <span>{t.soilLabel}</span>
-                    <strong>{farm.soil_type}</strong>
+                    <strong>{getSoilLabel(farm.soil_type, lang)}</strong>
                   </div>
                   <div>
                     <span>{t.irrigLabel}</span>
-                    <strong>{farm.irrigation_type || '—'}</strong>
+                    <strong>{farm.irrigation_type ? (IRR_LABELS[lang]?.[farm.irrigation_type] || farm.irrigation_type) : '—'}</strong>
                   </div>
                   <div>
                     <span>{t.cropsLabel}</span>

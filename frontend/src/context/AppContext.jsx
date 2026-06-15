@@ -10,8 +10,16 @@ function getInitialTheme() {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
+function getInitialLang() {
+  try {
+    const stored = localStorage.getItem('smartagri_lang');
+    if (['en', 'si', 'ta'].includes(stored)) return stored;
+  } catch (_) {}
+  return 'en';
+}
+
 export function AppProvider({ children }) {
-  const [lang,    setLang]    = useState('en');
+  const [lang,    setLang]    = useState(getInitialLang);
   const [weather, setWeather] = useState(null);
   const [theme,   setTheme]   = useState(getInitialTheme);
 
@@ -42,8 +50,13 @@ export function AppProvider({ children }) {
     });
   };
 
+  const changeLang = (code) => {
+    setLang(code);
+    try { localStorage.setItem('smartagri_lang', code); } catch (_) {}
+  };
+
   return (
-    <AppContext.Provider value={{ lang, setLang, weather, setWeather, theme, toggleTheme }}>
+    <AppContext.Provider value={{ lang, setLang: changeLang, weather, setWeather, theme, toggleTheme }}>
       {children}
     </AppContext.Provider>
   );

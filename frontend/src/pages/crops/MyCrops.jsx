@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getCrops, deleteCrop } from '../../services/cropService';
 import { listCultivations, abandonCultivation } from '../../utils/cultivationApi';
 import { getAuthSession } from '../../services/api';
-import { CROP_EMOJI } from '../../data/cropData';
+import { CROP_EMOJI, getCropLabel } from '../../data/cropData';
 import { useApp } from '../../context/AppContext';
 import { LAND_T, CROP_STATUS_LABELS } from '../../data/translations';
 import Toast from '../../components/Toast';
@@ -81,7 +81,7 @@ export default function MyCrops() {
     try {
       if (session) await abandonCultivation(userId, session.id);
       await deleteCrop(crop.id);
-      setToast({ type: 'success', message: `${crop.crop_name} has been removed.` });
+      setToast({ type: 'success', message: lt.cropRemovedMsg(crop.crop_name) });
       await loadData();
     } catch (err) {
       setToast({ type: 'error', message: err.message });
@@ -156,8 +156,8 @@ export default function MyCrops() {
                 </div>
                 <div className="crop-card__body">
                   <div className="crop-card__heading">
-                    <p className="crop-card__name">{crop.crop_name}</p>
-                    <p className="crop-card__meta">{crop.crop_type}</p>
+                    <p className="crop-card__name">{getCropLabel(crop.crop_name, lang)}</p>
+                    <p className="crop-card__meta">{getCropLabel(crop.crop_type, lang)}</p>
                   </div>
                   <div className="crop-card__details">
                     <div><span>{lt.farmCardLabel}</span><strong>{crop.farm_name || '—'}</strong></div>
@@ -216,8 +216,7 @@ export default function MyCrops() {
           <div className="modal-panel">
             <h2>{lt.abandonCultivationTitle}</h2>
             <p>
-              {lt.abandonBtn} <strong>{abandonTarget.crop.crop_name}</strong>? This will permanently delete the crop
-              {abandonTarget.session ? ' and its tracking session' : ''}. There is no way to undo this.
+              {lt.abandonBtn} <strong>{getCropLabel(abandonTarget.crop.crop_name, lang)}</strong>? {abandonTarget.session ? lt.abandonCropMsg : lt.abandonCropOnlyMsg}
             </p>
             <div className="modal-actions">
               <button className="button button--ghost" type="button" onClick={() => setAbandonTarget(null)}>

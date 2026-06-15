@@ -24,8 +24,20 @@ export const startCultivation = (userId, crop, plantingDate, district, cropId, f
     farm_id:       farmId  || null,
   });
 
-export const listCultivations = (userId) =>
-  req("GET", `/cultivation/${encodeURIComponent(userId)}`);
+const _listCache = { userId: null, data: null, ts: 0 };
+const CACHE_MS = 5000;
+
+export async function listCultivations(userId) {
+  const now = Date.now();
+  if (_listCache.userId === userId && now - _listCache.ts < CACHE_MS) {
+    return _listCache.data;
+  }
+  const data = await req("GET", `/cultivation/${encodeURIComponent(userId)}`);
+  _listCache.userId = userId;
+  _listCache.data   = data;
+  _listCache.ts     = now;
+  return data;
+}
 
 export const updateTask = (userId, sessionId, taskId, status) =>
   req("PUT",
