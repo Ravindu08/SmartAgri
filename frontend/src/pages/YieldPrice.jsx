@@ -6,6 +6,7 @@ import {
   CROP_EMOJI,
   getCropLabel,
 } from "../data/cropData";
+import CustomSelect from "../components/CustomSelect";
 import "../styles/YieldPrice.css";
 
 const CROPS = Object.keys(CROP_YIELD_PER_ACRE).sort();
@@ -150,17 +151,14 @@ export default function YieldPrice({ lang }) {
         <div className="yp-grid-3" style={{ marginBottom: "1rem" }}>
           <div className="yp-field">
             <label>{t.cropName}</label>
-            <select
-              value={yf.crop}
-              onChange={e => handleCropChange(e.target.value)}
-            >
+            <CustomSelect name="crop" value={yf.crop} onChange={e => handleCropChange(e.target.value)}>
               <option value="">{t.selectCropPh2}</option>
               {CROPS.map(c => (
                 <option key={c} value={c}>
                   {(CROP_EMOJI[c] || "🌱") + " " + getCropLabel(c, lang)}
                 </option>
               ))}
-            </select>
+            </CustomSelect>
           </div>
 
           <div className="yp-field">
@@ -177,9 +175,9 @@ export default function YieldPrice({ lang }) {
 
           <div className="yp-field">
             <label>{t.landUnit}</label>
-            <select value={yf.landUnit} onChange={e => setYf(p => ({ ...p, landUnit: e.target.value }))}>
+            <CustomSelect name="land_unit" value={yf.landUnit} onChange={e => setYf(p => ({ ...p, landUnit: e.target.value }))}>
               {LAND_UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-            </select>
+            </CustomSelect>
           </div>
         </div>
 

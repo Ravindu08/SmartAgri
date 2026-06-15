@@ -40,16 +40,39 @@ import './styles/globals.css';   // Design tokens (CSS variables, dark/light the
 import './styles.css';           // Page & component styles (uses variables from globals)
 
 // ── 404 Not Found ─────────────────────────────────────────────────────────────
+const NOT_FOUND_T = {
+  en: {
+    title: 'Page Not Found',
+    sub: "The page you're looking for doesn't exist or may have been moved. Let's get you back on track.",
+    backHome: '← Back to Home',
+    tryCrop: 'Try Crop Recommendation',
+  },
+  si: {
+    title: 'පිටුව හමු නොවීය',
+    sub: 'ඔබ සොයන පිටුව නොමැත හෝ මාරු කර ඇත. ආපසු නිවැරදි මාර්ගයට යමු.',
+    backHome: '← මුල් පිටුවට',
+    tryCrop: 'බෝග නිර්දේශ',
+  },
+  ta: {
+    title: 'பக்கம் கிடைக்கவில்லை',
+    sub: 'நீங்கள் தேடும் பக்கம் இல்லை அல்லது நகர்த்தப்பட்டிருக்கலாம். சரியான பாதையில் திரும்பி வருவோம்.',
+    backHome: '← முகப்பு பக்கத்திற்கு',
+    tryCrop: 'பயிர் பரிந்துரை',
+  },
+};
+
 function NotFound() {
+  const { lang } = useApp();
+  const t = NOT_FOUND_T[lang] || NOT_FOUND_T.en;
   return (
     <div className="not-found-page">
       <div className="not-found-icon">🌾</div>
       <div className="not-found-code">404</div>
-      <h1 className="not-found-title">Page Not Found</h1>
-      <p className="not-found-sub">The page you're looking for doesn't exist or may have been moved. Let's get you back on track.</p>
+      <h1 className="not-found-title">{t.title}</h1>
+      <p className="not-found-sub">{t.sub}</p>
       <div className="not-found-actions">
-        <Link to="/" className="not-found-btn not-found-btn--primary">← Back to Home</Link>
-        <Link to="/crop-recommendation" className="not-found-btn not-found-btn--outline">Try Crop Recommendation</Link>
+        <Link to="/" className="not-found-btn not-found-btn--primary">{t.backHome}</Link>
+        <Link to="/crop-recommendation" className="not-found-btn not-found-btn--outline">{t.tryCrop}</Link>
       </div>
     </div>
   );
