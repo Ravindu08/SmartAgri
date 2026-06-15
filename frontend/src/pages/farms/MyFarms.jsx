@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { deleteFarm, getFarms } from '../../services/farmService';
 import { getCrops } from '../../services/cropService';
 import { useApp } from '../../context/AppContext';
-import { LAND_T } from '../../data/translations';
+import { LAND_T, SEA_LABELS } from '../../data/translations';
 import Toast from '../../components/Toast';
 
 export default function MyFarms() {
@@ -99,7 +99,7 @@ export default function MyFarms() {
                 ) : (
                   <div className="farm-card__image-placeholder">🌾</div>
                 )}
-                <span className="farm-card__season-badge">{farm.season}</span>
+                <span className="farm-card__season-badge">{SEA_LABELS[lang]?.[farm.season] || farm.season}</span>
                 {farm.district && (
                   <span className="farm-card__district-badge">📍 {farm.district}</span>
                 )}
