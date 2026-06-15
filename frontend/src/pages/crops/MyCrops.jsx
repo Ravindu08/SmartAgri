@@ -5,7 +5,7 @@ import { listCultivations, abandonCultivation } from '../../utils/cultivationApi
 import { getAuthSession } from '../../services/api';
 import { CROP_EMOJI } from '../../data/cropData';
 import { useApp } from '../../context/AppContext';
-import { LAND_T } from '../../data/translations';
+import { LAND_T, CROP_STATUS_LABELS } from '../../data/translations';
 import Toast from '../../components/Toast';
 
 function sessionProgress(session) {
@@ -152,7 +152,7 @@ export default function MyCrops() {
               <article key={crop.id} className="crop-card">
                 <div className="crop-card__image crop-card__image--emoji">
                   <span className="crop-card__emoji">{emoji}</span>
-                  <span className={`crop-card__status-badge crop-card__status-badge--${(crop.status || 'active').toLowerCase()}`}>{crop.status}</span>
+                  <span className={`crop-card__status-badge crop-card__status-badge--${(crop.status || 'active').toLowerCase()}`}>{CROP_STATUS_LABELS[lang]?.[crop.status] || crop.status}</span>
                 </div>
                 <div className="crop-card__body">
                   <div className="crop-card__heading">

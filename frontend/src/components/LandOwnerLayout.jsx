@@ -160,7 +160,11 @@ export default function LandOwnerLayout() {
                 onClick={() => { setProfileOpen(o => !o); setNotifOpen(false); }}
                 aria-label="Profile"
               >
-                <div className="lo-topbar__profile-avatar">{initials}</div>
+                <div className="lo-topbar__profile-avatar">
+                  {user?.profile_image
+                    ? <img src={user.profile_image} alt={user.full_name || 'avatar'} />
+                    : initials}
+                </div>
                 <div className="lo-topbar__profile-info">
                   <span className="lo-topbar__profile-name">{user?.full_name?.split(' ')[0] || t.landOwner}</span>
                   <span className="lo-topbar__profile-role">{t.landOwner}</span>
@@ -170,7 +174,11 @@ export default function LandOwnerLayout() {
               {profileOpen && (
                 <div className="lo-topbar__profile-panel">
                   <div className="lo-topbar__profile-panel-header">
-                    <div className="lo-topbar__profile-panel-avatar">{initials}</div>
+                    <div className="lo-topbar__profile-panel-avatar">
+                      {user?.profile_image
+                        ? <img src={user.profile_image} alt={user.full_name || 'avatar'} />
+                        : initials}
+                    </div>
                     <div>
                       <div className="lo-topbar__profile-panel-name">{user?.full_name || t.landOwner}</div>
                       <div className="lo-topbar__profile-panel-role">{t.landOwner}</div>
