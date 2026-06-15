@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getFarms } from '../../services/farmService';
 import { getCrops } from '../../services/cropService';
 import { getAuthSession } from '../../services/api';
 import { listCultivations } from '../../utils/cultivationApi';
-import { CROP_EMOJI } from '../../data/cropData';
+import { CROP_EMOJI, getCropLabel } from '../../data/cropData';
 import { useApp } from '../../context/AppContext';
-import { LAND_T } from '../../data/translations';
+import { LAND_T, SEA_LABELS, IRR_LABELS, GROWTH_STAGE_LABELS, CROP_STATUS_LABELS, DISTRICT_LABELS } from '../../data/translations';
+import { getSoilLabel } from '../../data/cropData';
 
 function daysBetween(a, b) {
   return Math.floor((new Date(b) - new Date(a)) / 86400000);
@@ -32,17 +33,26 @@ const NOTIF_COLORS = {
   task:    { bg: '#f5f3ff', border: '#c4b5fd', color: '#4c1d95', icon: '📅' },
 };
 
-function NotifCard({ type, icon, title, detail, onDismiss }) {
+function NotifCard({ type, icon, title, detail, onDismiss, onClick, viewTasksLabel }) {
   const c = NOTIF_COLORS[type] || NOTIF_COLORS.info;
   return (
-    <div className={`dash-notif-card dash-notif-card--${type || 'info'}`}>
+    <div
+      className={`dash-notif-card dash-notif-card--${type || 'info'}${onClick ? ' dash-notif-card--clickable' : ''}`}
+      onClick={onClick}
+    >
       <span className="dash-notif-icon">{icon || c.icon}</span>
       <div className="dash-notif-body">
         <strong className="dash-notif-strong">{title}</strong>
         <p>{detail}</p>
+        {onClick && <span className="dash-notif-action-hint">{viewTasksLabel}</span>}
       </div>
       {onDismiss && (
-        <button className="dash-notif-dismiss" type="button" onClick={onDismiss} title="Dismiss">✕</button>
+        <button
+          className="dash-notif-dismiss"
+          type="button"
+          onClick={e => { e.stopPropagation(); onDismiss(); }}
+          title="Dismiss"
+        >✕</button>
       )}
     </div>
   );
@@ -59,7 +69,7 @@ async function fetchWeatherAdvice(district) {
   }
 }
 
-function buildTaskNotifications(sessions) {
+function buildTaskNotifications(sessions, lt, getLang) {
   const today = new Date().toISOString().slice(0, 10);
   const in7   = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
   const notifs = [];
@@ -67,6 +77,7 @@ function buildTaskNotifications(sessions) {
   for (const session of sessions) {
     if (session.status !== 'active') continue;
     const tasks = Object.values(session.tasks || {});
+    const cropLabel = getCropLabel(session.crop, getLang);
 
     // Overdue tasks
     const overdue = tasks.filter(t =>
@@ -77,8 +88,10 @@ function buildTaskNotifications(sessions) {
         id: `overdue-${session.id}`,
         type: 'danger',
         icon: '🚨',
-        title: `${overdue.length} overdue task${overdue.length > 1 ? 's' : ''} — ${session.crop}`,
+        title: lt.overdueTasks(overdue.length, cropLabel),
         detail: overdue.slice(0, 3).map(t => t.title).join(', ') + (overdue.length > 3 ? ` +${overdue.length - 3} more` : ''),
+        href: '/landowner/cultivations',
+        sessionId: session.id,
       });
     }
 
@@ -93,8 +106,12 @@ function buildTaskNotifications(sessions) {
         id: `upcoming-${session.id}-${next.id}`,
         type: 'task',
         icon: '📅',
-        title: `${session.crop}: "${next.title}" ${daysLeft === 0 ? 'today' : `in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`}`,
-        detail: `${upcoming.length} task${upcoming.length > 1 ? 's' : ''} due this week. ${next.description || ''}`,
+        title: daysLeft === 0
+          ? lt.upcomingTaskToday(cropLabel, next.title)
+          : lt.upcomingTaskInDays(cropLabel, next.title, daysLeft),
+        detail: lt.upcomingTaskDetail(upcoming.length) + (next.description ? ' ' + next.description : ''),
+        href: '/landowner/cultivations',
+        sessionId: session.id,
       });
     }
   }
@@ -106,6 +123,7 @@ export default function LandOwnerDashboard() {
   const t          = LAND_T[lang] || LAND_T.en;
   const { user }   = getAuthSession();
   const userId     = user?.id ? String(user.id) : null;
+  const navigate   = useNavigate();
 
   const [farms,     setFarms]     = useState([]);
   const [crops,     setCrops]     = useState([]);
@@ -140,11 +158,12 @@ export default function LandOwnerDashboard() {
       const allNotifs = [];
 
       // Task-based notifications from cultivation sessions
+      const lt = LAND_T[lang] || LAND_T.en;
       if (userId) {
         try {
           const cultData = await listCultivations(userId);
           const sessions = cultData.sessions || [];
-          allNotifs.push(...buildTaskNotifications(sessions));
+          allNotifs.push(...buildTaskNotifications(sessions, lt, lang));
         } catch { /* ignore */ }
       }
 
@@ -154,12 +173,13 @@ export default function LandOwnerDashboard() {
       c.filter(cr => cr.status === 'Active' && cr.expected_harvest_date >= today && cr.expected_harvest_date <= now3)
         .forEach(cr => {
           const d = daysUntil(cr.expected_harvest_date);
+          const cropLabel = getCropLabel(cr.crop_name, lang);
           allNotifs.push({
             id: `harvest-${cr.id}`,
             type: 'warning',
             icon: '🧺',
-            title: `Harvest ready ${d === 0 ? 'today' : `in ${d} day${d > 1 ? 's' : ''}`} — ${cr.crop_name}`,
-            detail: `Expected harvest date: ${new Date(cr.expected_harvest_date).toLocaleDateString()}. Plan your harvest activities.`,
+            title: d === 0 ? lt.harvestTodayMsg(cropLabel) : lt.harvestInDaysMsg(d, cropLabel),
+            detail: lt.harvestDetailMsg(new Date(cr.expected_harvest_date).toLocaleDateString(lang === 'si' ? 'si-LK' : lang === 'ta' ? 'ta-LK' : 'en-GB')),
           });
         });
 
@@ -176,7 +196,7 @@ export default function LandOwnerDashboard() {
             id: `wx-${district}-${i}`,
             type: a.type,
             icon: a.icon,
-            title: `${district}: ${a.title}`,
+            title: `${DISTRICT_LABELS[lang]?.[district] || district}: ${a.title}`,
             detail: a.detail,
           });
         });
@@ -185,7 +205,7 @@ export default function LandOwnerDashboard() {
       setNotifs(allNotifs);
     }
     load();
-  }, [userId]);
+  }, [userId, lang]);
 
   const visibleNotifs = notifs.filter(n => !dismissed.has(n.id));
 
@@ -210,21 +230,33 @@ export default function LandOwnerDashboard() {
           <span className="lo-dash-stat__icon">🌾</span>
           <span className="lo-dash-stat__val">{loading ? '—' : farms.length}</span>
           <span className="lo-dash-stat__lbl">{t.statFarms}</span>
+          {!loading && farms.length === 0 && (
+            <Link className="lo-dash-stat__hint" to="/landowner/farms/add">{t.addFirstFarmHint}</Link>
+          )}
         </div>
         <div className="lo-dash-stat">
           <span className="lo-dash-stat__icon">🌱</span>
           <span className="lo-dash-stat__val">{loading ? '—' : active.length}</span>
           <span className="lo-dash-stat__lbl">{t.statActiveCrops}</span>
+          {!loading && active.length === 0 && farms.length > 0 && (
+            <Link className="lo-dash-stat__hint" to="/landowner/cultivations">{t.startGrowingHint}</Link>
+          )}
         </div>
         <div className="lo-dash-stat lo-dash-stat--warn">
           <span className="lo-dash-stat__icon">🧺</span>
           <span className="lo-dash-stat__val">{loading ? '—' : upcoming.length}</span>
           <span className="lo-dash-stat__lbl">{t.statHarvestSoon}</span>
+          {!loading && upcoming.length === 0 && (
+            <span className="lo-dash-stat__hint">{t.nothingDue}</span>
+          )}
         </div>
         <div className="lo-dash-stat">
           <span className="lo-dash-stat__icon">✅</span>
           <span className="lo-dash-stat__val">{loading ? '—' : completed.length}</span>
           <span className="lo-dash-stat__lbl">{t.statCompleted}</span>
+          {!loading && completed.length === 0 && (
+            <span className="lo-dash-stat__hint">{t.completedCropsHint}</span>
+          )}
         </div>
         {overdue.length > 0 && (
           <div className="lo-dash-stat lo-dash-stat--danger">
@@ -244,7 +276,7 @@ export default function LandOwnerDashboard() {
             onClick={() => setNotifOpen(o => !o)}
           >
             <h2>
-              🔔 Notifications
+              {t.notificationsHeader}
               {visibleNotifs.length > 0 && (
                 <span className="dash-notif-badge">{visibleNotifs.length}</span>
               )}
@@ -256,7 +288,7 @@ export default function LandOwnerDashboard() {
             visibleNotifs.length === 0 ? (
               <div className="dash-notif-empty">
                 <span>✅</span>
-                <span>No alerts — all looks good!</span>
+                <span>{t.noAlerts}</span>
               </div>
             ) : (
               <div className="dash-notif-list">
@@ -268,6 +300,8 @@ export default function LandOwnerDashboard() {
                     title={n.title}
                     detail={n.detail}
                     onDismiss={() => dismissNotif(n.id)}
+                    onClick={n.href ? () => navigate(n.href, { state: { sessionId: n.sessionId } }) : undefined}
+                    viewTasksLabel={t.viewTasksArrow}
                   />
                 ))}
               </div>
@@ -307,15 +341,15 @@ export default function LandOwnerDashboard() {
                   <strong className="lo-dash-farm-card__name">{farm.farm_name}</strong>
                   <div className="lo-dash-farm-card__meta">
                     <span>{farm.farm_size} {farm.size_unit}</span>
-                    <span>{farm.soil_type}</span>
-                    <span>{farm.season}</span>
+                    <span>{getSoilLabel(farm.soil_type, lang)}</span>
+                    <span>{SEA_LABELS[lang]?.[farm.season] || farm.season}</span>
                   </div>
                   <div className="lo-dash-farm-card__footer">
                     <span className="lo-dash-farm-card__crop-count">
                       🌱 {t.cropCount(cropCountByFarm[farm.id] || 0)}
                     </span>
                     {farm.irrigation_type && (
-                      <span className="lo-dash-farm-card__irr">{farm.irrigation_type}</span>
+                      <span className="lo-dash-farm-card__irr">{IRR_LABELS[lang]?.[farm.irrigation_type] || farm.irrigation_type}</span>
                     )}
                   </div>
                 </div>
@@ -358,11 +392,11 @@ export default function LandOwnerDashboard() {
                   </div>
                   <div className="lo-dash-cult-card__body">
                     <div className="lo-dash-cult-card__top">
-                      <strong className="lo-dash-cult-card__name">{crop.crop_name}</strong>
+                      <strong className="lo-dash-cult-card__name">{getCropLabel(crop.crop_name, lang)}</strong>
                       <span className="lo-dash-cult-card__farm">{crop.farm_name}</span>
                     </div>
                     <div className="lo-dash-cult-card__tags">
-                      <span className="lo-dash-cult-card__stage">{crop.growth_stage}</span>
+                      <span className="lo-dash-cult-card__stage">{GROWTH_STAGE_LABELS[lang]?.[crop.growth_stage] || crop.growth_stage}</span>
                       {stageIdx >= 0 && (
                         <div className="lo-dash-cult-card__stage-dots">
                           {STAGE_ORDER.map((s, i) => (
@@ -393,7 +427,7 @@ export default function LandOwnerDashboard() {
                     </div>
                   </div>
                   <span className={`lo-dash-cult-card__status status--${(crop.status || '').toLowerCase()}`}>
-                    {crop.status}
+                    {CROP_STATUS_LABELS[lang]?.[crop.status] || crop.status}
                   </span>
                 </Link>
               );

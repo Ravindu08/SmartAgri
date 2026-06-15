@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { DISTRICTS } from "../data/districtZones";
 import { DISTRICT_LABELS } from "../data/translations";
+import CustomSelect from "./CustomSelect";
 import "./WeatherLocationPicker.css";
 
 // Weather endpoint lives on the ML service (port 8000).
@@ -74,16 +75,16 @@ export default function WeatherLocationPicker({ weather, onWeatherFetched, t, la
       {/* ── District + Season selectors ── */}
       <div className="wlp-left">
         <span className="wlp-icon">📍</span>
-        <select className="wlp-select" value={district} onChange={handleDistrictChange}>
+        <CustomSelect name="district" value={district} onChange={handleDistrictChange}>
           <option value="">{t?.selectDistrictWeather || "Select district…"}</option>
           {DISTRICTS.map(d => <option key={d} value={d}>{DISTRICT_LABELS[lang]?.[d] || d}</option>)}
-        </select>
+        </CustomSelect>
 
         <span className="wlp-icon" style={{ marginLeft: 4 }}>📅</span>
-        <select className="wlp-select wlp-select--season" value={season} onChange={handleSeasonChange}>
+        <CustomSelect name="season" value={season} onChange={handleSeasonChange}>
           <option value="">Season (optional)</option>
           {SEASONS.map(s => <option key={s} value={s}>{seaLabels[s]}</option>)}
-        </select>
+        </CustomSelect>
 
         {loading && <span className="wlp-spinner" />}
       </div>

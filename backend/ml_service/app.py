@@ -1307,38 +1307,39 @@ DISTRICT_COORDS: Dict[str, tuple] = {
     "Vavuniya":      (8.7542, 80.4982),
 }
 
-# WMO weather codes (Open-Meteo) → (label, icon)
-_WMO_LABELS: Dict[int, tuple] = {
-    0:  ("Clear Sky",        "☀️"),
-    1:  ("Mainly Clear",     "🌤️"),
-    2:  ("Partly Cloudy",    "⛅"),
-    3:  ("Overcast",         "☁️"),
-    45: ("Fog",              "🌫️"),
-    48: ("Icy Fog",          "🌫️"),
-    51: ("Light Drizzle",    "🌦️"),
-    53: ("Drizzle",          "🌦️"),
-    55: ("Heavy Drizzle",    "🌦️"),
-    61: ("Light Rain",       "🌦️"),
-    63: ("Rain",             "🌧️"),
-    65: ("Heavy Rain",       "🌧️"),
-    71: ("Light Snow",       "🌨️"),
-    73: ("Snow",             "🌨️"),
-    75: ("Heavy Snow",       "❄️"),
-    77: ("Snow Grains",      "🌨️"),
-    80: ("Rain Showers",     "🌦️"),
-    81: ("Rain Showers",     "🌦️"),
-    82: ("Heavy Showers",    "🌧️"),
-    85: ("Snow Showers",     "🌨️"),
-    86: ("Heavy Snow Showers","❄️"),
-    95: ("Thunderstorm",     "⛈️"),
-    96: ("Thunderstorm",     "⛈️"),
-    99: ("Thunderstorm",     "⛈️"),
+# WMO weather codes (Open-Meteo) → {en, si, ta, icon}
+_WMO_LABELS: Dict[int, Dict] = {
+    0:  {"en": "Clear Sky",          "si": "පැහැදිලි අහස",            "ta": "தெளிவான வானம்",          "icon": "☀️"},
+    1:  {"en": "Mainly Clear",       "si": "බොහෝ දුරට පැහැදිලි",       "ta": "பெரும்பாலும் தெளிவானது",  "icon": "🌤️"},
+    2:  {"en": "Partly Cloudy",      "si": "අර්ධ වශයෙන් වළාකුළු",      "ta": "பகுதி மேகமூட்டம்",        "icon": "⛅"},
+    3:  {"en": "Overcast",           "si": "සම්පූර්ණ වළාකුළු",          "ta": "முழு மேகமூட்டம்",         "icon": "☁️"},
+    45: {"en": "Fog",                "si": "මීදුම",                     "ta": "மூடுபனி",                 "icon": "🌫️"},
+    48: {"en": "Icy Fog",            "si": "ශීතල මීදුම",                "ta": "பனி மூடுபனி",             "icon": "🌫️"},
+    51: {"en": "Light Drizzle",      "si": "සැහැල්ලු කිල්ලන් වැසි",     "ta": "இலேசான தூறல்",           "icon": "🌦️"},
+    53: {"en": "Drizzle",            "si": "කිල්ලන් වැසි",               "ta": "தூறல்",                   "icon": "🌦️"},
+    55: {"en": "Heavy Drizzle",      "si": "අධික කිල්ලන් වැසි",          "ta": "அதிகமான தூறல்",          "icon": "🌦️"},
+    61: {"en": "Light Rain",         "si": "සැහැල්ලු වර්ෂාව",           "ta": "இலேசான மழை",             "icon": "🌦️"},
+    63: {"en": "Rain",               "si": "වර්ෂාව",                    "ta": "மழை",                     "icon": "🌧️"},
+    65: {"en": "Heavy Rain",         "si": "අධික වර්ෂාව",                "ta": "கனமழை",                  "icon": "🌧️"},
+    71: {"en": "Light Snow",         "si": "සැහැල්ලු හිම",               "ta": "இலேசான பனிவீழ்ச்சி",    "icon": "🌨️"},
+    73: {"en": "Snow",               "si": "හිම",                        "ta": "பனிவீழ்ச்சி",            "icon": "🌨️"},
+    75: {"en": "Heavy Snow",         "si": "අධික හිම",                   "ta": "கனமான பனிவீழ்ச்சி",     "icon": "❄️"},
+    77: {"en": "Snow Grains",        "si": "හිම කැට",                    "ta": "பனித்துகள்கள்",           "icon": "🌨️"},
+    80: {"en": "Rain Showers",       "si": "ෂවර් වර්ෂාව",               "ta": "மழைப்பொழிவு",            "icon": "🌦️"},
+    81: {"en": "Rain Showers",       "si": "ෂවර් වර්ෂාව",               "ta": "மழைப்பொழிவு",            "icon": "🌦️"},
+    82: {"en": "Heavy Showers",      "si": "අධික ෂවර් වර්ෂාව",           "ta": "கடும் மழைப்பொழிவு",     "icon": "🌧️"},
+    85: {"en": "Snow Showers",       "si": "හිම ෂවරය",                  "ta": "பனி மழைப்பொழிவு",        "icon": "🌨️"},
+    86: {"en": "Heavy Snow Showers", "si": "අධික හිම ෂවරය",              "ta": "கடும் பனி மழைப்பொழிவு", "icon": "❄️"},
+    95: {"en": "Thunderstorm",       "si": "ගිගිරුම් සහිත වැසි",         "ta": "இடி மழை",                "icon": "⛈️"},
+    96: {"en": "Thunderstorm",       "si": "ගිගිරුම් සහිත වැසි",         "ta": "இடி மழை",                "icon": "⛈️"},
+    99: {"en": "Thunderstorm",       "si": "ගිගිරුම් සහිත වැසි",         "ta": "இடி மழை",                "icon": "⛈️"},
 }
 
 _THUNDERSTORM_CODES = {95, 96, 99}
 
-def _wmo_label(code: int) -> tuple:
-    return _WMO_LABELS.get(code, ("Cloudy", "☁️"))
+def _wmo_label(code: int, lang: str = "en") -> tuple:
+    e = _WMO_LABELS.get(code, {"en": "Cloudy", "si": "වළාකුළු", "ta": "மேகமூட்டம்", "icon": "☁️"})
+    return e.get(lang, e["en"]), e["icon"]
 
 
 def _season_date_range(season: Optional[str] = None) -> tuple:
@@ -1404,90 +1405,269 @@ def _season_date_range(season: Optional[str] = None) -> tuple:
     return season, start.isoformat(), end.isoformat()
 
 
+_ADVICE_TEXT = {
+    "avoid_chem_rain": {
+        "en": {
+            "title": "Do Not Apply Chemicals — Rain Expected",
+            "detail": "Rain forecast tomorrow ({rain} mm). Rain above 5 mm will wash pesticides and herbicides off before they are absorbed. Apply after the rain passes.",
+        },
+        "si": {
+            "title": "රසායනික ද්‍රව්‍ය නොදමන්න — වර්ෂාව අපේක්ෂිතයි",
+            "detail": "හෙට වර්ෂාව ({rain} mm). 5 mm ට වැඩි වර්ෂාව කෘමිනාශක සෝදා ගෙන යයි. වැස්ස ගිය පසු යෙදීම නිර්දේශ කෙරේ.",
+        },
+        "ta": {
+            "title": "இரசாயனங்கள் தெளிக்காதீர்கள் — மழை எதிர்பார்க்கப்படுகிறது",
+            "detail": "நாளை மழை ({rain} mm). 5 mm க்கு மேல் மழை பூச்சிக்கொல்லிகளை கழுவிவிடும். மழை நின்ற பிறகு தெளிக்கவும்.",
+        },
+    },
+    "fert_good": {
+        "en": {
+            "title": "Good Time to Fertilize",
+            "detail": "Rainfall of {rain} mm provides ideal soil moisture (30–60 mm) for fertilizer absorption. Apply now for best results.",
+        },
+        "si": {
+            "title": "පොහොර යෙදීමට සුදුසු වේලාව",
+            "detail": "වර්ෂාව {rain} mm — පොහොර අවශෝෂණයට ප්‍රශස්ත ආර්ද්‍රතාව (30–60 mm). දැන් යෙදීම නිර්දේශ කෙරේ.",
+        },
+        "ta": {
+            "title": "உரமிட சிறந்த நேரம்",
+            "detail": "மழை அளவு {rain} mm — உரம் உறிஞ்சுவதற்கு சிறந்த மண் ஈரப்பதம் (30–60 mm). இப்போது உரமிடவும்.",
+        },
+    },
+    "fert_wet": {
+        "en": {
+            "title": "Avoid Fertilizing — Excessive Rain",
+            "detail": "Rainfall of {rain} mm exceeds 60 mm. Heavy rain causes fertilizer runoff and leaching — nutrients will be lost before uptake.",
+        },
+        "si": {
+            "title": "පොහොර නොදමන්න — අධික වර්ෂාව",
+            "detail": "වර්ෂාව {rain} mm (60 mm ඉක්මවා). අධික වැස්ස නිසා පොහොර ගලා යයි — පෝෂකය අවශෝෂණ වීමට පෙර නැති වේ.",
+        },
+        "ta": {
+            "title": "உரமிடாதீர்கள் — அதிகப்படியான மழை",
+            "detail": "மழை {rain} mm (60 mm ஐ தாண்டியது). கடுமையான மழை உரத்தை கழுவிவிடும் — ஊட்டச்சத்து உறிஞ்சப்படுவதற்கு முன்பே போய்விடும்.",
+        },
+    },
+    "fert_dry": {
+        "en": {
+            "title": "Fertilizing Not Recommended — Dry Soil",
+            "detail": "Rainfall below 30 mm. Dry soil reduces fertilizer absorption. Water the field first or wait for moderate rain (30–60 mm) before applying fertilizer.",
+        },
+        "si": {
+            "title": "පොහොර යෙදීම නිර්දේශ නොකෙරේ — වියළි පස",
+            "detail": "වර්ෂාව 30 mm ට අඩු. වියළි පස පොහොර ශෝෂණය අඩු කරයි. ජලය ලබා දෙන්න හෝ මධ්‍යස්ථ වර්ෂාවකට (30–60 mm) බලා සිටින්න.",
+        },
+        "ta": {
+            "title": "உரமிட பரிந்துரைக்கப்படவில்லை — வறண்ட மண்",
+            "detail": "மழை 30 mm க்கு குறைவு. வறண்ட மண் உரம் உறிஞ்சுவதை குறைக்கும். வயலுக்கு நீர் பாய்ச்சவும் அல்லது மிதமான மழைக்கு (30–60 mm) காத்திருக்கவும்.",
+        },
+    },
+    "disease_risk": {
+        "en": {
+            "title": "High Disease Risk",
+            "detail": "Humidity is {hum}%. Monitor crops for fungal diseases (blight, rust, mildew). Improve air circulation where possible.",
+        },
+        "si": {
+            "title": "ඉහළ රෝග අවදානම",
+            "detail": "ආර්ද්‍රතාවය {hum}%. දිලීර රෝග (දූෂිත, මලකඳ) සඳහා බෝග නිරීක්ෂණය කරන්න. හැකි තැනක වාතාශ්‍රය වැඩිදියුණු කරන්න.",
+        },
+        "ta": {
+            "title": "அதிக நோய் ஆபத்து",
+            "detail": "ஈரப்பதம் {hum}%. பூஞ்சை நோய்களுக்கு (காய்ப்பழுக்கை, துருப்பூச்சு, தூள் நோய்) பயிர்களை கண்காணிக்கவும்.",
+        },
+    },
+    "increase_irr": {
+        "en": {
+            "title": "Increase Irrigation",
+            "detail": "Temperature is {temp}°C. Heat stress reduces yield — water early morning or evening to minimise evaporation.",
+        },
+        "si": {
+            "title": "ජලසේචනය වැඩි කරන්න",
+            "detail": "උෂ්ණය {temp}°C. තාප ආතතිය අස්වැන්න අඩු කරයි — ගේගල් ශෝෂණය අවම කිරීමට උදෑ හෝ සාය ජලය ලබා දෙන්න.",
+        },
+        "ta": {
+            "title": "நீர்ப்பாசனம் அதிகரிக்கவும்",
+            "detail": "வெப்பநிலை {temp}°C. வெப்ப அழுத்தம் மகசூலை குறைக்கும் — ஆவியாதலை குறைக்க காலை அல்லது மாலையில் நீர் பாய்ச்சவும்.",
+        },
+    },
+    "cold_stress": {
+        "en": {
+            "title": "Cold Stress Alert",
+            "detail": "Temperature is {temp}°C. Sensitive crops (tomato, pepper, bean) may suffer chilling injury. Consider protective covering at night.",
+        },
+        "si": {
+            "title": "ශීතල ආතතිය අනතුරු ඇඟවීම",
+            "detail": "උෂ්ණය {temp}°C. ස්පර්ශශීලී බෝග (තක්කාලි, ගම්මිරිස්, බෝංචි) ශීතල හානියට ලක් විය හැකිය. රාත්‍රී ආවරණ සලකා බලන්න.",
+        },
+        "ta": {
+            "title": "குளிர் அழுத்த எச்சரிக்கை",
+            "detail": "வெப்பநிலை {temp}°C. உணர்திறன் பயிர்கள் (தக்காளி, மிளகாய், பீன்ஸ்) குளிர் பாதிப்பிற்கு உள்ளாகலாம். இரவில் பாதுகாப்பு தேவை.",
+        },
+    },
+    "avoid_spray": {
+        "en": {
+            "title": "Avoid Spraying",
+            "detail": "Wind speed is {wind} km/h. Spraying pesticides or foliar fertilizers in high wind causes drift and uneven coverage.",
+        },
+        "si": {
+            "title": "ඉසීමෙන් වළකින්න",
+            "detail": "සුළං වේගය {wind} km/h. ප්‍රබල සුළඟේ ස්ප්‍රේ කිරීම ගලා යයි. සුළං 15 km/h ට අඩු වූ විට ස්ප්‍රේ කරන්න.",
+        },
+        "ta": {
+            "title": "தெளிப்பதை தவிருங்கள்",
+            "detail": "காற்று வேகம் {wind} km/h. அதிக காற்றில் தெளிப்பது பயனற்றது மற்றும் அருகிலுள்ள பயிர்களை பாதிக்கும்.",
+        },
+    },
+    "thunderstorm": {
+        "en": {
+            "title": "Thunderstorm Warning",
+            "detail": "Severe weather expected. Secure farm structures, stay indoors, and postpone all field operations.",
+        },
+        "si": {
+            "title": "ගිගිරුම් අනතුරු ඇඟවීම",
+            "detail": "ප්‍රබල කාලගුණ ඇතිවේ. ගොවිපළ ව්‍යූහ සුරක්ෂිත කරන්න, නිවස ඇතුළේ රැඳෙන්න. ක්ෂේත්‍ර ක්‍රියාකාරකම් කල් දමන්න.",
+        },
+        "ta": {
+            "title": "இடியுடன் கூடிய புயல் எச்சரிக்கை",
+            "detail": "கடுமையான வானிலை எதிர்பார்க்கப்படுகிறது. பண்ணை கட்டமைப்புகளை பாதுகாக்கவும், வீட்டினுள் இருக்கவும். வயல் பணிகளை ஒத்திடுங்கள்.",
+        },
+    },
+    "good_conditions": {
+        "en": {
+            "title": "Good Conditions for Field Work",
+            "detail": "Low rainfall and moderate humidity create favourable conditions for land preparation, harvesting, or crop inspection.",
+        },
+        "si": {
+            "title": "ක්ෂේත්‍ර කටයුතු සඳහා හොඳ කොන්දේසි",
+            "detail": "අඩු වර්ෂාව සහ මධ්‍යස්ථ ආර්ද්‍රතාවය — ඉඩම් සකස් කිරීම, අස්වනු නෙළීම හෝ බෝග පරීක්ෂාවට ශ්‍රේෂ්ඨ.",
+        },
+        "ta": {
+            "title": "வயல் வேலைக்கு சிறந்த நிலைமைகள்",
+            "detail": "குறைந்த மழை மற்றும் மிதமான ஈரப்பதம் — நிலம் தயாரிப்பு, அறுவடை அல்லது பயிர் பரிசோதனைக்கு ஏற்றது.",
+        },
+    },
+    "normal": {
+        "en": {
+            "title": "Normal Conditions",
+            "detail": "Weather conditions are within normal range. Continue regular farm activities.",
+        },
+        "si": {
+            "title": "සාමාන්‍ය කොන්දේසි",
+            "detail": "කාලගුණ කොන්දේසි සාමාන්‍ය පරාසය තුළ. නිත්‍ය ගොවිතැන් ක්‍රියාකාරකම් ඉදිරියට ගෙන යන්න.",
+        },
+        "ta": {
+            "title": "சாதாரண நிலைமைகள்",
+            "detail": "வானிலை நிலைமைகள் சாதாரண வரம்பில் உள்ளன. வழக்கமான பண்ணை நடவடிக்கைகளை தொடருங்கள்.",
+        },
+    },
+}
+
+
 def _agricultural_advice(temp: float, humidity: float, wind_kph: float,
                           rain_today_mm: float, rain_tomorrow_mm: float,
                           weather_code: int,
-                          precip_prob_tomorrow: float = 0.0) -> List[Dict[str, str]]:
+                          precip_prob_tomorrow: float = 0.0,
+                          rain_today_total: float = 0.0,
+                          lang: str = "en") -> List[Dict[str, str]]:
+    L = lang if lang in ("si", "ta") else "en"
     advice = []
 
-    if rain_tomorrow_mm > 5 or precip_prob_tomorrow > 60:
-        reason = (f"Rain forecast tomorrow ({rain_tomorrow_mm:.0f} mm, "
-                  f"{precip_prob_tomorrow:.0f}% chance).")
+    # Chemical spraying: rain >= 5 mm tomorrow will wash off pesticides/herbicides
+    if rain_tomorrow_mm >= 5:
+        d = _ADVICE_TEXT["avoid_chem_rain"][L]
         advice.append({
-            "type": "warning",
-            "icon": "🚫",
-            "title": "Avoid Fertilizer / Pesticide Application",
-            "detail": f"{reason} Applying chemicals now risks wash-off and nutrient loss.",
+            "type": "warning", "icon": "🚫",
+            "title": d["title"],
+            "detail": d["detail"].format(rain=f"{rain_tomorrow_mm:.0f}"),
+        })
+
+    # Fertilizing: soil moisture based on today's total + tomorrow's forecast
+    # < 30 mm → dry (poor absorption), 30–60 mm → ideal, > 60 mm → runoff risk
+    soil_mm = max(rain_today_total, rain_tomorrow_mm)
+    if soil_mm > 60:
+        d = _ADVICE_TEXT["fert_wet"][L]
+        advice.append({
+            "type": "warning", "icon": "🌊",
+            "title": d["title"],
+            "detail": d["detail"].format(rain=f"{soil_mm:.0f}"),
+        })
+    elif soil_mm >= 30:
+        d = _ADVICE_TEXT["fert_good"][L]
+        advice.append({
+            "type": "action", "icon": "🌿",
+            "title": d["title"],
+            "detail": d["detail"].format(rain=f"{soil_mm:.0f}"),
+        })
+    elif soil_mm < 5:
+        # Only flag explicitly when it's very dry (< 5 mm), to avoid noise on typical days
+        d = _ADVICE_TEXT["fert_dry"][L]
+        advice.append({
+            "type": "info", "icon": "🏜️",
+            "title": d["title"],
+            "detail": d["detail"].format(rain=f"{soil_mm:.0f}"),
         })
 
     if humidity > 80:
+        d = _ADVICE_TEXT["disease_risk"][L]
         advice.append({
-            "type": "risk",
-            "icon": "🦠",
-            "title": "High Disease Risk",
-            "detail": f"Humidity is {humidity:.0f}%. Monitor crops for fungal diseases "
-                      "(blight, rust, mildew). Improve air circulation where possible.",
+            "type": "risk", "icon": "🦠",
+            "title": d["title"],
+            "detail": d["detail"].format(hum=f"{humidity:.0f}"),
         })
 
     if temp > 35:
+        d = _ADVICE_TEXT["increase_irr"][L]
         advice.append({
-            "type": "action",
-            "icon": "💧",
-            "title": "Increase Irrigation",
-            "detail": f"Temperature is {temp:.1f}°C. Heat stress reduces yield — "
-                      "water early morning or evening to minimise evaporation.",
+            "type": "action", "icon": "💧",
+            "title": d["title"],
+            "detail": d["detail"].format(temp=f"{temp:.1f}"),
         })
 
     if temp < 15:
+        d = _ADVICE_TEXT["cold_stress"][L]
         advice.append({
-            "type": "risk",
-            "icon": "🥶",
-            "title": "Cold Stress Alert",
-            "detail": f"Temperature is {temp:.1f}°C. Sensitive crops (tomato, pepper, bean) "
-                      "may suffer chilling injury. Consider protective covering at night.",
+            "type": "risk", "icon": "🥶",
+            "title": d["title"],
+            "detail": d["detail"].format(temp=f"{temp:.1f}"),
         })
 
     if wind_kph > 30:
+        d = _ADVICE_TEXT["avoid_spray"][L]
         advice.append({
-            "type": "warning",
-            "icon": "💨",
-            "title": "Avoid Spraying",
-            "detail": f"Wind speed is {wind_kph:.0f} km/h. Spraying pesticides or foliar "
-                      "fertilizers in high wind causes drift and uneven coverage.",
+            "type": "warning", "icon": "💨",
+            "title": d["title"],
+            "detail": d["detail"].format(wind=f"{wind_kph:.0f}"),
         })
 
     if weather_code in _THUNDERSTORM_CODES:
+        d = _ADVICE_TEXT["thunderstorm"][L]
         advice.append({
-            "type": "danger",
-            "icon": "⛈️",
-            "title": "Thunderstorm Warning",
-            "detail": "Severe weather expected. Secure farm structures, stay indoors, "
-                      "and postpone all field operations.",
+            "type": "danger", "icon": "⛈️",
+            "title": d["title"],
+            "detail": d["detail"],
         })
 
     if rain_today_mm < 1 and humidity < 50 and temp > 28:
+        d = _ADVICE_TEXT["good_conditions"][L]
         advice.append({
-            "type": "action",
-            "icon": "☀️",
-            "title": "Good Conditions for Field Work",
-            "detail": "Low rainfall and moderate humidity create favourable conditions "
-                      "for land preparation, harvesting, or crop inspection.",
+            "type": "action", "icon": "☀️",
+            "title": d["title"],
+            "detail": d["detail"],
         })
 
     if not advice:
+        d = _ADVICE_TEXT["normal"][L]
         advice.append({
-            "type": "info",
-            "icon": "✅",
-            "title": "Normal Conditions",
-            "detail": "Weather conditions are within normal range. "
-                      "Continue regular farm activities.",
+            "type": "info", "icon": "✅",
+            "title": d["title"],
+            "detail": d["detail"],
         })
 
     return advice
 
 
 @app.get("/weather")
-async def get_weather(district: str, season: Optional[str] = None):
+async def get_weather(district: str, season: Optional[str] = None, lang: str = "en"):
     if district not in DISTRICT_COORDS:
         raise HTTPException(400, f"Unknown district '{district}'. Valid districts: {sorted(DISTRICT_COORDS)}")
     if season is not None and season not in {"Maha", "Yala", "Year-round"}:
@@ -1540,7 +1720,7 @@ async def get_weather(district: str, season: Optional[str] = None):
     wind_kph  = float(cur.get("wind_speed_10m", 0))
     rain_now  = float(cur.get("precipitation", 0))
     wcode     = int(cur.get("weather_code", 0))
-    cond_label, cond_icon = _wmo_label(wcode)
+    cond_label, cond_icon = _wmo_label(wcode, lang)
 
     # ── Parse 7-day forecast ──────────────────────────────────────────────────
     daily     = forecast_raw.get("daily", {})
@@ -1554,7 +1734,7 @@ async def get_weather(district: str, season: Optional[str] = None):
     forecast = []
     for i, d in enumerate(dates[:7]):
         dc = int((daily.get("weather_code") or [])[i] or 0)
-        dl, di = _wmo_label(dc)
+        dl, di = _wmo_label(dc, lang)
         forecast.append({
             "date":        d,
             "max_temp":    float((daily.get("temperature_2m_max")              or [])[i] or temp),
@@ -1580,8 +1760,9 @@ async def get_weather(district: str, season: Optional[str] = None):
     # Seasonal lookup (climatological expected totals — fallback / reference)
     seasonal_lookup = DISTRICT_SEASON_RAINFALL.get(district, {})
 
+    rain_today_total = float((daily.get("precipitation_sum") or [0])[0] or 0)
     advice = _agricultural_advice(temp, humidity, wind_kph, rain_now, rain_tomorrow,
-                                   wcode, precip_prob_tomorrow)
+                                   wcode, precip_prob_tomorrow, rain_today_total, lang)
 
     return {
         "district":   district,

@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { getCrops, deleteCrop } from '../../services/cropService';
 import { listCultivations, abandonCultivation } from '../../utils/cultivationApi';
 import { getAuthSession } from '../../services/api';
-import { CROP_EMOJI } from '../../data/cropData';
+import { CROP_EMOJI, getCropLabel } from '../../data/cropData';
 import { useApp } from '../../context/AppContext';
 import { T, LAND_T } from '../../data/translations';
 import CultivationTracker from '../../components/CultivationTracker';
@@ -92,7 +92,7 @@ export default function MyCultivations() {
     try {
       if (session) await abandonCultivation(userId, session.id);
       await deleteCrop(crop.id);
-      setToast({ type: 'success', message: `${crop.crop_name} has been removed.` });
+      setToast({ type: 'success', message: lt.cropRemovedMsg(crop.crop_name) });
       await loadData();
     } catch (err) {
       setToast({ type: 'error', message: err.message });
@@ -160,7 +160,7 @@ export default function MyCultivations() {
                 <div className="cult-crop-card__body">
                   <div className="cult-crop-card__top">
                     <div>
-                      <span className="cult-crop-card__name">{crop.crop_name}</span>
+                      <span className="cult-crop-card__name">{getCropLabel(crop.crop_name, lang)}</span>
                       <span className="cult-crop-card__farm">📍 {crop.farm_name || '—'}</span>
                     </div>
                     <span className={`cult-status-badge status-${session ? 'active' : 'pending'}`}>
@@ -183,7 +183,7 @@ export default function MyCultivations() {
                         <div className="cult-progress-fill" style={{ width: `${prog.pct}%` }} />
                       </div>
                       <span className="cult-crop-card__prog-label">
-                        {prog.done}/{prog.total} tasks · {prog.pct}%
+                        {prog.done}/{prog.total} {lt.tasksWord} · {prog.pct}%
                         {prog.overdue > 0 && (
                           <span className="cult-overdue-badge" style={{ marginLeft: 8 }}>⚠ {prog.overdue} {lt.statOverdue}</span>
                         )}
@@ -235,8 +235,7 @@ export default function MyCultivations() {
           <div className="modal-panel">
             <h2>{lt.abandonCultivationTitle}</h2>
             <p>
-              {lt.abandonBtn} <strong>{abandonTarget.crop.crop_name}</strong>? This will permanently delete the crop
-              {abandonTarget.session ? ' and its tracking session' : ''}. There is no way to undo this.
+              {lt.abandonBtn} <strong>{getCropLabel(abandonTarget.crop.crop_name, lang)}</strong>? {abandonTarget.session ? lt.abandonCropMsg : lt.abandonCropOnlyMsg}
             </p>
             <div className="modal-actions">
               <button className="button button--ghost" type="button" onClick={() => setAbandonTarget(null)}>

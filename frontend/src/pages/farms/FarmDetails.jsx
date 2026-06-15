@@ -4,10 +4,11 @@ import { getFarm } from '../../services/farmService';
 import { createCrop, getCropsByFarm } from '../../services/cropService';
 import { listCultivations } from '../../utils/cultivationApi';
 import { getAuthSession } from '../../services/api';
-import { CROP_EMOJI, ALL_CROPS } from '../../data/cropData';
+import { CROP_EMOJI, getCropLabel, getSoilLabel } from '../../data/cropData';
 import { useApp } from '../../context/AppContext';
-import { LAND_T, SEA_LABELS, IRR_LABELS } from '../../data/translations';
+import { LAND_T, SEA_LABELS, IRR_LABELS, GROWTH_STAGE_LABELS } from '../../data/translations';
 import Toast from '../../components/Toast';
+import CustomSelect from '../../components/CustomSelect';
 
 export default function FarmDetails() {
   const { id } = useParams();
@@ -106,7 +107,10 @@ export default function FarmDetails() {
     }
   };
 
-  const cropOptions = ALL_CROPS;
+  const cropOptions = farm?.cultivated_crops
+    ? farm.cultivated_crops.split(',').map(c => c.trim()).filter(Boolean)
+    : [];
+  const noPlannedCrops = cropOptions.length === 0;
 
   function findSession(cropName) {
     return sessions.find(s => s.crop.toLowerCase() === cropName.toLowerCase()) || null;
@@ -176,7 +180,7 @@ export default function FarmDetails() {
             </div>
             <div className="detail-row">
               <span className="detail-row__label">{t.soilTypeRow}</span>
-              <span className="detail-row__value">{farm.soil_type}</span>
+              <span className="detail-row__value">{getSoilLabel(farm.soil_type, lang)}</span>
             </div>
             <div className="detail-row">
               <span className="detail-row__label">{t.irrigationRow}</span>
@@ -197,7 +201,7 @@ export default function FarmDetails() {
                 <div className="farm-detail-crops">
                   {farm.cultivated_crops.split(',').map(c => c.trim()).filter(Boolean).map(crop => (
                     <span key={crop} className="farm-detail-crop-chip farm-detail-crop-chip--planned">
-                      {CROP_EMOJI[crop] || '🌱'} {crop}
+                      {CROP_EMOJI[crop] || '🌱'} {getCropLabel(crop, lang)}
                     </span>
                   ))}
                 </div>
@@ -218,8 +222,8 @@ export default function FarmDetails() {
                           className="farm-detail-crop-chip"
                           to={`/landowner/crops/${crop.id}`}
                         >
-                          {CROP_EMOJI[crop.crop_name] || '🌱'} {crop.crop_name}
-                          {crop.growth_stage && <span className="chip-stage">{crop.growth_stage}</span>}
+                          {CROP_EMOJI[crop.crop_name] || '🌱'} {getCropLabel(crop.crop_name, lang)}
+                          {crop.growth_stage && <span className="chip-stage">{GROWTH_STAGE_LABELS[lang]?.[crop.growth_stage] || crop.growth_stage}</span>}
                         </Link>
                         {session && (
                           <button
@@ -227,7 +231,7 @@ export default function FarmDetails() {
                             type="button"
                             onClick={() => navigate('/landowner/cultivations', { state: { sessionId: session.id } })}
                           >
-                            📊 Track
+                            {t.trackBtn}
                           </button>
                         )}
                       </div>
@@ -264,26 +268,32 @@ export default function FarmDetails() {
             </div>
 
             <form className="cult-modal__form" onSubmit={handleStartCultivating}>
-              <label>
-                {t.whichCropLabel}
-                <select name="crop_name" value={modalForm.crop_name} onChange={handleModalChange} required>
-                  <option value="">{t.selectACropPh}</option>
-                  {cropOptions.map(c => (
-                    <option key={c} value={c}>{CROP_EMOJI[c] || '🌱'} {c}</option>
-                  ))}
-                </select>
-              </label>
+              {noPlannedCrops ? (
+                <p className="cult-modal__error">{t.noPlannedCropsModal}</p>
+              ) : (
+                <label>
+                  {t.whichCropLabel}
+                  <CustomSelect name="crop_name" value={modalForm.crop_name} onChange={handleModalChange}>
+                    <option value="">{t.selectACropPh}</option>
+                    {cropOptions.map(c => (
+                      <option key={c} value={c}>{CROP_EMOJI[c] || '🌱'} {getCropLabel(c, lang)}</option>
+                    ))}
+                  </CustomSelect>
+                </label>
+              )}
 
-              <label>
-                {t.plantingDateLabel}
-                <input
-                  name="planting_date"
-                  type="date"
-                  value={modalForm.planting_date}
-                  onChange={handleModalChange}
-                  required
-                />
-              </label>
+              {!noPlannedCrops && (
+                <label>
+                  {t.plantingDateLabel}
+                  <input
+                    name="planting_date"
+                    type="date"
+                    value={modalForm.planting_date}
+                    onChange={handleModalChange}
+                    required
+                  />
+                </label>
+              )}
 
               {modalError && <p className="cult-modal__error">{modalError}</p>}
 
@@ -291,9 +301,11 @@ export default function FarmDetails() {
                 <button className="button button--outline" type="button" onClick={closeModal}>
                   {t.cancelBtn}
                 </button>
-                <button className="button button--primary" type="submit" disabled={isStarting}>
-                  {isStarting ? t.startingDots : t.startCultivatingBtn}
-                </button>
+                {!noPlannedCrops && (
+                  <button className="button button--primary" type="submit" disabled={isStarting}>
+                    {isStarting ? t.startingDots : t.startCultivatingBtn}
+                  </button>
+                )}
               </div>
             </form>
           </div>

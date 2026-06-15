@@ -5,7 +5,13 @@ from jose import jwt
 from passlib.context import CryptContext
 
 
-SECRET_KEY = os.getenv("SECRET_KEY", "change-this-secret-key")
+_SECRET_KEY = os.getenv("SECRET_KEY")
+if not _SECRET_KEY or _SECRET_KEY == "change-this-secret-key":
+    raise RuntimeError(
+        "SECRET_KEY environment variable is not set or is still the placeholder value. "
+        "Set a strong random key in backend/.env before starting the server."
+    )
+SECRET_KEY = _SECRET_KEY
 ALGORITHM = os.getenv("ALGORITHM", "HS256")  # read from .env; default HS256
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 

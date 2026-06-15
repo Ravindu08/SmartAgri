@@ -354,7 +354,7 @@ export default function Settings() {
             <p>
               {t.settingsDeleteModalDesc}
               <br /><br />
-              Type <strong>delete</strong> below to confirm:
+              {t.settingsDeleteInstructions}
             </p>
             <input
               className="settings-delete-input"

@@ -12,6 +12,7 @@ import CalendarCard   from "../components/CalendarCard";
 import CompareCard    from "../components/CompareCard";
 import HistoryPanel, { saveToHistory, loadHistory, clearHistory }
                       from "../components/HistoryPanel";
+import CustomSelect   from "../components/CustomSelect";
 
 // Predict/weather endpoints live on the ML service (port 8000).
 // Use an empty base so Vite's dev-server proxy forwards /predict, /weather → port 8000.
@@ -343,7 +344,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
         {/* ── Hero banner (compact) ────────────────────────────────────── */}
         <div className="hero hero--compact">
           <div className="hero-inner">
-            <div className="hero-badge">🌿 AI-Powered Agriculture</div>
+            <div className="hero-badge">{t.aiPoweredBadge}</div>
             <h1 className="hero-title">
               {lang === "si" ? <>AI <span>බෝග නිර්දේශය</span></> :
                lang === "ta" ? <>AI <span>பயிர் பரிந்துரை</span></> :
@@ -389,12 +390,12 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
               <div className="g2">
                 <div className="fl">
                   <label className="flb">{t.district}</label>
-                  <select className="fs" value={district} onChange={e => setDistrict(e.target.value)} aria-label={t.district}>
+                  <CustomSelect name="district" value={district} onChange={e => setDistrict(e.target.value)}>
                     <option value="">{t.selectDistrict}</option>
                     {Object.keys(DISTRICT_TO_ZONES).map(d => (
                       <option key={d} value={d}>{dl[d] || d}</option>
                     ))}
-                  </select>
+                  </CustomSelect>
                 </div>
                 <div className="fl">
                   <label className="flb">{t.agroZone}</label>
@@ -402,13 +403,15 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
                     ? <div className="zone-auto">✓ {zLabel(avZones[0])}</div>
                     : avZones.length > 1
                       ? <>
-                          <select className="fs" value={agroZone} onChange={e => setAgroZone(e.target.value)} aria-label={t.agroZone}>
+                          <CustomSelect name="agro_zone" value={agroZone} onChange={e => setAgroZone(e.target.value)}>
                             <option value="">{t.selectZone} {dl[district] || district}…</option>
                             {avZones.map(z => <option key={z} value={z}>{zLabel(z)}</option>)}
-                          </select>
+                          </CustomSelect>
                           <span className="fhint">{dl[district] || district} {t.spansZones} {avZones.length} {t.zonesNote}</span>
                         </>
-                      : <select className="fs" disabled aria-disabled="true"><option>{t.selectDistrictFirst}</option></select>
+                      : <CustomSelect name="agro_zone" value="" onChange={() => {}} disabled>
+                          <option value="">{t.selectDistrictFirst}</option>
+                        </CustomSelect>
                   }
                 </div>
               </div>
@@ -425,28 +428,28 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
                         ℹ {t.soilGuideBtn}
                       </button>
                     </label>
-                    <select className="fs" value={soilType} onChange={e => setSoilType(e.target.value)} aria-label={t.soilType}>
+                    <CustomSelect name="soil_type" value={soilType} onChange={e => setSoilType(e.target.value)}>
                       <option value="">{t.selectSoil}</option>
                       {SOIL_TYPES.map(s => <option key={s} value={s}>{getSoilLabel(s, lang)}</option>)}
-                    </select>
+                    </CustomSelect>
                   </div>
                   <div className="fl">
                     <label className="flb">{t.irrigation}</label>
-                    <select className="fs" value={irrigation} onChange={e => setIrrigation(e.target.value)} aria-label={t.irrigation}>
+                    <CustomSelect name="irrigation" value={irrigation} onChange={e => setIrrigation(e.target.value)}>
                       <option value="">{t.select}</option>
                       {["Rainfed","Irrigated","Supplemental"].map(i => (
                         <option key={i} value={i}>{il[i]}</option>
                       ))}
-                    </select>
+                    </CustomSelect>
                   </div>
                   <div className="fl">
                     <label className="flb">{t.season}</label>
-                    <select className="fs" value={season} onChange={e => setSeason(e.target.value)} aria-label={t.season}>
+                    <CustomSelect name="season" value={season} onChange={e => setSeason(e.target.value)}>
                       <option value="">{t.select}</option>
                       {["Maha","Yala","Year-round"].map(s => (
                         <option key={s} value={s}>{sl[s]}</option>
                       ))}
-                    </select>
+                    </CustomSelect>
                     {season && SEA_DESC[lang]?.[season] && (
                       <div className="fhint">{SEA_DESC[lang][season]}</div>
                     )}

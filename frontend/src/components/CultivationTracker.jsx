@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import * as API from "../utils/cultivationApi";
-import { getFarms } from "../services/farmService";
-import { createCrop } from "../services/cropService";
+import { getFarms, getFarm } from "../services/farmService";
+import { createCrop, deleteCrop } from "../services/cropService";
+import { useApp } from "../context/AppContext";
+import { getCropLabel, getSoilLabel } from "../data/cropData";
+import { STAGE_NAME_LABELS } from "../data/translations";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const ACT_META = {
@@ -137,7 +140,7 @@ function TaskModal({ task, t, onClose, onUpdate }) {
 }
 
 // ── StageProgressBar ──────────────────────────────────────────────────────────
-function StageProgressBar({ stages, daysElapsed, t }) {
+function StageProgressBar({ stages, daysElapsed, t, lang }) {
   if (!stages || stages.length === 0) return null;
   const allDays = stages.flatMap(s => [s.day_start, s.day_end]);
   const minDay  = Math.min(...allDays);
@@ -156,7 +159,7 @@ function StageProgressBar({ stages, daysElapsed, t }) {
     <div className="cult-stage-wrap">
       {currentStage && (
         <div className="cult-current-stage-label">
-          {currentStage.icon} {t.currentStage}: <strong>{currentStage.name}</strong>
+          {currentStage.icon} {t.currentStage}: <strong>{STAGE_NAME_LABELS[lang]?.[currentStage.name] || currentStage.name}</strong>
           {" "}({t.stageDay} {currentStage.day_start}–{currentStage.day_end})
         </div>
       )}
@@ -298,9 +301,12 @@ function WeeklyCalendar({ session, t, onTaskClick }) {
                       key={task.id}
                       className={`cult-task-chip status-${st}`}
                       onClick={() => onTaskClick(task)}
-                      title={task.title}
+                      title={`${task.title} — ${t[`taskStatus_${st}`] || st}`}
                     >
-                      {meta.icon}
+                      <span className="cult-chip-icon">{meta.icon}</span>
+                      {st === "done"    && <span className="cult-chip-badge cult-chip-badge--done">✓</span>}
+                      {st === "overdue" && <span className="cult-chip-badge cult-chip-badge--overdue">!</span>}
+                      {st === "skipped" && <span className="cult-chip-badge cult-chip-badge--skipped">×</span>}
                     </button>
                   );
                 })}
@@ -310,11 +316,18 @@ function WeeklyCalendar({ session, t, onTaskClick }) {
         })}
       </div>
       <div className="cult-chip-legend">
-        {["pending","overdue","done","skipped"].map(s => (
-          <span key={s} className={`cult-task-chip status-${s}`} style={{ pointerEvents: "none" }}>
-            {s === "pending" ? "🌱" : s === "overdue" ? "⚠" : s === "done" ? "✓" : "—"}
+        {[
+          { s: "pending",  badge: null,  icon: "📋" },
+          { s: "overdue",  badge: "!",   icon: "📋" },
+          { s: "done",     badge: "✓",   icon: "📋" },
+          { s: "skipped",  badge: "×",   icon: "📋" },
+        ].map(({ s, badge }) => (
+          <div key={s} className="cult-legend-item">
+            <span className={`cult-legend-chip status-${s}`}>
+              {badge && <span className={`cult-chip-badge cult-chip-badge--${s}`}>{badge}</span>}
+            </span>
             <span className="cult-legend-label">{t[`taskStatus_${s}`] || s}</span>
-          </span>
+          </div>
         ))}
       </div>
     </div>
@@ -322,7 +335,7 @@ function WeeklyCalendar({ session, t, onTaskClick }) {
 }
 
 // ── CultivationDashboard ──────────────────────────────────────────────────────
-function CultivationDashboard({ session, guidanceData, t, onBack, onUpdateTask, onAbandon }) {
+function CultivationDashboard({ session, guidanceData, t, onBack, onUpdateTask, onAbandon, lang }) {
   const [activeTask, setActiveTask] = useState(null);
   const elapsed  = daysSince(session.planting_date);
   const progress = sessionProgress(session);
@@ -350,7 +363,7 @@ function CultivationDashboard({ session, guidanceData, t, onBack, onUpdateTask, 
         </button>
         <div className="cult-dash-title-row">
           <div>
-            <h2 className="cult-dash-crop">{session.crop}</h2>
+            <h2 className="cult-dash-crop">{getCropLabel(session.crop, lang)}</h2>
             <div className="cult-dash-meta">
               📅 {t.plantingDate}: <strong>{fmtDate(session.planting_date)}</strong>
               {elapsed !== null && (
@@ -379,7 +392,7 @@ function CultivationDashboard({ session, guidanceData, t, onBack, onUpdateTask, 
       {stages.length > 0 && (
         <div className="cult-section">
           <div className="cult-section-title">📊 {t.stageProgress}</div>
-          <StageProgressBar stages={stages} daysElapsed={elapsed} t={t} />
+          <StageProgressBar stages={stages} daysElapsed={elapsed} t={t} lang={lang} />
         </div>
       )}
 
@@ -394,7 +407,7 @@ function CultivationDashboard({ session, guidanceData, t, onBack, onUpdateTask, 
 }
 
 // ── SessionCard ───────────────────────────────────────────────────────────────
-function SessionCard({ session, t, onOpen, onAbandon }) {
+function SessionCard({ session, t, onOpen, onAbandon, lang }) {
   const progress = sessionProgress(session);
   const elapsed  = daysSince(session.planting_date);
   const tasks    = Object.values(session.tasks);
@@ -406,7 +419,7 @@ function SessionCard({ session, t, onOpen, onAbandon }) {
     <div className={`cult-session-card${session.status === "abandoned" ? " abandoned" : ""}`}>
       <div className="cult-card-top">
         <div>
-          <div className="cult-card-crop">{session.crop}</div>
+          <div className="cult-card-crop">{getCropLabel(session.crop, lang)}</div>
           <div className="cult-card-sub">
             📅 {fmtDate(session.planting_date)}
             {elapsed !== null && <> · {t.stageDay} {elapsed}</>}
@@ -448,9 +461,8 @@ function SessionCard({ session, t, onOpen, onAbandon }) {
 }
 
 // ── MyCultivationsList ────────────────────────────────────────────────────────
-function MyCultivationsList({ sessions, loading, error, t, onStart, onOpen, onAbandon }) {
-  const active    = sessions.filter(s => s.status === "active");
-  const abandoned = sessions.filter(s => s.status === "abandoned");
+function MyCultivationsList({ sessions, loading, error, t, onStart, onOpen, onAbandon, lang }) {
+  const active = sessions.filter(s => s.status === "active");
 
   if (loading) return <div className="guidance-empty"><p>{t.guidanceLoading}</p></div>;
 
@@ -470,16 +482,8 @@ function MyCultivationsList({ sessions, loading, error, t, onStart, onOpen, onAb
         <div className="cult-empty">{t.noCultivations}</div>
       )}
       {active.map(s => (
-        <SessionCard key={s.id} session={s} t={t} onOpen={onOpen} onAbandon={onAbandon} />
+        <SessionCard key={s.id} session={s} t={t} onOpen={onOpen} onAbandon={onAbandon} lang={lang} />
       ))}
-      {abandoned.length > 0 && (
-        <>
-          <div className="cult-section-divider">{t.abandonedSessions}</div>
-          {abandoned.map(s => (
-            <SessionCard key={s.id} session={s} t={t} onOpen={() => {}} onAbandon={() => {}} />
-          ))}
-        </>
-      )}
     </div>
   );
 }
@@ -501,6 +505,7 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
   const [guidanceDuration, setGuidanceDuration] = useState(120);
   const [saving,           setSaving]           = useState(false);
   const [error,            setError]            = useState("");
+  const [farmDistrict,     setFarmDistrict]     = useState(null);
 
   useEffect(() => {
     fetch("/guidance")
@@ -509,6 +514,14 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
       .catch(() => {});
     getFarms().then(setFarms).catch(() => {});
   }, []);
+
+  // Fix 4: fetch district for existing crop's farm upfront so it's ready at submit time
+  useEffect(() => {
+    if (!existingCropData?.farm_id) return;
+    getFarm(String(existingCropData.farm_id))
+      .then(f => setFarmDistrict(f?.district || null))
+      .catch(() => setFarmDistrict(null));
+  }, [existingCropData?.farm_id]);
 
   // Fetch crop-specific duration whenever the selected crop changes
   useEffect(() => {
@@ -531,7 +544,9 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
     setError("");
     try {
       const resolvedFarmId = existingCropData ? String(existingCropData.farm_id || farmId) : farmId;
-      const selectedFarm   = farms.find(f => String(f.id) === String(resolvedFarmId));
+      const district       = existingCropData
+        ? farmDistrict
+        : (farms.find(f => String(f.id) === String(resolvedFarmId))?.district || null);
       const harvestDate    = addDays(date, guidanceDuration);
 
       let cropId = existingCropData ? String(existingCropData.id) : null;
@@ -551,7 +566,7 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
       }
 
       const session = await API.startCultivation(
-        userId, crop, date, selectedFarm?.district || null, cropId, resolvedFarmId
+        userId, crop, date, district, cropId, resolvedFarmId
       );
       onCreate(session);
     } catch (err) {
@@ -594,6 +609,17 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
     );
   }
 
+  const selectedFarm    = farms.find(f => String(f.id) === farmId);
+  const plannedForFarm  = selectedFarm?.cultivated_crops
+    ? selectedFarm.cultivated_crops.split(",").map(c => c.trim()).filter(Boolean)
+    : [];
+  const filteredCrops   = farmId && plannedForFarm.length > 0
+    ? cropList.filter(c => plannedForFarm.some(p => p.toLowerCase() === c.toLowerCase()))
+    : farmId
+      ? []
+      : cropList;
+  const noPlannedCrops  = farmId && filteredCrops.length === 0;
+
   return (
     <form className="guidance-selector" onSubmit={handleSubmit}>
       <button type="button" className="guidance-back-btn" style={{ marginBottom: 16 }} onClick={onBack}>
@@ -603,28 +629,34 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
       <p>{t.startCultivationSub}</p>
       <div className="guidance-selector-row cult-form-three-col">
         <div>
-          <label>{t.selectCrop}</label>
-          <select value={crop} onChange={e => setCrop(e.target.value)} required>
-            <option value="">{t.selectCropPh}</option>
-            {cropList.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-        <div>
-          <label>{t.plantingDate}</label>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)} required />
-        </div>
-        <div>
           <label>Farm</label>
-          <select value={farmId} onChange={e => setFarmId(e.target.value)} required>
+          <select value={farmId} onChange={e => { setFarmId(e.target.value); setCrop(""); }} required>
             <option value="">Select a farm…</option>
             {farms.map(f => (
               <option key={f.id} value={f.id}>{f.farm_name}</option>
             ))}
           </select>
         </div>
+        <div>
+          <label>{t.selectCrop}</label>
+          {noPlannedCrops ? (
+            <p style={{ color: "var(--muted)", fontSize: "0.85rem", margin: "8px 0 0" }}>
+              No crops are planned for this farm. Add planned crops in Farm Details first.
+            </p>
+          ) : (
+            <select value={crop} onChange={e => setCrop(e.target.value)} required disabled={!farmId}>
+              <option value="">{farmId ? t.selectCropPh : "Select a farm first…"}</option>
+              {filteredCrops.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          )}
+        </div>
+        <div>
+          <label>{t.plantingDate}</label>
+          <input type="date" value={date} onChange={e => setDate(e.target.value)} required />
+        </div>
       </div>
       {error && <div className="cult-error">{error}</div>}
-      <button className="guidance-generate-btn" type="submit" disabled={!crop || !farmId || saving}>
+      <button className="guidance-generate-btn" type="submit" disabled={!crop || !farmId || saving || noPlannedCrops}>
         {saving ? "⏳ " + t.creating : "🌱 " + t.startCultivation}
       </button>
     </form>
@@ -635,6 +667,7 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
 export default function CultivationTracker({ t, userId, initialSessionId, initialView, initialCrop, existingCropData, onExternalBack }) {
   // Guidance endpoint lives on the ML service (port 8000); use empty base for Vite proxy.
   const API_BASE = "";
+  const { lang } = useApp();
 
   const [view, setView]               = useState(initialView || "list");  // list | start | dashboard
   const [sessions, setSessions]       = useState([]);
@@ -706,14 +739,15 @@ export default function CultivationTracker({ t, userId, initialSessionId, initia
 
   async function handleAbandon(sessionId) {
     try {
+      const session = sessions.find(s => s.id === sessionId);
       await API.abandonCultivation(userId, sessionId);
-      setSessions(prev => prev.map(s =>
-        s.id === sessionId ? { ...s, status: "abandoned" } : s
-      ));
-      if (activeSession?.id === sessionId) {
-        setView("list");
-        setActiveSession(null);
+      if (session?.crop_id) {
+        try { await deleteCrop(session.crop_id); } catch {}
       }
+      setSessions(prev => prev.filter(s => s.id !== sessionId));
+      setActiveSession(null);
+      setView("list");
+      if (onExternalBack) onExternalBack();
     } catch (err) {
       alert(err.message || "Failed to abandon session");
     }
@@ -738,6 +772,7 @@ export default function CultivationTracker({ t, userId, initialSessionId, initia
         session={activeSession}
         guidanceData={guidanceData}
         t={t}
+        lang={lang}
         onBack={onExternalBack || (() => { setView("list"); setActiveSession(null); })}
         onUpdateTask={handleUpdateTask}
         onAbandon={handleAbandon}
@@ -751,6 +786,7 @@ export default function CultivationTracker({ t, userId, initialSessionId, initia
       loading={loading}
       error={error}
       t={t}
+      lang={lang}
       onStart={() => setView("start")}
       onOpen={openSession}
       onAbandon={handleAbandon}
