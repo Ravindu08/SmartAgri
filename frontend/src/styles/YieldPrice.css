@@ -3,7 +3,7 @@
 */
 
 .yp-page {
-  max-width: 860px;
+  max-width: 1060px;
   margin: 0 auto;
   padding: 0 1.25rem 4rem;
 }
@@ -91,7 +91,7 @@
 
 /* ── Body container ── */
 .yp-body {
-  max-width: 860px;
+  max-width: 1060px;
   margin: 0 auto;
   padding: 28px 28px 72px;
 }
@@ -384,7 +384,7 @@
 /* ── Price result ── */
 .yp-price-result {
   margin-top: 22px;
-  background: linear-gradient(135deg, var(--yellow-light), #FFF9E6);
+  background: linear-gradient(135deg, var(--yellow-light), rgba(251,192,45,0.05));
   border: 1.5px solid rgba(251,192,45,0.50);
   border-radius: var(--radius-md);
   padding: 22px 24px;
