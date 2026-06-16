@@ -5,6 +5,7 @@ import { createCrop, deleteCrop } from "../services/cropService";
 import { useApp } from "../context/AppContext";
 import { getCropLabel, getSoilLabel } from "../data/cropData";
 import { STAGE_NAME_LABELS } from "../data/translations";
+import CustomSelect from "./CustomSelect";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const ACT_META = {
@@ -630,12 +631,12 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
       <div className="guidance-selector-row cult-form-three-col">
         <div>
           <label>Farm</label>
-          <select value={farmId} onChange={e => { setFarmId(e.target.value); setCrop(""); }} required>
+          <CustomSelect name="farmId" value={farmId} onChange={e => { setFarmId(e.target.value); setCrop(""); }}>
             <option value="">Select a farm…</option>
             {farms.map(f => (
               <option key={f.id} value={f.id}>{f.farm_name}</option>
             ))}
-          </select>
+          </CustomSelect>
         </div>
         <div>
           <label>{t.selectCrop}</label>
@@ -644,10 +645,10 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
               No crops are planned for this farm. Add planned crops in Farm Details first.
             </p>
           ) : (
-            <select value={crop} onChange={e => setCrop(e.target.value)} required disabled={!farmId}>
+            <CustomSelect name="crop" value={crop} onChange={e => setCrop(e.target.value)} disabled={!farmId}>
               <option value="">{farmId ? t.selectCropPh : "Select a farm first…"}</option>
               {filteredCrops.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+            </CustomSelect>
           )}
         </div>
         <div>
