@@ -16,34 +16,34 @@
   --green-primary:  #0F5A2A;
   --green-dark:     #073A18;
   --green-mid:      #2E7D32;
-  --green-light:    #E8F5E9;
-  --green-subtle:   #F1F8F1;
+  --green-light:    #DDE8C8;
+  --green-subtle:   #E6EED6;
   --yellow-accent:  #FBC02D;
-  --yellow-light:   #FFF8E1;
+  --yellow-light:   #F5EDD4;
   --yellow-dark:    #F9A825;
 
   /* ── Core surfaces ── */
-  --bg:           #F5F7F4;
-  --bg-soft:      #EEF2ED;
-  --card:         #FFFFFF;
+  --bg:           #E4DFC9;
+  --bg-soft:      #D9D4BE;
+  --card:         #EFEAD9;
   --text:         #1A2E1C;
   --text-mid:     #374151;
   --muted:        #6B7280;
-  --border:       #D1D5DB;
-  --border-soft:  #E5E7EB;
+  --border:       #C2B898;
+  --border-soft:  #D2C8A8;
 
   /* ── Adaptive surfaces (used in farm/crop/auth cards) ── */
   --surface-1:         rgba(0, 0, 0, 0.03);
   --surface-2:         rgba(0, 0, 0, 0.05);
   --surface-hover:     rgba(15, 90, 42, 0.07);
   --surface-border:    rgba(0, 0, 0, 0.09);
-  --input-bg:          #FFFFFF;
-  --input-border:      #D1D5DB;
+  --input-bg:          #E4DFC9;
+  --input-border:      #C2B898;
   --input-focus:       #0F5A2A;
-  --nav-bg:            rgba(255, 255, 255, 0.96);
-  --mobile-nav-bg:     rgba(255, 255, 255, 0.99);
-  --modal-bg:          #FFFFFF;
-  --form-bg:           rgba(46, 125, 50, 0.04);
+  --nav-bg:            rgba(239, 234, 217, 0.96);
+  --mobile-nav-bg:     rgba(239, 234, 217, 0.99);
+  --modal-bg:          #EFEAD9;
+  --form-bg:           rgba(46, 125, 50, 0.05);
   --about-section-bg:  rgba(46, 125, 50, 0.03);
 
   /* ── Accent (theme-adaptive) ── */
@@ -54,8 +54,8 @@
   --primary:      var(--accent);
 
   /* ── Page gradient ── */
-  --page-bg: radial-gradient(circle at top left, rgba(46,125,50,0.08), transparent 35%),
-             linear-gradient(180deg, #F5F7F4 0%, #EDF2EC 100%);
+  --page-bg: radial-gradient(circle at top left, rgba(46,125,50,0.07), transparent 35%),
+             linear-gradient(180deg, #E4DFC9 0%, #D9D4BE 100%);
 
   /* ── Semantic ── */
   --red:   #DC2626;
@@ -79,7 +79,7 @@
   --grad-primary:   linear-gradient(135deg, #073A18 0%, #0F5A2A 50%, #2E7D32 100%);
   --grad-hero:      linear-gradient(135deg, #073A18 0%, #0F5A2A 40%, #194D29 100%);
   --grad-farm-hero: linear-gradient(160deg, rgba(7,58,24,0.93) 0%, rgba(15,90,42,0.88) 55%, rgba(25,77,41,0.84) 100%);
-  --grad-card:      linear-gradient(145deg, #ffffff 0%, #f9fbf9 100%);
+  --grad-card:      linear-gradient(145deg, #EFEAD9 0%, #E4DFC9 100%);
   --grad-yellow:    linear-gradient(135deg, #FBC02D, #F9A825);
 
   /* ── Shape ── */
@@ -214,9 +214,11 @@ select option {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 60% 45% at 5%  5%,  rgba(46,125,50,0.05) 0%, transparent 55%),
-    radial-gradient(ellipse 40% 35% at 95% 10%, rgba(251,192,45,0.06) 0%, transparent 50%),
-    radial-gradient(ellipse 50% 40% at 50% 95%, rgba(46,125,50,0.04) 0%, transparent 55%);
+    radial-gradient(ellipse 28% 65% at -5% 42%, rgba(46,125,50,0.10) 0%, transparent 65%),
+    radial-gradient(ellipse 26% 60% at 105% 58%, rgba(46,125,50,0.09) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 42% at 3%  2%,  rgba(46,125,50,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 42% 36% at 97% 7%,  rgba(251,192,45,0.08) 0%, transparent 52%),
+    radial-gradient(ellipse 55% 45% at 50% 100%, rgba(46,125,50,0.06) 0%, transparent 55%);
   pointer-events: none;
   z-index: 0;
 }
@@ -224,7 +226,7 @@ select option {
 
 /* ── Container ── */
 .container {
-  max-width: 960px;
+  max-width: 1140px;
   margin: 0 auto;
   padding: 0 28px;
 }

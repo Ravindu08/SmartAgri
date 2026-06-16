@@ -81,7 +81,7 @@
 
 /* ── Body container ── */
 .about-body {
-  max-width: 900px;
+  max-width: 1060px;
   margin: 0 auto;
   padding: 36px 28px 0;
 }
@@ -106,8 +106,8 @@
   border: 1px solid var(--border);
 }
 .about-ps-card--problem {
-  background: linear-gradient(145deg, #FFF8E1, #FFFBF0);
-  border-color: rgba(251,192,45,0.3);
+  background: linear-gradient(145deg, rgba(251,192,45,0.16), rgba(251,192,45,0.08));
+  border-color: rgba(194,147,30,0.30);
 }
 .about-ps-card--solution {
   background: linear-gradient(145deg, var(--green-light), var(--green-subtle));
@@ -410,10 +410,10 @@ a.about-contact-value:hover { text-decoration: underline; color: var(--accent); 
 }
 .about-mv-card--mission::before { background: var(--grad-primary); }
 .about-mv-card--vision {
-  background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
-  border-color: rgba(37,99,235,0.18);
+  background: linear-gradient(135deg, rgba(251,192,45,0.18), rgba(251,192,45,0.08));
+  border-color: rgba(194,147,30,0.28);
 }
-.about-mv-card--vision::before { background: linear-gradient(180deg, #1e40af, #3b82f6); }
+.about-mv-card--vision::before { background: linear-gradient(180deg, #D97706, #FBC02D); }
 
 .about-mv-icon { font-size: 30px; margin-bottom: 12px; }
 .about-mv-title {
@@ -424,14 +424,14 @@ a.about-contact-value:hover { text-decoration: underline; color: var(--accent); 
   margin-bottom: 10px;
 }
 .about-mv-card--mission .about-mv-title { color: var(--green-dark); }
-.about-mv-card--vision  .about-mv-title { color: #1e40af; }
+.about-mv-card--vision  .about-mv-title { color: #7C5A00; }
 .about-mv-text {
   font-size: 13.5px;
   line-height: 1.75;
   margin: 0;
 }
 .about-mv-card--mission .about-mv-text { color: var(--green-dark); opacity: 0.85; }
-.about-mv-card--vision  .about-mv-text { color: #1e3a8a; opacity: 0.85; }
+.about-mv-card--vision  .about-mv-text { color: #5C4200; opacity: 0.85; }
 
 /* ══════════════════════════════════════════════════════
    IMPACT NUMBERS
