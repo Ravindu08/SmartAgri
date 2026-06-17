@@ -1047,7 +1047,6 @@ export const LAND_T = {
     createdCropRow: 'Created',
     updatedRow: 'Updated',
     allCropsLink: '← All Crops',
-    editCropLink: 'Edit Crop',
     // MyCrops
     cropManagement: 'Crop Management',
     myCropsTitle: 'My Crops',
@@ -1329,7 +1328,6 @@ export const LAND_T = {
     createdCropRow: 'නිර්මාණය කළ',
     updatedRow: 'යාවත්කාලීනය',
     allCropsLink: '← සියළු බෝග',
-    editCropLink: 'බෝගය සංස්කරණය',
     cropManagement: 'බෝග කළමනාකරණය',
     myCropsTitle: 'මගේ බෝග',
     myCropsDesc: 'වගා ප්‍රගතිය ලුහුබඳින්න, වර්ධන අදියර යාවත්කාලීන කරන්න.',
@@ -1605,7 +1603,6 @@ export const LAND_T = {
     createdCropRow: 'உருவாக்கப்பட்டது',
     updatedRow: 'புதுப்பிக்கப்பட்டது',
     allCropsLink: '← அனைத்து பயிர்கள்',
-    editCropLink: 'பயிரை திருத்தவும்',
     cropManagement: 'பயிர் மேலாண்மை',
     myCropsTitle: 'என் பயிர்கள்',
     myCropsDesc: 'பயிரிடல் முன்னேற்றத்தை கண்காணிக்கவும், வளர்ச்சி நிலைகளை புதுப்பிக்கவும்.',

@@ -397,12 +397,6 @@
   color: var(--text);
 }
 .button--outline:hover { border-color: var(--accent); color: var(--accent); background: var(--surface-hover); }
-.button--danger {
-  border: 1px solid rgba(220,38,38,0.40);
-  background: rgba(220,38,38,0.08);
-  color: var(--red);
-}
-.button--danger:hover { background: rgba(220,38,38,0.16); }
 .button--full { width: 100%; }
 
 /* ═══════════════════════════════════════════════════════════
