@@ -58,10 +58,11 @@
              linear-gradient(180deg, #E4DFC9 0%, #D9D4BE 100%);
 
   /* ── Semantic ── */
-  --red:   #DC2626;
-  --amber: #D97706;
-  --green: #16A34A;
-  --blue:  #2563EB;
+  --red:    #DC2626;
+  --danger: #DC2626;
+  --amber:  #D97706;
+  --green:  #16A34A;
+  --blue:   #2563EB;
 
   /* ── Shadows ── */
   --shadow-sm:     0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
@@ -136,6 +137,7 @@
   --green-light:  rgba(124, 197, 118, 0.14);
   --green-subtle: rgba(124, 197, 118, 0.08);
   --yellow-light: rgba(251, 192, 45, 0.12);
+  --danger: #ef4444;
 
   /* Brand greens lightened so text is visible on dark backgrounds */
   --green-primary: #7cc576;

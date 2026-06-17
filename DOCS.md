@@ -190,14 +190,16 @@ SmartAgri/
         │   ├── Navbar.jsx              # Top nav, language switcher, theme toggle, auth state
         │   ├── Footer.jsx
         │   ├── Toast.jsx               # Toast notification component
-        │   ├── CropPicker.jsx          # Shared crop selector
-        │   ├── SuitBar.jsx             # Confidence percentage bar
-        │   ├── XAIFeatureCard.jsx      # Feature contribution bars
-        │   ├── CalendarCard.jsx        # Planting/harvest calendar
+        │   ├── CustomSelect.jsx        # Theme-aware dropdown replacing native <select>
+        │   ├── CropPicker.jsx          # Shared crop selector (used in AddFarm, EditFarm)
+        │   ├── FeatureCard.jsx         # Feature card used on the landing page
+        │   ├── SuitBar.jsx             # Parameter suitability bar (N/P/K/pH etc. vs ideal range)
+        │   ├── XAIFeatureCard.jsx      # Feature contribution bars for XAI section
+        │   ├── CalendarCard.jsx        # Planting/harvest calendar card
         │   ├── CompareCard.jsx         # Top-3 crops comparison table
         │   ├── HistoryPanel.jsx        # Prediction history (localStorage)
-        │   ├── FeatureCard.jsx
         │   ├── WeatherLocationPicker.jsx  # District picker + live weather banner
+        │   ├── WeatherLocationPicker.css
         │   └── CultivationTracker.jsx  # Cultivation task tracking UI
         │
         ├── pages/
@@ -220,7 +222,6 @@ SmartAgri/
         │   ├── crops/
         │   │   ├── MyCrops.jsx
         │   │   ├── AddCrop.jsx
-        │   │   ├── EditCrop.jsx
         │   │   └── CropDetails.jsx
         │   ├── cultivations/
         │   │   └── MyCultivations.jsx
@@ -232,20 +233,24 @@ SmartAgri/
         ├── services/
         │   ├── api.js                  # Base fetch wrapper, auth session helpers, /auth endpoints
         │   ├── farmService.js          # /api/farms/* calls
-        │   ├── cropService.js          # /api/crops/* calls
+        │   └── cropService.js          # /api/crops/* calls
+        │
+        ├── utils/
         │   ├── cultivationApi.js       # /cultivation/* calls (ML service)
         │   └── userId.js               # Derives a stable user_id for ML cultivation sessions
         │
         ├── data/
         │   ├── translations.js         # All UI strings in EN / SI / TA
         │   ├── cropData.js             # Crop labels, emoji, yield data, soil guide helpers
-        │   └── districtZones.js        # District → agro zone mapping (25 districts)
-        │
-        ├── utils/                      # Shared utility functions
+        │   ├── districtZones.js        # District → agro zone mapping (25 districts)
+        │   └── farmOptions.js          # Static option lists for farm form dropdowns
         │
         └── styles/
             ├── globals.css             # CSS variables, dark/light theme tokens
             ├── Navbar.css
+            ├── Footer.css
+            ├── About.css
+            ├── Contact.css
             ├── CropRecommendation.css
             ├── CropGuidance.css
             ├── YieldPrice.css
@@ -528,7 +533,6 @@ All routes are defined in `App.jsx` using React Router v6:
 | `/landowner/farms/:id` | `FarmDetails` | Land Owner JWT |
 | `/landowner/crops` | `MyCrops` | Land Owner JWT |
 | `/landowner/crops/add` | `AddCrop` | Land Owner JWT |
-| `/landowner/crops/edit/:id` | `EditCrop` | Land Owner JWT |
 | `/landowner/crops/:id` | `CropDetails` | Land Owner JWT |
 | `/landowner/cultivations` | `MyCultivations` | Land Owner JWT |
 | `/landowner/settings` | `Settings` | Land Owner JWT |
