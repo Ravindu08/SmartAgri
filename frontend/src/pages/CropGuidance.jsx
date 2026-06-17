@@ -146,7 +146,7 @@ function StagesTab({ stages, daysSince, t, lang }) {
                 <div className="stage-name">{STAGE_NAME_LABELS[lang]?.[stage.name] || stage.name}</div>
                 <div className="stage-days">
                   {stage.day_start < 0
-                    ? `${Math.abs(stage.day_start)}d before → Day 0`
+                    ? `${Math.abs(stage.day_start)} ${t.noDays} ${t.beforePlanting} → ${t.stageDay} 0`
                     : `${t.stageDay} ${stage.day_start} – ${stage.day_end}`}
                 </div>
               </div>
