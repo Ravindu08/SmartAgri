@@ -30,6 +30,13 @@ frontend/.env
 .DS_Store
 Thumbs.db
 
+# Claude Code session files
+.claude/
+**/.claude/
+
+# Project documents (PDFs, large files)
+docs/
+
 # Frontend build artifacts
 frontend/node_modules/
 frontend/dist/

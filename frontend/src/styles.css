@@ -290,7 +290,7 @@
   padding: 7rem 5vw 4rem;
   background:
     linear-gradient(rgba(2, 6, 23, 0.52), rgba(2, 6, 23, 0.60)),
-    url('/src/assets/hero-bg.png.png') center/cover no-repeat;
+    url('/src/assets/hero-bg.png') center/cover no-repeat;
 }
 .hero__overlay {
   position: absolute;

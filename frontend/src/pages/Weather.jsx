@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DISTRICTS } from "../data/districtZones";
+import { DISTRICT_LABELS } from "../data/translations";
 import CustomSelect from "../components/CustomSelect";
 import "../styles/Weather.css";
 
@@ -293,7 +294,7 @@ export default function Weather({ lang, onWeatherFetched }) {
             <CustomSelect name="district" value={district} onChange={handleSelect}>
               <option value="">{t.selectPrompt}</option>
               {DISTRICTS.map(d => (
-                <option key={d} value={d}>{d}</option>
+                <option key={d} value={d}>{DISTRICT_LABELS[lang]?.[d] || d}</option>
               ))}
             </CustomSelect>
             <button
