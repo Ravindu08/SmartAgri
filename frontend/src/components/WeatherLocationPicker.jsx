@@ -82,7 +82,7 @@ export default function WeatherLocationPicker({ weather, onWeatherFetched, t, la
 
         <span className="wlp-icon" style={{ marginLeft: 4 }}>📅</span>
         <CustomSelect name="season" value={season} onChange={handleSeasonChange}>
-          <option value="">Season (optional)</option>
+          <option value="">{t?.season || 'Season'} ({t?.optional || 'optional'})</option>
           {SEASONS.map(s => <option key={s} value={s}>{seaLabels[s]}</option>)}
         </CustomSelect>
 
