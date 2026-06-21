@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import { useApp } from '../context/AppContext';
-import { getAuthSession, clearAuthSession, getActiveRole, isDualRole, submitFeedback } from '../services/api';
+import { getAuthSession, clearAuthSession, getActiveRole, isDualRole, submitFeedback, fetchNotifications, markNotificationRead } from '../services/api';
 
 const TR_LAYOUT_T = {
   en: {
@@ -115,6 +115,7 @@ export default function TraderLayout() {
   const [notifOpen,    setNotifOpen]    = useState(false);
   const [profileOpen,  setProfileOpen]  = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [apiNotifs,    setApiNotifs]    = useState([]);
   const profileRef = useRef(null);
   const notifRef   = useRef(null);
   const dualRole   = isDualRole();
@@ -127,6 +128,31 @@ export default function TraderLayout() {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const load = () => {
+      fetchNotifications().then(data => {
+        setApiNotifs(
+          (data || []).filter(n => !n.is_read).map(n => ({
+            id: n.id,
+            icon: n.type === 'order_confirmed' ? '✅' : n.type === 'order_rejected' ? '❌' : n.type === 'order_delivered' ? '🚚' : n.type === 'order_completed' ? '🎉' : '🔔',
+            title: n.title,
+            body: n.body || '',
+            link: n.link || null,
+          }))
+        );
+      }).catch(() => {});
+    };
+    load();
+    const iv = setInterval(load, 30000);
+    return () => clearInterval(iv);
+  }, [user?.id]);
+
+  const dismissTraderNotif = id => {
+    markNotificationRead(id).catch(() => {});
+    setApiNotifs(prev => prev.filter(n => n.id !== id));
+  };
 
   if (!user) return <Navigate to="/login" replace />;
   const activeRole = getActiveRole();
@@ -219,7 +245,9 @@ export default function TraderLayout() {
                 onClick={() => { setNotifOpen(o => !o); setProfileOpen(false); }}
                 aria-label={t.notifications}>
                 🔔
-                <span className="lo-topbar__notif-dot" />
+                {apiNotifs.length > 0
+                  ? <span className="lo-topbar__notif-badge">{apiNotifs.length}</span>
+                  : <span className="lo-topbar__notif-dot" />}
               </button>
               {notifOpen && (
                 <div className="lo-topbar__notif-panel">
@@ -229,7 +257,22 @@ export default function TraderLayout() {
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '14px' }}>✕</button>
                   </div>
                   <div className="lo-topbar__notif-panel-body">
-                    <p className="lo-topbar__notif-empty">{t.noNotifications}</p>
+                    {apiNotifs.length === 0
+                      ? <p className="lo-topbar__notif-empty">{t.noNotifications}</p>
+                      : apiNotifs.map(n => (
+                        <div key={n.id}
+                          className={`dash-notif-card dash-notif-card--task${n.link ? ' dash-notif-card--clickable' : ''}`}
+                          onClick={() => { if (n.link) { navigate(n.link); setNotifOpen(false); } }}>
+                          <span className="dash-notif-icon">{n.icon}</span>
+                          <div className="dash-notif-body">
+                            <strong className="dash-notif-strong">{n.title}</strong>
+                            {n.body && <p>{n.body}</p>}
+                          </div>
+                          <button className="dash-notif-dismiss" type="button"
+                            onClick={e => { e.stopPropagation(); dismissTraderNotif(n.id); }} title="Dismiss">✕</button>
+                        </div>
+                      ))
+                    }
                   </div>
                 </div>
               )}

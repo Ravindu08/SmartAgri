@@ -1,8 +1,11 @@
+import csv
+import io
 from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, EmailStr
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
@@ -14,6 +17,8 @@ from app.models.farm import Farm
 from app.models.marketplace import MarketplaceListing, MarketplaceListingStatus, MarketplaceOrder
 from app.models.user import User, UserRole
 from app.schemas.user import UserRead
+from app.services.auth import generate_verification_token
+from app.services.email import send_verification_email
 
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -386,3 +391,98 @@ def admin_reports(db: Session = Depends(get_db), _: User = Depends(require_admin
         },
         "feedback": {"open": open_feedback},
     }
+
+
+# ── Resend verification ────────────────────────────────────────────────────────
+
+@router.post("/users/{user_id}/resend-verification")
+def admin_resend_verification(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user.is_verified:
+        raise HTTPException(status_code=400, detail="User is already verified")
+    token = generate_verification_token(db, user)
+    send_verification_email(user.email, user.full_name, token)
+    log_activity(db, user_id=user.id, actor_id=admin.id, action="admin_resend_verification",
+                 entity_type="user", details=user.email)
+    return {"message": f"Verification email re-sent to {user.email}"}
+
+
+# ── CSV Exports ────────────────────────────────────────────────────────────────
+
+def _csv_response(rows: list[dict], filename: str) -> StreamingResponse:
+    if not rows:
+        content = ""
+    else:
+        buf = io.StringIO()
+        writer = csv.DictWriter(buf, fieldnames=rows[0].keys())
+        writer.writeheader()
+        writer.writerows(rows)
+        content = buf.getvalue()
+    return StreamingResponse(
+        iter([content]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/export/users.csv")
+def export_users_csv(db: Session = Depends(get_db), _: User = Depends(require_admin)):
+    users = db.execute(select(User).order_by(User.created_at.desc())).scalars().all()
+    rows = [
+        {
+            "id": u.id,
+            "full_name": u.full_name,
+            "email": u.email,
+            "role": u.role.value,
+            "roles": ",".join(u.roles or []),
+            "is_verified": u.is_verified,
+            "is_suspended": u.is_suspended,
+            "created_at": u.created_at.isoformat() if u.created_at else "",
+        }
+        for u in users
+    ]
+    return _csv_response(rows, "smartagri_users.csv")
+
+
+@router.get("/export/orders.csv")
+def export_orders_csv(db: Session = Depends(get_db), _: User = Depends(require_admin)):
+    orders = db.execute(select(MarketplaceOrder).order_by(MarketplaceOrder.created_at.desc())).scalars().all()
+    rows = [
+        {
+            "id": str(o.id),
+            "listing_name": o.listing_name,
+            "buyer": o.buyer_name,
+            "seller": o.seller_name,
+            "quantity": o.requested_quantity,
+            "agreed_price": o.agreed_price or o.proposed_price or "",
+            "status": o.status.value,
+            "created_at": o.created_at.isoformat() if o.created_at else "",
+            "completed_at": o.completed_at.isoformat() if o.completed_at else "",
+        }
+        for o in orders
+    ]
+    return _csv_response(rows, "smartagri_orders.csv")
+
+
+@router.get("/export/activity.csv")
+def export_activity_csv(db: Session = Depends(get_db), _: User = Depends(require_admin)):
+    activities = db.execute(select(UserActivity).order_by(UserActivity.created_at.desc()).limit(5000)).scalars().all()
+    rows = [
+        {
+            "id": a.id,
+            "user_id": a.user_id,
+            "actor_id": a.actor_id,
+            "action": a.action,
+            "entity_type": a.entity_type or "",
+            "details": a.details or "",
+            "created_at": a.created_at.isoformat() if a.created_at else "",
+        }
+        for a in activities
+    ]
+    return _csv_response(rows, "smartagri_activity.csv")

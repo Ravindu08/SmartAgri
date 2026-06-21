@@ -9,6 +9,46 @@ import { T, LAND_T } from '../../data/translations';
 import CultivationTracker from '../../components/CultivationTracker';
 import Toast from '../../components/Toast';
 
+async function exportSessionPDF(session, cropLabel) {
+  const { jsPDF } = await import('jspdf');
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const tasks = Object.values(session.tasks || {}).sort((a, b) => (a.scheduled_date || '').localeCompare(b.scheduled_date || ''));
+  const pageW = doc.internal.pageSize.getWidth();
+
+  // Header
+  doc.setFontSize(20); doc.setTextColor(26, 122, 74);
+  doc.text('SmartAgri — Cultivation Report', 14, 18);
+  doc.setFontSize(12); doc.setTextColor(60, 60, 60);
+  doc.text(`Crop: ${cropLabel}`, 14, 28);
+  doc.text(`Planting Date: ${session.planting_date || '—'}`, 14, 35);
+  doc.text(`Status: ${session.status || '—'}`, 14, 42);
+  doc.text(`Exported: ${new Date().toLocaleDateString()}`, 14, 49);
+
+  // Divider
+  doc.setDrawColor(200); doc.line(14, 53, pageW - 14, 53);
+
+  // Tasks table
+  let y = 60;
+  doc.setFontSize(10); doc.setTextColor(100);
+  doc.text('#', 14, y); doc.text('Task', 22, y); doc.text('Scheduled', 110, y); doc.text('Status', 150, y);
+  y += 4; doc.line(14, y, pageW - 14, y); y += 5;
+
+  doc.setTextColor(40);
+  tasks.forEach((t, i) => {
+    if (y > 270) { doc.addPage(); y = 20; }
+    const statusColor = t.status === 'done' ? [26, 122, 74] : t.status === 'skipped' ? [150, 100, 0] : [80, 80, 80];
+    doc.setTextColor(40);
+    doc.text(String(i + 1), 14, y);
+    doc.text(doc.splitTextToSize(t.title || '', 80).join(' '), 22, y);
+    doc.text(t.scheduled_date || '—', 110, y);
+    doc.setTextColor(...statusColor);
+    doc.text((t.status || '—').toUpperCase(), 150, y);
+    y += 7;
+  });
+
+  doc.save(`cultivation-${cropLabel.replace(/\s+/g, '_')}-${session.id?.slice(-6) || 'report'}.pdf`);
+}
+
 function sessionProgress(session) {
   const tasks = Object.values(session.tasks || {});
   if (!tasks.length) return { done: 0, total: 0, pct: 0, overdue: 0, elapsed: null };
@@ -193,13 +233,24 @@ export default function MyCultivations() {
 
                   <div className="cult-crop-card__actions">
                     {session ? (
-                      <button
-                        className="cult-btn cult-btn-open"
-                        type="button"
-                        onClick={() => { setActiveSessionId(session.id); setView('tracker'); }}
-                      >
-                        {lt.openTrackingBtn}
-                      </button>
+                      <>
+                        <button
+                          className="cult-btn cult-btn-open"
+                          type="button"
+                          onClick={() => { setActiveSessionId(session.id); setView('tracker'); }}
+                        >
+                          {lt.openTrackingBtn}
+                        </button>
+                        <button
+                          className="cult-btn cult-btn-open"
+                          type="button"
+                          style={{ background: 'var(--muted-bg, #e5e7eb)', color: 'var(--text)', fontSize: '12px' }}
+                          onClick={() => exportSessionPDF(session, getCropLabel(crop.crop_name, lang))}
+                          title="Export PDF report"
+                        >
+                          📄 Export PDF
+                        </button>
+                      </>
                     ) : (
                       <button
                         className="cult-btn cult-btn-open"
