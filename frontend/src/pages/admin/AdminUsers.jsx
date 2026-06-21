@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { adminRequest } from '../../services/api';
+import { adminRequest, downloadAdminCSV } from '../../services/api';
 import { useApp } from '../../context/AppContext';
 
 const T = {
@@ -98,10 +98,19 @@ export default function AdminUsers() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <h2 style={{ margin: 0, color: 'var(--text)' }}>{t.title}</h2>
-        <Link to="/admin/users/create" style={{
-          padding: '8px 18px', borderRadius: '8px', background: '#7c3aed', color: '#fff',
-          fontWeight: 600, fontSize: '13px', textDecoration: 'none',
-        }}>{t.addUser}</Link>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => downloadAdminCSV('users').catch(err => alert(err.message))}
+            style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--text)', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}
+          >
+            ⬇ Export CSV
+          </button>
+          <Link to="/admin/users/create" style={{
+            padding: '8px 18px', borderRadius: '8px', background: '#7c3aed', color: '#fff',
+            fontWeight: 600, fontSize: '13px', textDecoration: 'none',
+          }}>{t.addUser}</Link>
+        </div>
       </div>
 
       {/* Filters */}
@@ -160,11 +169,24 @@ export default function AdminUsers() {
                     }}>{u.is_suspended ? t.statusSuspended : t.statusActive}</span>
                   </td>
                   <td style={{ padding: '12px 16px' }}>
-                    <div style={{ display: 'flex', gap: '6px' }}>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                       <button onClick={() => handleSuspend(u)}
                         style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: u.is_suspended ? '#2d6a4f' : '#f57c00' }}>
                         {u.is_suspended ? t.unsuspend : t.suspend}
                       </button>
+                      {!u.is_verified && u.role !== 'Admin' && (
+                        <button onClick={async () => {
+                          try {
+                            await adminRequest(`/users/${u.id}/resend-verification`, { method: 'POST' });
+                            setToast('Verification email resent ✓');
+                          } catch (err) { setToast(err.message); }
+                        }}
+                          style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '6px', border: '1px solid #1a7a4a', background: 'none', cursor: 'pointer', color: '#1a7a4a' }}
+                          title="Resend verification email"
+                        >
+                          ✉ Resend
+                        </button>
+                      )}
                       {u.role !== 'Admin' && (
                         <button onClick={() => handleDelete(u)}
                           style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '6px', border: '1px solid #e53935', background: 'none', cursor: 'pointer', color: '#e53935' }}>

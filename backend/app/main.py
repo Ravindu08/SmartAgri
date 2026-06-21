@@ -16,6 +16,8 @@ from app.db.database import SessionLocal
 from app.routers.admin import router as admin_router
 from app.routers.crop import router as crop_router
 from app.routers.marketplace import router as marketplace_router
+from app.routers.notifications import router as notifications_router
+from app.routers.ratings import router as ratings_router
 from app.services.auth import ensure_admin_user
 from app.routers.farm import router as farm_router
 
@@ -73,6 +75,8 @@ app.include_router(farm_router)
 app.include_router(crop_router)
 app.include_router(marketplace_router)
 app.include_router(admin_router)
+app.include_router(notifications_router, prefix="/api", tags=["notifications"])
+app.include_router(ratings_router, prefix="/api", tags=["ratings"])
 
 
 @app.get("/")

@@ -2,7 +2,7 @@
  * SmartAgri — Marketplace  (Real DB-backed via /api/marketplace/*)
  * ================================================================================== */
 
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import useSWR, { mutate } from 'swr';
 import { request, getAuthSession, getActiveRole, setActiveRole, getUserRoles } from '../services/api';
@@ -596,7 +596,10 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
           Rs. {Number(listing.price_per_unit).toLocaleString()}
           <span className="text-sm font-normal text-muted-foreground">/{listing.unit}</span>
         </div>
-        <p className="text-xs text-muted-foreground mb-4">Seller: {listing.owner_name}</p>
+        <p className="text-xs text-muted-foreground mb-1">Seller: {listing.owner_name}</p>
+        {listing.owner_phone && (
+          <p className="text-xs text-muted-foreground mb-3" style={{ color: 'var(--green-primary)' }}>📞 {listing.owner_phone}</p>
+        )}
 
         <div className="mt-auto flex gap-2">
           {showDelete && isOwn
@@ -617,24 +620,78 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
 
 // ── Listings grid ──────────────────────────────────────────────────────────────
 function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDelete = false }) {
-  const { data, isLoading } = useSWR('/api/marketplace/listings', publicFetcher, { refreshInterval: 5000 });
+  const [filters, setFilters] = useState({ search: '', min_price: '', max_price: '', district: '' });
+
+  const swrKey = useMemo(() => {
+    const p = new URLSearchParams();
+    if (filters.search)    p.set('search', filters.search);
+    if (filters.min_price) p.set('min_price', filters.min_price);
+    if (filters.max_price) p.set('max_price', filters.max_price);
+    if (filters.district)  p.set('district', filters.district);
+    p.set('crop_type', listingType === 'crop' ? '' : 'Fertilizer');
+    const q = p.toString();
+    return `/api/marketplace/listings${q ? `?${q}` : ''}`;
+  }, [filters, listingType]);
+
+  const { data, isLoading } = useSWR(swrKey, publicFetcher, { refreshInterval: 5000 });
   const listings = (data || []).filter(l => (l.listing_type || 'crop') === listingType);
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">{m.loadingCrops}</p>;
-  if (listings.length === 0) {
-    const msg = listingType === 'crop'
-      ? (showDelete ? m.noListingsOwner : m.noListingsTrader)
-      : (showDelete ? m.noProductsTrader : m.noProductsOwner);
-    return (
-      <Card><div className="py-12 text-center text-sm text-muted-foreground">{msg}</div></Card>
-    );
-  }
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {listings.map(l => (
-        <ListingCard key={l.id} listing={l} currentUserId={currentUserId} isAuthenticated={isAuthenticated} m={m} showDelete={showDelete} />
-      ))}
-    </div>
+    <>
+      {/* Filter bar */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px', alignItems: 'center' }}>
+        <input
+          type="text"
+          placeholder="Search by name…"
+          value={filters.search}
+          onChange={e => setFilters(f => ({ ...f, search: e.target.value }))}
+          style={{ flex: '1 1 160px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '13px' }}
+        />
+        <input
+          type="number"
+          placeholder="Min price (Rs.)"
+          value={filters.min_price}
+          onChange={e => setFilters(f => ({ ...f, min_price: e.target.value }))}
+          style={{ flex: '1 1 120px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '13px' }}
+        />
+        <input
+          type="number"
+          placeholder="Max price (Rs.)"
+          value={filters.max_price}
+          onChange={e => setFilters(f => ({ ...f, max_price: e.target.value }))}
+          style={{ flex: '1 1 120px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '13px' }}
+        />
+        <input
+          type="text"
+          placeholder="District…"
+          value={filters.district}
+          onChange={e => setFilters(f => ({ ...f, district: e.target.value }))}
+          style={{ flex: '1 1 120px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '13px' }}
+        />
+        {(filters.search || filters.min_price || filters.max_price || filters.district) && (
+          <button
+            type="button"
+            onClick={() => setFilters({ search: '', min_price: '', max_price: '', district: '' })}
+            style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--muted)', cursor: 'pointer', fontSize: '13px' }}
+          >
+            ✕ Clear
+          </button>
+        )}
+      </div>
+
+      {isLoading
+        ? <p className="text-sm text-muted-foreground">{m.loadingCrops}</p>
+        : listings.length === 0
+          ? <Card><div className="py-12 text-center text-sm text-muted-foreground">
+              {listingType === 'crop' ? (showDelete ? m.noListingsOwner : m.noListingsTrader) : (showDelete ? m.noProductsTrader : m.noProductsOwner)}
+            </div></Card>
+          : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {listings.map(l => (
+                <ListingCard key={l.id} listing={l} currentUserId={currentUserId} isAuthenticated={isAuthenticated} m={m} showDelete={showDelete} />
+              ))}
+            </div>
+      }
+    </>
   );
 }
 
@@ -744,10 +801,66 @@ function NegotiationDialog({ order, isSeller, m }) {
 }
 
 // ── Order card ─────────────────────────────────────────────────────────────────
+function RatingModal({ order, onClose }) {
+  const [score, setScore]   = useState(0);
+  const [hovered, setHover] = useState(0);
+  const [comment, setComment] = useState('');
+  const [busy, setBusy]     = useState(false);
+  const [done, setDone]     = useState(false);
+
+  const submit = async () => {
+    if (!score) { toast.error('Please select a star rating'); return; }
+    setBusy(true);
+    try {
+      await request(`/api/ratings/orders/${order.id}`, { method: 'POST', body: JSON.stringify({ score, comment: comment.trim() || undefined }) });
+      setDone(true);
+      setTimeout(onClose, 1200);
+    } catch (err) { toast.error(err.message); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={onClose}>
+      <div style={{ background: 'var(--card)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '400px', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }} onClick={e => e.stopPropagation()}>
+        {done ? (
+          <div style={{ textAlign: 'center', fontSize: '32px' }}>⭐ Thanks for rating!</div>
+        ) : (
+          <>
+            <h3 style={{ margin: '0 0 8px', color: 'var(--text)', fontSize: '16px' }}>Rate your experience</h3>
+            <p style={{ margin: '0 0 16px', color: 'var(--muted)', fontSize: '13px' }}>{order.listing_name} · Seller: {order.seller_name}</p>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', justifyContent: 'center' }}>
+              {[1, 2, 3, 4, 5].map(s => (
+                <button key={s} type="button" onClick={() => setScore(s)} onMouseEnter={() => setHover(s)} onMouseLeave={() => setHover(0)}
+                  style={{ fontSize: '28px', background: 'none', border: 'none', cursor: 'pointer', transform: (hovered || score) >= s ? 'scale(1.2)' : 'scale(1)', transition: 'transform 0.1s', filter: (hovered || score) >= s ? 'none' : 'grayscale(1)' }}>
+                  ⭐
+                </button>
+              ))}
+            </div>
+            <textarea
+              rows={3}
+              placeholder="Leave a comment (optional)…"
+              value={comment}
+              onChange={e => setComment(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '13px', resize: 'vertical', marginBottom: '12px', boxSizing: 'border-box' }}
+            />
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <button type="button" onClick={onClose} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '13px' }}>Cancel</button>
+              <button type="button" onClick={submit} disabled={busy || !score} style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: 'var(--green-primary)', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600, opacity: (!score || busy) ? 0.6 : 1 }}>
+                {busy ? 'Submitting…' : 'Submit Rating'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function OrderCard({ order, currentUserId, m, showHistory = false }) {
   const isSeller = order.seller_id === currentUserId;
   const isBuyer  = order.buyer_id  === currentUserId;
   const [busy, setBusy] = useState(false);
+  const [ratingOpen, setRatingOpen] = useState(false);
 
   async function updateStatus(newStatus) {
     setBusy(true);
@@ -782,6 +895,12 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
               {isSeller ? `${m.buyer}: ${order.buyer_name}` : `${m.seller}: ${order.seller_name}`}
               {' · '}{new Date(order.created_at).toLocaleDateString()}
             </p>
+            {isSeller && order.buyer_phone && (
+              <p className="text-xs mt-0.5" style={{ color: 'var(--green-primary)' }}>📞 {order.buyer_phone}</p>
+            )}
+            {isBuyer && order.seller_phone && (
+              <p className="text-xs mt-0.5" style={{ color: 'var(--green-primary)' }}>📞 {order.seller_phone}</p>
+            )}
           </div>
         </div>
 
@@ -815,8 +934,16 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
               <CheckCircle2 size={14} />{m.confirmComplete}
             </Btn>
           )}
+
+          {/* Buyer rates completed order */}
+          {isBuyer && order.status === 'Completed' && (
+            <Btn size="sm" variant="outline" onClick={() => setRatingOpen(true)}>
+              ⭐ Rate Seller
+            </Btn>
+          )}
         </div>
       </div>
+      {ratingOpen && <RatingModal order={order} onClose={() => setRatingOpen(false)} />}
     </Card>
   );
 }

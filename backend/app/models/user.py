@@ -43,3 +43,4 @@ class User(Base):
         default=lambda: datetime.now(timezone.utc),
     )
     profile_image: Mapped[str | None] = mapped_column(Text, nullable=True)
+    phone_number: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)

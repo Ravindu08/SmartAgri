@@ -36,8 +36,9 @@ export default function AccountSettings() {
 
   // ── Profile form ──────────────────────────────────────────────────────────
   const [profileForm, setProfileForm] = useState({
-    full_name: user?.full_name || '',
-    email:     user?.email     || '',
+    full_name:    user?.full_name    || '',
+    email:        user?.email        || '',
+    phone_number: user?.phone_number || '',
   });
   const [profileSaving, setProfileSaving] = useState(false);
 
@@ -52,8 +53,9 @@ export default function AccountSettings() {
     setProfileSaving(true);
     try {
       const updated = await updateUserProfile({
-        full_name: profileForm.full_name.trim(),
-        email:     profileForm.email.trim() || undefined,
+        full_name:    profileForm.full_name.trim(),
+        email:        profileForm.email.trim() || undefined,
+        phone_number: profileForm.phone_number.trim() || null,
       });
       updateUserInSession(updated);
       setToast({ type: 'success', message: t.settingsToastProfileSaved });
@@ -185,6 +187,9 @@ export default function AccountSettings() {
         <div style={{ flex: 1 }}>
           <div className="settings-user-name">{user?.full_name}</div>
           <div className="settings-user-meta">{user?.email} · {activeRole} · {t.settingsJoined} {joinDate}</div>
+          {user?.phone_number && (
+            <div className="settings-user-meta" style={{ marginTop: '2px', opacity: 0.8 }}>📞 {user.phone_number}</div>
+          )}
           {user?.profile_image && (
             <button
               className="settings-avatar-remove"
@@ -241,6 +246,19 @@ export default function AccountSettings() {
                 placeholder="your@email.com"
                 required
               />
+            </div>
+            <div className="settings-field">
+              <label htmlFor="phone_number">Phone Number</label>
+              <input
+                id="phone_number"
+                name="phone_number"
+                type="tel"
+                value={profileForm.phone_number}
+                onChange={handleProfileChange}
+                placeholder="+94 77 123 4567"
+                maxLength={20}
+              />
+              <span className="settings-field__hint">Visible to buyers/sellers so they can contact you to negotiate.</span>
             </div>
             <div className="settings-field settings-field--readonly">
               <label>{t.settingsRole}</label>

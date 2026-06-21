@@ -44,6 +44,7 @@ class MarketplaceListingRead(BaseModel):
     id: UUID
     owner_id: int
     owner_name: str
+    owner_phone: Optional[str] = None
     crop_name: str
     crop_type: str
     quantity: float
@@ -84,8 +85,10 @@ class MarketplaceOrderRead(BaseModel):
     listing_name: str
     buyer_id: int
     buyer_name: str
+    buyer_phone: Optional[str] = None
     seller_id: int
     seller_name: str
+    seller_phone: Optional[str] = None
     requested_quantity: float
     proposed_price: Optional[float] = None
     agreed_price: Optional[float] = None

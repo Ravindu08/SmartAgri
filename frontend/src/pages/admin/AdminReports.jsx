@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { adminRequest } from '../../services/api';
+import { adminRequest, downloadAdminCSV } from '../../services/api';
 import { useApp } from '../../context/AppContext';
 
 const T = {
@@ -95,10 +95,20 @@ export default function AdminReports() {
     <div style={{ padding: '28px', maxWidth: '860px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <h2 style={{ margin: 0, color: 'var(--text)' }}>{t.title}</h2>
-        <button onClick={handleExportCSV}
-          style={{ padding: '8px 18px', borderRadius: '8px', border: '1px solid #7c3aed', background: 'none', color: '#7c3aed', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}>
-          {t.exportCsv}
-        </button>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button onClick={handleExportCSV}
+            style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid #7c3aed', background: 'none', color: '#7c3aed', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}>
+            ⬇ Stats CSV
+          </button>
+          <button onClick={() => downloadAdminCSV('orders').catch(e => alert(e.message))}
+            style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--text)', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}>
+            ⬇ Orders CSV
+          </button>
+          <button onClick={() => downloadAdminCSV('activity').catch(e => alert(e.message))}
+            style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--text)', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}>
+            ⬇ Activity CSV
+          </button>
+        </div>
       </div>
 
       <Section title={t.userDist}>
