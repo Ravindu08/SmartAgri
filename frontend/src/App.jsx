@@ -1,8 +1,7 @@
 import { BrowserRouter, Link, Navigate, Route, Routes, useOutletContext } from 'react-router-dom';
 
 // ── Context ───────────────────────────────────────────────────────────────────
-import { AppProvider } from './context/AppContext';
-import { useApp } from './context/AppContext';
+import { AppProvider, useApp } from './context/AppContext';
 
 // ── Layouts ───────────────────────────────────────────────────────────────────
 import AppLayout from './components/AppLayout';

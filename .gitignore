@@ -47,6 +47,3 @@ backend/*.log
 
 # Dev/test helper files
 frontend/public/test-login.html
-
-# Scratch notes
-PostgreSQL.txt

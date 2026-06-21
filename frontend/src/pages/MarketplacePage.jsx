@@ -7,7 +7,7 @@
  * Backend lives in /api/listings, /api/requests, /api/orders (Sprint 4 demo API).
  * ================================================================================= */
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import useSWR, { mutate } from 'swr';
 import { getAuthSession, getActiveRole, setActiveRole, getUserRoles } from '../services/api';
@@ -1271,7 +1271,7 @@ function TransactionsPanel({ role, currentName, m }) {
         </Card>
         <Card>
           <div className="py-4 text-center">
-            <p className="text-2xl font-bold">${totalValue.toFixed(2)}</p>
+            <p className="text-2xl font-bold">Rs. {totalValue.toFixed(2)}</p>
             <p className="text-xs text-muted-foreground">Total Value</p>
           </div>
         </Card>
@@ -1325,7 +1325,6 @@ function Tabs({ tabs, value, onChange }) {
 /* ------------------------------------------------------------------ *
  * Page
  * ------------------------------------------------------------------ */
-const DEFAULT_NAME = { owner: 'Green Valley Farm', trader: 'AgriTrade Co' };
 
 export default function MarketplacePage() {
   const outlet = useOutletContext() || {};
@@ -1346,25 +1345,11 @@ export default function MarketplacePage() {
     setRoleVersion(v => v + 1);
   }
 
-  const [names, setNames] = useState(DEFAULT_NAME);
   const [ownerTab, setOwnerTab] = useState('listings');
   const [traderTab, setTraderTab] = useState('browse');
-  const hydrated = useRef(false);
 
-  // If user is authenticated, lock role to their auth role; otherwise default to 'owner' for demo
   const role = authRole || 'owner';
-
-  useEffect(() => {
-    const storedNames = localStorage.getItem('agri-names');
-    if (storedNames) setNames(JSON.parse(storedNames));
-    hydrated.current = true;
-  }, []);
-  useEffect(() => {
-    if (hydrated.current) localStorage.setItem('agri-names', JSON.stringify(names));
-  }, [names]);
-
-  // Use full_name to match the D:\Claude AI user object shape
-  const currentName = isAuthenticated && user?.full_name ? user.full_name : names[role];
+  const currentName = user?.full_name || 'Guest';
 
   return (
     <div className="marketplace-sprint min-h-screen bg-background">
