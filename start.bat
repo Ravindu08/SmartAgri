@@ -1,48 +1,86 @@
 @echo off
-title SmartAgri Launcher
-echo ============================================
-echo   SmartAgri - Starting all services
-echo ============================================
+setlocal EnableDelayedExpansion
+title SmartAgri - Service Manager
+color 0A
+
+echo.
+echo  ===================================================
+echo   SmartAgri  -  Development Launcher
+echo  ===================================================
 echo.
 
-:: Kill old processes on ports 8000, 8001, and 5173
-echo [1/3] Cleaning up old processes...
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":8001 " ^| findstr "LISTENING"') do (
-    echo       Killing old main backend (PID %%a)
-    taskkill /F /PID %%a >nul 2>&1
+:: ----- [1/5] Kill stale processes on service ports -----
+echo  [1/5]  Cleaning up old processes...
+set KILLED=0
+for %%P in (5173 5174 8000 8001) do (
+    for /f "tokens=5" %%a in ('netstat -aon 2^>nul ^| findstr ":%%P " ^| findstr "LISTENING"') do (
+        if not "%%a"=="0" (
+            taskkill /F /PID %%a >nul 2>&1
+            echo         Killed PID %%a on port %%P
+            set KILLED=1
+        )
+    )
 )
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":8000 " ^| findstr "LISTENING"') do (
-    echo       Killing old ML service (PID %%a)
-    taskkill /F /PID %%a >nul 2>&1
-)
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":5173 " ^| findstr "LISTENING"') do (
-    echo       Killing old frontend (PID %%a)
-    taskkill /F /PID %%a >nul 2>&1
-)
-timeout /t 1 /nobreak >nul
-
-:: Start main backend (auth, farms, crops) on port 8001
-echo [2/3] Starting main backend on http://localhost:8001
-start "SmartAgri Backend" cmd /k "cd /d "%~dp0backend" && uvicorn app.main:app --reload --port 8001"
-
+if "!KILLED!"=="0" echo         No stale processes found.
 timeout /t 2 /nobreak >nul
+echo.
 
-:: Start ML service on port 8000
-echo [2/3] Starting ML service on http://localhost:8000
-start "SmartAgri ML Service" cmd /k "cd /d "%~dp0backend" && uvicorn ml_service.app:app --reload --port 8000"
-
+:: ----- [2/5] PostgreSQL -----
+echo  [2/5]  Starting PostgreSQL (if not already running)...
+net start postgresql-x64-17 >nul 2>&1
+net start postgresql-x64-16 >nul 2>&1
+net start postgresql-x64-15 >nul 2>&1
+net start postgresql       >nul 2>&1
+sc query postgresql-x64-17 2>nul | findstr /C:"RUNNING" >nul 2>&1
+if not errorlevel 1 ( echo         PostgreSQL  [RUNNING] ) else ( echo         PostgreSQL started or already running - check manually if issues arise. )
 timeout /t 2 /nobreak >nul
-
-:: Start frontend on port 5173
-echo [3/3] Starting frontend on http://localhost:5173
-start "SmartAgri Frontend" cmd /k "cd /d "%~dp0frontend" && npm run dev"
-
 echo.
-echo ============================================
-echo   Main Backend -> http://localhost:8001
-echo   ML Service   -> http://localhost:8000
-echo   Frontend     -> http://localhost:5173
-echo ============================================
+
+:: ----- [3/5] Main Backend -----
+echo  [3/5]  Starting Main Backend  (port 8000)...
+start "SmartAgri - Backend" powershell.exe -NoExit -NoProfile -ExecutionPolicy Bypass -File "%~dp0_run_backend.ps1"
+echo         Waiting for backend...
+timeout /t 14 /nobreak >nul
+curl -sf http://localhost:8000/health >nul 2>&1
+if not errorlevel 1 ( echo         Backend  [UP]  http://localhost:8000 ) else ( echo         Backend not ready yet - check its PowerShell window. )
 echo.
-echo All three windows are open. Close them to stop the servers.
+
+:: ----- [4/5] ML Service -----
+echo  [4/5]  Starting ML / AI Service  (port 8001)...
+start "SmartAgri - ML Service" powershell.exe -NoExit -NoProfile -ExecutionPolicy Bypass -File "%~dp0_run_ml.ps1"
+echo         Waiting for ML service...
+timeout /t 12 /nobreak >nul
+curl -sf http://localhost:8001/health >nul 2>&1
+if not errorlevel 1 ( echo         ML Service  [UP]  http://localhost:8001 ) else ( echo         ML service still loading - check its PowerShell window. )
+echo.
+
+:: ----- [5/5] Frontend -----
+echo  [5/5]  Starting Frontend  (port 5173)...
+start "SmartAgri - Frontend" powershell.exe -NoExit -NoProfile -ExecutionPolicy Bypass -File "%~dp0_run_frontend.ps1"
+echo         Waiting for frontend...
+timeout /t 18 /nobreak >nul
+curl -sf http://localhost:5173 >nul 2>&1
+if not errorlevel 1 ( echo         Frontend  [UP]  http://localhost:5173 ) else ( echo         Frontend not ready yet - check its PowerShell window. )
+echo.
+
+:: ----- Summary -----
+echo  ===================================================
+echo   SERVICE           URL
+echo  ---------------------------------------------------
+echo   Database          PostgreSQL  (localhost:5432)
+echo   Main Backend      http://localhost:8000
+echo   ML / AI Service   http://localhost:8001
+echo   Frontend          http://localhost:5173
+echo  ===================================================
+echo.
+echo   Open browser:  http://localhost:5173
+echo.
+echo   Dev logins  (LOCAL ONLY):
+echo     Land Owner / Trader :  induwara.ihalavithana@gmail.com  /  12345678
+echo     Admin               :  admin@smartagri.lk  /  admin1234
+echo.
+echo   3 PowerShell windows are keeping the services alive.
+echo   To stop: close those 3 windows or press Ctrl+C inside each.
+echo  ===================================================
+echo.
 pause

@@ -123,7 +123,7 @@ export default function YieldPrice({ lang }) {
       {/* ── Hero ── */}
       <div className="yp-hero">
         <div className="yp-hero-inner">
-          <div className="yp-hero-badge">📊 Yield &amp; Price Estimator</div>
+          <div className="yp-hero-badge">{t.yieldHeroBadge || "📊 Yield & Price Estimator"}</div>
           <h1 className="yp-hero-title">{t.yieldPriceTitle || <><span>Yield</span> &amp; Price Estimator</>}</h1>
           <p className="yp-hero-sub">
             {t.yieldPriceSub || "Estimate expected harvest, farming cost, selling price, and profit using simple land and crop details."}

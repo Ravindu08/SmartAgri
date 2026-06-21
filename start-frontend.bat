@@ -1,18 +1,22 @@
 @echo off
-title SmartAgri Frontend
-echo [SmartAgri] Starting frontend on port 5173...
+setlocal
+title SmartAgri - Frontend (port 5173)
 
-:: Kill any process already using port 5173
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":5173 " ^| findstr "LISTENING"') do (
-    echo [SmartAgri] Killing old process on port 5173 (PID %%a)
-    taskkill /F /PID %%a >nul 2>&1
+echo.
+echo  [SmartAgri] Stopping any existing process on ports 5173 and 5174...
+for %%P in (5173 5174) do (
+    for /f "tokens=5" %%a in ('netstat -aon 2^>nul ^| findstr ":%%P " ^| findstr "LISTENING"') do (
+        if not "%%a"=="0" (
+            taskkill /F /PID %%a >nul 2>&1
+            echo  [SmartAgri] Killed PID %%a  (port %%P)
+        )
+    )
 )
+timeout /t 2 /nobreak >nul
 
-:: Short pause to let the port free up
-timeout /t 1 /nobreak >nul
-
-:: Start Vite
+echo  [SmartAgri] Starting Frontend on http://localhost:5173
 cd /d "%~dp0frontend"
 npm run dev
 
+echo.
 pause

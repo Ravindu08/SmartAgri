@@ -10,19 +10,37 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.auth import router as auth_router
 from app.db.database import SessionLocal
+from app.routers.admin import router as admin_router
 from app.routers.crop import router as crop_router
+from app.routers.marketplace import router as marketplace_router
+from app.routers.sprint_marketplace import router as sprint_marketplace_router
+from app.services.sprint_marketplace_store import seed_demo_data
 from app.services.auth import ensure_admin_user
 from app.routers.farm import router as farm_router
+
+
+def _run_migrations() -> None:
+    try:
+        from alembic.config import Config
+        from alembic import command as alembic_command
+        ini = Path(__file__).resolve().parents[1] / "alembic.ini"
+        cfg = Config(str(ini))
+        cfg.set_main_option("script_location", str(Path(__file__).resolve().parents[1] / "alembic"))
+        alembic_command.upgrade(cfg, "head")
+    except Exception as exc:
+        print(f"[startup] migration warning: {exc}")
 
 
 # ── Lifespan (replaces deprecated @app.on_event) ─────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    _run_migrations()
     db = SessionLocal()
     try:
         ensure_admin_user(db)
     finally:
         db.close()
+    seed_demo_data()
     yield  # app runs here
 
 
@@ -53,6 +71,9 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(farm_router)
 app.include_router(crop_router)
+app.include_router(marketplace_router)
+app.include_router(sprint_marketplace_router)
+app.include_router(admin_router)
 
 
 @app.get("/")

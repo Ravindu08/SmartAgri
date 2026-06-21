@@ -170,13 +170,13 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
   const [soilType,   setSoilTypeRaw]   = useState(() => ssGet("sa_soil"));
   const [irrigation, setIrrigationRaw] = useState(() => ssGet("sa_irr"));
   const [season,     setSeasonRaw]     = useState(() => ssGet("sa_season"));
-  const [N,   setNRaw]    = useState(() => ssGet("sa_N"));
-  const [P,   setPRaw]    = useState(() => ssGet("sa_P"));
-  const [K,   setKRaw]    = useState(() => ssGet("sa_K"));
-  const [temp,setTempRaw] = useState(() => ssGet("sa_temp"));
-  const [rain,setRainRaw] = useState(() => ssGet("sa_rain"));
-  const [ph,  setPhRaw]   = useState(() => ssGet("sa_ph"));
-  const [hum, setHumRaw]  = useState(() => ssGet("sa_hum"));
+  const [N,   setNRaw]    = useState(() => ssGet("sa_N")    || "100");
+  const [P,   setPRaw]    = useState(() => ssGet("sa_P")    || "60");
+  const [K,   setKRaw]    = useState(() => ssGet("sa_K")    || "91");
+  const [temp,setTempRaw] = useState(() => ssGet("sa_temp") || "27");
+  const [rain,setRainRaw] = useState(() => ssGet("sa_rain") || "1051");
+  const [ph,  setPhRaw]   = useState(() => ssGet("sa_ph")   || "6.3");
+  const [hum, setHumRaw]  = useState(() => ssGet("sa_hum")  || "72");
 
   const mkSet = (raw, key) => v => { raw(v); ssSet(key, v); };
   const setDistrict   = mkSet(setDistrictRaw,   "sa_district");
@@ -313,8 +313,6 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
       setHistory(loadHistory());
 
     } catch (e) {
-      // Backend unreachable — use mock BUT show a prominent warning
-      console.warn("Backend unreachable, using preview mock:", e.message);
       await new Promise(r => setTimeout(r, 1300));
       setResult(mockPredict(soilType, season, irrigation, { N, P, K, temp, rain, ph, hum }));
       setIsMock(true);

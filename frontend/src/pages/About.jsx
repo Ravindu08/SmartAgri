@@ -4,18 +4,17 @@ const ABOUT_T = {
   en: {
     heroBadge:      "About This Project",
     heroTitle:      "About SmartAgri",
-    heroSub:        "A smart agriculture decision support system designed to help Sri Lankan farmers and land owners make better crop planning decisions.",
+    heroSub:        "A smart agriculture platform connecting Sri Lankan farmers, land owners, and traders — with AI-powered crop planning, a live marketplace, and full administrative oversight.",
     problemTitle:   "The Problem",
     problemText:    "Many farmers and land owners face difficulty choosing the most suitable crop for their land. They may not know the correct planting season, soil requirements, fertilizer needs, expected yield, production cost, or selling price. Without reliable information, farming decisions can lead to poor harvests and financial loss.",
     solutionTitle:  "Our Solution",
-    solutionText:   "SmartAgri supports users with AI-powered crop recommendation, explainable results, step-by-step crop guidance, yield and price estimation, and weather-based farming advice — all tailored for Sri Lankan agro-ecological conditions.",
+    solutionText:   "SmartAgri supports users with AI-powered crop recommendation, explainable results, step-by-step crop guidance, yield and price estimation, weather-based farming advice, and a full peer-to-peer crop marketplace — all tailored for Sri Lankan agro-ecological conditions.",
     modulesTitle:   "System Modules",
-    modulesSub:     "Four active tools covering the full crop planning journey",
+    modulesSub:     "Five active modules covering the full farming journey",
     teamTitle:      "Project Team",
     teamSub:        "Developed as an academic project for Sri Lankan agriculture",
-    techTitle:      "Technology",
-    techSub:        "Built with modern, accessible tools",
-    comingSoon:     "Coming Soon",
+    techTitle:      "Technology Stack",
+    techSub:        "Built with modern, production-grade tools",
     sysLabel:       "System",
     teamLabel:      "Team",
     stackLabel:     "Stack",
@@ -23,17 +22,18 @@ const ABOUT_T = {
     missionTitle:   "What drives us",
     missionSub:     "We believe every Sri Lankan farmer deserves access to the best agricultural intelligence.",
     missionCardTitle: "Our Mission",
-    missionCardText:  "Empower Sri Lankan farmers and land owners with AI-driven insights to make better crop decisions, reduce losses, and improve livelihoods — for free.",
+    missionCardText:  "Empower Sri Lankan farmers, land owners, and traders with AI-driven insights and a connected marketplace to make better decisions, reduce losses, and improve livelihoods — for free.",
     visionCardTitle: "Our Vision",
-    visionCardText:  "A future where every farmer has the same quality of agricultural intelligence, regardless of where they are or what resources they have.",
+    visionCardText:  "A future where every farmer has the same quality of agricultural intelligence and market access, regardless of where they are or what resources they have.",
     impactLabel:    "IMPACT",
     impactTitle:    "Designed for real-world results",
     impactNums: [
-      { num: "4",    suffix: "",  label: "AI-Powered Tools" },
-      { num: "5",    suffix: "+", label: "Crop Guidance Modules" },
+      { num: "5",    suffix: "",  label: "Platform Modules" },
+      { num: "3",    suffix: "",  label: "User Roles" },
       { num: "25",   suffix: "+", label: "Sri Lankan Districts" },
-      { num: "100",  suffix: "%", label: "Open Source" },
+      { num: "20",   suffix: "+", label: "Application Pages" },
     ],
+    builtByLabel:   "Built by",
     contactLabel:   "Contact",
     contactTitle:   "Contact Us",
     contactSub:     "Have questions or feedback? Reach out to the SmartAgri team.",
@@ -45,18 +45,17 @@ const ABOUT_T = {
   si: {
     heroBadge:      "ව්‍යාපෘතිය ගැන",
     heroTitle:      "SmartAgri ගැන",
-    heroSub:        "ශ්‍රී ලාංකික ගොවීන් සහ ඉඩම් හිමියන්ට වඩා හොඳ බෝග සැලසුම් තීරණ ගැනීමට සහාය වීමට නිර්මාණය කරන ලද ස්මාර්ට් කෘෂිකාර්මික තීරණ සහාය පද්ධතිය.",
+    heroSub:        "ශ්‍රී ලාංකික ගොවීන්, ඉඩම් හිමියන් සහ වෙළෙඳුන් සම්බන්ධ කරන AI-ශක්‍ය ගොවිතැන් වේදිකාව.",
     problemTitle:   "ගැටළුව",
-    problemText:    "බොහෝ ගොවීන් සහ ඉඩම් හිමියන් ඔවුන්ගේ ඉඩමට වඩාත් සුදුසු බෝගය තෝරා ගැනීමේ දුෂ්කරතාවන්ට මුහුණ දෙති. නිවැරදි රෝපණ කාලය, පාංශු අවශ්‍යතා, පොහොර අවශ්‍යතා, අපේක්ෂිත අස්වැන්න, නිෂ්පාදන පිරිවැය හෝ විකිණීමේ මිල ගැන ඔවුන්ට නොදැනෙනු ඇත.",
+    problemText:    "බොහෝ ගොවීන් සහ ඉඩම් හිමියන් ඔවුන්ගේ ඉඩමට වඩාත් සුදුසු බෝගය තෝරා ගැනීමේ දුෂ්කරතාවන්ට මුහුණ දෙති.",
     solutionTitle:  "අපගේ විසඳුම",
-    solutionText:   "SmartAgri, AI-පදනම් බෝග නිර්දේශය, පැහැදිලි ප්‍රතිඵල, ක්‍රමානුකූල බෝග මාර්ගෝපදේශය, අස්වැන්න සහ මිල ගණනය, සහ කාලගුණ-පදනම් ගොවිතැන් උපදෙස් සමඟ ශ්‍රී ලාංකික කෘෂිකාර්මික-පාරිසරික තත්ත්ව සඳහා සකස් කරන ලද සහාය ලබා දෙයි.",
+    solutionText:   "SmartAgri, AI-පදනම් බෝග නිර්දේශය, ක්‍රමානුකූල බෝග මාර්ගෝපදේශය, අස්වැන්න ගණනය, කාලගුණ උපදෙස් සහ සම්පූර්ණ වෙළඳ වේදිකාව ලබා දෙයි.",
     modulesTitle:   "පද්ධති මොඩියුල",
-    modulesSub:     "සම්පූර්ණ බෝග සැලසුම් ගමනාන්තය ආවරණය කරන ක්‍රියාකාරී මෙවලම් හතරක්",
+    modulesSub:     "සම්පූර්ණ ගොවිතැන් ගමනාන්තය ආවරණය කරන ක්‍රියාකාරී මොඩියුල පහක්",
     teamTitle:      "ව්‍යාපෘති කණ්ඩායම",
     teamSub:        "ශ්‍රී ලාංකික කෘෂිකාර්මය සඳහා අධ්‍යයනික ව්‍යාපෘතියක් ලෙස සකස් කරන ලදී",
-    techTitle:      "තාක්ෂණය",
-    techSub:        "නවීන, ප්‍රවේශ හැකි මෙවලම් සමඟ ගොඩ නගන ලදී",
-    comingSoon:     "ළඟදීම",
+    techTitle:      "තාක්ෂණ ස්ටැක්",
+    techSub:        "නවීන, නිෂ්පාදන-ශ්‍රේණි මෙවලම් සමඟ ගොඩ නගන ලදී",
     sysLabel:       "පද්ධතිය",
     teamLabel:      "කණ්ඩායම",
     stackLabel:     "තාක්ෂණ",
@@ -64,17 +63,18 @@ const ABOUT_T = {
     missionTitle:   "අපව ගෙනයන්නේ කුමක්ද",
     missionSub:     "ශ්‍රී ලාංකික සෑම ගොවියෙකුම හොඳම කෘෂිකාර්මික බුද්ධිය ලැබිය යුතු බව අපි විශ්වාස කරමු.",
     missionCardTitle: "අපගේ මෙහෙවර",
-    missionCardText:  "ශ්‍රී ලාංකික ගොවීන් සහ ඉඩම් හිමිකරුවන් AI-ධාවිත විශ්ලේෂණ සමඟ සවිබල ගැන්වීම — නොමිලේ.",
+    missionCardText:  "ශ්‍රී ලාංකික ගොවීන් AI-ධාවිත විශ්ලේෂණ සහ සම්බන්ධිත වෙළඳ වේදිකාවක් සමඟ සවිබල ගැන්වීම — නොමිලේ.",
     visionCardTitle: "අපගේ දැක්ම",
-    visionCardText:  "සෑම ගොවියෙකුටම ඔවුන් සිටින ස්ථානය හෝ ඔවුන් සතු සම්පත් නොසලකා හොඳම කෘෂිකාර්මික බුද්ධිය ලැබෙන අනාගතයක්.",
+    visionCardText:  "සෑම ගොවියෙකුටම ඔවුන් සිටින ස්ථානය නොසලකා හොඳම කෘෂිකාර්මික බුද්ධිය සහ වෙළඳ ප්‍රවේශය ලැබෙන අනාගතයක්.",
     impactLabel:    "බලපෑම",
     impactTitle:    "සැබෑ ප්‍රතිඵල සඳහා සැලසුම් කරන ලදී",
     impactNums: [
-      { num: "4",    suffix: "",  label: "AI-ශක්‍ය මෙවලම්" },
-      { num: "5",    suffix: "+", label: "බෝග මාර්ගෝපදේශ" },
+      { num: "5",    suffix: "",  label: "වේදිකා මොඩියුල" },
+      { num: "3",    suffix: "",  label: "පරිශීලක භූමිකා" },
       { num: "25",   suffix: "+", label: "ශ්‍රී ලාංකික දිස්ත්‍රික්ක" },
-      { num: "100",  suffix: "%", label: "විවෘත මූලාශ්‍ර" },
+      { num: "20",   suffix: "+", label: "යෙදුම් පිටු" },
     ],
+    builtByLabel:   "ගොඩනඟන ලදී",
     contactLabel:   "සම්බන්ධතා",
     contactTitle:   "සම්බන්ධ කරගන්න",
     contactSub:     "ප්‍රශ්න හෝ ප්‍රතිපෝෂණ ඇතිද? SmartAgri කණ්ඩායමට සම්බන්ධ වන්න.",
@@ -86,18 +86,17 @@ const ABOUT_T = {
   ta: {
     heroBadge:      "இந்த திட்டத்தைப் பற்றி",
     heroTitle:      "SmartAgri பற்றி",
-    heroSub:        "இலங்கை விவசாயிகள் மற்றும் நில உரிமையாளர்களுக்கு சிறந்த பயிர் திட்டமிடல் முடிவுகளை எடுக்க உதவும் வகையில் வடிவமைக்கப்பட்ட ஸ்மார்ட் வேளாண் முடிவு ஆதரவு அமைப்பு.",
+    heroSub:        "இலங்கை விவசாயிகள், நில உரிமையாளர்கள் மற்றும் வர்த்தகர்களை இணைக்கும் AI-இயக்கப்படும் விவசாய தளம்.",
     problemTitle:   "பிரச்சனை",
-    problemText:    "பல விவசாயிகள் மற்றும் நில உரிமையாளர்கள் தங்கள் நிலத்திற்கு மிகவும் பொருத்தமான பயிரை தேர்வு செய்வதில் சிரமப்படுகிறார்கள். சரியான நடவு காலம், மண் தேவைகள், உர தேவைகள், எதிர்பார்க்கப்படும் மகசூல், உற்பத்தி செலவு அல்லது விற்பனை விலை பற்றி அவர்களுக்கு தெரியாமல் இருக்கலாம்.",
+    problemText:    "பல விவசாயிகள் மற்றும் நில உரிமையாளர்கள் தங்கள் நிலத்திற்கு மிகவும் பொருத்தமான பயிரை தேர்வு செய்வதில் சிரமப்படுகிறார்கள்.",
     solutionTitle:  "எங்கள் தீர்வு",
-    solutionText:   "SmartAgri, AI-இயக்கப்படும் பயிர் பரிந்துரை, விளக்கமான முடிவுகள், படிப்படியான பயிர் வழிகாட்டுதல், மகசூல் மற்றும் விலை மதிப்பீடு, மற்றும் வானிலை அடிப்படையிலான விவசாய ஆலோசனை — இலங்கை வேளாண்-சுற்றுச்சூழல் நிலைமைகளுக்கு ஏற்றவாறு வழங்குகிறது.",
+    solutionText:   "SmartAgri, AI பயிர் பரிந்துரை, படிப்படியான வழிகாட்டுதல், மகசூல் மதிப்பீடு, வானிலை ஆலோசனை மற்றும் முழுமையான வர்த்தக தளம் வழங்குகிறது.",
     modulesTitle:   "அமைப்பு தொகுதிகள்",
-    modulesSub:     "முழு பயிர் திட்டமிடல் பயணத்தை உள்ளடக்கிய நான்கு செயலில் உள்ள கருவிகள்",
+    modulesSub:     "முழு விவசாய பயணத்தை உள்ளடக்கிய ஐந்து செயலில் உள்ள தொகுதிகள்",
     teamTitle:      "திட்ட குழு",
     teamSub:        "இலங்கை வேளாண்மைக்காக ஒரு கல்வி திட்டமாக உருவாக்கப்பட்டது",
-    techTitle:      "தொழில்நுட்பம்",
-    techSub:        "நவீன, அணுகக்கூடிய கருவிகளுடன் கட்டப்பட்டது",
-    comingSoon:     "விரைவில்",
+    techTitle:      "தொழில்நுட்ப அடுக்கு",
+    techSub:        "நவீன, தரமான கருவிகளுடன் கட்டப்பட்டது",
     sysLabel:       "அமைப்பு",
     teamLabel:      "குழு",
     stackLabel:     "தொழில்நுட்பம்",
@@ -105,17 +104,18 @@ const ABOUT_T = {
     missionTitle:   "எங்களை இயக்குவது என்ன",
     missionSub:     "ஒவ்வொரு இலங்கை விவசாயியும் சிறந்த வேளாண் நுண்ணறிவை அணுக தகுதியானவர் என்று நாங்கள் நம்புகிறோம்.",
     missionCardTitle: "எங்கள் நோக்கம்",
-    missionCardText:  "இலங்கை விவசாயிகள் மற்றும் நில உரிமையாளர்களை AI நுண்ணறிவுடன் வலுப்படுத்துவது — இலவசமாக.",
+    missionCardText:  "இலங்கை விவசாயிகளை AI நுண்ணறிவு மற்றும் இணைக்கப்பட்ட சந்தையுடன் வலுப்படுத்துவது — இலவசமாக.",
     visionCardTitle: "எங்கள் தொலைநோக்கு",
-    visionCardText:  "ஒவ்வொரு விவசாயியும் அவர்கள் இருக்கும் இடம் அல்லது வளங்களைப் பொருட்படுத்தாமல் சிறந்த வேளாண் நுண்ணறிவை பெறும் எதிர்காலம்.",
+    visionCardText:  "ஒவ்வொரு விவசாயியும் அவர்கள் இருக்கும் இடம் பொருட்படுத்தாமல் சிறந்த வேளாண் நுண்ணறிவு மற்றும் சந்தை அணுகலைப் பெறும் எதிர்காலம்.",
     impactLabel:    "தாக்கம்",
     impactTitle:    "உண்மையான முடிவுகளுக்கு வடிவமைக்கப்பட்டது",
     impactNums: [
-      { num: "4",    suffix: "",  label: "AI கருவிகள்" },
-      { num: "5",    suffix: "+", label: "பயிர் வழிகாட்டல்" },
+      { num: "5",    suffix: "",  label: "தள தொகுதிகள்" },
+      { num: "3",    suffix: "",  label: "பயனர் பாத்திரங்கள்" },
       { num: "25",   suffix: "+", label: "இலங்கை மாவட்டங்கள்" },
-      { num: "100",  suffix: "%", label: "திறந்த மூலம்" },
+      { num: "20",   suffix: "+", label: "பயன்பாட்டு பக்கங்கள்" },
     ],
+    builtByLabel:   "கட்டினவர்",
     contactLabel:   "தொடர்பு",
     contactTitle:   "தொடர்பு கொள்ளுங்கள்",
     contactSub:     "கேள்விகள் அல்லது கருத்துக்கள் உள்ளதா? SmartAgri குழுவை தொடர்பு கொள்ளுங்கள்.",
@@ -129,7 +129,7 @@ const ABOUT_T = {
 const MODULES = [
   {
     icon: "🌱",
-    en: { name: "Crop Recommendation", desc: "Suggests suitable crops using soil type, nutrient levels, climate, season, irrigation, and agro-zone inputs. Powered by a machine learning model with explainable AI." },
+    en: { name: "Crop Recommendation", desc: "Suggests suitable crops using soil type, nutrient levels, climate, season, irrigation, and agro-zone inputs. Powered by a machine learning model with explainable AI output." },
     si: { name: "බෝග නිර්දේශය", desc: "පාංශු වර්ගය, පෝෂක මට්ටම්, කාලගුණය, කන්නය, ජලය සැපයීම සහ කලාප දත්ත භාවිත කර සුදුසු බෝග යෝජනා කරයි." },
     ta: { name: "பயிர் பரிந்துரை", desc: "மண் வகை, ஊட்டச்சத்து அளவுகள், காலநிலை, பருவகாலம், நீர்ப்பாசனம் மற்றும் மண்டல உள்ளீடுகளைப் பயன்படுத்தி பொருத்தமான பயிர்களை பரிந்துரைக்கிறது." },
     ready: true,
@@ -138,50 +138,73 @@ const MODULES = [
     icon: "📋",
     en: { name: "Crop Guidance", desc: "Provides stage-wise farming guidance including growth stages, activities, fertilization schedule, irrigation, disease and pest management, and harvest information." },
     si: { name: "බෝග මාර්ගෝපදේශය", desc: "වර්ධන අදියර, ක්‍රියාකාරකම්, පොහොර කාලසටහන, ජලය, රෝග සහ කෘමි කළමනාකරණය, සහ අස්වනු නෙළීමේ තොරතුරු ඇතුළු ක්‍රමවත් ගොවිතැන් මාර්ගෝපදේශය." },
-    ta: { name: "பயிர் வழிகாட்டி", desc: "வளர்ச்சி நிலைகள், நடவடிக்கைகள், உர அட்டவணை, நீர்ப்பாசனம், நோய் மற்றும் பூச்சி மேலாண்மை, மற்றும் அறுவடை தகவல் உட்பட படிப்படியான விவசாய வழிகாட்டுதல்." },
+    ta: { name: "பயிர் வழிகாட்டி", desc: "வளர்ச்சி நிலைகள், நடவடிக்கைகள், உர அட்டவணை, நீர்ப்பாசனம், நோய் மற்றும் பூச்சி மேலாண்மை மற்றும் அறுவடை தகவல் உட்பட படிப்படியான விவசாய வழிகாட்டுதல்." },
     ready: true,
   },
   {
     icon: "📊",
-    en: { name: "Yield & Price Estimation", desc: "Estimates expected harvest quantity based on land size, crop type, germination rate, and conditions. Also calculates production cost, selling price, and expected profit." },
-    si: { name: "අස්වැන්න සහ මිල ගණනය", desc: "ඉඩම් ප්‍රමාණය, බෝග වර්ගය, ශාකෝදේ වීජ අනුපාතය සහ කොන්දේසි මත අපේක්ෂිත අස්වැන්න ගණනය කරයි. නිෂ්පාදන පිරිවැය, විකිණීමේ මිල සහ ලාභය ද ගණනය කරයි." },
-    ta: { name: "மகசூல் & விலை மதிப்பீடு", desc: "நில அளவு, பயிர் வகை, முளைப்பு வீதம் மற்றும் நிலைமைகளின் அடிப்படையில் எதிர்பார்க்கப்படும் மகசூலை மதிப்பிடுகிறது. உற்பத்தி செலவு, விற்பனை விலை மற்றும் லாபத்தையும் கணக்கிடுகிறது." },
+    en: { name: "Yield & Price Estimation", desc: "Estimates expected harvest quantity based on land size, crop type, and germination rate. Also calculates production cost, selling price, and expected profit margin." },
+    si: { name: "අස්වැන්න සහ මිල ගණනය", desc: "ඉඩම් ප්‍රමාණය, බෝග වර්ගය සහ ශාකෝදේ වීජ අනුපාතය මත අපේක්ෂිත අස්වැන්න ගණනය කරයි. නිෂ්පාදන පිරිවැය, විකිණීමේ මිල සහ ලාභය ද ගණනය කරයි." },
+    ta: { name: "மகசூல் & விலை மதிப்பீடு", desc: "நில அளவு, பயிர் வகை மற்றும் முளைப்பு வீதத்தின் அடிப்படையில் எதிர்பார்க்கப்படும் மகசூலை மதிப்பிடுகிறது. உற்பத்தி செலவு, விற்பனை விலை மற்றும் லாபத்தையும் கணக்கிடுகிறது." },
     ready: true,
   },
   {
     icon: "🌤️",
-    en: { name: "Weather Advice", desc: "Fetches live weather data for Sri Lankan districts and provides farming-relevant advice including temperature, humidity, rainfall forecast, and risk alerts." },
-    si: { name: "කාලගුණ උපදෙස්", desc: "ශ්‍රී ලාංකික දිස්ත්‍රික්ක සඳහා සජීවී කාලගුණ දත්ත ලබා ගෙන උෂ්ණත්වය, ආර්ද්‍රතාවය, වර්ෂාපතන අනාවැකිය සහ අවදානම් ඇඟවීම් ඇතුළු ගොවිතැනට අදාළ උපදෙස් ලබා දෙයි." },
-    ta: { name: "வானிலை ஆலோசனை", desc: "இலங்கை மாவட்டங்களுக்கான நேரடி வானிலை தரவை பெற்று வெப்பநிலை, ஈரப்பதம், மழை முன்னறிவிப்பு மற்றும் ஆபத்து எச்சரிக்கைகள் உட்பட விவசாயம் தொடர்பான ஆலோசனைகளை வழங்குகிறது." },
+    en: { name: "Weather Advice", desc: "Fetches live weather data for Sri Lankan districts and provides farming-relevant advice including temperature, humidity, rainfall forecast, and field risk alerts." },
+    si: { name: "කාලගුණ උපදෙස්", desc: "ශ්‍රී ලාංකික දිස්ත්‍රික්ක සඳහා සජීවී කාලගුණ දත්ත ලබා ගෙන උෂ්ණත්වය, ආර්ද්‍රතාවය, වර්ෂාපතන අනාවැකිය සහ අවදානම් ඇඟවීම් ලබා දෙයි." },
+    ta: { name: "வானிலை ஆலோசனை", desc: "இலங்கை மாவட்டங்களுக்கான நேரடி வானிலை தரவை பெற்று வெப்பநிலை, ஈரப்பதம், மழை முன்னறிவிப்பு மற்றும் ஆபத்து எச்சரிக்கைகளை வழங்குகிறது." },
     ready: true,
   },
   {
     icon: "🏪",
-    en: { name: "Market Prices", desc: "Will display current market prices for agricultural products across Sri Lanka to help farmers make informed selling decisions." },
-    si: { name: "වෙළඳපොල මිල", desc: "ගොවීන්ට දැනුවත් විකිණීමේ තීරණ ගැනීමට ශ්‍රී ලංකාව පුරා කෘෂිකාර්මික නිෂ්පාදන සඳහා වත්මන් වෙළඳපොල මිල ප්‍රදර්ශනය කරනු ඇත." },
-    ta: { name: "சந்தை விலைகள்", desc: "விவசாயிகளுக்கு தெரிவுசெய்யப்பட்ட விற்பனை முடிவுகளை எடுக்க இலங்கை முழுவதும் விவசாய பொருட்களுக்கான தற்போதைய சந்தை விலைகளை காண்பிக்கும்." },
-    ready: false,
+    en: { name: "Crop Marketplace", desc: "A full peer-to-peer trading platform connecting land owners and traders. Supports live crop listings, purchase request negotiation, order tracking, and complete transaction history." },
+    si: { name: "ගොවිතැන් වෙළඳ වේදිකාව", desc: "ඉඩම් හිමියන් සහ වෙළෙඳුන් සම්බන්ධ කරන සම්පූර්ණ P2P වෙළඳ වේදිකාවක්. සජීවී බෝග ලැයිස්තු, මිල ගනුදෙනු, ඇණවුම් කළමනාකරණය සහ ගනුදෙනු ඉතිහාසය." },
+    ta: { name: "பயிர் சந்தை", desc: "நில உரிமையாளர்கள் மற்றும் வர்த்தகர்களை இணைக்கும் முழுமையான P2P வர்த்தக தளம். நேரடி பயிர் பட்டியல்கள், விலை பேரம், ஆர்டர் மேலாண்மை மற்றும் பரிவர்த்தனை வரலாறு." },
+    ready: true,
   },
 ];
 
 const TEAM = [
-  { name: "Induwara", role: "Full-Stack Developer & ML Integration", initial: "I" },
-  { name: "Dilini",   role: "Frontend Developer & UI Design", initial: "D" },
-  { name: "Nuha",     role: "Backend Developer & Database Design", initial: "N" },
-  { name: "Ravindu",  role: "API Integration & System Architecture", initial: "R" },
+  {
+    name: "Induwara",
+    role: "Lead Full-Stack Developer",
+    initial: "I",
+    lead: true,
+    built: ["Trader Module", "Admin Dashboard", "Marketplace", "Navigation & i18n", "Dark Mode", "Multi-role System", "Admin API"],
+  },
+  {
+    name: "Dilini",
+    role: "Frontend Developer & UI Design",
+    initial: "D",
+    built: ["Crop Recommendation UI", "Land Owner Module", "Design System"],
+  },
+  {
+    name: "Nuha",
+    role: "Backend Developer & Database",
+    initial: "N",
+    built: ["Database Design", "REST API", "Authentication"],
+  },
+  {
+    name: "Ravindu",
+    role: "ML & System Architecture",
+    initial: "R",
+    built: ["ML Models", "Weather API", "Yield Estimation"],
+  },
 ];
 
 const TECH_STACK = [
-  { icon: "⚛️",  name: "React 18",    desc: "Frontend framework" },
-  { icon: "⚡",  name: "Vite",        desc: "Build tool" },
-  { icon: "🐍",  name: "Python / FastAPI", desc: "Backend API" },
-  { icon: "🤖",  name: "Scikit-learn", desc: "ML model" },
-  { icon: "🌐",  name: "Open-Meteo",  desc: "Weather data" },
-  { icon: "🎨",  name: "Plain CSS",   desc: "Design system" },
+  { icon: "⚛️",  name: "React 18",       desc: "Frontend framework" },
+  { icon: "⚡",  name: "Vite",           desc: "Build tool & HMR" },
+  { icon: "🐍",  name: "FastAPI",        desc: "Backend REST API" },
+  { icon: "🐘",  name: "PostgreSQL",     desc: "Relational database" },
+  { icon: "🤖",  name: "Scikit-learn",   desc: "ML crop model" },
+  { icon: "🌐",  name: "Open-Meteo",     desc: "Live weather data" },
+  { icon: "🎨",  name: "Tailwind CSS",   desc: "UI utility classes" },
+  { icon: "🔗",  name: "SQLAlchemy",     desc: "ORM & migrations" },
 ];
 
 export default function About({ lang }) {
-  const t  = ABOUT_T[lang] || ABOUT_T.en;
+  const t = ABOUT_T[lang] || ABOUT_T.en;
 
   return (
     <div className="about-page">
@@ -255,13 +278,10 @@ export default function About({ lang }) {
             {MODULES.map((mod, i) => {
               const content = mod[lang] || mod.en;
               return (
-                <div key={i} className={`about-module-card${!mod.ready ? " about-module-card--coming" : ""}`}>
+                <div key={i} className="about-module-card">
                   <div className="about-module-top">
                     <div className="about-module-icon">{mod.icon}</div>
                     <div className="about-module-title">{content.name}</div>
-                    {!mod.ready && (
-                      <span className="about-module-soon">{t.comingSoon}</span>
-                    )}
                   </div>
                   <p className="about-module-desc">{content.desc}</p>
                 </div>
@@ -278,10 +298,19 @@ export default function About({ lang }) {
 
           <div className="about-team-grid">
             {TEAM.map((member, i) => (
-              <div key={i} className="about-team-card">
-                <div className="about-team-avatar">{member.initial}</div>
+              <div key={i} className={`about-team-card${member.lead ? " about-team-lead" : ""}`}>
+                <div className={`about-team-avatar${member.lead ? " about-team-avatar--lead" : ""}`}>
+                  {member.initial}
+                </div>
                 <div className="about-team-name">{member.name}</div>
                 <div className="about-team-role">{member.role}</div>
+                {member.built && (
+                  <div className="about-team-chips">
+                    {member.built.map((chip, j) => (
+                      <span key={j} className="about-team-chip">{chip}</span>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
