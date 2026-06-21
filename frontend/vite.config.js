@@ -12,7 +12,8 @@ export default defineConfig({
       "/api":  { target: "http://localhost:8000", changeOrigin: true },
       // ── ML Service (port 8001) — AI, weather, guidance, cultivation ─────────
       "/predict":     { target: "http://localhost:8001", changeOrigin: true },
-      "/weather":     { target: "http://localhost:8001", changeOrigin: true },
+      // bypass HTML requests so the browser can navigate to /weather as a React route
+      "/weather":     { target: "http://localhost:8001", changeOrigin: true, bypass: req => req.headers.accept?.includes('text/html') ? '/index.html' : null },
       "/cultivation": { target: "http://localhost:8001", changeOrigin: true },
       "/guidance":    { target: "http://localhost:8001", changeOrigin: true },
       "/meta":        { target: "http://localhost:8001", changeOrigin: true },

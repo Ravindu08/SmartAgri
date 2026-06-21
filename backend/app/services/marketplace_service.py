@@ -28,6 +28,9 @@ def create_listing(db: Session, listing_in: MarketplaceListingCreate, owner_id: 
         unit=listing_in.unit,
         price_per_unit=listing_in.price_per_unit,
         description=listing_in.description,
+        location=listing_in.location,
+        image=listing_in.image,
+        listing_type=listing_in.listing_type,
         status=listing_in.status,
     )
     db.add(listing)

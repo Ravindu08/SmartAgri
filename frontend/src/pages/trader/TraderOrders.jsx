@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import useSWR from 'swr';
 import { useApp } from '../../context/AppContext';
-import { getAuthSession } from '../../services/api';
+import { getAuthSession, request } from '../../services/api';
 
 const T = {
   en: {
@@ -40,22 +40,21 @@ const T = {
   },
 };
 
-const STEPS = ['pending', 'confirmed', 'delivered', 'completed'];
+const STEPS_LOWER = ['pending', 'confirmed', 'delivered', 'completed'];
 
 const STATUS_STYLE = {
-  pending:   { bg: 'color-mix(in srgb, var(--amber)    15%, transparent)', color: 'var(--amber)' },
-  confirmed: { bg: 'color-mix(in srgb, var(--blue)     15%, transparent)', color: 'var(--blue)' },
-  delivered: { bg: 'color-mix(in srgb, var(--green-mid)15%, transparent)', color: 'var(--green-mid)' },
+  Confirmed: { bg: 'color-mix(in srgb, var(--blue)     15%, transparent)', color: 'var(--blue)' },
+  Delivered: { bg: 'color-mix(in srgb, var(--green-mid)15%, transparent)', color: 'var(--green-mid)' },
 };
 
-const fetcher = url => fetch(url).then(r => r.json());
+const authFetcher = url => request(url);
 
 function StatusTracker({ status, t }) {
   const stepLabels = [t.stepPending, t.stepConfirmed, t.stepDelivered, t.stepCompleted];
-  const current    = STEPS.indexOf(status?.toLowerCase());
+  const current    = STEPS_LOWER.indexOf((status || '').toLowerCase());
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 0, marginTop: '16px', padding: '14px', background: 'var(--surface-1)', borderRadius: '10px' }}>
-      {STEPS.map((step, i) => {
+      {STEPS_LOWER.map((step, i) => {
         const done   = i <= current;
         const active = i === current;
         return (
@@ -96,28 +95,26 @@ export default function TraderOrders() {
   const { lang } = useApp();
   const t        = T[lang] || T.en;
   const { user } = getAuthSession();
-  const myName   = user?.full_name || '';
 
   const [filter, setFilter] = useState('all');
 
-  const { data: ordersData, isLoading } = useSWR('/api/orders', fetcher, { refreshInterval: 4000 });
-  const orders = ordersData?.orders ?? [];
+  const { data: rawOrders, isLoading } = useSWR('/api/marketplace/orders', authFetcher, { refreshInterval: 8000 });
+  const allOrders = Array.isArray(rawOrders) ? rawOrders : [];
 
   const activeOrders = useMemo(
-    () => orders.filter(o => o.traderName === myName && ['pending', 'confirmed', 'delivered'].includes(o.status?.toLowerCase())),
-    [orders, myName],
+    () => allOrders.filter(o => o.buyer_id === user?.id && ['Confirmed', 'Delivered'].includes(o.status)),
+    [allOrders, user?.id],
   );
 
   const filtered = useMemo(
-    () => filter === 'all' ? activeOrders : activeOrders.filter(o => o.status?.toLowerCase() === filter),
+    () => filter === 'all' ? activeOrders : activeOrders.filter(o => o.status === filter),
     [activeOrders, filter],
   );
 
   const filters = [
     { key: 'all',       label: t.filterAll },
-    { key: 'pending',   label: t.filterPending },
-    { key: 'confirmed', label: t.filterConfirmed },
-    { key: 'delivered', label: t.filterDelivered },
+    { key: 'Confirmed', label: t.filterConfirmed },
+    { key: 'Delivered', label: t.filterDelivered },
   ];
 
   return (
@@ -159,7 +156,7 @@ export default function TraderOrders() {
           >
             {f.label}
             <span style={{ marginLeft: '6px', opacity: 0.7 }}>
-              ({f.key === 'all' ? activeOrders.length : activeOrders.filter(o => o.status?.toLowerCase() === f.key).length})
+              ({f.key === 'all' ? activeOrders.length : activeOrders.filter(o => o.status === f.key).length})
             </span>
           </button>
         ))}
@@ -190,8 +187,8 @@ export default function TraderOrders() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {filtered.map(order => {
-            const st      = (order.status || 'pending').toLowerCase();
-            const stStyle = STATUS_STYLE[st] || STATUS_STYLE.pending;
+            const stStyle = STATUS_STYLE[order.status] || { bg: 'color-mix(in srgb, var(--muted) 15%, transparent)', color: 'var(--muted)' };
+            const tKey    = order.status?.toLowerCase();
             return (
               <div key={order.id} style={{
                 background: 'var(--card)', border: '1px solid var(--border)',
@@ -201,37 +198,46 @@ export default function TraderOrders() {
                   <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                     <div>
                       <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.crop}</div>
-                      <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--text)' }}>{order.listingName || '—'}</div>
+                      <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--text)' }}>{order.listing_name || '—'}</div>
                     </div>
                     <div>
                       <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.qty}</div>
-                      <div style={{ fontWeight: 600, color: 'var(--text)' }}>{order.quantity} kg</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text)' }}>{order.requested_quantity} kg</div>
                     </div>
-                    {order.offeredPrice && (
+                    {(order.agreed_price || order.proposed_price) && (
                       <div>
                         <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.price}</div>
-                        <div style={{ fontWeight: 600, color: 'var(--text)' }}>${order.offeredPrice}/kg</div>
+                        <div style={{ fontWeight: 600, color: 'var(--text)' }}>Rs. {order.agreed_price || order.proposed_price}/kg</div>
                       </div>
                     )}
+                    <div>
+                      <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Seller</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text)' }}>{order.seller_name}</div>
+                    </div>
                   </div>
                   <span style={{
                     padding: '4px 12px', borderRadius: '20px', fontSize: '13px',
                     fontWeight: 600, background: stStyle.bg, color: stStyle.color,
                     alignSelf: 'flex-start',
                   }}>
-                    {t[st] || st}
+                    {t[tKey] || order.status}
                   </span>
                 </div>
 
-                <StatusTracker status={st} t={t} />
+                <StatusTracker status={order.status} t={t} />
 
                 <div style={{ marginTop: '12px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
-                    {t.orderedOn}: {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '—'}
+                    {t.orderedOn}: {order.created_at ? new Date(order.created_at).toLocaleDateString() : '—'}
                   </span>
-                  {order.updatedAt && order.updatedAt !== order.createdAt && (
+                  {order.updated_at && order.updated_at !== order.created_at && (
                     <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
-                      {t.updatedOn}: {new Date(order.updatedAt).toLocaleDateString()}
+                      {t.updatedOn}: {new Date(order.updated_at).toLocaleDateString()}
+                    </span>
+                  )}
+                  {order.seller_note && (
+                    <span style={{ fontSize: '12px', color: 'var(--muted)', fontStyle: 'italic' }}>
+                      Note: {order.seller_note}
                     </span>
                   )}
                 </div>
