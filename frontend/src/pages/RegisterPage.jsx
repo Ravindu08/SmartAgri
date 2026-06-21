@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { registerUser, saveAuthSession, setActiveRole } from '../services/api';
+import { registerUser } from '../services/api';
 import { useApp } from '../context/AppContext';
 
 const REG_T = {
@@ -82,9 +82,13 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     try {
       const response = await registerUser({ ...formData, roles: selectedRoles });
-      saveAuthSession(response);
-      if (selectedRoles.length === 1) setActiveRole(selectedRoles[0]);
-      navigate(response.redirect_to, { replace: true });
+      // If the backend returned a role-add message, just go to login
+      if (response.message?.includes('Role added')) {
+        navigate('/login', { replace: true });
+        return;
+      }
+      // New registration — must verify email before logging in
+      navigate('/verify-email-sent', { replace: true, state: { email: formData.email } });
     } catch (err) {
       setError(err.message);
     } finally {

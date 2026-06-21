@@ -1,4 +1,5 @@
 import os
+import secrets
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -34,11 +35,29 @@ def create_user(db: Session, user_in: UserRegister) -> User:
         hashed_password=hash_password(user_in.password),
         role=primary_role,
         roles=[r.value for r in valid_roles],
+        is_verified=False,
+        email_verification_token=secrets.token_urlsafe(32),
     )
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
+
+
+def generate_verification_token(db: Session, user: User) -> str:
+    token = secrets.token_urlsafe(32)
+    user.email_verification_token = token
+    db.commit()
+    return token
+
+
+def generate_reset_token(db: Session, user: User) -> str:
+    from datetime import datetime, timezone, timedelta
+    token = secrets.token_urlsafe(32)
+    user.reset_token = token
+    user.reset_token_expires = datetime.now(timezone.utc) + timedelta(hours=1)
+    db.commit()
+    return token
 
 
 def authenticate_user(db: Session, email: str, password: str) -> User | None:
@@ -74,6 +93,7 @@ def ensure_admin_user(db: Session) -> User:
         hashed_password=hash_password(admin_password),
         role=UserRole.ADMIN,
         roles=[UserRole.ADMIN.value],
+        is_verified=True,
     )
     db.add(user)
     db.commit()
