@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db
-from app.models.marketplace import MarketplaceListing, MarketplaceListingStatus
+from app.models.marketplace import MarketplaceListing, MarketplaceListingStatus, MarketplaceOrderStatus
 from app.schemas.marketplace import (
     MarketplaceListingCreate,
     MarketplaceListingRead,
@@ -124,7 +124,6 @@ def update_order_status_endpoint(
     if order.seller_id != current_user.id and order.buyer_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
     # Only seller can confirm/reject/deliver; buyer can mark completed
-    from app.models.marketplace import MarketplaceOrderStatus
     seller_only = {MarketplaceOrderStatus.CONFIRMED, MarketplaceOrderStatus.REJECTED, MarketplaceOrderStatus.DELIVERED}
     if payload.status in seller_only and order.seller_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the seller can perform this action")

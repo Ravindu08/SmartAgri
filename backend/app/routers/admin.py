@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from typing import Optional
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, EmailStr
@@ -230,7 +231,6 @@ def admin_archive_listing(
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    from uuid import UUID
     try:
         uid = UUID(listing_id)
     except ValueError:
