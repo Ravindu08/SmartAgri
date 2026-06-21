@@ -42,6 +42,9 @@ class MarketplaceListing(Base):
     unit: Mapped[str] = mapped_column(String(32), nullable=False, default="kg")
     price_per_unit: Mapped[float] = mapped_column(Float, nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    location: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    image: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    listing_type: Mapped[str] = mapped_column(String(32), nullable=False, default="crop")
     status: Mapped[MarketplaceListingStatus] = mapped_column(
         SAEnum(
             MarketplaceListingStatus,

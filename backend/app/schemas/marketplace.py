@@ -10,11 +10,14 @@ from app.models.marketplace import MarketplaceListingStatus, MarketplaceOrderSta
 
 class MarketplaceListingBase(BaseModel):
     crop_name: str = Field(min_length=1, max_length=255)
-    crop_type: str = Field(min_length=1, max_length=128)
+    crop_type: str = Field(default="General", max_length=128)
     quantity: float = Field(gt=0)
     unit: str = Field(min_length=1, max_length=32)
     price_per_unit: float = Field(gt=0)
     description: Optional[str] = Field(default=None, max_length=2000)
+    location: Optional[str] = Field(default=None, max_length=255)
+    image: Optional[str] = None
+    listing_type: str = Field(default="crop", max_length=32)
     status: MarketplaceListingStatus = MarketplaceListingStatus.ACTIVE
 
 
@@ -24,11 +27,14 @@ class MarketplaceListingCreate(MarketplaceListingBase):
 
 class MarketplaceListingUpdate(BaseModel):
     crop_name: Optional[str] = Field(default=None, min_length=1, max_length=255)
-    crop_type: Optional[str] = Field(default=None, min_length=1, max_length=128)
+    crop_type: Optional[str] = Field(default=None, max_length=128)
     quantity: Optional[float] = Field(default=None, gt=0)
     unit: Optional[str] = Field(default=None, min_length=1, max_length=32)
     price_per_unit: Optional[float] = Field(default=None, gt=0)
     description: Optional[str] = Field(default=None, max_length=2000)
+    location: Optional[str] = Field(default=None, max_length=255)
+    image: Optional[str] = None
+    listing_type: Optional[str] = Field(default=None, max_length=32)
     status: Optional[MarketplaceListingStatus] = None
 
 
@@ -44,6 +50,9 @@ class MarketplaceListingRead(BaseModel):
     unit: str
     price_per_unit: float
     description: Optional[str] = None
+    location: Optional[str] = None
+    image: Optional[str] = None
+    listing_type: str = "crop"
     status: MarketplaceListingStatus
     created_at: datetime
     updated_at: datetime
