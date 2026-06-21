@@ -2,11 +2,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export async function fetchBackendHealth() {
   const response = await fetch(`${API_BASE_URL}/health`);
-
-  if (!response.ok) {
-    throw new Error('Unable to reach SmartAgri backend');
-  }
-
+  if (!response.ok) throw new Error('Unable to reach SmartAgri backend');
   return response.json();
 }
 
@@ -41,7 +37,6 @@ async function request(path, options = {}) {
   return data;
 }
 
-// Export request for other services
 export { request };
 
 export function saveAuthSession({ access_token: accessToken, user }) {
@@ -52,7 +47,6 @@ export function saveAuthSession({ access_token: accessToken, user }) {
 export function getAuthSession() {
   const token = localStorage.getItem('smartagri_token');
   const rawUser = localStorage.getItem('smartagri_user');
-
   return {
     token,
     user: rawUser ? JSON.parse(rawUser) : null,
@@ -62,20 +56,38 @@ export function getAuthSession() {
 export function clearAuthSession() {
   localStorage.removeItem('smartagri_token');
   localStorage.removeItem('smartagri_user');
+  localStorage.removeItem('sa-active-role');
+}
+
+// Returns the role the user is currently acting as.
+// For dual-role users this is set by RoleSelectPage; for single-role it falls back to user.role.
+export function getActiveRole() {
+  const stored = localStorage.getItem('sa-active-role');
+  if (stored) return stored;
+  const { user } = getAuthSession();
+  return user?.role ?? null;
+}
+
+export function setActiveRole(role) {
+  localStorage.setItem('sa-active-role', role);
+}
+
+export function getUserRoles() {
+  const { user } = getAuthSession();
+  if (!user) return [];
+  return user.roles?.length ? user.roles : [user.role];
+}
+
+export function isDualRole() {
+  return getUserRoles().length > 1;
 }
 
 export function registerUser(payload) {
-  return request('/auth/register', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
+  return request('/auth/register', { method: 'POST', body: JSON.stringify(payload) });
 }
 
 export function loginUser(payload) {
-  return request('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
+  return request('/auth/login', { method: 'POST', body: JSON.stringify(payload) });
 }
 
 export function updateUserProfile(payload) {
@@ -96,4 +108,13 @@ export function updateUserInSession(user) {
 
 export function updateUserAvatar(profile_image) {
   return request('/auth/me', { method: 'PUT', body: JSON.stringify({ profile_image }) });
+}
+
+export function submitFeedback(payload) {
+  return request('/api/admin/submit-feedback', { method: 'POST', body: JSON.stringify(payload) });
+}
+
+// Admin API helpers
+export function adminRequest(path, options = {}) {
+  return request(`/api/admin${path}`, options);
 }

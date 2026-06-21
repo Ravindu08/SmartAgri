@@ -444,7 +444,7 @@ const POPULAR_CROPS = [
   { name: "Chilli",    emoji: "🌶️" },
   { name: "Cabbage",   emoji: "🥬" },
   { name: "Carrot",    emoji: "🥕" },
-  { name: "Brinjal",   emoji: "🍆" },
+  { name: "Brinjal (Eggplant)", emoji: "🍆" },
   { name: "Okra",      emoji: "🥒" },
   { name: "Maize",     emoji: "🌽" },
   { name: "Cowpea",    emoji: "🫘" },
