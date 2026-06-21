@@ -1,7 +1,10 @@
+import logging
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
 
@@ -26,7 +29,7 @@ def _run_migrations() -> None:
         cfg.set_main_option("script_location", str(Path(__file__).resolve().parents[1] / "alembic"))
         alembic_command.upgrade(cfg, "head")
     except Exception as exc:
-        print(f"[startup] migration warning: {exc}")
+        logger.warning("[startup] migration warning: %s", exc)
 
 
 # ── Lifespan (replaces deprecated @app.on_event) ─────────────────────────────
