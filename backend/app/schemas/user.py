@@ -13,6 +13,8 @@ class UserRead(BaseModel):
     full_name: str
     email: EmailStr
     role: UserRole
+    roles: Optional[list[str]] = None
+    is_suspended: bool = False
     created_at: datetime
     profile_image: Optional[str] = None
 
@@ -26,3 +28,5 @@ class UserUpdate(BaseModel):
 class PasswordChange(BaseModel):
     current_password: str
     new_password: str = Field(min_length=8, max_length=255)
+
+

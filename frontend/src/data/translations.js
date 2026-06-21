@@ -205,8 +205,11 @@ export const T = {
     // ── Yield & Price Estimation ───────────────────────────────────────────
     yieldPriceTitle:      "Yield & Price Estimation",
     yieldPriceSub:        "Estimate your harvest and calculate a fair selling price",
+    yieldHeroBadge:       "📊 Yield & Price Estimator",
     yieldSection:         "🌾 Step 1 — Yield Estimation",
+    yieldSectionSub:      "Enter land and crop details to estimate harvest",
     priceSection:         "💰 Step 2 — Selling Price Estimation",
+    priceSectionSub:      "Enter farming costs to calculate selling price and profit",
     cropName:             "Crop",
     selectCropPh2:        "Select crop…",
     landSize:             "Land Size",
@@ -484,8 +487,11 @@ export const T = {
     // ── Yield & Price Estimation ───────────────────────────────────────────
     yieldPriceTitle:      "අස්වැන්න සහ මිල ඇස්තමේන්තු",
     yieldPriceSub:        "ඔබේ අස්වැන්න ඇස්තමේන්තු කර සාධාරණ විකුණුම් මිලක් ගණනය කරන්න",
+    yieldHeroBadge:       "📊 අස්වැන්න සහ මිල ගණකය",
     yieldSection:         "🌾 පියවර 1 — අස්වැන්න ඇස්තමේන්තු",
+    yieldSectionSub:      "අස්වැන්න ඇස්තමේන්තු කිරීමට ඉඩම් සහ බෝග විස්තර ඇතුළත් කරන්න",
     priceSection:         "💰 පියවර 2 — විකුණුම් මිල ඇස්තමේන්තු",
+    priceSectionSub:      "විකුණුම් මිල සහ ලාභය ගණනය කිරීමට ගොවිතැන් වියදම් ඇතුළත් කරන්න",
     cropName:             "බෝගය",
     selectCropPh2:        "බෝගය තෝරන්න…",
     landSize:             "ඉඩම් ප්‍රමාණය",
@@ -763,8 +769,11 @@ export const T = {
     // ── Yield & Price Estimation ───────────────────────────────────────────
     yieldPriceTitle:      "மகசூல் மற்றும் விலை மதிப்பீடு",
     yieldPriceSub:        "உங்கள் அறுவடையை மதிப்பிட்டு நியாயமான விலையை கணக்கிடுங்கள்",
+    yieldHeroBadge:       "📊 மகசூல் & விலை மதிப்பீட்டாளர்",
     yieldSection:         "🌾 படி 1 — மகசூல் மதிப்பீடு",
+    yieldSectionSub:      "மகசூலை மதிப்பிட நிலம் மற்றும் பயிர் விவரங்களை உள்ளிடுங்கள்",
     priceSection:         "💰 படி 2 — விற்பனை விலை மதிப்பீடு",
+    priceSectionSub:      "விற்பனை விலை மற்றும் இலாபத்தை கணக்கிட விவசாய செலவுகளை உள்ளிடுங்கள்",
     cropName:             "பயிர்",
     selectCropPh2:        "பயிரை தேர்ந்தெடுக்கவும்…",
     landSize:             "நிலத்தின் அளவு",
@@ -2117,4 +2126,133 @@ export const PROPAGATION_LABELS = {
     "Transplants or direct sowing":           "நடவு செடிகள் அல்லது நேரடி விதைப்பு",
     "Vine cuttings (30–40 cm from healthy vines)": "கொடி வெட்டுக்கள் (ஆரோக்கியமான கொடிகளிலிருந்து 30–40 cm)",
   },
+};
+
+export const TRADER_HELP_FAQS = {
+  en: [
+    {
+      id: 'getting-started',
+      category: 'Getting Started',
+      icon: '🚀',
+      items: [
+        { q: 'How do I browse available crops?', a: 'Click "Marketplace" in the sidebar to open the AgriMarket. You will see all active crop listings from land owners, including quantity available, price per kg, and location. Use the search bar to filter by crop type or district.' },
+        { q: 'How do I send a purchase request?', a: 'On a crop listing in the Marketplace, click "Send Purchase Request". Enter the quantity you want and your offered price per kg. The estimated total is shown automatically. Click "Send Request" to submit — the land owner will receive a notification.' },
+        { q: 'What happens after I send a request?', a: 'Your request goes to the land owner for review. They can accept, reject, or negotiate the price. You can track the status of all your requests under "My Requests" in the sidebar.' },
+      ],
+    },
+    {
+      id: 'requests',
+      category: 'Purchase Requests',
+      icon: '📋',
+      items: [
+        { q: 'How do I check the status of my requests?', a: 'Go to "My Requests" in the sidebar. Requests are filtered by status: Pending (awaiting land owner response), Accepted (land owner agreed), or Rejected (land owner declined). Click any request to view details or negotiate.' },
+        { q: 'Can I negotiate the price?', a: 'Yes. If a land owner counters your offer, you will see a "Negotiate" option on the request card. Click it to propose a new price. Negotiation can go back and forth until both parties agree.' },
+        { q: 'What does "Accepted" status mean?', a: 'An accepted request means the land owner has agreed to your terms. An order is automatically created and appears in "My Orders". Proceed to coordinate delivery with the land owner.' },
+      ],
+    },
+    {
+      id: 'orders',
+      category: 'Orders',
+      icon: '📦',
+      items: [
+        { q: 'How do I track my active orders?', a: 'Go to "My Orders" in the sidebar. You will see all orders with their current status: Pending → Confirmed → Delivered → Completed. Each card shows crop name, quantity, total value, and the land owner\'s name.' },
+        { q: 'What is the order flow?', a: 'Orders go through four stages: Pending (created after acceptance), Confirmed (both parties confirmed), Delivered (goods dispatched by land owner), Completed (you confirmed receipt). Contact the land owner to coordinate the delivery step.' },
+        { q: 'How do I view past transactions?', a: 'Go to "Transaction History" in the sidebar. This shows all completed and cancelled orders with full details including total value and dates. Use this as a record of your purchasing activity.' },
+      ],
+    },
+    {
+      id: 'account-settings',
+      category: 'Account & Settings',
+      icon: '⚙️',
+      items: [
+        { q: 'How do I change my password?', a: 'Go to Settings in the sidebar, click the Security tab, enter your current password, then set and confirm a new password. Passwords must be at least 8 characters.' },
+        { q: 'How do I switch back to Land Owner mode?', a: 'Click "Switch to Land Owner" at the bottom of the sidebar. This changes your active session role. You can switch back to Trader at any time from the Land Owner sidebar.' },
+        { q: 'How do I delete my account?', a: 'Go to Settings → Account tab → Delete Account. You will be asked to type "delete" to confirm. This permanently removes your account and all data — it cannot be undone.' },
+      ],
+    },
+  ],
+  si: [
+    {
+      id: 'getting-started',
+      category: 'ආරම්භය',
+      icon: '🚀',
+      items: [
+        { q: 'තිබෙන බෝග ලැයිස්තු බලන්නේ කෙසේද?', a: "පැති තීරුවෙහි 'වෙළඳසැල' ක්ලික් කර AgriMarket විවෘත කරන්න. ඔබට ගොවිපල හිමිකරුවන්ගේ සක්‍රිය බෝග ලැයිස්තු, ලබා ගත හැකි ප්‍රමාණය, kg ට මිල සහ ස්ථානය දිස් වනු ඇත." },
+        { q: 'මිලදී ගැනීමේ ඉල්ලීමක් යවන්නේ කෙසේද?', a: "වෙළඳසැලේ බෝග ලැයිස්තුවක 'ගැනීමේ ඉල්ලීම යවන්න' ක්ලික් කරන්න. ඔබේ ප්‍රමාණය සහ kg ට ඔබ ඉදිරිපත් කළ මිල ඇතුළු කරන්න. 'ඉල්ලීම යවන්න' ක්ලික් කරන්න — ගොවිපල හිමිකරු දැනුම් ලබනු ඇත." },
+        { q: 'ඉල්ලීම යැවීමෙන් පසු සිදු වන්නේ කුමක්ද?', a: "ඔබේ ඉල්ලීම ගොවිපල හිමිකරු වෙත සමාලෝචනය සඳහා යනු ඇත. ඔවුන්ට පිළිගැනීමට, ප්‍රතික්ෂේප කිරීමට, හෝ මිල සාකච්ඡා කිරීමට හැකිය. 'මගේ ඉල්ලීම්' යටතේ ඔබේ ඉල්ලීම්වල තත්ත්වය ලුහුබැඳිය හැකිය." },
+      ],
+    },
+    {
+      id: 'requests',
+      category: 'ගැනීමේ ඉල්ලීම්',
+      icon: '📋',
+      items: [
+        { q: 'ඉල්ලීම්වල තත්ත්වය පරීක්ෂා කරන්නේ කෙසේද?', a: "පැති තීරුවෙහි 'මගේ ඉල්ලීම්' වෙත යන්න. ඉල්ලීම් තත්ත්ව අනුව පෙරීම: අපේක්ෂිත, පිළිගෙන ඇත, ප්‍රතික්ෂේප කර ඇත." },
+        { q: 'මිල සාකච්ඡා කළ හැකිද?', a: 'ඔව්. ගොවිපල හිමිකරු ඔබේ දීමනාවට ප්‍රතිවිරෝධ දිගහැරියේ නම්, ඉල්ලීම් කාඩ්පතෙහි සාකච්ඡා විකල්පයක් ඔබට දිස් වනු ඇත.' },
+        { q: "\"පිළිගෙන ඇත\" යන තත්ත්වයෙහි අර්ථය කුමක්ද?", a: "ගොවිපල හිමිකරු ඔබේ කොන්දේසි පිළිගෙන ඇති අතර, ඇණවුමක් ස්වයංක්‍රීයව 'මගේ ඇණවුම්' හි සාදනු ලබයි." },
+      ],
+    },
+    {
+      id: 'orders',
+      category: 'ඇණවුම්',
+      icon: '📦',
+      items: [
+        { q: 'ක්‍රියාකාරී ඇණවුම් ලුහුබැඳිය හැක්කේ කෙසේද?', a: "පැති තීරුවෙහි 'මගේ ඇණවුම්' වෙත යන්න. ඔබට ඇණවුම් අදියර සහිතව: අපේක්ෂිත → තහවුරු කළ → බෙදා හැරිය → සම්පූර්ණ ලෙස දිස් වනු ඇත." },
+        { q: 'ඇණවුම් ප්‍රවාහය කෙසේ ක්‍රියා කරයිද?', a: "ඇණවුම් අදියර 4 කින් ගමන් කරයි: අපේක්ෂිත → තහවුරු කළ → බෙදා හැරිය → සම්පූර්ණ. භාරදීම සම්බන්ධීකරණය සඳහා ගොවිපල හිමිකරු සමඟ සම්බන්ධ වන්න." },
+        { q: 'පෙර ගනුදෙනු බලන්නේ කෙසේද?', a: "ගනුදෙනු ඉතිහාසය: 'ගනුදෙනු ඉතිහාසය' පැති තීරුවෙහි ඇත. සම්පූර්ණ සහ අවලංගු ඇණවුම් දිස් වේ." },
+      ],
+    },
+    {
+      id: 'account-settings',
+      category: 'ගිණුම සහ සැකසීම්',
+      icon: '⚙️',
+      items: [
+        { q: 'මුරපදය වෙනස් කරන්නේ කෙසේද?', a: "සැකසීම් → ආරක්ෂාව ටැබ් → වත්මන් සහ නව මුරපදය ඇතුළු කරන්න. අවම වශයෙන් අකුරු 8 ක් අවශ්‍ය." },
+        { q: 'ගොවිපල හිමිකරු මාදිලියට ආපසු යන්නේ කෙසේද?', a: "පැති තීරුවේ 'ගොවිපල හිමිකරු වෙත මාරු වන්න' ක්ලික් කරන්න." },
+        { q: 'ගිණුම මකා දැමිය හැක්කේ කෙසේද?', a: "සැකසීම් → ගිණුම ටැබ් → ගිණුම මකන්න. 'delete' ටයිප් කර තහවුරු කරන්න. ස්ථිරවම ඉවත් කෙරේ." },
+      ],
+    },
+  ],
+  ta: [
+    {
+      id: 'getting-started',
+      category: 'ஆரம்பம்',
+      icon: '🚀',
+      items: [
+        { q: 'கிடைக்கும் பயிர்களை எவ்வாறு பார்ப்பது?', a: "பக்கப்பட்டியில் 'சந்தை' என்பதை கிளிக் செய்து AgriMarket ஐ திறக்கவும். நில உரிமையாளர்களின் பயிர் பட்டியல்கள், அளவு, விலை மற்றும் இடம் ஆகியவற்றை காணலாம்." },
+        { q: 'கொள்முதல் கோரிக்கையை எவ்வாறு அனுப்புவது?', a: "பயிர் பட்டியலில் 'கொள்முதல் கோரிக்கை அனுப்பு' என்பதை கிளிக் செய்து, தேவையான அளவு மற்றும் விலையை உள்ளிட்டு கோரிக்கை அனுப்பவும்." },
+        { q: 'கோரிக்கை அனுப்பிய பிறகு என்ன நடக்கும்?', a: "நில உரிமையாளர் ஏற்றுக்கொள்ளலாம், நிராகரிக்கலாம் அல்லது விலை பேசலாம். 'என் கோரிக்கைகள்' பகுதியில் நிலையை கண்காணிக்கலாம்." },
+      ],
+    },
+    {
+      id: 'requests',
+      category: 'கொள்முதல் கோரிக்கைகள்',
+      icon: '📋',
+      items: [
+        { q: 'கோரிக்கை நிலையை எவ்வாறு சரிபார்ப்பது?', a: "பக்கப்பட்டியில் 'என் கோரிக்கைகள்' என்பதற்கு செல்லவும். நிலுவை, ஏற்கப்பட்டது, நிராகரிக்கப்பட்டது என வகைப்படுத்தப்பட்டிருக்கும்." },
+        { q: 'விலை பேசலாமா?', a: 'ஆம். நில உரிமையாளர் எதிர் முன்மொழிவு கொடுத்தால், பேச்சுவார்த்தை விருப்பம் கோரிக்கை அட்டையில் தோன்றும்.' },
+        { q: '"ஏற்கப்பட்டது" என்றால் என்ன?', a: "நில உரிமையாளர் உங்கள் கோரிக்கையை ஏற்றுக்கொண்டார், 'என் ஆர்டர்கள்' பகுதியில் ஆர்டர் தோன்றும்." },
+      ],
+    },
+    {
+      id: 'orders',
+      category: 'ஆர்டர்கள்',
+      icon: '📦',
+      items: [
+        { q: 'செயல்பாட்டு ஆர்டர்களை எவ்வாறு கண்காணிப்பது?', a: "பக்கப்பட்டியில் 'என் ஆர்டர்கள்' என்பதற்கு செல்லவும். நிலுவை → உறுதிப்படுத்தப்பட்டது → வழங்கப்பட்டது → முடிந்தது என்ற நிலைகளில் காணலாம்." },
+        { q: 'ஆர்டர் செயல்முறை என்ன?', a: "ஆர்டர்கள் நான்கு நிலைகளில் செல்லும்: நிலுவை → உறுதிப்படுத்தப்பட்டது → வழங்கப்பட்டது → முடிந்தது. விநியோகத்தை ஒருங்கிணைக்க நில உரிமையாளரை தொடர்பு கொள்ளவும்." },
+        { q: 'கடந்த கால பரிவர்த்தனைகளை எவ்வாறு பார்ப்பது?', a: "பக்கப்பட்டியில் 'பரிவர்த்தனை வரலாறு' என்பதற்கு செல்லவும். முடிந்த மற்றும் ரத்தான ஆர்டர்கள் காட்டப்படும்." },
+      ],
+    },
+    {
+      id: 'account-settings',
+      category: 'கணக்கு & அமைப்புகள்',
+      icon: '⚙️',
+      items: [
+        { q: 'கடவுச்சொல்லை எவ்வாறு மாற்றுவது?', a: 'அமைப்புகள் → பாதுகாப்பு தாவல் → தற்போதைய மற்றும் புதிய கடவுச்சொல்லை உள்ளிடவும். குறைந்தது 8 எழுத்துக்கள் தேவை.' },
+        { q: 'நில உரிமையாளர் முறைக்கு மாறுவது எப்படி?', a: "பக்கப்பட்டியின் கீழே உள்ள 'நில உரிமையாளராக மாறு' என்பதை கிளிக் செய்யவும்." },
+        { q: 'கணக்கை எவ்வாறு நீக்குவது?', a: "அமைப்புகள் → கணக்கு தாவல் → கணக்கை நீக்கு. 'delete' என்று தட்டச்சு செய்து உறுதிப்படுத்தவும். இது நிரந்தரமாக நீக்கப்படும்." },
+      ],
+    },
+  ],
 };
