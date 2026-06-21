@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from enum import Enum
+from typing import Optional
 
 from sqlalchemy import Boolean, DateTime, Enum as SAEnum, Integer, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -32,6 +33,10 @@ class User(Base):
     )
     roles: Mapped[list | None] = mapped_column(JSON, nullable=True)
     is_suspended: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default='false')
+    is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default='false')
+    email_verification_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    reset_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    reset_token_expires: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

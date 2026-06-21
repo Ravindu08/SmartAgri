@@ -90,6 +90,22 @@ export function loginUser(payload) {
   return request('/auth/login', { method: 'POST', body: JSON.stringify(payload) });
 }
 
+export function resendVerificationEmail(email) {
+  return request(`/auth/resend-verification?email=${encodeURIComponent(email)}`, { method: 'POST' });
+}
+
+export function verifyEmail(token) {
+  return request(`/auth/verify-email?token=${encodeURIComponent(token)}`);
+}
+
+export function forgotPassword(email) {
+  return request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
+}
+
+export function resetPassword(token, new_password) {
+  return request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, new_password }) });
+}
+
 export function updateUserProfile(payload) {
   return request('/auth/me', { method: 'PUT', body: JSON.stringify(payload) });
 }
