@@ -23,9 +23,9 @@
 
 SmartAgri is an AI-powered agribusiness platform built for Sri Lanka. It has two distinct halves that work together:
 
-**ML Tools (port 8000):** A farmer enters their soil and climate data and the system recommends the best crop with a full explanation of why — using a trained Random Forest + XGBoost ensemble. Supporting tools include a crop lifecycle guide, a cultivation task tracker, a weather advisory, and a yield/price calculator. Everything works in English, Sinhala (සිංහල), and Tamil (தமிழ்).
+**ML Tools (port 8001):** A farmer enters their soil and climate data and the system recommends the best crop with a full explanation of why — using a trained Random Forest + XGBoost ensemble. Supporting tools include a crop lifecycle guide, a cultivation task tracker, a weather advisory, and a yield/price calculator. Everything works in English, Sinhala (සිංහල), and Tamil (தமிழ்).
 
-**Platform (port 8001):** A multi-role web platform where land owners manage their farms, registered crops, and cultivation sessions in a persistent database. Traders and admins get role-specific dashboards. JWT authentication controls access; all platform data lives in PostgreSQL.
+**Platform (port 8000):** A multi-role web platform where land owners manage their farms, registered crops, and cultivation sessions in a persistent database. Traders and admins get role-specific dashboards. JWT authentication controls access; all platform data lives in PostgreSQL.
 
 **The problem it solves:** Sri Lanka has 34 commonly grown crops, 15 agro-climatic zones, 25 districts, and 33 soil types. Smallholder farmers without access to agricultural extension services need decision support — both for choosing what to grow and for managing an active growing season.
 
@@ -33,13 +33,13 @@ SmartAgri is an AI-powered agribusiness platform built for Sri Lanka. It has two
 
 ## 2. Technology Stack
 
-### ML Service — Runtime (`requirements.txt`, port 8000)
+### ML Service — Runtime (`requirements.txt`, port 8001)
 
 | Technology | Version | What it does in this project |
 |---|---|---|
 | **Python** | 3.10+ | Language the entire backend runs in |
 | **FastAPI** | 0.115.0 | Web framework for all ML API endpoints |
-| **Uvicorn** | ≥0.30.0 | ASGI server — runs FastAPI on port 8000 |
+| **Uvicorn** | ≥0.30.0 | ASGI server — runs FastAPI on port 8001 |
 | **Pydantic** | 2.7.0 | Request validation — pH must be 3–10, Season must be Maha/Yala/Year-round, etc. |
 | **scikit-learn** | 1.5.0 | `RandomForestClassifier`, `VotingClassifier`, `LabelEncoder`, `GridSearchCV` |
 | **XGBoost** | 3.2.0 | Second model in the ensemble; sequential boosting covers RF's weaknesses |
@@ -48,12 +48,12 @@ SmartAgri is an AI-powered agribusiness platform built for Sri Lanka. It has two
 | **httpx** | 0.27.0 | HTTP client for calling Open-Meteo forecast and archive APIs |
 | **python-dotenv** | ≥1.0.1 | Loads `backend/.env` for both services |
 
-### Main API — Runtime (`requirements.txt`, port 8001)
+### Main API — Runtime (`requirements.txt`, port 8000)
 
 | Technology | Version | What it does in this project |
 |---|---|---|
 | **FastAPI** | 0.115.0 | Web framework — auth, farms, crops routes |
-| **Uvicorn** | ≥0.30.0 | ASGI server — runs the main API on port 8001 |
+| **Uvicorn** | ≥0.30.0 | ASGI server — runs the main API on port 8000 |
 | **SQLAlchemy** | ≥2.0.0 | ORM — `User`, `Farm`, `Crop`, `CultivationSession`, `CultivationTask` models |
 | **psycopg2-binary** | ≥2.9.9 | PostgreSQL driver |
 | **Alembic** | ≥1.13.0 | Database schema migrations |
@@ -75,11 +75,12 @@ SmartAgri is an AI-powered agribusiness platform built for Sri Lanka. It has two
 |---|---|---|
 | **React** | 18.3.1 | UI framework — component tree, state management |
 | **React DOM** | 18.3.1 | Renders React to the browser |
-| **React Router** | 6.26.0 | Client-side routing — 20+ routes across public, auth, ML-tool, and landowner pages |
-| **Axios** | ≥1.6.0 | HTTP client for platform API calls (farm/crop services) |
-| **Vite** | 5.4.0 | Build tool and dev server — proxies `/auth`, `/api` to port 8001 and ML routes to port 8000 |
+| **React Router** | 6.26.0 | Client-side routing — 30+ routes across public, auth, ML-tool, landowner, trader, and admin pages |
+| **SWR** | ≥2.4.1 | Data-fetching hooks used in selected components |
+| **lucide-react** | ≥1.21.0 | Icon library |
+| **Vite** | 5.4.0 | Build tool and dev server — proxies `/auth`, `/api` to port 8000 and ML routes to port 8001 |
 
-**Notable: no UI component library, no CSS framework, no state management library.** All components are hand-written; all styles are plain CSS with variables.
+**Notable: no external UI component library, no state management library.** All components are hand-written. Tailwind CSS is installed as a dev dependency but styles are primarily plain CSS with variables in `globals.css`.
 
 ---
 
@@ -90,19 +91,17 @@ SmartAgri/
 ├── .gitignore
 ├── README.md
 ├── DOCS.md
-├── start.bat                           # One-click launcher — starts all 3 services
-├── start-backend.bat                   # Starts port 8001 only
-├── start-frontend.bat                  # Starts frontend only
-├── Crop_Details.docx                   # Reference crop data document
+├── start-services.bat                  # One-click launcher — starts all 3 services
+├── stop-services.bat                   # Kills all 3 service processes
+├── _run_backend.bat                    # Starts main API (port 8000) only
+├── _run_frontend.bat                   # Starts frontend only
+├── _run_ml.bat                         # Starts ML service (port 8001) only
 │
 ├── docs/                               # Project reference documents
 │   ├── Client Approval Letter.pdf
 │   ├── Proposal_Report_CST_Group_07.pdf
 │   ├── SmartAgri Presentation.pdf
 │   └── Zone.txt
-│
-├── data/                               # Datasets
-│   └── merged_all_crops_clean.csv      # Training dataset (also in backend/datasets/)
 │
 ├── backend/
 │   ├── requirements.txt                # Runtime dependencies (both services)
@@ -112,7 +111,7 @@ SmartAgri/
 │   ├── alembic.ini                     # Alembic configuration
 │   │
 │   ├── alembic/
-│   │   └── versions/                   # Migration files (6 applied migrations)
+│   │   └── versions/                   # 13 migration files (applied automatically on startup)
 │   │
 │   ├── datasets/
 │   │   ├── merged_all_crops_clean.csv  # Training dataset: 17,768 rows, 34 crops
@@ -134,20 +133,24 @@ SmartAgri/
 │   │           └── model_info_simple.pkl
 │   │
 │   ├── ml_service/
-│   │   └── app.py                      # ML FastAPI app (port 8000)
+│   │   └── app.py                      # ML FastAPI app (port 8001)
 │   │
-│   ├── app/                            # Main FastAPI app (port 8001)
+│   ├── app/                            # Main FastAPI app (port 8000)
 │   │   ├── main.py                     # App factory, CORS, lifespan, router registration
 │   │   ├── api/
 │   │   │   └── auth.py                 # /auth/* endpoints (register, login, me, password, delete)
 │   │   ├── routers/
 │   │   │   ├── farm.py                 # /api/farms/* endpoints
-│   │   │   └── crop.py                 # /api/crops/* and /api/farms/{id}/crops endpoints
+│   │   │   ├── crop.py                 # /api/* crop endpoints
+│   │   │   ├── marketplace.py          # /api/marketplace/* endpoints
+│   │   │   └── admin.py                # /api/admin/* endpoints (11 endpoints)
 │   │   ├── models/
-│   │   │   ├── user.py                 # User, UserRole enum
+│   │   │   ├── user.py                 # User (roles JSON, is_suspended, is_verified, email tokens)
 │   │   │   ├── farm.py                 # Farm
 │   │   │   ├── crop.py                 # Crop (with relationship to Farm)
-│   │   │   └── cultivation.py          # CultivationSession, CultivationTask
+│   │   │   ├── cultivation.py          # CultivationSession, CultivationTask
+│   │   │   ├── marketplace.py          # MarketplaceListing, MarketplaceOrder
+│   │   │   └── activity.py             # UserActivity, Feedback
 │   │   ├── schemas/
 │   │   │   ├── auth.py                 # UserRegister, UserLogin, AuthResponse
 │   │   │   ├── user.py                 # UserRead, UserUpdate, PasswordChange
@@ -159,17 +162,17 @@ SmartAgri/
 │   │   │   └── crop_service.py         # Crop CRUD
 │   │   ├── core/
 │   │   │   ├── security.py             # JWT creation/verification, password hashing
-│   │   │   └── deps.py                 # get_db, get_current_user, get_current_land_owner
+│   │   │   └── deps.py                 # get_db, get_current_user, get_current_land_owner, get_current_trader
 │   │   └── db/
 │   │       └── database.py             # SQLAlchemy engine, SessionLocal, Base
 │   │
 │   └── tests/
-│       └── test_api.py                 # 14 ML API tests (pytest)
+│       └── test_api.py                 # ML API tests (pytest)
 │
 └── frontend/
     ├── index.html
     ├── package.json
-    ├── vite.config.js                  # Vite config + proxy rules (8001 and 8000)
+    ├── vite.config.js                  # Vite config + proxy rules (port 8000 and 8001)
     ├── .env.local                      # Active env vars (git-ignored)
     ├── .env.example
     │
@@ -187,11 +190,14 @@ SmartAgri/
         ├── components/                 # Shared UI components
         │   ├── AppLayout.jsx           # Navbar + Outlet for all public/ML pages
         │   ├── LandOwnerLayout.jsx     # Sidebar + Outlet for /landowner/* pages
+        │   ├── TraderLayout.jsx        # Sidebar + Outlet for /trader/* pages
+        │   ├── AdminLayout.jsx         # Sidebar + Outlet for /admin/* pages
+        │   ├── AccountSettings.jsx     # Shared settings panel (profile, password, notifications)
         │   ├── Navbar.jsx              # Top nav, language switcher, theme toggle, auth state
         │   ├── Footer.jsx
         │   ├── Toast.jsx               # Toast notification component
         │   ├── CustomSelect.jsx        # Theme-aware dropdown replacing native <select>
-        │   ├── CropPicker.jsx          # Shared crop selector (used in AddFarm, EditFarm)
+        │   ├── CropPicker.jsx          # Shared crop selector
         │   ├── FeatureCard.jsx         # Feature card used on the landing page
         │   ├── SuitBar.jsx             # Parameter suitability bar (N/P/K/pH etc. vs ideal range)
         │   ├── XAIFeatureCard.jsx      # Feature contribution bars for XAI section
@@ -200,19 +206,19 @@ SmartAgri/
         │   ├── HistoryPanel.jsx        # Prediction history (localStorage)
         │   ├── WeatherLocationPicker.jsx  # District picker + live weather banner
         │   ├── WeatherLocationPicker.css
-        │   └── CultivationTracker.jsx  # Cultivation task tracking UI
+        │   └── CultivationTracker.jsx  # Cultivation task tracking UI component
         │
         ├── pages/
         │   ├── HomePage.jsx            # Landing page (public)
         │   ├── LoginPage.jsx           # Login form (standalone, no Navbar)
-        │   ├── RegisterPage.jsx        # Register form — Land Owner or Trader only
-        │   ├── MarketplacePage.jsx
-        │   ├── DashboardPage.jsx       # Reusable dashboard shell (Admin + Trader)
+        │   ├── RegisterPage.jsx        # Register form — Land Owner, Trader, or both
+        │   ├── RoleSelectPage.jsx      # Role picker shown after login for dual-role users
+        │   ├── MarketplacePage.jsx     # Shared marketplace — view switches by active role
         │   ├── About.jsx
         │   ├── ContactPage.jsx
         │   ├── CropRecommendation.jsx  # ML: full/quick predict form + results
-        │   ├── CropGuidance.jsx        # ML: crop lifecycle guide + cultivation tracker
-        │   ├── YieldPrice.jsx          # ML: yield & revenue calculator
+        │   ├── CropGuidance.jsx        # ML: crop lifecycle guide
+        │   ├── YieldPrice.jsx          # ML: yield & revenue calculator (frontend-only)
         │   ├── Weather.jsx             # ML: weather & farm advisory
         │   ├── farms/
         │   │   ├── MyFarms.jsx
@@ -224,23 +230,37 @@ SmartAgri/
         │   │   ├── AddCrop.jsx
         │   │   └── CropDetails.jsx
         │   ├── cultivations/
-        │   │   └── MyCultivations.jsx
-        │   └── landowner/
-        │       ├── LandOwnerDashboard.jsx
-        │       ├── Settings.jsx
-        │       └── HelpSupport.jsx
+        │   │   └── MyCultivations.jsx  # Uses CultivationTracker component
+        │   ├── landowner/
+        │   │   ├── LandOwnerDashboard.jsx
+        │   │   ├── Settings.jsx
+        │   │   └── HelpSupport.jsx
+        │   ├── trader/
+        │   │   ├── TraderDashboard.jsx
+        │   │   ├── TraderRequests.jsx  # Pending purchase requests
+        │   │   ├── TraderOrders.jsx    # Active orders (Confirmed/Delivered)
+        │   │   ├── TraderHistory.jsx   # Completed/cancelled/rejected orders
+        │   │   ├── TraderSettings.jsx  # Wraps AccountSettings
+        │   │   └── TraderHelp.jsx      # FAQ accordion + Trader-specific help
+        │   └── admin/
+        │       ├── AdminDashboard.jsx
+        │       ├── AdminUsers.jsx      # User list, suspend/unsuspend/delete
+        │       ├── AdminUserCreate.jsx
+        │       ├── AdminFarms.jsx
+        │       ├── AdminMarketplace.jsx
+        │       ├── AdminActivity.jsx
+        │       ├── AdminFeedback.jsx   # View, reply, resolve feedback tickets
+        │       └── AdminReports.jsx    # Stats charts + Export CSV
         │
         ├── services/
-        │   ├── api.js                  # Base fetch wrapper, auth session helpers, /auth endpoints
-        │   ├── farmService.js          # /api/farms/* calls
-        │   └── cropService.js          # /api/crops/* calls
+        │   └── api.js                  # fetch wrapper, auth session helpers, getActiveRole(), request()
         │
         ├── utils/
-        │   ├── cultivationApi.js       # /cultivation/* calls (ML service)
+        │   ├── cultivationApi.js       # /cultivation/* calls (ML service, port 8001)
         │   └── userId.js               # Derives a stable user_id for ML cultivation sessions
         │
         ├── data/
-        │   ├── translations.js         # All UI strings in EN / SI / TA
+        │   ├── translations.js         # All UI strings in EN / SI / TA (all pages + admin)
         │   ├── cropData.js             # Crop labels, emoji, yield data, soil guide helpers
         │   ├── districtZones.js        # District → agro zone mapping (25 districts)
         │   └── farmOptions.js          # Static option lists for farm form dropdowns
@@ -302,7 +322,7 @@ cd backend
 python -m alembic upgrade head
 ```
 
-This creates all five tables: `users`, `farms`, `crops`, `cultivation_sessions`, `cultivation_tasks`.
+Migrations run automatically on startup via `_run_migrations()` in `main.py`. Running them manually on first setup ensures the database is ready before the ML service tries to access it. All tables are created: `users`, `farms`, `crops`, `cultivation_sessions`, `cultivation_tasks`, `marketplace_listings`, `marketplace_orders`, `user_activity`, `feedback`.
 
 ### Start all services
 
@@ -315,13 +335,13 @@ Opens three terminal windows (kills old processes on 8000/8001/5173 first).
 **Option B — Three terminals:**
 
 ```bash
-# Terminal 1 — Main API (auth, farms, crops) — port 8001
+# Terminal 1 — Main API (auth, farms, crops, marketplace, admin) — port 8000
 cd backend
-uvicorn app.main:app --reload --port 8001
+uvicorn app.main:app --reload --port 8000
 
-# Terminal 2 — ML Service — port 8000
+# Terminal 2 — ML Service (predict, guidance, weather, cultivation) — port 8001
 cd backend
-uvicorn ml_service.app:app --reload --port 8000
+uvicorn ml_service.app:app --reload --port 8001
 
 # Terminal 3 — Frontend — port 5173
 cd frontend
@@ -448,7 +468,7 @@ For every Full Analysis prediction, the system computes per-prediction feature c
 
 The backend is **two independent FastAPI applications**, both started from the `backend/` directory.
 
-### ML Service — `ml_service/app.py` (port 8000)
+### ML Service — `ml_service/app.py` (port 8001)
 
 Single-file FastAPI app. At startup it:
 1. Loads 6 pickle files from `models/` (both models + encoders + model infos)
@@ -464,13 +484,13 @@ Single-file FastAPI app. At startup it:
 
 **Outlier detection:** Values more than ±3 standard deviations from training mean trigger a warning in the response.
 
-**Cultivation tracker (ML service):** `POST /cultivation` reads `crop_guidance.json` and auto-generates a date-stamped task list. Sessions are persisted to PostgreSQL via the main API — the ML service calls the cultivation endpoints which in turn persist to the database.
+**Cultivation tracker (ML service):** `POST /cultivation` reads `crop_guidance.json` and auto-generates a date-stamped task list persisted to PostgreSQL. All cultivation endpoints (`/cultivation/*`) are served by the ML service on port 8001 — the main API has no cultivation router.
 
 **Weather module:** `/weather` calls Open-Meteo forecast and archive APIs in parallel via `httpx`. Derives the current Sri Lanka season (Maha/Yala/Year-round) from the calendar date and generates contextual farm advisory messages.
 
-### Main API — `app/main.py` (port 8001)
+### Main API — `app/main.py` (port 8000)
 
-Full-featured FastAPI app with PostgreSQL persistence. At startup it auto-creates the admin user if none exists (`ensure_admin_user`).
+Full-featured FastAPI app with PostgreSQL persistence. At startup it runs Alembic migrations automatically (`_run_migrations()`) then auto-creates the admin user if none exists (`ensure_admin_user`).
 
 **Module layout:**
 
@@ -478,31 +498,44 @@ Full-featured FastAPI app with PostgreSQL persistence. At startup it auto-create
 |---|---|
 | `api/auth.py` | `/auth/*` — register, login, `/me` (read/update/password/delete) |
 | `routers/farm.py` | `/api/farms/*` — CRUD, land-owner-only |
-| `routers/crop.py` | `/api/crops/*` and `/api/farms/{id}/crops` — CRUD, land-owner-only |
-| `models/` | SQLAlchemy ORM models: User, Farm, Crop, CultivationSession, CultivationTask |
+| `routers/crop.py` | `/api/*` crop endpoints — CRUD, land-owner-only |
+| `routers/marketplace.py` | `/api/marketplace/*` — listings, orders, order lifecycle |
+| `routers/admin.py` | `/api/admin/*` — 11 admin endpoints (users, farms, activity, feedback, reports, marketplace) |
+| `models/` | SQLAlchemy ORM models: User, Farm, Crop, CultivationSession, CultivationTask, MarketplaceListing, MarketplaceOrder, UserActivity, Feedback |
 | `schemas/` | Pydantic request/response models |
 | `services/` | Business logic layer (auth, farm, crop CRUD) |
 | `core/security.py` | JWT creation/verification, password hashing (pbkdf2_sha256) |
-| `core/deps.py` | FastAPI dependencies: `get_db`, `get_current_user`, `get_current_land_owner` |
+| `core/deps.py` | FastAPI dependencies: `get_db`, `get_current_user`, `get_current_land_owner`, `get_current_trader` |
 | `db/database.py` | SQLAlchemy engine, `SessionLocal`, declarative `Base` |
 
 **Database schema:**
 
 | Table | Primary Key | Notes |
 |---|---|---|
-| `users` | `id` (int) | `email` unique; `role` enum: Admin/Land Owner/Trader/Visitor |
+| `users` | `id` (int) | `email` unique; `roles` JSON array; `is_suspended` bool; `is_verified` bool (default false for new accounts); `email_verification_token` varchar(255); `reset_token` varchar(255); `reset_token_expires` timestamptz |
 | `farms` | `id` (UUID) | `owner_id` → users.id |
 | `crops` | `id` (UUID) | `farm_id` → farms.id (CASCADE), `owner_id` → users.id |
 | `cultivation_sessions` | `id` (UUID) | `crop_id` → crops.id (SET NULL), `farm_id` → farms.id (SET NULL) |
 | `cultivation_tasks` | `id` (varchar) | `session_id` → cultivation_sessions.id (CASCADE) |
+| `marketplace_listings` | `id` (int) | `seller_id` → users.id; `listing_type`, `location`, `image` columns |
+| `marketplace_orders` | `id` (int) | `listing_id` → listings.id, `buyer_id` / `seller_id` → users.id; status: Pending/Confirmed/Delivered/Completed/Rejected/Cancelled |
+| `user_activity` | `id` (int) | `actor_id` (int, not name), `action`, `target`, `timestamp` |
+| `feedback` | `id` (int) | `user_id` → users.id; `status`: open/resolved; `reply` text |
 
 **Authentication flow:**
-1. Client sends credentials to `POST /auth/login` or `POST /auth/register`
-2. Server returns a JWT access token (30-minute expiry)
-3. Client stores token in localStorage; attaches it as `Authorization: Bearer <token>` on subsequent requests
-4. `get_current_user` dependency decodes the token on every protected route
-5. `get_current_land_owner` additionally checks `role == Land Owner`
-6. 401 responses cause the frontend to clear the session and redirect to `/login`
+1. Client `POST /auth/register` → server creates account (`is_verified=false`), sends verification email
+2. User clicks link → `GET /auth/verify-email?token=…` → account activated
+3. Client `POST /auth/login` → server checks `is_verified` and `is_suspended`, then returns JWT
+4. Client stores token in localStorage; attaches it as `Authorization: Bearer <token>` on subsequent requests
+5. `get_current_user` dependency decodes the token on every protected route
+
+**Forgot password flow:**
+1. Client `POST /auth/forgot-password` → server emails a reset link (token valid 1 hour)
+2. User clicks link → `POST /auth/reset-password` with new password
+3. Server validates token expiry, updates password, clears reset fields
+5. `get_current_land_owner` / `get_current_trader` additionally check the `roles` array
+6. Multi-role users choose their active role on `/role-select`; active role stored in `localStorage('sa-active-role')`
+7. 401 responses cause the frontend to clear the session and redirect to `/login`
 
 ---
 
@@ -516,16 +549,21 @@ All routes are defined in `App.jsx` using React Router v6:
 |---|---|---|
 | `/login` | `LoginPage` | No (standalone, no Navbar) |
 | `/register` | `RegisterPage` | No (standalone, no Navbar) |
+| `/verify-email-sent` | `VerifyEmailSentPage` | No — shown after registration |
+| `/verify-email?token=` | `VerifyEmailPage` | No — activates account via token |
+| `/forgot-password` | `ForgotPasswordPage` | No — linked from login page |
+| `/reset-password?token=` | `ResetPasswordPage` | No — linked from reset email |
+| `/role-select` | `RoleSelectPage` | JWT (shown after login for dual-role users) |
 | `/` | `HomePage` | No |
-| `/marketplace` | `MarketplacePage` | No |
-| `/dashboard/admin` | `DashboardPage` (Admin) | — (no guard yet) |
-| `/dashboard/trader` | `DashboardPage` (Trader) | — |
+| `/marketplace` | `MarketplacePage` | No (view switches by active role) |
 | `/crop-recommendation` | `CropRecommendation` | No |
 | `/crop-guidance` | `CropGuidance` | No |
 | `/wx` | `Weather` | No |
 | `/yield-price` | `YieldPrice` | No |
 | `/about` | `About` | No |
 | `/contact` | `ContactPage` | No |
+| `/dashboard/admin` | → redirect to `/admin/dashboard` | — |
+| `/dashboard/trader` | → redirect to `/trader/dashboard` | — |
 | `/landowner/dashboard` | `LandOwnerDashboard` | Land Owner JWT |
 | `/landowner/farms` | `MyFarms` | Land Owner JWT |
 | `/landowner/farms/add` | `AddFarm` | Land Owner JWT |
@@ -537,25 +575,49 @@ All routes are defined in `App.jsx` using React Router v6:
 | `/landowner/cultivations` | `MyCultivations` | Land Owner JWT |
 | `/landowner/settings` | `Settings` | Land Owner JWT |
 | `/landowner/help` | `HelpSupport` | Land Owner JWT |
+| `/trader/dashboard` | `TraderDashboard` | Trader JWT |
+| `/trader/requests` | `TraderRequests` | Trader JWT |
+| `/trader/orders` | `TraderOrders` | Trader JWT |
+| `/trader/history` | `TraderHistory` | Trader JWT |
+| `/trader/settings` | `TraderSettings` | Trader JWT |
+| `/trader/help` | `TraderHelp` | Trader JWT |
+| `/admin/dashboard` | `AdminDashboard` | Admin JWT |
+| `/admin/users` | `AdminUsers` | Admin JWT |
+| `/admin/users/create` | `AdminUserCreate` | Admin JWT |
+| `/admin/marketplace` | `AdminMarketplace` | Admin JWT |
+| `/admin/farms` | `AdminFarms` | Admin JWT |
+| `/admin/activity` | `AdminActivity` | Admin JWT |
+| `/admin/feedback` | `AdminFeedback` | Admin JWT |
+| `/admin/reports` | `AdminReports` | Admin JWT |
 
 ### Layouts
 
 **`AppLayout`** wraps all public and ML-tool pages. It renders the shared `Navbar` and passes shared state (`lang`, `setLang`, `weather`, `setWeather`, `setPage`) via React Router's `useOutletContext`. Wrapper components in `App.jsx` (e.g. `CropRecommendationPage`) bridge the outlet context to the props the original ML pages expect.
 
-**`LandOwnerLayout`** wraps all `/landowner/*` routes. It renders a sidebar navigation and checks JWT state, redirecting unauthenticated users to `/login`.
+**`LandOwnerLayout`** wraps all `/landowner/*` routes. Renders a sidebar navigation, checks JWT state, and redirects unauthenticated users to `/login`.
+
+**`TraderLayout`** wraps all `/trader/*` routes. 7-item sidebar (Dashboard, Marketplace, My Requests, My Orders, Transaction History, Settings, Help). Includes notification bell, profile dropdown, feedback modal, and Switch Role button for dual-role users. Redirects non-Trader active roles to `/login`.
+
+**`AdminLayout`** wraps all `/admin/*` routes. Renders an admin-specific sidebar. Redirects non-Admin users to `/login`.
 
 ### Global State — `AppContext`
 
 | State | Type | Purpose |
 |---|---|---|
-| `lang` | `"en" \| "si" \| "ta"` | Active language — passed to all pages |
+| `lang` | `"en" \| "si" \| "ta"` | Active language — persisted to `localStorage('smartagri_lang')` |
 | `weather` | object or null | Latest fetched weather — shared across pages |
 | `theme` | `"dark" \| "light"` | UI theme — persisted to localStorage as `sa-theme` |
 | `toggleTheme` | function | Flips between dark and light mode |
 
-### Auth Session — `services/api.js`
+### Auth Session & Multi-Role — `services/api.js`
 
 JWT token and user object are stored in localStorage (`smartagri_token`, `smartagri_user`). The `request()` wrapper attaches the token as a Bearer header on every call. A 401 response clears the session and redirects to `/login`.
+
+Multi-role helpers also live in `services/api.js`:
+- `getActiveRole()` — reads `localStorage('sa-active-role')`; falls back to the first role in `user.roles`
+- `setActiveRole(role)` — writes to localStorage
+- `isDualRole()` — true if user holds both Land Owner and Trader roles
+- **Rule:** always use `getActiveRole()` for role-conditional UI, never `user.role` directly
 
 ### Vite Proxy
 
@@ -563,8 +625,10 @@ In development, all API traffic is proxied by Vite — no CORS configuration nee
 
 | Path prefix | Target |
 |---|---|
-| `/auth`, `/api`, `/health` | `http://localhost:8001` (Main API) |
-| `/predict`, `/weather`, `/cultivation`, `/guidance`, `/meta` | `http://localhost:8000` (ML Service) |
+| `/auth`, `/api` | `http://localhost:8000` (Main API) |
+| `/predict`, `/weather`, `/cultivation`, `/guidance`, `/meta`, `/health` | `http://localhost:8001` (ML Service) |
+
+Note: `/weather` has an HTML bypass so browser navigation to `/weather` serves the React SPA instead of proxying to the ML service.
 
 ### Persistence
 
@@ -572,6 +636,8 @@ In development, all API traffic is proxied by Vite — no CORS configuration nee
 |---|---|---|
 | localStorage | `smartagri_token` | JWT access token |
 | localStorage | `smartagri_user` | Serialised user object |
+| localStorage | `smartagri_lang` | Active language: `"en"`, `"si"`, or `"ta"` |
+| localStorage | `sa-active-role` | Active role for multi-role users: `"Land Owner"` or `"Trader"` |
 | localStorage | `smartagri_history` | Last 10 ML predictions |
 | localStorage | `sa-theme` | `"dark"` or `"light"` |
 | sessionStorage | form fields | Crop recommendation form inputs (survives page refresh) |
@@ -588,7 +654,7 @@ If the `/health` check on startup fails (backend not running), `isMock` is set t
 
 ## 8. API Reference
 
-### ML Service (port 8000)
+### ML Service (port 8001)
 
 #### `GET /health`
 
@@ -671,9 +737,9 @@ Returns `201` with the full session including all generated tasks.
 
 Returns all cultivation sessions (with tasks) for a user.
 
-#### `PUT /cultivation/{user_id}/{session_id}/task/{task_id}`
+#### `PUT /cultivation/{user_id}/{id}/task/{task_id}`
 
-Updates task status: `done` | `skipped` | `pending` | `overdue`.
+Updates task status: `done` | `skipped` | `pending` | `overdue`. Note: the session ID field in the response is `id` (not `session_id`).
 
 #### `DELETE /cultivation/{user_id}/{session_id}`
 
@@ -685,7 +751,7 @@ Live conditions + 7-day forecast (Open-Meteo) + season-to-date rainfall + farm a
 
 ---
 
-### Main API (port 8001)
+### Main API (port 8000)
 
 #### Auth — `POST /auth/register`
 
@@ -695,7 +761,17 @@ Registers a new **Land Owner** or **Trader** account (Admin cannot self-register
 { "full_name": "Sunil Perera", "email": "sunil@example.com", "password": "Secret@123", "role": "Land Owner" }
 ```
 
-Returns `201` with `{ access_token, token_type, redirect_to, user }`. `redirect_to` is `/landowner/dashboard` for Land Owner, `/dashboard/trader` for Trader.
+Returns `201` with `{ message, email }`. The account is created but **not yet active** — the user must click the verification link emailed to them before logging in.
+
+If the email already exists and the role is new, returns `200` with `{ message: "Role added …", redirect_to }`.
+
+#### Auth — `POST /auth/resend-verification?email=<email>`
+
+Resends the verification email. Always returns `200 { message }` regardless of whether the email exists (prevents enumeration).
+
+#### Auth — `GET /auth/verify-email?token=<token>`
+
+Marks the account `is_verified=true` and clears the token. Returns `200 { message }` on success, `400` if the token is invalid or already used.
 
 #### Auth — `POST /auth/login`
 
@@ -703,7 +779,26 @@ Returns `201` with `{ access_token, token_type, redirect_to, user }`. `redirect_
 { "email": "sunil@example.com", "password": "Secret@123" }
 ```
 
-Returns the same `AuthResponse` shape. Returns `401` for wrong credentials.
+Returns `AuthResponse { access_token, token_type, redirect_to, user }`.
+- `403 { detail: "EMAIL_NOT_VERIFIED" }` — account not yet verified
+- `403 { detail: "ACCOUNT_SUSPENDED" }` — account suspended by admin
+- `401` — wrong credentials
+
+#### Auth — `POST /auth/forgot-password`
+
+```json
+{ "email": "sunil@example.com" }
+```
+
+Sends a reset link valid for 1 hour. Always returns `200 { message }` (prevents enumeration). Only sends if the account exists and is verified.
+
+#### Auth — `POST /auth/reset-password`
+
+```json
+{ "token": "<reset_token>", "new_password": "NewSecret@123" }
+```
+
+Validates token is not expired, updates password, clears reset fields. Returns `400` for invalid/expired token.
 
 #### Auth — `GET /auth/me`
 
@@ -753,6 +848,40 @@ Deletes the authenticated user's account. Returns `204`.
 | `GET` | `/api/farms/{farm_id}/crops` | List all crops for a specific farm |
 
 **Crop fields:** `farm_id`, `crop_name`, `crop_type`, `category`, `growth_stage`, `planting_date`, `expected_harvest_date`, `status`, `season` (optional). Crops are cascade-deleted when their farm is deleted.
+
+---
+
+#### Marketplace — JWT required for write operations
+
+| Method | Path | Who | Description |
+|---|---|---|---|
+| `GET` | `/api/marketplace/listings` | Anyone | Browse all active listings |
+| `POST` | `/api/marketplace/listings` | Land Owner / Trader | Create a listing |
+| `PUT` | `/api/marketplace/listings/{id}` | Seller | Update listing |
+| `DELETE` | `/api/marketplace/listings/{id}` | Seller | Remove listing |
+| `GET` | `/api/marketplace/orders` | JWT | All orders where user is buyer or seller |
+| `POST` | `/api/marketplace/orders` | Trader / Land Owner | Place a purchase request |
+| `PUT` | `/api/marketplace/orders/{id}` | Seller / Buyer | Update order status (confirm, deliver, complete, reject, cancel) |
+
+Order status lifecycle: `Pending → Confirmed → Delivered → Completed` (or `Rejected` / `Cancelled`).
+
+---
+
+#### Admin — Admin JWT required for all endpoints (`/api/admin/*`)
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/admin/users` | List all users with role badges |
+| `POST` | `/api/admin/users` | Create a user account |
+| `PUT` | `/api/admin/users/{id}/suspend` | Suspend or unsuspend a user |
+| `DELETE` | `/api/admin/users/{id}` | Delete a user |
+| `GET` | `/api/admin/farms` | List all farms across all users |
+| `GET` | `/api/admin/marketplace` | All listings and orders |
+| `PUT` | `/api/admin/marketplace/listings/{id}/archive` | Archive a listing |
+| `GET` | `/api/admin/activity` | User activity log |
+| `GET` | `/api/admin/feedback` | All feedback submissions |
+| `PUT` | `/api/admin/feedback/{id}` | Reply to or resolve a feedback ticket |
+| `GET` | `/api/admin/reports` | Platform stats: `{users:{total,land_owners,traders,suspended}, farms:{total}, marketplace:{total_listings,total_orders}, feedback:{open}}` |
 
 ---
 
@@ -817,7 +946,7 @@ Deletes the authenticated user's account. Returns `204`.
 
 ### v6.0 — Multi-role platform
 
-- **Second backend service added (port 8001):** FastAPI + SQLAlchemy + PostgreSQL. Handles auth, farms, crops, and cultivation persistence.
+- **Second backend service added (port 8000):** FastAPI + SQLAlchemy + PostgreSQL. Handles auth, farms, crops, marketplace, and admin.
 - **JWT authentication:** register/login for Land Owner and Trader roles; Admin auto-created on startup.
 - **Land Owner portal:** full CRUD for farms, crops, and cultivation sessions with DB persistence.
 - **Role-based dashboards:** Admin and Trader dashboards.

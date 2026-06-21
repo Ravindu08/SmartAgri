@@ -10,7 +10,7 @@ Full-stack web application for Sri Lankan agribusiness. Farmers get AI-driven cr
 
 ### One command (recommended)
 
-Right-click **`start.bat`** and choose **Run as administrator** — kills stale processes on ports 8000/8001/5173, checks PostgreSQL, opens three PowerShell service windows, and polls each until ready.
+Double-click **`start-services.bat`** — kills stale processes on ports 8000/8001/5173, checks PostgreSQL, opens three Command Prompt service windows, and polls each until ready. Do **not** run it as Administrator.
 
 ### Manual start (3 terminals)
 
@@ -121,12 +121,28 @@ python -m pytest backend/tests/ -v
 - Marketplace moderation
 - Platform statistics and reports
 
-**Platform**
+**Auth & Security**
+- Email verification required on registration (token emailed via SMTP)
+- Forgot password / reset password flow (time-limited tokens, 1 hour expiry)
 - JWT authentication (configurable token lifetime)
 - Multi-role accounts with live role switching
+- Account suspension by admin
 - Dark mode / light mode (persisted in localStorage)
 - Full trilingual UI: English / සිංහල / தமிழ்
 - Responsive layout
+
+**Email configuration (`backend/.env`)**
+
+| Variable | Description |
+|---|---|
+| `EMAIL_ENABLED` | `false` = print links to console (dev), `true` = send via SMTP |
+| `SMTP_HOST` | SMTP server (e.g. `smtp.gmail.com`) |
+| `SMTP_PORT` | Usually `587` (STARTTLS) |
+| `SMTP_USER` | SMTP login email |
+| `SMTP_PASSWORD` | SMTP password / app password |
+| `FRONTEND_URL` | Base URL for token links (e.g. `http://localhost:5173`) |
+
+> **Dev tip:** leave `EMAIL_ENABLED=false`. Token links are printed to the backend console so you can test without a real email account.
 
 ---
 
@@ -135,4 +151,4 @@ python -m pytest backend/tests/ -v
 | Role | Email | Password |
 |---|---|---|
 | Land Owner + Trader | induwara.ihalavithana@gmail.com | 12345678 |
-| Admin | admin@smartagri.lk | admin1234 |
+| Admin | admin@smartagri.lk | Admin@12345 |

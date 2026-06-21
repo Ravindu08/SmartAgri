@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartAgri — Setup Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  @media print {
+    .no-print { display: none !important; }
+    body { margin: 0; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: #1a1a1a;
+    background: #f5f5f5;
+    line-height: 1.6;
+  }
+
+  .page {
+    max-width: 780px;
+    margin: 32px auto;
+    background: #fff;
+    padding: 48px 56px;
+    border-radius: 8px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  }
+
+  @media print {
+    body { background: #fff; }
+    .page { margin: 0; box-shadow: none; border-radius: 0; }
+  }
+
+  /* Header */
+  .header {
+    border-bottom: 2.5px solid #1a7a4a;
+    padding-bottom: 20px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .header h1 { font-size: 24px; font-weight: 600; color: #1a7a4a; letter-spacing: -0.3px; }
+  .header p { font-size: 12.5px; color: #666; margin-top: 4px; }
+  .badge {
+    background: #e8f5ee; color: #1a7a4a;
+    font-size: 11px; font-weight: 500;
+    padding: 4px 10px; border-radius: 20px;
+    border: 1px solid #b3ddc4; white-space: nowrap;
+    margin-top: 4px;
+  }
+
+  /* Steps */
+  .section { margin-bottom: 28px; }
+  .step-header { display: flex; align-items: center; gap: 10px; margin-bottom: 13px; }
+  .step-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #1a7a4a; color: #fff;
+    font-size: 12.5px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-num.gray { background: #777; }
+  .step-title { font-size: 15.5px; font-weight: 600; color: #111; }
+  .step-body { padding-left: 38px; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 10px 0; }
+  th {
+    background: #f2faf6; color: #1a7a4a;
+    font-weight: 600; text-align: left;
+    padding: 8px 12px; border: 1px solid #c0dfd0;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  td { padding: 8px 12px; border: 1px solid #e2e2e2; vertical-align: top; color: #333; }
+  tr:nth-child(even) td { background: #fafafa; }
+
+  /* Code */
+  .code-block {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 11.5px;
+    padding: 14px 18px;
+    border-radius: 6px;
+    margin: 10px 0;
+    line-height: 1.8;
+    white-space: pre;
+  }
+  .cm  { color: #6c7086; }
+  .kw  { color: #89b4fa; }
+  .st  { color: #a6e3a1; }
+  .vr  { color: #cba6f7; }
+
+  .inline-code {
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 11.5px;
+    background: #f0f5f1;
+    color: #1a5c38;
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid #cce5d8;
+  }
+
+  /* Callouts */
+  .note { background: #fff8e6; border-left: 3px solid #f59e0b; padding: 10px 13px; border-radius: 0 4px 4px 0; font-size: 12.5px; margin: 10px 0; color: #7a3c00; }
+  .tip  { background: #eaf7f0; border-left: 3px solid #1a7a4a; padding: 10px 13px; border-radius: 0 4px 4px 0; font-size: 12.5px; margin: 10px 0; color: #14532d; }
+  .warn { background: #fff1f1; border-left: 3px solid #e53e3e; padding: 10px 13px; border-radius: 0 4px 4px 0; font-size: 12.5px; margin: 10px 0; color: #7f1d1d; }
+
+  p { margin: 8px 0; font-size: 13px; color: #333; }
+  ul { padding-left: 20px; margin: 8px 0; }
+  li { margin: 5px 0; font-size: 13px; color: #333; }
+  strong { font-weight: 600; }
+
+  .divider { border: none; border-top: 1px solid #ebebeb; margin: 26px 0; }
+
+  /* Credentials box */
+  .cred-box {
+    display: inline-flex; gap: 28px;
+    background: #f2faf6; border: 1px solid #b3ddc4;
+    border-radius: 7px; padding: 11px 18px; margin: 10px 0;
+  }
+  .cred-item label {
+    display: block; font-size: 10px; color: #888;
+    font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; margin-bottom: 3px;
+  }
+  .cred-item span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: #1a5c38; font-weight: 500;
+  }
+
+  /* Method cards */
+  .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+  .method-card { border: 1px solid #e0e0e0; border-radius: 6px; padding: 13px 15px; }
+  .method-card.rec { border-color: #b3ddc4; background: #f9fdf9; }
+  .method-card h4 { font-size: 12.5px; font-weight: 600; color: #111; margin-bottom: 5px; }
+  .method-card p { font-size: 12px; color: #555; margin: 0; }
+  .rec-tag {
+    font-size: 10px; background: #1a7a4a; color: #fff;
+    padding: 1px 6px; border-radius: 3px;
+    font-weight: 600; margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .sub-label { font-weight: 600; font-size: 13px; color: #222; margin: 14px 0 6px; }
+
+  .url-chip {
+    display: inline-block;
+    background: #eef2ff; border: 1px solid #c7d2fe;
+    border-radius: 4px; padding: 3px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: #3730a3;
+  }
+
+  /* Footer */
+  .footer {
+    border-top: 1px solid #e8e8e8;
+    margin-top: 36px; padding-top: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer span { font-size: 11.5px; color: #aaa; }
+
+  .print-btn {
+    background: #1a7a4a; color: #fff;
+    border: none; padding: 9px 20px;
+    border-radius: 6px; font-size: 13px;
+    font-weight: 500; cursor: pointer;
+    display: flex; align-items: center; gap: 7px;
+    font-family: 'Inter', sans-serif;
+  }
+  .print-btn:hover { background: #155d38; }
+  .print-btn svg { flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <h1>SmartAgri — Setup Guide</h1>
+      <p>Complete installation and run instructions for a new machine</p>
+    </div>
+    <span class="badge">v1.0 &nbsp;·&nbsp; June 2026</span>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="section">
+    <div class="step-header">
+      <div class="step-num">1</div>
+      <div class="step-title">Install prerequisites</div>
+    </div>
+    <div class="step-body">
+      <p>Download and install all three tools before doing anything else.</p>
+      <table>
+        <tr><th>Tool</th><th>Minimum version</th><th>Where to download</th></tr>
+        <tr><td><strong>Python</strong></td><td>3.11 or newer</td><td>python.org/downloads</td></tr>
+        <tr><td><strong>Node.js</strong> (includes npm)</td><td>18 LTS or newer</td><td>nodejs.org</td></tr>
+        <tr><td><strong>PostgreSQL</strong></td><td>15 or 16</td><td>postgresql.org/download</td></tr>
+      </table>
+      <div class="note">During PostgreSQL setup you will be asked to set a password for the <span class="inline-code">postgres</span> user. Write it down — you will need it in Step 4.</div>
+      <p>After installing, verify everything is on your PATH by opening Command Prompt and running:</p>
+      <div class="code-block"><span class="cm">REM Each line should print a version number, not an error</span>
+python --version
+node --version
+npm --version</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Step 2 -->
+  <div class="section">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      <div class="step-title">Extract the ZIP and install packages</div>
+    </div>
+    <div class="step-body">
+      <p>Extract the ZIP file anywhere (e.g. <span class="inline-code">C:\Projects\SmartAgri</span>). Open Command Prompt <strong>inside that folder</strong> and run:</p>
+      <div class="code-block"><span class="cm">REM Install all Python packages (backend + ML service)</span>
+<span class="kw">cd</span> backend
+pip install -r requirements.txt
+<span class="kw">cd</span> ..
+
+<span class="cm">REM Install frontend packages</span>
+<span class="kw">cd</span> frontend
+npm install
+<span class="kw">cd</span> ..</div>
+      <div class="tip">The <span class="inline-code">pip install</span> step downloads ML libraries (scikit-learn, XGBoost) and may take 2–5 minutes on first run. This is normal.</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Step 3 -->
+  <div class="section">
+    <div class="step-header">
+      <div class="step-num">3</div>
+      <div class="step-title">Create the database and import the data</div>
+    </div>
+    <div class="step-body">
+      <p>First create an empty database named <span class="inline-code">smartagri</span>, then import the provided <span class="inline-code">SmartAgri.sql</span> file into it. Choose one method:</p>
+
+      <div class="method-grid">
+        <div class="method-card rec">
+          <h4>Method A — Command line <span class="rec-tag">recommended</span></h4>
+          <p>Fastest and most reliable. Run two commands in order.</p>
+        </div>
+        <div class="method-card">
+          <h4>Method B — pgAdmin GUI</h4>
+          <p>Use this if you prefer a graphical interface.</p>
+        </div>
+      </div>
+
+      <p class="sub-label">Method A — Command line</p>
+      <div class="code-block"><span class="cm">REM Step 1: create the empty database (enter your postgres password when prompted)</span>
+psql -U postgres -c "CREATE DATABASE smartagri;"
+
+<span class="cm">REM Step 2: import the SQL dump (adjust the path to where SmartAgri.sql is saved)</span>
+psql -U postgres -d smartagri -f "C:\path\to\SmartAgri.sql"</div>
+
+      <div class="note">If <span class="inline-code">psql</span> is not recognised, add PostgreSQL's bin folder to your PATH.<br>
+      Example path: <span class="inline-code">C:\Program Files\PostgreSQL\16\bin</span></div>
+
+      <p class="sub-label">Method B — pgAdmin</p>
+      <ul>
+        <li>Open pgAdmin and connect to your local PostgreSQL server.</li>
+        <li>Right-click <strong>Databases</strong> → <strong>Create</strong> → <strong>Database…</strong> and name it <span class="inline-code">smartagri</span>.</li>
+        <li>Right-click the new <span class="inline-code">smartagri</span> database → <strong>Restore…</strong></li>
+        <li>Set Format to <strong>Plain</strong>, browse to <span class="inline-code">SmartAgri.sql</span>, and click <strong>Restore</strong>.</li>
+      </ul>
+
+      <div class="tip">Once the import finishes, all tables, data, and user accounts are ready. The application will detect this on startup and skip re-creating anything.</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Step 4 -->
+  <div class="section">
+    <div class="step-header">
+      <div class="step-num">4</div>
+      <div class="step-title">Create the <span class="inline-code" style="font-size:13px">.env</span> configuration file</div>
+    </div>
+    <div class="step-body">
+      <p>Inside the <span class="inline-code">backend\</span> folder, create a new file named exactly <span class="inline-code">.env</span> (no other extension). Copy the content below and replace <span class="inline-code">YOUR_PASSWORD</span> with your PostgreSQL password from Step 1.</p>
+      <div class="code-block"><span class="cm"># backend\.env</span>
+<span class="vr">DATABASE_URL</span>=<span class="st">postgresql://postgres:YOUR_PASSWORD@localhost:5432/smartagri</span>
+<span class="vr">SECRET_KEY</span>=<span class="st">replace-this-with-any-long-random-string</span>
+<span class="vr">ALGORITHM</span>=<span class="st">HS256</span>
+<span class="vr">ACCESS_TOKEN_EXPIRE_MINUTES</span>=<span class="st">30</span>
+<span class="vr">SMARTAGRI_CORS_ORIGINS</span>=<span class="st">http://localhost:5173</span></div>
+      <p>To generate a proper <span class="inline-code">SECRET_KEY</span>, run this in your terminal and copy the output:</p>
+      <div class="code-block">python -c <span class="st">"import secrets; print(secrets.token_hex(32))"</span></div>
+      <div class="note">The <span class="inline-code">.env</span> file is intentionally excluded from the ZIP because it contains your database password. Never share it or commit it to git.</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Step 5 -->
+  <div class="section">
+    <div class="step-header">
+      <div class="step-num">5</div>
+      <div class="step-title">Start the application</div>
+    </div>
+    <div class="step-body">
+      <p>Double-click <span class="inline-code">start-services.bat</span> in the project root folder.</p>
+      <div class="warn"><strong>Do not run it as Administrator.</strong> Python and Node.js are installed in your user profile and are not accessible from an elevated (admin) prompt.</div>
+      <p>Three separate Command Prompt windows will open — one for each service. Wait until all three show they are ready (usually 10–15 seconds), then open your browser and go to:</p>
+      <p style="margin-top: 10px;"><span class="url-chip">http://localhost:5173</span></p>
+      <p style="margin-top: 12px;">To stop all services when you are done, double-click <span class="inline-code">stop-services.bat</span>.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Step 6 -->
+  <div class="section">
+    <div class="step-header">
+      <div class="step-num">6</div>
+      <div class="step-title">Log in</div>
+    </div>
+    <div class="step-body">
+      <p>All accounts are already in the imported database. Use the admin account to access the full system:</p>
+      <div class="cred-box">
+        <div class="cred-item"><label>Email</label><span>admin@smartagri.lk</span></div>
+        <div class="cred-item"><label>Password</label><span>Admin@12345</span></div>
+      </div>
+      <p>Land Owner and Trader test accounts are also included in the database. Ask the person who sent you the ZIP for those credentials, or register new accounts from the Register page.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Troubleshooting -->
+  <div class="section">
+    <div class="step-header">
+      <div class="step-num gray">?</div>
+      <div class="step-title">Troubleshooting</div>
+    </div>
+    <div class="step-body">
+      <table>
+        <tr><th style="width:44%">Error or symptom</th><th>Fix</th></tr>
+        <tr><td><span class="inline-code">pip</span> not found</td><td>Use <span class="inline-code">python -m pip install -r requirements.txt</span> instead</td></tr>
+        <tr><td><span class="inline-code">psql</span> not recognised</td><td>Add PostgreSQL's bin folder to PATH, e.g. <span class="inline-code">C:\Program Files\PostgreSQL\16\bin</span></td></tr>
+        <tr><td>Password authentication failed</td><td>Wrong password in <span class="inline-code">DATABASE_URL</span> inside <span class="inline-code">backend\.env</span></td></tr>
+        <tr><td>Port 5432 connection refused</td><td>PostgreSQL service is not running — open Windows Services and start it</td></tr>
+        <tr><td>Port already in use (8000 / 8001 / 5173)</td><td>Run <span class="inline-code">stop-services.bat</span> first, then start again</td></tr>
+        <tr><td>Kaspersky blocks <span class="inline-code">stop-services.bat</span></td><td>Add the project folder to Kaspersky Trusted Zone: Settings → Threats &amp; Exclusions → Trusted Zone</td></tr>
+        <tr><td>ML service window closes immediately</td><td>The <span class="inline-code">backend\ai_models\training\models\</span> folder must contain the <span class="inline-code">.pkl</span> model files</td></tr>
+        <tr><td>Page loads but shows no data</td><td>The SQL import did not complete — redo Step 3 and check the terminal output for errors</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>SmartAgri &nbsp;·&nbsp; CST Group 07 &nbsp;·&nbsp; 2026</span>
+    <button class="print-btn no-print" onclick="window.print()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="6 9 6 2 18 2 18 9"/>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+        <rect x="6" y="14" width="12" height="8"/>
+      </svg>
+      Save as PDF
+    </button>
+  </div>
+
+</div>
+</body>
+</html>
