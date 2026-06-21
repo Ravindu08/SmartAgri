@@ -2,97 +2,92 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import useSWR from 'swr';
 import { useApp } from '../../context/AppContext';
-import { getAuthSession } from '../../services/api';
+import { getAuthSession, request } from '../../services/api';
 
 const T = {
   en: {
     welcome: 'Welcome back', trader: 'Trader',
-    statsRequests: 'Total Requests', statsOrders: 'Total Orders',
-    statsActive: 'Active Orders', statsCompleted: 'Completed',
+    statsRequests: 'Pending Orders', statsOrders: 'Active Orders',
+    statsActive: 'Total Active', statsCompleted: 'Completed',
     quickActions: 'Quick Actions', browseMarket: 'Browse Marketplace',
-    browseMarketDesc: 'Find crops available for purchase',
-    viewRequests: 'My Requests', viewRequestsDesc: 'Track your purchase requests',
-    viewOrders: 'My Orders', viewOrdersDesc: 'Monitor your active orders',
+    browseMarketDesc: 'Find crops & products available for purchase',
+    viewRequests: 'Pending Orders', viewRequestsDesc: 'Orders awaiting seller confirmation',
+    viewOrders: 'Active Orders', viewOrdersDesc: 'Confirmed and in-delivery orders',
     viewHistory: 'Transaction History', viewHistoryDesc: 'View past transactions',
     recentActivity: 'Recent Activity', noActivity: 'No recent activity.',
-    pending: 'Pending', confirmed: 'Confirmed', delivered: 'Delivered',
-    completed: 'Completed', rejected: 'Rejected', cancelled: 'Cancelled',
-    accepted: 'Accepted', request: 'Request', order: 'Order',
+    Pending: 'Pending', Confirmed: 'Confirmed', Delivered: 'Delivered',
+    Completed: 'Completed', Rejected: 'Rejected', Cancelled: 'Cancelled',
   },
   si: {
     welcome: 'නැවත සාදරයෙන් පිළිගනිමු', trader: 'වෙළෙන්ද',
-    statsRequests: 'මුළු ඉල්ලීම්', statsOrders: 'මුළු ඇණවුම්',
-    statsActive: 'ක්‍රියාත්මක ඇණවුම්', statsCompleted: 'සම්පූර්ණ',
+    statsRequests: 'අපේක්ෂිත ඇණවුම්', statsOrders: 'ක්‍රියාත්මක ඇණවුම්',
+    statsActive: 'සම්පූර්ණ ක්‍රියාත්මක', statsCompleted: 'සම්පූර්ණ',
     quickActions: 'ඉක්මන් ක්‍රියා', browseMarket: 'වෙළඳසැල බලන්න',
     browseMarketDesc: 'මිලදී ගත හැකි බෝග සොයන්න',
-    viewRequests: 'මගේ ඉල්ලීම්', viewRequestsDesc: 'ඔබේ ඉල්ලීම් ට්‍රැක් කරන්න',
-    viewOrders: 'මගේ ඇණවුම්', viewOrdersDesc: 'ක්‍රියාත්මක ඇණවුම් නිරීක්ෂණය කරන්න',
+    viewRequests: 'අපේක්ෂිත ඇණවුම්', viewRequestsDesc: 'විකුණුම්කරු තහවුරු කිරීමට රැඳෙන ඇණවුම්',
+    viewOrders: 'ක්‍රියාත්මක ඇණවුම්', viewOrdersDesc: 'තහවුරු ඇණවුම් නිරීක්ෂණය',
     viewHistory: 'ගනුදෙනු ඉතිහාසය', viewHistoryDesc: 'පසුගිය ගනුදෙනු බලන්න',
     recentActivity: 'මෑත ක්‍රියාකාරකම්', noActivity: 'මෑත ක්‍රියාකාරකම් නොමැත.',
-    pending: 'අපේක්ෂිත', confirmed: 'තහවුරු', delivered: 'බෙදාදුන්',
-    completed: 'සම්පූර්ණ', rejected: 'ප්‍රතික්ෂේප', cancelled: 'අවලංගු',
-    accepted: 'පිළිගත්', request: 'ඉල්ලීම', order: 'ඇණවුම',
+    Pending: 'අපේක්ෂිත', Confirmed: 'තහවුරු', Delivered: 'බෙදාදුන්',
+    Completed: 'සම්පූර්ණ', Rejected: 'ප්‍රතික්ෂේප', Cancelled: 'අවලංගු',
   },
   ta: {
     welcome: 'மீண்டும் வருக', trader: 'கடைவர்',
-    statsRequests: 'மொத்த கோரிக்கைகள்', statsOrders: 'மொத்த ஆர்டர்கள்',
-    statsActive: 'செயலில் உள்ள ஆர்டர்கள்', statsCompleted: 'முடிந்தவை',
+    statsRequests: 'நிலுவை ஆர்டர்கள்', statsOrders: 'செயலில் ஆர்டர்கள்',
+    statsActive: 'மொத்த செயலில்', statsCompleted: 'முடிந்தவை',
     quickActions: 'விரைவு செயல்கள்', browseMarket: 'சந்தையை உலாவுக',
     browseMarketDesc: 'வாங்கக் கிடைக்கும் பயிர்களைக் கண்டறியவும்',
-    viewRequests: 'என் கோரிக்கைகள்', viewRequestsDesc: 'உங்கள் கோரிக்கைகளை கண்காணிக்கவும்',
-    viewOrders: 'என் ஆர்டர்கள்', viewOrdersDesc: 'செயலில் உள்ள ஆர்டர்களை கண்காணிக்கவும்',
+    viewRequests: 'நிலுவை ஆர்டர்கள்', viewRequestsDesc: 'விற்பனையாளர் உறுதிக்காக காத்திருக்கும் ஆர்டர்கள்',
+    viewOrders: 'செயலில் ஆர்டர்கள்', viewOrdersDesc: 'உறுதிப்படுத்தப்பட்ட ஆர்டர்களை கண்காணிக்கவும்',
     viewHistory: 'பரிவர்த்தனை வரலாறு', viewHistoryDesc: 'கடந்த பரிவர்த்தனைகளை பார்க்கவும்',
     recentActivity: 'சமீபத்திய செயல்பாடு', noActivity: 'சமீபத்திய செயல்பாடு இல்லை.',
-    pending: 'நிலுவையில்', confirmed: 'உறுதிப்படுத்தப்பட்டது', delivered: 'வழங்கப்பட்டது',
-    completed: 'முடிந்தது', rejected: 'நிராகரிக்கப்பட்டது', cancelled: 'ரத்து',
-    accepted: 'ஏற்கப்பட்டது', request: 'கோரிக்கை', order: 'ஆர்டர்',
+    Pending: 'நிலுவையில்', Confirmed: 'உறுதிப்படுத்தப்பட்டது', Delivered: 'வழங்கப்பட்டது',
+    Completed: 'முடிந்தது', Rejected: 'நிராகரிக்கப்பட்டது', Cancelled: 'ரத்து',
   },
 };
 
 const STATUS_COLORS = {
-  pending: 'var(--amber)', confirmed: 'var(--blue)', delivered: 'var(--green-mid)',
-  completed: 'var(--green)', rejected: 'var(--red)', cancelled: 'var(--muted)',
-  accepted: 'var(--green)',
+  Pending: 'var(--amber)', Confirmed: 'var(--blue)', Delivered: 'var(--green-mid)',
+  Completed: 'var(--green)', Rejected: 'var(--red)', Cancelled: 'var(--muted)',
 };
 
-const fetcher = url => fetch(url).then(r => r.json());
+const authFetcher = url => request(url);
 
 export default function TraderDashboard() {
-  const { lang }  = useApp();
-  const t         = T[lang] || T.en;
-  const { user }  = getAuthSession();
-  const myName    = user?.full_name || '';
+  const { lang } = useApp();
+  const t        = T[lang] || T.en;
+  const { user } = getAuthSession();
 
-  const { data: requestsData } = useSWR('/api/requests', fetcher, { refreshInterval: 4000 });
-  const { data: ordersData }   = useSWR('/api/orders',   fetcher, { refreshInterval: 4000 });
-  const requests = requestsData?.requests ?? [];
-  const orders   = ordersData?.orders     ?? [];
+  const { data: rawOrders } = useSWR('/api/marketplace/orders', authFetcher, { refreshInterval: 10000 });
+  const allOrders = Array.isArray(rawOrders) ? rawOrders : [];
 
-  const myRequests = useMemo(() => requests.filter(r => r.traderName === myName), [requests, myName]);
-  const myOrders   = useMemo(() => orders.filter(o => o.traderName === myName),   [orders,   myName]);
+  const myOrders = useMemo(
+    () => allOrders.filter(o => o.buyer_id === user?.id),
+    [allOrders, user?.id],
+  );
 
-  const activeOrders    = myOrders.filter(o => ['pending', 'confirmed', 'delivered'].includes(o.status));
-  const completedOrders = myOrders.filter(o => o.status === 'completed');
+  const pendingOrders   = myOrders.filter(o => o.status === 'Pending');
+  const activeOrders    = myOrders.filter(o => ['Confirmed', 'Delivered'].includes(o.status));
+  const completedOrders = myOrders.filter(o => o.status === 'Completed');
 
-  const recentItems = useMemo(() => {
-    const rs = myRequests.slice(-3).reverse().map(r => ({ ...r, _type: 'request' }));
-    const os = myOrders.slice(-3).reverse().map(o => ({ ...o, _type: 'order' }));
-    return [...rs, ...os].sort((a, b) =>
-      new Date(b.createdAt || 0) - new Date(a.createdAt || 0),
-    ).slice(0, 6);
-  }, [myRequests, myOrders]);
+  const recentItems = useMemo(
+    () => [...myOrders]
+      .sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0))
+      .slice(0, 6),
+    [myOrders],
+  );
 
   const stats = [
-    { label: t.statsRequests, value: myRequests.length, icon: '📋', color: 'var(--blue)' },
-    { label: t.statsOrders,   value: myOrders.length,   icon: '📦', color: 'var(--accent)' },
-    { label: t.statsActive,   value: activeOrders.length,    icon: '🔄', color: 'var(--amber)' },
+    { label: t.statsRequests,  value: pendingOrders.length,   icon: '📋', color: 'var(--amber)' },
+    { label: t.statsOrders,    value: activeOrders.length,    icon: '📦', color: 'var(--blue)' },
+    { label: t.statsActive,    value: pendingOrders.length + activeOrders.length, icon: '🔄', color: 'var(--accent)' },
     { label: t.statsCompleted, value: completedOrders.length, icon: '✅', color: 'var(--green)' },
   ];
 
   const quickActions = [
     { to: '/marketplace',     icon: '🏪', label: t.browseMarket,  desc: t.browseMarketDesc,  color: 'var(--accent)' },
-    { to: '/trader/requests', icon: '📋', label: t.viewRequests,  desc: t.viewRequestsDesc,  color: 'var(--blue)' },
-    { to: '/trader/orders',   icon: '📦', label: t.viewOrders,    desc: t.viewOrdersDesc,    color: 'var(--amber)' },
+    { to: '/trader/requests', icon: '📋', label: t.viewRequests,  desc: t.viewRequestsDesc,  color: 'var(--amber)' },
+    { to: '/trader/orders',   icon: '📦', label: t.viewOrders,    desc: t.viewOrdersDesc,    color: 'var(--blue)' },
     { to: '/trader/history',  icon: '📜', label: t.viewHistory,   desc: t.viewHistoryDesc,   color: 'var(--green)' },
   ];
 
@@ -189,10 +184,8 @@ export default function TraderDashboard() {
             </div>
           ) : (
             recentItems.map((item, i) => {
-              const isReq   = item._type === 'request';
-              const status  = item.status?.toLowerCase() || 'pending';
-              const color   = STATUS_COLORS[status] || 'var(--muted)';
-              const label   = t[status] || status;
+              const color = STATUS_COLORS[item.status] || 'var(--muted)';
+              const label = t[item.status] || item.status;
               return (
                 <div key={item.id} style={{
                   padding: '14px 20px',
@@ -200,16 +193,19 @@ export default function TraderDashboard() {
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '18px' }}>{isReq ? '📋' : '📦'}</span>
+                    <span style={{ fontSize: '18px' }}>📦</span>
                     <div>
                       <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text)' }}>
-                        {item.cropName || item.listingName || '—'}
+                        {item.listing_name || '—'}
                       </div>
                       <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
-                        {isReq ? t.request : t.order} ·{' '}
-                        {item.quantity}{item.unit ? ` ${item.unit}` : 'kg'}
-                        {item.maxBudget ? ` · $${item.maxBudget}/kg` : ''}
-                        {item.offeredPrice ? ` · $${item.offeredPrice}/kg` : ''}
+                        {item.requested_quantity} kg
+                        {item.agreed_price
+                          ? ` · Rs. ${item.agreed_price}/kg`
+                          : item.proposed_price
+                          ? ` · Rs. ${item.proposed_price}/kg`
+                          : ''}
+                        {' · from '}{item.seller_name}
                       </div>
                     </div>
                   </div>
