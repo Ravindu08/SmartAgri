@@ -47,3 +47,8 @@ backend/*.log
 
 # Dev/test helper files
 frontend/public/test-login.html
+
+# Dataset exports and Office documents (reference material, not code)
+data/
+*.docx
+*.xlsx

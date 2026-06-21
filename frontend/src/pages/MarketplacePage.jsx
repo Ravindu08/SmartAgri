@@ -1,449 +1,213 @@
-/* =================================================================================
- * SmartAgri — Marketplace (Sprint 4)  ·  SINGLE-FILE PAGE
- * Everything for this page lives here on purpose: types, data hooks, a tiny toast
- * system, inline UI primitives (Button / Card / Badge / Input / Modal / Tabs) and
- * all panels. No external local UI files are imported, so this page is fully
- * portable inside the larger SmartAgri website.
- * Backend lives in /api/listings, /api/requests, /api/orders (Sprint 4 demo API).
- * ================================================================================= */
+/* ==================================================================================
+ * SmartAgri — Marketplace  (Real DB-backed via /api/marketplace/*)
+ * ================================================================================== */
 
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router-dom';
 import useSWR, { mutate } from 'swr';
-import { getAuthSession, getActiveRole, setActiveRole, getUserRoles } from '../services/api';
+import { request, getAuthSession, getActiveRole, setActiveRole, getUserRoles } from '../services/api';
 import {
-  Leaf,
-  Tractor,
-  Store,
-  User,
-  Sprout,
-  Plus,
-  Package,
-  MapPin,
-  ShoppingCart,
-  Send,
-  Check,
-  X,
-  MessageSquare,
-  Inbox,
-  Package2,
-  ArrowRight,
-  CheckCircle2,
-  History,
+  Leaf, Tractor, Store, User, Sprout, Plus, Package, MapPin,
+  ShoppingCart, Send, Check, X, MessageSquare, Package2,
+  ArrowRight, CheckCircle2, History, Trash2,
 } from 'lucide-react';
 import '../styles/marketplace.css';
 
-const ORDER_STATUS_FLOW = ['pending', 'confirmed', 'delivered', 'completed'];
-const API_BASE = import.meta.env.VITE_API_URL || '';
-const LOCAL_LISTINGS_KEY = 'agri-local-listings';
+// ── constants ─────────────────────────────────────────────────────────────────
+const ORDER_STATUS_FLOW = ['Pending', 'Confirmed', 'Delivered', 'Completed'];
+const CROP_TYPES = ['Vegetable', 'Grain', 'Fruit', 'Spice', 'Herb', 'Legume', 'Other'];
+const PRODUCT_TYPES = ['Fertilizer', 'Pesticide', 'Herbicide', 'Fungicide', 'Seed', 'Equipment', 'Other'];
 
-// Per-page multilingual messages (keeps translations local to this page)
-const MESSAGES = {
+// ── multilingual strings ───────────────────────────────────────────────────────
+const M = {
   en: {
-    badge: '🛒 Crop Marketplace',
-    title: 'Buying and selling agricultural products',
-    sub: 'Connect with farmers and traders. Explore fresh produce, negotiate prices, and manage your orders all in one place.',
-    headerTitle: 'AgriMarket',
-    headerSub: 'SmartAgri · Crop Marketplace',
-    landOwner: 'Land Owner',
-    trader: 'Trader',
-    yourDisplayName: 'Your display name',
-    actAs: 'You are acting as',
-    addListingTitle: 'Add a Crop Listing',
-    addListingSub: 'List your harvest so traders can browse and send purchase requests.',
-    cropName: 'Crop name',
-    quantity: 'Quantity',
-    unit: 'Unit',
-    pricePerUnit: 'Price / unit (Rs.)',
-    location: 'Location',
-    description: 'Description',
-    imageLabel: 'Product Image (optional)',
-    imageHint: 'Upload a photo of your listing',
-    publishListing: 'Publish Listing',
-    listingInProgress: 'Listing...',
-    requiredFields: 'Crop name, quantity and price are required.',
-    listedLocally: 'listed locally (start backend on port 8001 to sync).',
-    listedRemote: 'listed on the marketplace.',
-    yourListing: 'Your listing',
-    listedByAnother: 'Listed by another owner',
-    listedByAnotherTrader: 'Listed by another trader',
-    yourProduct: 'Your product',
-    availableSuffix: 'available',
-    loadingCrops: 'Loading available crops...',
-    noListingsOwner: 'No crops listed yet. Add your first listing above.',
+    badge: '🛒 Crop Marketplace', title: 'Buying and selling agricultural products',
+    sub: 'Connect with farmers and traders. Explore fresh produce, negotiate prices, and manage your orders — all in one place.',
+    headerTitle: 'AgriMarket', headerSub: 'SmartAgri · Crop Marketplace',
+    landOwner: 'Land Owner', trader: 'Trader', guest: 'Guest',
+    actAs: 'Acting as', loggedInRole: 'Logged in to this role.',
+    demoWarning: '⚠️ You are browsing as a guest. Log in or register to buy or list products.',
+    addListingTitle: 'Add a Crop Listing', addListingSub: 'List your harvest for traders to browse and purchase.',
+    addProductTitle: 'Add a Product Listing', addProductSub: 'List fertilizers, pesticides, seeds or other agricultural supplies.',
+    cropName: 'Crop name', cropType: 'Crop type', productCategory: 'Category',
+    quantity: 'Quantity', unit: 'Unit', pricePerUnit: 'Price / unit (Rs.)',
+    location: 'Location', description: 'Description',
+    imageLabel: 'Product Image (optional)', imageHint: 'Upload photo',
+    publishListing: 'Publish Listing', listingInProgress: 'Publishing…',
+    requiredFields: 'Name, quantity and price are required.',
+    listed: 'listed on the marketplace.',
+    yourListing: 'Your listing', cannotBuyOwn: 'You cannot buy your own listing',
+    noListingsOwner: 'No crop listings yet. Add your first listing above.',
     noListingsTrader: 'No crops listed yet. Check back soon.',
     noProductsTrader: 'No products listed yet. Add your first product above.',
     noProductsOwner: 'No agricultural products listed yet. Check back soon.',
-    sendRequest: 'Send Purchase Request',
-    sendBuyRequest: 'Send Buy Request',
-    soldOut: 'Sold Out',
-    sendRequestBtn: 'Send Request',
-    sending: 'Sending...',
+    loadingCrops: 'Loading listings…',
+    sendRequest: 'Send Purchase Request', sendBuyRequest: 'Send Buy Request',
+    soldOut: 'Sold Out', sending: 'Sending…', sendRequestBtn: 'Send Request',
     requestInvalid: 'Enter a valid quantity and price.',
     estimatedTotal: 'Estimated total',
-    ownerTabs: ['My Listings','Browse Marketplace','Purchase Requests','Order Management','Transaction History'],
-    traderTabs: ['Browse Marketplace','My Products','My Requests','My Orders','Transaction History'],
-    availableCrops: 'Crop Listings',
-    availableProducts: 'Agricultural Products',
-    browseMarketplace: 'Browse Marketplace',
-    addProductTitle: 'Add a Product Listing',
-    addProductSub: 'List fertilizers, pesticides, seeds or other supplies for land owners to browse and buy.',
-    productName: 'Product name',
-    productCategory: 'Category',
-    productCategories: ['Fertilizer','Pesticide','Herbicide','Fungicide','Seed','Equipment','Other'],
-    negotiate: 'Negotiate',
-    negotiationTypeMsg: 'Type a message or a counter price.',
-    noMessagesYet: 'No messages yet. Start the discussion.',
-    messagePlaceholder: 'Type a message...',
-    counterPrice: 'Counter price',
-    send: 'Send',
-    loadingRequests: 'Loading requests...',
-    requestAccepted: 'Request accepted — order created.',
-    requestRejected: 'Request rejected.',
-    noPurchaseRequestsOwner: 'No purchase requests yet. They will appear here when traders send them.',
-    noPurchaseRequestsTrader: 'You have not sent any purchase requests yet. Browse the marketplace to send one.',
-    accept: 'Accept',
-    reject: 'Reject',
-    loadingOrders: 'Loading orders...',
-    noOrdersYet: 'No orders yet. Orders are created when a land owner accepts a purchase request.',
-    noTransactionsYet: 'No transactions recorded yet.',
-    loggedInRole: 'You are logged in to this role.',
-    switchRole: 'Switch role',
-    demoWarning: '⚠️ You are browsing as a guest. Log in or register to buy or list products.',
+    available: 'available', soldLabel: 'Sold', reservedLabel: 'Reserved',
+    ownerTabs: ['My Listings', 'Browse', 'Incoming Orders', 'History'],
+    traderTabs: ['Browse', 'My Products', 'My Orders', 'History'],
+    availableCrops: 'Crop Listings', availableProducts: 'Agricultural Products',
+    loadingOrders: 'Loading orders…',
+    noOrdersYet: 'No orders yet.', noHistoryYet: 'No completed orders yet.',
+    buyer: 'Buyer', seller: 'Seller', qty: 'Qty', price: 'Price', total: 'Total',
+    status: 'Status', orderDate: 'Date',
+    markAs: 'Mark as', confirmComplete: 'Confirm Receipt',
+    negotiate: 'Negotiate / Note', noNotes: 'No notes yet.',
+    buyerNote: "Buyer's Note", sellerNote: "Seller's Response",
+    counterOffer: 'Counter offer', addNote: 'Add Note',
+    yourNote: 'Your note…', yourCounter: 'Counter price (optional)',
+    saving: 'Saving…', save: 'Send',
+    deleteListing: 'Delete', deleteConfirm: 'Delete this listing? This cannot be undone.',
+    accept: 'Accept', reject: 'Reject', cancel: 'Cancel',
+    switchRole: 'Switch Role',
+    pendingStatus: 'Pending', confirmedStatus: 'Confirmed',
+    deliveredStatus: 'Delivered', completedStatus: 'Completed',
+    rejectedStatus: 'Rejected', cancelledStatus: 'Cancelled',
   },
   si: {
-    badge: '🛒 කෘෂි වෙළඳපොල',
-    title: 'කිසීම හා විකිණීම - කෘෂි නිෂ්පාදන',
-    sub: 'ගොවින් සහ වෙළෙන්දන් සමග සම්බන්ධ වන්න. නැවුම් නිෂ්පාදන විමසන්න, මිල ගැන සාකච්ඡා කරන්න, සහ ඔබේ ඇණවුම් කළමනාකරණය කරන්න.',
-    headerTitle: 'AgriMarket',
-    headerSub: 'SmartAgri · කෘෂි වෙළඳපොල',
-    landOwner: 'ඉඩම් හිමිකරු',
-    trader: 'වෙළෙන්ද',
-    yourDisplayName: 'ඔබේ පෙන්වන නම',
-    actAs: 'ඔබ ක්‍රියා කරන්නේ',
-    addListingTitle: 'බෝග ලැයිස්තු එක් කරන්න',
-    addListingSub: 'ඔබගේ අස්වනු ලැයිස්තු ගොනු කරන්න, වෙළෙන්දන් වැඩිපුර බලන්න.',
-    cropName: 'බෝග නම',
-    quantity: 'ප්‍රමාණය',
-    unit: 'ඒකකය',
-    pricePerUnit: 'මිල / ඒකකය (රු.)',
-    location: 'ස්ථානය',
-    description: 'විස්තරය',
-    publishListing: 'ලැයිස්තුව ප්‍රකාශ කරන්න',
-    listingInProgress: 'ලැයිස්තුව...',
-    requiredFields: 'බෝග නම, ප්‍රමාණය සහ මිල අවශ්‍යයි.',
-    listedLocally: 'ප්‍රදේශීයව ලැයිස්තුගත විය (8001 වරායේ backend ආරම්භ කරන්න).',
-    listedRemote: 'වෙළඳපොලේ ලැයිස්තුගත විය.',
-    yourListing: 'ඔබගේ ලැයිස්තුව',
-    listedByAnother: 'වෙනත් හිමිකරු විසින් ලැයිස්තුගත කර ඇත',
-    availableSuffix: 'ලබා ගත හැක',
-    loadingCrops: 'ලබා ගත හැකි බෝග ලෝඩ් වෙමින් පවතී...',
-    noListingsOwner: 'තවමත් කිසිදු ලැයිස්තුවක් නොමැත. ප්‍රථම ලැයිස්තුව ඉහතදී එක් කරන්න.',
-    noListingsTrader: 'තවමත් කිසිදු ලැයිස්තුවක් නොමැත. පසුව නැවත බලන්න.',
-    sendRequest: 'මිලදී ගැනීමේ ඉල්ලීම යවන්න',
-    soldOut: 'විකුණුම්වී ඇත',
-    sendRequestBtn: 'ඉල්ලීම යවන්න',
-    sending: 'යවමින්...',
+    badge: '🛒 කෘෂි වෙළඳසැල', title: 'කෘෂි නිෂ්පාදන මිලදී ගැනීම සහ විකිණීම',
+    sub: 'ගොවින් සහ වෙළෙන්දන් සමග සම්බන්ධ වන්න. නැවුම් නිෂ්පාදන විමසන්න, ඇණවුම් කළමනාකරණය කරන්න.',
+    headerTitle: 'AgriMarket', headerSub: 'SmartAgri · කෘෂි වෙළඳසැල',
+    landOwner: 'ඉඩම් හිමිකරු', trader: 'වෙළෙන්ද', guest: 'ආගන්තුක',
+    actAs: 'ලෙස ක්‍රියා කිරීම', loggedInRole: 'මෙම භූමිකාවට ලොගින් වී ඇත.',
+    demoWarning: '⚠️ ඔබ ආගන්තුකයෙකු ලෙස බ්‍රව්ස් කරයි. ලොගින් වන්න.',
+    addListingTitle: 'බෝග ලැයිස්තු එක් කරන්න', addListingSub: 'ඔබගේ අස්වනු ලැයිස්තු ගොනු කරන්න.',
+    addProductTitle: 'නිෂ්පාදන ලැයිස්තුව එක් කරන්න', addProductSub: 'පොහොර, කෘමිනාශක, බීජ ලැයිස්තු ගොනු කරන්න.',
+    cropName: 'බෝග නම', cropType: 'බෝග වර්ගය', productCategory: 'කාණ්ඩය',
+    quantity: 'ප්‍රමාණය', unit: 'ඒකකය', pricePerUnit: 'මිල / ඒකකය (රු.)',
+    location: 'ස්ථානය', description: 'විස්තරය',
+    imageLabel: 'රූපය (අවශ්‍ය නොවේ)', imageHint: 'ඡායාරූපය',
+    publishListing: 'ලැයිස්තු ප්‍රකාශ කරන්න', listingInProgress: 'ප්‍රකාශ කිරීම…',
+    requiredFields: 'නම, ප්‍රමාණය සහ මිල අවශ්‍යයි.',
+    listed: 'වෙළඳසැලේ ලැයිස්තු ගොනු කිරීය.',
+    yourListing: 'ඔබේ ලැයිස්තුව', cannotBuyOwn: 'ඔබේ ලැයිස්තු මිලදී ගත නොහැක',
+    noListingsOwner: 'ලැයිස්තු නොමැත. ඉහතදී ලැයිස්තු ගොනු කරන්න.',
+    noListingsTrader: 'ලැයිස්තු නොමැත. පසුව නැවත බලන්න.',
+    noProductsTrader: 'නිෂ්පාදන නොමැත. ඉහතදී එකතු කරන්න.',
+    noProductsOwner: 'කෘෂි නිෂ්පාදන නොමැත.',
+    loadingCrops: 'ලැයිස්තු ලෝඩ් වෙමින්…',
+    sendRequest: 'මිලදී ගැනීමේ ඉල්ලීම', sendBuyRequest: 'මිලදී ගැනීමේ ඉල්ලීම',
+    soldOut: 'විකිණී ඇත', sending: 'යවමින්…', sendRequestBtn: 'ඉල්ලීම යවන්න',
     requestInvalid: 'වලංගු ප්‍රමාණයක් සහ මිලක් ඇතුළත් කරන්න.',
-    estimatedTotal: 'අනුමාන මුලු එකතුව',
-    imageLabel: 'නිෂ්පාදන රූපය (අවශ්‍ය නොවේ)',
-    imageHint: 'ඔබේ ලැයිස්තුවේ ඡායාරූපයක් උඩුගත කරන්න',
-    yourProduct: 'ඔබේ නිෂ්පාදනය',
-    listedByAnotherTrader: 'වෙනත් වෙළෙන්දෙකු විසින් ලැයිස්තුගත',
-    noProductsTrader: 'තවමත් නිෂ්පාදන නොමැත. ඉහතදී ප්‍රථම නිෂ්පාදනය එක් කරන්න.',
-    noProductsOwner: 'කිසිදු කෘෂි නිෂ්පාදනයක් නොමැත. පසුව නැවත බලන්න.',
-    sendBuyRequest: 'මිලදී ගැනීමේ ඉල්ලීම යවන්න',
-    ownerTabs: ['මගේ ලැයිස්තු','වෙළඳපොල බ්‍රව්ස් කරන්න','මිලදී ගැනීම් ඉල්ලීම්','ඇණවුම් කළමනාකරණය','ගනුදෙනු ඉතිහාසය'],
-    traderTabs: ['වෙළඳපොල බ්‍රව්ස් කරන්න','මගේ නිෂ්පාදන','මගේ ඉල්ලීම්','මගේ ඇණවුම්','ගනුදෙනු ඉතිහාසය'],
-    availableCrops: 'බෝග ලැයිස්තු',
-    availableProducts: 'කෘෂි නිෂ්පාදන',
-    browseMarketplace: 'වෙළඳපොල බ්‍රව්ස් කරන්න',
-    addProductTitle: 'නිෂ්පාදන ලැයිස්තුව එක් කරන්න',
-    addProductSub: 'පොහොර, කෘමිනාශක, බීජ හෝ අනෙකුත් සැපයුම් ලැයිස්තු ගොනු කරන්න.',
-    productName: 'නිෂ්පාදන නම',
-    productCategory: 'වර්ගය',
-    productCategories: ['පොහොර','කෘමිනාශක','පිළිකා නාශකය','දිලීර නාශකය','බීජ','උපකරණ','වෙනත්'],
-    negotiate: 'ටර්ගෙන් සාකච්ඡා කරන්න',
-    negotiationTypeMsg: 'පණිවිඩයක් හෝ counter මිලක් ටයිප් කරන්න.',
-    noMessagesYet: 'තවම පණිවිඩ නැත. සාකච්ඡාව ආරම්භ කරන්න.',
-    messagePlaceholder: 'පණිවිඩයක් ටයිප් කරන්න...',
-    counterPrice: 'Counter මිල',
-    send: 'යවන්න',
-    loadingRequests: 'ඉල්ලීම් දත්ත බාගත වෙමින් පවතී...',
-    requestAccepted: 'ඉල්ලීම පිළිගත්තා — ඇණවුම සාදන ලදී.',
-    requestRejected: 'ඉල්ලීම ප්‍රතික්ෂේප කරන ලදී.',
-    noPurchaseRequestsOwner: 'තවම මිලදී ගැනීම් ඉල්ලීම් නොමැත. වෙළෙන්දන් ඉල්ලීම් යැවූ විට මෙහි පෙන්වනු ඇත.',
-    noPurchaseRequestsTrader: 'ඔබ තවම කිසිදු ඉල්ලීමක් යවා නැත. වෙළඳපොල බ්‍රව්ස් කර ඉල්ලීමක් යවන්න.',
-    accept: 'ස්වීකාර කරන්න',
-    reject: 'ප්‍රතික්ෂේප කරන්න',
-    loadingOrders: 'ඇණවුම් දත්ත බාගත වෙමින් පවතී...',
-    noOrdersYet: 'තවම ඇණවුම් නැත. ඉල්ලීමක් අනුමත කරන විට ඇණවුම් සාදනු ලැබේ.',
-    noTransactionsYet: 'ගනුදෙනු තවත් නොමැත.',
-    loggedInRole: 'ඔබ මෙම භූමිකාවට ලොගින් වී ඇත.',
-    switchRole: 'භූමිකාව මාරු කරන්න',
-    demoWarning: '⚠️ ඔබ ආගන්තුකයෙකු ලෙස බ්‍රව්ස් කරයි. මිලදී ගැනීමට හෝ ලැයිස්තු ගොනු කිරීමට ලොගින් වන්න.',
+    estimatedTotal: 'අනුමාන මුළු',
+    available: 'ලබා ගත හැකි', soldLabel: 'විකිණී', reservedLabel: 'වෙන් කළ',
+    ownerTabs: ['මගේ ලැයිස්තු', 'බ්‍රව්ස්', 'ලැබෙන ඇණවුම්', 'ඉතිහාසය'],
+    traderTabs: ['බ්‍රව්ස්', 'මගේ නිෂ්පාදන', 'මගේ ඇණවුම්', 'ඉතිහාසය'],
+    availableCrops: 'බෝග ලැයිස්තු', availableProducts: 'කෘෂි නිෂ්පාදන',
+    loadingOrders: 'ඇණවුම් ලෝඩ් වෙමින්…',
+    noOrdersYet: 'ඇණවුම් නොමැත.', noHistoryYet: 'සම්පූර්ණ ඇණවුම් නොමැත.',
+    buyer: 'ගැනුම්කරු', seller: 'විකුණුම්කරු', qty: 'ප්‍රමාණය',
+    price: 'මිල', total: 'මුළු', status: 'තත්ත්වය', orderDate: 'දිනය',
+    markAs: 'ලෙස සලකුණු කරන්න', confirmComplete: 'ලැබිය බව තහවුරු කරන්න',
+    negotiate: 'සාකච්ඡාව / සටහන', noNotes: 'සටහන් නොමැත.',
+    buyerNote: 'ගැනුම්කරුගේ සටහන', sellerNote: 'විකුණුම්කරුගේ ප්‍රතිචාරය',
+    counterOffer: 'counter offer', addNote: 'සටහනක් එකතු කරන්න',
+    yourNote: 'ඔබේ සටහන…', yourCounter: 'Counter මිල (අවශ්‍ය නොවේ)',
+    saving: 'සුරකිමින්…', save: 'යවන්න',
+    deleteListing: 'මකන්න', deleteConfirm: 'ලැයිස්තු මකන්නද?',
+    accept: 'පිළිගන්න', reject: 'ප්‍රතික්ෂේප', cancel: 'අවලංගු',
+    switchRole: 'භූමිකාව මාරු',
+    pendingStatus: 'අපේක්ෂිත', confirmedStatus: 'තහවුරු',
+    deliveredStatus: 'බෙදාදුන්', completedStatus: 'සම්පූර්ණ',
+    rejectedStatus: 'ප්‍රතික්ෂේප', cancelledStatus: 'අවලංගු',
   },
   ta: {
-    badge: '🛒 விவசாய சந்தை',
-    title: 'கொள் & விற் - விவசாய பொருட்கள்',
-    sub: 'விவசாயிகள் மற்றும் வணிகர்களுடன் இணையுங்கள். புதிய உற்பத்திகளை ஆய்வு செய்யவும், விலைகளை பேசவும், உங்கள் ஆர்டர்களை நிர்வகிக்கவும்.',
-    headerTitle: 'AgriMarket',
-    headerSub: 'SmartAgri · விவசாய சந்தை',
-    landOwner: 'நில உரிமையாளர்',
-    trader: 'கடைவர்',
-    yourDisplayName: 'உங்கள் காட்சி பெயர்',
-    actAs: 'நீங்கள் செயல் படுகிறீர்கள்',
-    addListingTitle: 'பயிர் பட்டியலைச் சேர்க்கவும்',
-    addListingSub: 'உங்கள் அறுவடை பட்டியலிடவும், வணிகர்கள் தேடலாம்.',
-    cropName: 'பயிர் பெயர்',
-    quantity: 'அளவு',
-    unit: 'அலகு',
-    pricePerUnit: 'விலை / அலகு (ரூ.)',
-    location: 'இலக்கம்',
-    description: 'விவரம்',
-    publishListing: 'பட்டியலை வெளியிடுக',
-    listingInProgress: 'பட்டியலிடுகிறது...',
-    requiredFields: 'பயிர் பெயர், அளவு மற்றும் விலை அவசியமானவை.',
-    listedLocally: 'உள்ளூரில் பட்டியலிடப்பட்டது (sync க்கு backend ஐ 8001 இல் தொடங்கவும்).',
-    listedRemote: 'சந்தையில் பட்டியலிடப்பட்டது.',
-    yourListing: 'என் பட்டியல்',
-    listedByAnother: 'மற்றொரு உரிமையாளர் பதிவுசெய்தார்',
-    availableSuffix: 'கிடைக்கிறது',
-    loadingCrops: 'கிடைக்கக்கூடிய பயிர்கள் ஏற்றப்படுகிறது...',
-    noListingsOwner: 'இன்னும் எந்த பட்டியலும் இல்லை. உங்கள் முதல் பட்டியலை மேலே சேர்க்கவும்.',
-    noListingsTrader: 'இன்னும் எந்த பட்டியலும் இல்லை. மீண்டும் பிறகு சரிபார்க்கவும்.',
-    sendRequest: 'வாங்கும் கோரிக்கை அனுப்பு',
-    soldOut: 'விற்பனை முடிந்தது',
-    sendRequestBtn: 'கோரிக்கையை அனுப்பு',
-    sending: 'அனுப்புகிறது...',
+    badge: '🛒 விவசாய சந்தை', title: 'விவசாய பொருட்களை வாங்கவும் விற்கவும்',
+    sub: 'விவசாயிகள் மற்றும் வணிகர்களுடன் இணையுங்கள். புதிய உற்பத்திகளை ஆய்வு செய்யவும்.',
+    headerTitle: 'AgriMarket', headerSub: 'SmartAgri · விவசாய சந்தை',
+    landOwner: 'நில உரிமையாளர்', trader: 'வணிகர்', guest: 'விருந்தினர்',
+    actAs: 'நடிக்கிறீர்கள்', loggedInRole: 'இந்த பங்கில் உள்நுழைந்தீர்கள்.',
+    demoWarning: '⚠️ நீங்கள் விருந்தினராக உலாவுகிறீர்கள். உள்நுழையவும்.',
+    addListingTitle: 'பயிர் பட்டியலைச் சேர்க்கவும்', addListingSub: 'உங்கள் அறுவடையை பட்டியலிடவும்.',
+    addProductTitle: 'தயாரிப்பு பட்டியல்', addProductSub: 'உரங்கள், பூச்சிக்கொல்லிகள் பட்டியலிடவும்.',
+    cropName: 'பயிர் பெயர்', cropType: 'பயிர் வகை', productCategory: 'வகை',
+    quantity: 'அளவு', unit: 'அலகு', pricePerUnit: 'விலை / அலகு (ரூ.)',
+    location: 'இடம்', description: 'விவரம்',
+    imageLabel: 'படம் (விருப்பமான)', imageHint: 'படம் பதிவேற்று',
+    publishListing: 'பட்டியலை வெளியிடு', listingInProgress: 'வெளியிடுகிறது…',
+    requiredFields: 'பெயர், அளவு மற்றும் விலை அவசியம்.',
+    listed: 'சந்தையில் பட்டியலிடப்பட்டது.',
+    yourListing: 'உங்கள் பட்டியல்', cannotBuyOwn: 'உங்கள் பட்டியலை வாங்க முடியாது',
+    noListingsOwner: 'பட்டியல்கள் இல்லை. மேலே சேர்க்கவும்.',
+    noListingsTrader: 'பட்டியல்கள் இல்லை. பிறகு சரிபார்க்கவும்.',
+    noProductsTrader: 'தயாரிப்புகள் இல்லை. மேலே சேர்க்கவும்.',
+    noProductsOwner: 'விவசாய தயாரிப்புகள் இல்லை.',
+    loadingCrops: 'பட்டியல்கள் ஏற்றுகிறது…',
+    sendRequest: 'வாங்கும் கோரிக்கை', sendBuyRequest: 'வாங்கும் கோரிக்கை',
+    soldOut: 'விற்றுத் தீர்ந்தது', sending: 'அனுப்புகிறது…', sendRequestBtn: 'கோரிக்கை அனுப்பு',
     requestInvalid: 'சரியான அளவு மற்றும் விலையை உள்ளிடவும்.',
-    estimatedTotal: 'கணிக்கப்பட்ட மொத்தம்',
-    imageLabel: 'தயாரிப்பு படம் (விருப்பமான)',
-    imageHint: 'உங்கள் பட்டியலின் புகைப்படத்தை பதிவேற்றவும்',
-    yourProduct: 'உங்கள் தயாரிப்பு',
-    listedByAnotherTrader: 'மற்றொரு வணிகர் பட்டியலிட்டார்',
-    noProductsTrader: 'இன்னும் தயாரிப்புகள் இல்லை. மேலே முதல் தயாரிப்பை சேர்க்கவும்.',
-    noProductsOwner: 'இன்னும் விவசாய தயாரிப்புகள் இல்லை. பிறகு சரிபார்க்கவும்.',
-    sendBuyRequest: 'வாங்கும் கோரிக்கை அனுப்பு',
-    ownerTabs: ['என் பட்டியல்கள்','சந்தையை உலாவு','வாங்கும் கோரிக்கைகள்','ஆர்டர் நிர்வாகம்','பரிவர்த்தனை வரலாறு'],
-    traderTabs: ['சந்தையை உலாவு','என் தயாரிப்புகள்','என் கோரிக்கைகள்','என் ஆர்டர்கள்','பரிவர்த்தனை வரலாறு'],
-    availableCrops: 'பயிர் பட்டியல்கள்',
-    availableProducts: 'விவசாய தயாரிப்புகள்',
-    browseMarketplace: 'சந்தையை உலாவு',
-    addProductTitle: 'தயாரிப்பு பட்டியலை சேர்',
-    addProductSub: 'நில உரிமையாளர்கள் வாங்க உரங்கள், பூச்சிக்கொல்லிகள், விதைகள் பட்டியலிடவும்.',
-    productName: 'தயாரிப்பு பெயர்',
-    productCategory: 'வகை',
-    productCategories: ['உரம்','பூச்சிக்கொல்லி','களைக்கொல்லி','பூஞ்சை நாசினி','விதை','உபகரணம்','மற்றவை'],
-    negotiate: 'சரிகட்டி',
-    negotiationTypeMsg: 'ஒரு செய்தி அல்லது மாற்று விலையை டைப் செய்யவும்.',
-    noMessagesYet: 'இன்னும் எந்த செய்தியும் இல்லை. விவாதத்தை தொடங்குங்கள்.',
-    messagePlaceholder: 'ஒரு செய்தி டைப் செய்யவும்...',
-    counterPrice: 'மாற்று விலை',
-    send: 'அனுப்பு',
-    loadingRequests: 'கோரிக்கைகள் ஏற்றப்படுகிறது...',
-    requestAccepted: 'கோரிக்கை ஏற்றப்பட்டது — ஆர்டர் உருவாக்கப்பட்டது.',
-    requestRejected: 'கோரிக்கை நிராகரிக்கப்பட்டது.',
-    noPurchaseRequestsOwner: 'கடையில் இருந்து கோரிக்கைகள் இன்னும் இல்லை. வரும்போது இங்கே தோன்றும்.',
-    noPurchaseRequestsTrader: 'நீங்கள் இன்னும் எந்த கோரிக்கையும் அனுப்பவில்லை. சந்தையை உலாவி ஒரு கோரிக்கையை அனுப்புங்கள்.',
-    accept: 'ஒப்புக் கொள்ளவும்',
-    reject: 'நிராகரிக்கவும்',
-    loadingOrders: 'ஆர்டர்கள் ஏற்றப்படுகிறது...',
-    noOrdersYet: 'இன்னும் எந்த ஆர்டர்களும் இல்லை. கோரிக்கைகள் ஏற்றுக்கொள்ளப்பட்டால் நிகழும்.',
-    noTransactionsYet: 'பரிவர்த்தனைகள் பதிவு செய்யப்படவில்லை.',
-    loggedInRole: 'நீங்கள் இந்த பங்கில் உள்நுழைந்திருக்கிறீர்கள்.',
+    estimatedTotal: 'மதிப்பிடப்பட்ட மொத்தம்',
+    available: 'கிடைக்கிறது', soldLabel: 'விற்கப்பட்டது', reservedLabel: 'ஒதுக்கப்பட்டது',
+    ownerTabs: ['என் பட்டியல்கள்', 'உலாவு', 'வரும் ஆர்டர்கள்', 'வரலாறு'],
+    traderTabs: ['உலாவு', 'என் தயாரிப்புகள்', 'என் ஆர்டர்கள்', 'வரலாறு'],
+    availableCrops: 'பயிர் பட்டியல்கள்', availableProducts: 'விவசாய தயாரிப்புகள்',
+    loadingOrders: 'ஆர்டர்கள் ஏற்றுகிறது…',
+    noOrdersYet: 'ஆர்டர்கள் இல்லை.', noHistoryYet: 'முடிந்த ஆர்டர்கள் இல்லை.',
+    buyer: 'வாங்குபவர்', seller: 'விற்பவர்', qty: 'அளவு',
+    price: 'விலை', total: 'மொத்தம்', status: 'நிலை', orderDate: 'தேதி',
+    markAs: 'என்று குறி', confirmComplete: 'பெற்றதை உறுதிப்படுத்து',
+    negotiate: 'பேச்சு / குறிப்பு', noNotes: 'குறிப்புகள் இல்லை.',
+    buyerNote: 'வாங்குபவர் குறிப்பு', sellerNote: 'விற்பவர் பதில்',
+    counterOffer: 'எதிர் விலை', addNote: 'குறிப்பு சேர்க்கவும்',
+    yourNote: 'உங்கள் குறிப்பு…', yourCounter: 'எதிர் விலை (விருப்பமான)',
+    saving: 'சேமிக்கிறது…', save: 'அனுப்பு',
+    deleteListing: 'நீக்கு', deleteConfirm: 'பட்டியலை நீக்கவா?',
+    accept: 'ஒப்பு', reject: 'நிராகரி', cancel: 'ரத்து',
     switchRole: 'பங்கை மாற்று',
-    demoWarning: '⚠️ நீங்கள் விருந்தினராக உலாவுகிறீர்கள். வாங்க அல்லது பட்டியலிட உள்நுழையவும்.',
+    pendingStatus: 'நிலுவை', confirmedStatus: 'உறுதி',
+    deliveredStatus: 'வழங்கல்', completedStatus: 'முடிந்தது',
+    rejectedStatus: 'நிராகரிக்கப்பட்டது', cancelledStatus: 'ரத்தானது',
   },
 };
 
-function apiUrl(path) {
-  return `${API_BASE}${path}`;
+// ── API helpers ────────────────────────────────────────────────────────────────
+const authFetcher = url => request(url);
+const publicFetcher = url => fetch(url).then(async r => {
+  if (!r.ok) throw new Error('Failed to load');
+  return r.json();
+});
+
+async function apiPost(path, body, method = 'POST') {
+  return request(path, { method, body: JSON.stringify(body) });
 }
 
-async function parseJsonResponse(res) {
-  const text = await res.text();
-  if (!text) return {};
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error('Server returned an invalid response. Is the backend running on port 8001?');
-  }
+function refreshListings() {
+  mutate('/api/marketplace/listings');
+  mutate('/api/marketplace/listings/me');
+}
+function refreshOrders() {
+  mutate('/api/marketplace/orders');
 }
 
-function extractError(data, fallback = 'Request failed') {
-  if (data?.error) return data.error;
-  if (typeof data?.detail === 'string') return data.detail;
-  if (data?.detail?.error) return data.detail.error;
-  if (Array.isArray(data?.detail)) return data.detail.map((d) => d.msg || d).join(', ');
-  return fallback;
-}
-
-function getLocalListings() {
-  try {
-    const raw = localStorage.getItem(LOCAL_LISTINGS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveLocalListing(listing) {
-  const existing = getLocalListings();
-  localStorage.setItem(LOCAL_LISTINGS_KEY, JSON.stringify([...existing, listing]));
-}
-
-function mergeListings(apiListings, localListings) {
-  const merged = [...apiListings];
-  for (const listing of localListings) {
-    if (!merged.some((l) => l.id === listing.id)) merged.push(listing);
-  }
-  return merged;
-}
-
-function buildLocalListing(payload) {
-  return {
-    id: crypto.randomUUID(),
-    cropName: payload.cropName,
-    quantity: payload.quantity,
-    unit: payload.unit,
-    pricePerUnit: payload.pricePerUnit,
-    ownerName: payload.ownerName,
-    location: payload.location || '',
-    description: payload.description || '',
-    image: payload.image || '',
-    listing_type: payload.listing_type || 'crop',
-    ownerRole: payload.ownerRole || 'owner',
-    status: 'available',
-    createdAt: Date.now(),
-  };
-}
-
-/* ------------------------------------------------------------------ *
- * Data layer (SWR + fetch helpers)
- * ------------------------------------------------------------------ */
-async function fetcher(url) {
-  const res = await fetch(url);
-  const data = await parseJsonResponse(res);
-  if (!res.ok) throw new Error(extractError(data));
-  return data;
-}
-
-function useListings() {
-  const { data, isLoading } = useSWR(apiUrl('/api/listings'), fetcher, { refreshInterval: 4000 });
-  const apiListings = data?.listings ?? [];
-  const localListings = getLocalListings();
-  return { listings: mergeListings(apiListings, localListings), isLoading };
-}
-function useRequests() {
-  const { data, isLoading } = useSWR(apiUrl('/api/requests'), fetcher, { refreshInterval: 4000 });
-  return { requests: data?.requests ?? [], isLoading };
-}
-function useOrders() {
-  const { data, isLoading } = useSWR(apiUrl('/api/orders'), fetcher, { refreshInterval: 4000 });
-  return { orders: data?.orders ?? [], isLoading };
-}
-async function post(url, body, method = 'POST') {
-  const res = await fetch(url, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  const data = await parseJsonResponse(res);
-  if (!res.ok) throw new Error(extractError(data));
-  return data;
-}
-
-async function createListing(payload) {
-  try {
-    const data = await post(apiUrl('/api/listings'), payload);
-    if (data.listing) {
-      mutate(
-        apiUrl('/api/listings'),
-        (current) => ({
-          listings: mergeListings([...(current?.listings ?? []), data.listing], getLocalListings()),
-        }),
-        { revalidate: true },
-      );
-    }
-    return data;
-  } catch (err) {
-    const isOffline =
-      err.name === 'TypeError' ||
-      /failed to fetch|network|invalid response|backend/i.test(err.message);
-    if (!isOffline) throw err;
-
-    const listing = buildLocalListing(payload);
-    saveLocalListing(listing);
-    mutate(
-      apiUrl('/api/listings'),
-      (current) => ({
-        listings: mergeListings(current?.listings ?? [], getLocalListings()),
-      }),
-      { revalidate: false },
-    );
-    return { listing, offline: true };
-  }
-}
-
-const api = {
-  createListing,
-  createRequest: (b) => post(apiUrl('/api/requests'), b),
-  resolveRequest: (id, action) => post(apiUrl(`/api/requests/${id}`), { action }, 'PATCH'),
-  sendMessage: (id, b) => post(apiUrl(`/api/requests/${id}/messages`), b),
-  updateOrder: (id, status) => post(apiUrl(`/api/orders/${id}`), { status }, 'PATCH'),
-};
-function refreshAll() {
-  mutate(apiUrl('/api/listings'));
-  mutate(apiUrl('/api/requests'));
-  mutate(apiUrl('/api/orders'));
-}
-
-/* ------------------------------------------------------------------ *
- * Tiny toast system (self-contained, no external dep)
- * ------------------------------------------------------------------ */
-let toastSeq = 0;
-let toastState = [];
+// ── Toast (self-contained) ─────────────────────────────────────────────────────
+let toastSeq = 0, toastState = [];
 const toastSubs = new Set();
-function emitToasts() {
-  toastState = [...toastState];
-  toastSubs.forEach((fn) => fn());
-}
+function emitToasts() { toastState = [...toastState]; toastSubs.forEach(fn => fn()); }
 function pushToast(type, message) {
   const id = ++toastSeq;
   toastState = [...toastState, { id, type, message }];
   emitToasts();
-  setTimeout(() => {
-    toastState = toastState.filter((t) => t.id !== id);
-    emitToasts();
-  }, 3200);
+  setTimeout(() => { toastState = toastState.filter(t => t.id !== id); emitToasts(); }, 3200);
 }
-const toast = {
-  success: (m) => pushToast('success', m),
-  error: (m) => pushToast('error', m),
-};
+const toast = { success: m => pushToast('success', m), error: m => pushToast('error', m) };
+
 function Toaster() {
   const toasts = useSyncExternalStore(
-    (cb) => {
-      toastSubs.add(cb);
-      return () => toastSubs.delete(cb);
-    },
-    () => toastState,
-    () => toastState,
+    cb => { toastSubs.add(cb); return () => toastSubs.delete(cb); },
+    () => toastState, () => toastState,
   );
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-4 z-[100] flex flex-col items-center gap-2 px-4">
-      {toasts.map((t) => (
-        <div
-          key={t.id}
-          role="status"
-          className={`pointer-events-auto flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium shadow-md ${
-            t.type === 'success'
-              ? 'border-success/40 bg-success text-success-foreground'
-              : 'border-destructive/40 bg-destructive text-white'
-          }`}
-        >
-          {t.type === 'success' ? <CheckCircle2 className="size-4" /> : <X className="size-4" />}
+    <div style={{ position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 8, pointerEvents: 'none' }}>
+      {toasts.map(t => (
+        <div key={t.id} style={{
+          display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px',
+          borderRadius: 8, fontSize: 14, fontWeight: 500, boxShadow: '0 4px 16px rgba(0,0,0,.15)',
+          background: t.type === 'success' ? '#16a34a' : '#dc2626', color: '#fff',
+        }}>
+          {t.type === 'success' ? <CheckCircle2 size={16} /> : <X size={16} />}
           {t.message}
         </div>
       ))}
@@ -451,93 +215,99 @@ function Toaster() {
   );
 }
 
-/* ------------------------------------------------------------------ *
- * Inline UI primitives (Button / Card / Badge / Input / Label / Modal)
- * ------------------------------------------------------------------ */
-function Button({ variant = 'primary', size = 'default', className = '', ...props }) {
-  const variants = {
+// ── Inline UI primitives ───────────────────────────────────────────────────────
+function Btn({ variant = 'primary', size = 'md', disabled, children, className = '', ...rest }) {
+  const base = 'inline-flex items-center gap-1.5 rounded-md font-medium transition-colors disabled:opacity-50';
+  const v = {
     primary: 'bg-primary text-primary-foreground hover:bg-primary/90',
-    outline: 'border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground',
-    destructive: 'bg-destructive text-white hover:bg-destructive/90',
+    outline: 'border border-input bg-background text-foreground hover:bg-accent',
+    danger: 'bg-destructive text-white hover:bg-destructive/90',
+    ghost: 'text-muted-foreground hover:text-foreground hover:bg-accent',
   };
-  const sizes = {
-    default: 'h-10 px-4 py-2',
-    sm: 'h-8 px-3 text-sm',
+  const s = { sm: 'px-3 py-1.5 text-xs', md: 'px-4 py-2 text-sm', lg: 'px-5 py-2.5 text-sm' };
+  return <button disabled={disabled} className={`${base} ${v[variant]} ${s[size]} ${className}`} {...rest}>{children}</button>;
+}
+
+function Card({ className = '', children, ...rest }) {
+  return <div className={`rounded-xl border bg-card shadow-sm ${className}`} {...rest}>{children}</div>;
+}
+
+function Badge({ color = 'default', children }) {
+  const colors = {
+    default: 'bg-secondary text-secondary-foreground',
+    green: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+    amber: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
+    blue: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+    red: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+    purple: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+    muted: 'bg-muted text-muted-foreground',
   };
   return (
-    <button
-      className={`inline-flex items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 ${variants[variant]} ${sizes[size]} ${className}`}
-      {...props}
-    />
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${colors[color] || colors.default}`}>
+      {children}
+    </span>
   );
 }
 
-function Card({ className = '', ...props }) {
-  return <div className={`rounded-xl border bg-card text-card-foreground shadow-sm ${className}`} {...props} />;
-}
-
-function Badge({ tone = 'primary', className = '', ...props }) {
-  const tones = {
-    primary: 'border-transparent bg-primary text-primary-foreground',
-    muted: 'border-transparent bg-secondary text-secondary-foreground',
-    destructive: 'border-transparent bg-destructive text-white',
-    outline: 'border',
-  };
+function Field({ label, children }) {
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${tones[tone]} ${className}`}
-      {...props}
-    />
+    <div className="grid gap-1.5">
+      <label className="text-sm font-medium text-foreground">{label}</label>
+      {children}
+    </div>
   );
 }
 
-function Input({ className = '', ...props }) {
+function Input({ className = '', ...rest }) {
   return (
     <input
-      className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${className}`}
-      {...props}
+      className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${className}`}
+      {...rest}
     />
   );
 }
-function Textarea({ className = '', ...props }) {
+
+function Textarea({ className = '', ...rest }) {
   return (
     <textarea
-      className={`flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${className}`}
-      {...props}
+      className={`flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${className}`}
+      {...rest}
     />
   );
 }
-function Label({ className = '', ...props }) {
-  return <label className={`text-sm font-medium leading-none ${className}`} {...props} />;
+
+function Select({ options, className = '', ...rest }) {
+  return (
+    <select
+      className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${className}`}
+      {...rest}
+    >
+      {options.map(o => typeof o === 'string'
+        ? <option key={o} value={o}>{o}</option>
+        : <option key={o.value} value={o.value}>{o.label}</option>
+      )}
+    </select>
+  );
 }
 
-function Modal({ open, onClose, title, description, children }) {
+function Modal({ open, onClose, title, desc, children }) {
   useEffect(() => {
-    function onKey(e) {
-      if (e.key === 'Escape') onClose();
-    }
-    if (open) document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
+    if (!open) return;
+    const h = e => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', h);
+    return () => document.removeEventListener('keydown', h);
   }, [open, onClose]);
-
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-foreground/40" onClick={onClose} aria-hidden />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        className="relative z-10 grid w-full max-w-lg gap-4 rounded-xl border bg-card p-6 shadow-lg"
-      >
+      <div className="absolute inset-0 bg-foreground/40" onClick={onClose} />
+      <div className="relative z-10 w-full max-w-lg rounded-xl border bg-card p-6 shadow-xl grid gap-4">
         <div className="flex items-start justify-between gap-4">
-          <div className="grid gap-1">
-            <h2 className="text-lg font-semibold">{title}</h2>
-            {description && <p className="text-sm text-muted-foreground">{description}</p>}
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+            {desc && <p className="text-sm text-muted-foreground mt-0.5">{desc}</p>}
           </div>
-          <button onClick={onClose} aria-label="Close" className="text-muted-foreground hover:text-foreground">
-            <X className="size-5" />
-          </button>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground shrink-0"><X size={20} /></button>
         </div>
         {children}
       </div>
@@ -545,776 +315,12 @@ function Modal({ open, onClose, title, description, children }) {
   );
 }
 
-/* ------------------------------------------------------------------ *
- * Create Listing form (Land Owner)
- * ------------------------------------------------------------------ */
-function ImageUpload({ value, onChange, m }) {
-  function handleFile(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => onChange(ev.target.result);
-    reader.readAsDataURL(file);
-  }
-  return (
-    <div className="grid gap-2">
-      <Label>{m.imageLabel || 'Product Image (optional)'}</Label>
-      <div className="flex items-center gap-3">
-        {value ? (
-          <div className="relative">
-            <img src={value} alt="preview" className="h-16 w-16 rounded-lg object-cover border border-input" />
-            <button type="button" onClick={() => onChange('')} className="absolute -top-1.5 -right-1.5 rounded-full bg-destructive text-white text-xs w-4 h-4 flex items-center justify-center">×</button>
-          </div>
-        ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-lg border-2 border-dashed border-input text-muted-foreground text-2xl">📷</div>
-        )}
-        <label className="cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-accent transition-colors">
-          {m.imageHint || 'Upload photo'}
-          <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
-        </label>
-      </div>
-    </div>
-  );
-}
-
-function CreateListingForm({ ownerName, m }) {
-  const [cropName, setCropName] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [unit, setUnit] = useState('kg');
-  const [pricePerUnit, setPricePerUnit] = useState('');
-  const [location, setLocation] = useState('');
-  const [description, setDescription] = useState('');
-  const [image, setImage] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (!cropName || !quantity || !pricePerUnit) {
-      toast.error(m.requiredFields);
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const result = await api.createListing({
-        cropName,
-        quantity: Number(quantity),
-        unit,
-        pricePerUnit: Number(pricePerUnit),
-        ownerName,
-        location,
-        description,
-        image,
-        listing_type: 'crop',
-        ownerRole: 'owner',
-      });
-      if (result.offline) {
-        toast.success(`"${cropName}" ${m.listedLocally}`);
-      } else {
-        toast.success(`"${cropName}" ${m.listedRemote}`);
-      }
-      setCropName(''); setQuantity(''); setPricePerUnit('');
-      setLocation(''); setDescription(''); setImage('');
-      refreshAll();
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <Card className="border-primary/20">
-      <div className="flex flex-col gap-1.5 p-6 pb-4">
-        <h2 className="flex items-center gap-2 text-lg font-semibold">
-          <Sprout className="size-5 text-primary" />
-          {m.addListingTitle}
-        </h2>
-        <p className="text-sm text-muted-foreground">{m.addListingSub}</p>
-      </div>
-      <div className="p-6 pt-0">
-        <form onSubmit={handleSubmit} className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="cropName">{m.cropName}</Label>
-            <Input id="cropName" placeholder="e.g. Basmati Rice" value={cropName} onChange={(e) => setCropName(e.target.value)} />
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="grid gap-2">
-              <Label htmlFor="quantity">{m.quantity}</Label>
-              <Input id="quantity" type="number" min="1" placeholder="500" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="unit">{m.unit}</Label>
-              <select id="unit" value={unit} onChange={(e) => setUnit(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                <option value="kg">kg</option>
-                <option value="ton">ton</option>
-                <option value="quintal">quintal</option>
-                <option value="crate">crate</option>
-                <option value="bag">bag</option>
-              </select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="price">{m.pricePerUnit}</Label>
-              <Input id="price" type="number" min="0" step="1" placeholder="350" value={pricePerUnit} onChange={(e) => setPricePerUnit(e.target.value)} />
-            </div>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="location">{m.location}</Label>
-            <Input id="location" placeholder="e.g. Anuradhapura" value={location} onChange={(e) => setLocation(e.target.value)} />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="description">{m.description}</Label>
-            <Textarea id="description" placeholder="Quality, harvest date, grade, etc." value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
-          </div>
-          <ImageUpload value={image} onChange={setImage} m={m} />
-          <Button type="submit" disabled={submitting} className="w-full sm:w-auto">
-            <Plus className="size-4" />
-            {submitting ? m.listingInProgress : m.publishListing}
-          </Button>
-        </form>
-      </div>
-    </Card>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * Create Product form (Trader — sells fertilizers, seeds, supplies)
- * ------------------------------------------------------------------ */
-function CreateProductForm({ traderName, m }) {
-  const [productName, setProductName] = useState('');
-  const [category, setCategory] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [unit, setUnit] = useState('kg');
-  const [pricePerUnit, setPricePerUnit] = useState('');
-  const [location, setLocation] = useState('');
-  const [description, setDescription] = useState('');
-  const [image, setImage] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const categories = m.productCategories || ['Fertilizer','Pesticide','Herbicide','Fungicide','Seed','Equipment','Other'];
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (!productName || !quantity || !pricePerUnit) {
-      toast.error(m.requiredFields);
-      return;
-    }
-    setSubmitting(true);
-    const displayName = category ? `${productName} (${category})` : productName;
-    try {
-      const result = await api.createListing({
-        cropName: displayName,
-        quantity: Number(quantity),
-        unit,
-        pricePerUnit: Number(pricePerUnit),
-        ownerName: traderName,
-        location,
-        description,
-        image,
-        listing_type: 'product',
-        ownerRole: 'trader',
-      });
-      if (result.offline) {
-        toast.success(`"${productName}" ${m.listedLocally}`);
-      } else {
-        toast.success(`"${productName}" ${m.listedRemote}`);
-      }
-      setProductName(''); setCategory(''); setQuantity('');
-      setPricePerUnit(''); setLocation(''); setDescription(''); setImage('');
-      refreshAll();
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <Card className="border-primary/20">
-      <div className="flex flex-col gap-1.5 p-6 pb-4">
-        <h2 className="flex items-center gap-2 text-lg font-semibold">
-          <Store className="size-5 text-primary" />
-          {m.addProductTitle || 'Add a Product Listing'}
-        </h2>
-        <p className="text-sm text-muted-foreground">{m.addProductSub || 'List fertilizers, pesticides, seeds or other supplies.'}</p>
-      </div>
-      <div className="p-6 pt-0">
-        <form onSubmit={handleSubmit} className="grid gap-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-2">
-              <Label>{m.productName || 'Product name'}</Label>
-              <Input placeholder="e.g. NPK Fertilizer 20-20-20" value={productName} onChange={(e) => setProductName(e.target.value)} />
-            </div>
-            <div className="grid gap-2">
-              <Label>{m.productCategory || 'Category'}</Label>
-              <select value={category} onChange={(e) => setCategory(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                <option value="">-- Select category --</option>
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="grid gap-2">
-              <Label>{m.quantity}</Label>
-              <Input type="number" min="1" placeholder="100" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
-            </div>
-            <div className="grid gap-2">
-              <Label>{m.unit}</Label>
-              <select value={unit} onChange={(e) => setUnit(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                <option value="kg">kg</option>
-                <option value="L">L (litre)</option>
-                <option value="bag">bag</option>
-                <option value="bottle">bottle</option>
-                <option value="box">box</option>
-                <option value="unit">unit</option>
-              </select>
-            </div>
-            <div className="grid gap-2">
-              <Label>{m.pricePerUnit}</Label>
-              <Input type="number" min="0" step="1" placeholder="2500" value={pricePerUnit} onChange={(e) => setPricePerUnit(e.target.value)} />
-            </div>
-          </div>
-          <div className="grid gap-2">
-            <Label>{m.location}</Label>
-            <Input placeholder="e.g. Colombo" value={location} onChange={(e) => setLocation(e.target.value)} />
-          </div>
-          <div className="grid gap-2">
-            <Label>{m.description}</Label>
-            <Textarea placeholder="Brand, specifications, usage instructions..." value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
-          </div>
-          <ImageUpload value={image} onChange={setImage} m={m} />
-          <Button type="submit" disabled={submitting} className="w-full sm:w-auto">
-            <Plus className="size-4" />
-            {submitting ? m.listingInProgress : (m.publishListing || 'Publish Product')}
-          </Button>
-        </form>
-      </div>
-    </Card>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * Purchase Request dialog (Trader)
- * ------------------------------------------------------------------ */
-function RequestDialog({ listing, buyerName, traderName, m, listingType = 'crop' }) {
-  const effectiveBuyerName = buyerName || traderName || '';
-  const [open, setOpen] = useState(false);
-  const [quantity, setQuantity] = useState(String(Math.min(listing.quantity, 50)));
-  const [offeredPrice, setOfferedPrice] = useState(String(listing.pricePerUnit));
-  const [submitting, setSubmitting] = useState(false);
-  const total = (Number(quantity) || 0) * (Number(offeredPrice) || 0);
-  const btnLabel = listingType === 'product' ? (m.sendBuyRequest || 'Send Buy Request') : m.sendRequest;
-
-  async function submit() {
-    if (!Number(quantity) || !Number(offeredPrice)) {
-      toast.error(m.requestInvalid);
-      return;
-    }
-    if (Number(quantity) > listing.quantity) {
-      toast.error(`Only ${listing.quantity} ${listing.unit} available.`);
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const result = await api.createRequest({ listingId: listing.id, traderName: effectiveBuyerName, quantity: Number(quantity), offeredPrice: Number(offeredPrice) });
-
-      const reqEndpoint = apiUrl('/api/requests');
-      if (!(result && (result.request || result.requests))) {
-        const localReq = {
-          id: crypto.randomUUID(),
-          listingId: listing.id,
-          traderName: effectiveBuyerName,
-          ownerName: listing.ownerName,
-          quantity: Number(quantity),
-          offeredPrice: Number(offeredPrice),
-          status: 'pending',
-          messages: [],
-          createdAt: Date.now(),
-        };
-        mutate(reqEndpoint, (current) => ({ requests: [localReq, ...(current?.requests || [])] }), { revalidate: true });
-      } else {
-        mutate(reqEndpoint);
-      }
-
-      toast.success(btnLabel);
-      setOpen(false);
-      refreshAll();
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <>
-      <Button className="w-full" disabled={listing.status === 'sold'} onClick={() => setOpen(true)}>
-        <ShoppingCart className="size-4" />
-        {listing.status === 'sold' ? m.soldOut : btnLabel}
-      </Button>
-      <Modal
-        open={open}
-        onClose={() => setOpen(false)}
-        title={`${btnLabel} — ${listing.cropName}`}
-        description={`Listed by ${listing.ownerName} at Rs. ${Number(listing.pricePerUnit).toLocaleString()}/${listing.unit}. Propose your quantity and price.`}
-      >
-        <div className="grid gap-4 py-2">
-          <div className="grid gap-2">
-            <Label htmlFor="req-qty">{m.quantity} ({listing.unit})</Label>
-            <Input id="req-qty" type="number" min="1" max={listing.quantity} value={quantity} onChange={(e) => setQuantity(e.target.value)} />
-            <p className="text-xs text-muted-foreground">
-              {listing.quantity} {listing.unit} available
-            </p>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="req-price">{m.pricePerUnit} / {listing.unit}</Label>
-            <Input id="req-price" type="number" min="0" step="0.01" value={offeredPrice} onChange={(e) => setOfferedPrice(e.target.value)} />
-          </div>
-          <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-sm">
-            <span className="text-muted-foreground">{m.estimatedTotal}</span>
-            <span className="font-semibold">Rs. {total.toLocaleString()}</span>
-          </div>
-        </div>
-        <div className="flex justify-end">
-          <Button onClick={submit} disabled={submitting}>
-            <Send className="size-4" />
-            {submitting ? m.sending : m.sendRequestBtn}
-          </Button>
-        </div>
-      </Modal>
-    </>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * Listings grid (both roles)
- * ------------------------------------------------------------------ */
-function ListingsGrid({ role, currentName, m, listingType = 'crop' }) {
-  const { listings, isLoading } = useListings();
-
-  const filtered = listings.filter(l => (l.listing_type || 'crop') === listingType);
-
-  if (isLoading) return <p className="text-sm text-muted-foreground">{m.loadingCrops}</p>;
-  if (filtered.length === 0) {
-    const emptyMsg = listingType === 'product'
-      ? (role === 'trader' ? m.noProductsTrader : m.noProductsOwner)
-      : (role === 'owner' ? m.noListingsOwner : m.noListingsTrader);
-    return (
-      <Card>
-        <div className="py-10 text-center text-sm text-muted-foreground">{emptyMsg}</div>
-      </Card>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {filtered.map((l) => {
-        const isOwn = l.ownerName === currentName;
-        // Crop listings: traders can buy; product listings: land owners can buy
-        const canBuy = listingType === 'crop' ? role === 'trader' : role === 'owner';
-        const ownLabel = listingType === 'product' ? (m.yourProduct || 'Your product') : (m.yourListing || 'Your listing');
-        const otherLabel = listingType === 'product' ? (m.listedByAnotherTrader || 'Listed by another trader') : (m.listedByAnother || 'Listed by another owner');
-
-        return (
-          <Card key={l.id} className="flex flex-col overflow-hidden">
-            {l.image && (
-              <div className="h-40 w-full overflow-hidden">
-                <img src={l.image} alt={l.cropName} className="h-full w-full object-cover" />
-              </div>
-            )}
-            <div className="p-6 pb-3">
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold text-balance">{l.cropName}</h3>
-                <Badge tone={l.status === 'available' ? 'primary' : 'muted'}>{l.status}</Badge>
-              </div>
-              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Package className="size-3.5" />
-                  {l.quantity} {l.unit}
-                </span>
-                {l.location && (
-                  <span className="flex items-center gap-1">
-                    <MapPin className="size-3.5" />
-                    {l.location}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="flex-1 px-6 pb-3">
-              <div className="mb-2 text-2xl font-bold text-primary">
-                Rs. {Number(l.pricePerUnit).toLocaleString()}
-                <span className="text-sm font-normal text-muted-foreground">/{l.unit}</span>
-              </div>
-              {l.description && <p className="line-clamp-2 text-sm text-muted-foreground">{l.description}</p>}
-              <p className="mt-2 text-xs text-muted-foreground">Seller: {l.ownerName}</p>
-            </div>
-            <div className="p-6 pt-0">
-              {canBuy && !isOwn ? (
-                <RequestDialog listing={l} buyerName={currentName} m={m} listingType={listingType} />
-              ) : (
-                <p className="w-full text-center text-xs text-muted-foreground">
-                  {isOwn ? ownLabel : otherLabel}
-                </p>
-              )}
-            </div>
-          </Card>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * Negotiation dialog (both roles)
- * ------------------------------------------------------------------ */
-function NegotiationDialog({ request, role, currentName, m }) {
-  const [open, setOpen] = useState(false);
-  const [text, setText] = useState('');
-  const [price, setPrice] = useState('');
-  const [sending, setSending] = useState(false);
-
-  async function send() {
-    if (!text && !price) {
-      toast.error(m.negotiationTypeMsg || 'Type a message or a counter price.');
-      return;
-    }
-    setSending(true);
-    try {
-      await api.sendMessage(request.id, {
-        sender: role,
-        senderName: currentName,
-        text,
-        offeredPrice: price ? Number(price) : undefined,
-      });
-      setText('');
-      setPrice('');
-      refreshAll();
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setSending(false);
-    }
-  }
-
-  return (
-    <>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-        <MessageSquare className="size-4" />
-        {m.negotiate || 'Negotiate'}
-        {request.messages.length > 0 && (
-          <span className="ml-1 rounded-full bg-primary px-1.5 text-xs text-primary-foreground">{request.messages.length}</span>
-        )}
-      </Button>
-      <Modal
-        open={open}
-        onClose={() => setOpen(false)}
-        title={`Price Negotiation — ${request.cropName}`}
-        description={`Current working offer: Rs. ${Number(request.offeredPrice).toLocaleString()}/${request.unit} for ${request.quantity} ${request.unit}`}
-      >
-        <div className="flex max-h-64 flex-col gap-2 overflow-y-auto rounded-md bg-muted/50 p-3">
-          {request.messages.length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">{m.noMessagesYet || 'No messages yet. Start the discussion.'}</p>}
-          {request.messages.map((msg) => {
-            const mine = msg.sender === role;
-            return (
-              <div key={msg.id} className={`flex flex-col ${mine ? 'items-end' : 'items-start'}`}>
-                <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${mine ? 'bg-primary text-primary-foreground' : 'border bg-card'}`}>
-                  {msg.text && <p>{msg.text}</p>}
-                  {msg.offeredPrice != null && (
-                    <p className="mt-1 font-semibold">
-                      Counter offer: Rs. {Number(msg.offeredPrice).toLocaleString()}/{request.unit}
-                    </p>
-                  )}
-                </div>
-                <span className="mt-0.5 text-[10px] text-muted-foreground">
-                  {msg.senderName} · {msg.sender === 'owner' ? 'Land Owner' : 'Trader'}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-        <div className="grid gap-2">
-          <Input placeholder={m.messagePlaceholder || 'Type a message...'} value={text} onChange={(e) => setText(e.target.value)} />
-          <div className="flex gap-2">
-            <Input type="number" step="0.01" placeholder={`${m.counterPrice || 'Counter price'} /${request.unit}`} value={price} onChange={(e) => setPrice(e.target.value)} />
-            <Button onClick={send} disabled={sending}>
-              <Send className="size-4" />
-              {m.send || 'Send'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
-    </>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * Requests panel (both roles)
- * ------------------------------------------------------------------ */
-const requestTone = { pending: 'muted', accepted: 'primary', rejected: 'destructive' };
-
-function RequestsPanel({ role, currentName, m }) {
-  const { requests, isLoading } = useRequests();
-  const [busy, setBusy] = useState(null);
-  const visible = requests.filter((r) => (role === 'owner' ? r.ownerName === currentName : r.traderName === currentName));
-
-  async function resolve(id, action) {
-    setBusy(id);
-    try {
-      await api.resolveRequest(id, action);
-      toast.success(action === 'accept' ? (m.requestAccepted || 'Request accepted — order created.') : (m.requestRejected || 'Request rejected.'));
-      refreshAll();
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  if (isLoading) return <p className="text-sm text-muted-foreground">{m.loadingRequests || 'Loading requests...'}</p>;
-  if (visible.length === 0) {
-    return (
-      <Card>
-        <div className="flex flex-col items-center gap-2 py-10 text-center text-sm text-muted-foreground">
-          <Inbox className="size-6" />
-          {role === 'owner'
-            ? (m.noPurchaseRequestsOwner || 'No purchase requests yet. They will appear here when traders send them.')
-            : (m.noPurchaseRequestsTrader || 'You have not sent any purchase requests yet. Browse the marketplace to send one.')}
-        </div>
-      </Card>
-    );
-  }
-
-  return (
-    <div className="grid gap-3">
-      {visible.map((r) => (
-        <Card key={r.id}>
-          <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="grid gap-1">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">{r.cropName}</span>
-                <Badge tone={requestTone[r.status]}>{r.status}</Badge>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {r.quantity} {r.unit} @ Rs. {Number(r.offeredPrice).toLocaleString()} ={' '}
-                <span className="font-medium text-foreground">Rs. {(r.quantity * r.offeredPrice).toLocaleString()}</span>
-              </p>
-              <p className="text-xs text-muted-foreground">{role === 'owner' ? `From trader: ${r.traderName}` : `To owner: ${r.ownerName}`}</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <NegotiationDialog request={r} role={role} currentName={currentName} m={m} />
-              {role === 'owner' && r.status === 'pending' && (
-                <>
-                  <Button size="sm" onClick={() => resolve(r.id, 'accept')} disabled={busy === r.id}>
-                    <Check className="size-4" />
-                    {m.accept || 'Accept'}
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={() => resolve(r.id, 'reject')} disabled={busy === r.id}>
-                    <X className="size-4" />
-                    {m.reject || 'Reject'}
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * Orders panel (status management)
- * ------------------------------------------------------------------ */
-const orderStatusColor = {
-  pending: 'bg-warning/15 text-warning border-warning/40',
-  confirmed: 'bg-info/15 text-info border-info/40',
-  delivered: 'bg-harvest/15 text-harvest border-harvest/40',
-  completed: 'bg-success/15 text-success border-success/40',
-};
-
-function StatusTracker({ status }) {
-  const currentIndex = ORDER_STATUS_FLOW.indexOf(status);
-  return (
-    <div className="flex items-center gap-1">
-      {ORDER_STATUS_FLOW.map((s, i) => (
-        <div key={s} className="flex items-center gap-1">
-          <span
-            className={`flex size-5 items-center justify-center rounded-full text-[10px] font-bold ${
-              i <= currentIndex ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-            }`}
-          >
-            {i < currentIndex ? <CheckCircle2 className="size-3" /> : i + 1}
-          </span>
-          {i < ORDER_STATUS_FLOW.length - 1 && <span className={`h-0.5 w-4 ${i < currentIndex ? 'bg-primary' : 'bg-muted'}`} />}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function OrdersPanel({ role, currentName, m }) {
-  const { orders, isLoading } = useOrders();
-  const [busy, setBusy] = useState(null);
-  const visible = orders.filter((o) => (role === 'owner' ? o.ownerName === currentName : o.traderName === currentName));
-
-  async function advance(id, status) {
-    setBusy(id);
-    try {
-      await api.updateOrder(id, status);
-      toast.success(`Order marked as ${status}.`);
-      refreshAll();
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  if (isLoading) return <p className="text-sm text-muted-foreground">{m.loadingOrders || 'Loading orders...'}</p>;
-  if (visible.length === 0) {
-    return (
-      <Card>
-        <div className="flex flex-col items-center gap-2 py-10 text-center text-sm text-muted-foreground">
-          <Package2 className="size-6" />
-          {m.noOrdersYet || 'No orders yet. Orders are created when a land owner accepts a purchase request.'}
-        </div>
-      </Card>
-    );
-  }
-
-  return (
-    <div className="grid gap-3">
-      {visible.map((o) => {
-        const idx = ORDER_STATUS_FLOW.indexOf(o.status);
-        const next = ORDER_STATUS_FLOW[idx + 1];
-        return (
-          <Card key={o.id}>
-            <div className="flex flex-col gap-3 p-4">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="grid gap-1">
-                  <span className="font-semibold">{o.cropName}</span>
-                  <p className="text-sm text-muted-foreground">
-                    {o.quantity} {o.unit} @ Rs. {Number(o.pricePerUnit).toLocaleString()} ={' '}
-                    <span className="font-medium text-foreground">Rs. {Number(o.total).toLocaleString()}</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {role === 'owner' ? `Buyer: ${o.traderName}` : `Seller: ${o.ownerName}`} · Order {o.id.slice(0, 8)}
-                  </p>
-                </div>
-                <Badge tone="outline" className={orderStatusColor[o.status]}>
-                  {o.status}
-                </Badge>
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <StatusTracker status={o.status} />
-                {role === 'owner' && next ? (
-                  <Button size="sm" onClick={() => advance(o.id, next)} disabled={busy === o.id}>
-                    Mark as {next}
-                    <ArrowRight className="size-4" />
-                  </Button>
-                ) : o.status === 'completed' ? (
-                  <span className="flex items-center gap-1 text-sm font-medium text-primary">
-                    <CheckCircle2 className="size-4" />
-                    Completed
-                  </span>
-                ) : role === 'trader' ? (
-                  <span className="text-xs text-muted-foreground">Awaiting owner update</span>
-                ) : null}
-              </div>
-            </div>
-          </Card>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * Transaction history (both roles)
- * ------------------------------------------------------------------ */
-function formatDate(ts) {
-  return new Date(ts).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-}
-
-function TransactionsPanel({ role, currentName, m }) {
-  const { orders } = useOrders();
-  const visible = orders.filter((o) => (role === 'owner' ? o.ownerName === currentName : o.traderName === currentName));
-  const totalValue = visible.reduce((sum, o) => sum + o.total, 0);
-  const completed = visible.filter((o) => o.status === 'completed').length;
-
-  if (visible.length === 0) {
-    return (
-      <Card>
-        <div className="flex flex-col items-center gap-2 py-10 text-center text-sm text-muted-foreground">
-          <History className="size-6" />
-          {m.noTransactionsYet || 'No transactions recorded yet.'}
-        </div>
-      </Card>
-    );
-  }
-
-  return (
-    <div className="grid gap-4">
-      <div className="grid grid-cols-3 gap-3">
-        <Card>
-          <div className="py-4 text-center">
-            <p className="text-2xl font-bold">{visible.length}</p>
-            <p className="text-xs text-muted-foreground">Total Orders</p>
-          </div>
-        </Card>
-        <Card>
-          <div className="py-4 text-center">
-            <p className="text-2xl font-bold text-primary">{completed}</p>
-            <p className="text-xs text-muted-foreground">Completed</p>
-          </div>
-        </Card>
-        <Card>
-          <div className="py-4 text-center">
-            <p className="text-2xl font-bold">Rs. {totalValue.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground">Total Value</p>
-          </div>
-        </Card>
-      </div>
-      <Card>
-        <div className="divide-y">
-          {visible.map((o) => (
-            <div key={o.id} className="flex items-center justify-between gap-3 p-4">
-              <div className="grid gap-0.5">
-                <span className="font-medium">{o.cropName}</span>
-                <span className="text-xs text-muted-foreground">
-                  {role === 'owner' ? o.traderName : o.ownerName} · {formatDate(o.createdAt)}
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-muted-foreground">
-                  {o.quantity} {o.unit}
-                </span>
-                <span className="font-semibold">Rs. {Number(o.total).toLocaleString()}</span>
-                <Badge tone={o.status === 'completed' ? 'primary' : 'muted'}>{o.status}</Badge>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * Lightweight Tabs (state-driven)
- * ------------------------------------------------------------------ */
 function Tabs({ tabs, value, onChange }) {
   return (
-    <div className="inline-flex flex-wrap items-center gap-1 rounded-lg bg-muted p-1">
-      {tabs.map((t) => (
-        <button
-          key={t.value}
-          onClick={() => onChange(t.value)}
-          className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-            value === t.value ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
+    <div className="inline-flex flex-wrap gap-1 rounded-lg bg-muted p-1">
+      {tabs.map(t => (
+        <button key={t.value} onClick={() => onChange(t.value)}
+          className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${value === t.value ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
           {t.label}
         </button>
       ))}
@@ -1322,40 +328,580 @@ function Tabs({ tabs, value, onChange }) {
   );
 }
 
-/* ------------------------------------------------------------------ *
- * Page
- * ------------------------------------------------------------------ */
+// ── Status helpers ─────────────────────────────────────────────────────────────
+function statusColor(s) {
+  return { Pending: 'amber', Confirmed: 'blue', Delivered: 'purple', Completed: 'green', Rejected: 'red', Cancelled: 'muted' }[s] || 'default';
+}
+function statusLabel(s, m) {
+  return { Pending: m.pendingStatus, Confirmed: m.confirmedStatus, Delivered: m.deliveredStatus, Completed: m.completedStatus, Rejected: m.rejectedStatus, Cancelled: m.cancelledStatus }[s] || s;
+}
+function listingStatusColor(s) {
+  return { Active: 'green', Reserved: 'amber', Sold: 'muted', Archived: 'muted' }[s] || 'default';
+}
 
+// ── Image upload helper ────────────────────────────────────────────────────────
+function ImageUpload({ value, onChange, m }) {
+  function handle(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { toast.error('Image must be under 2 MB'); return; }
+    const reader = new FileReader();
+    reader.onload = ev => onChange(ev.target.result);
+    reader.readAsDataURL(file);
+  }
+  return (
+    <Field label={m.imageLabel}>
+      <div className="flex items-center gap-3">
+        {value
+          ? <div className="relative">
+              <img src={value} alt="preview" className="h-16 w-16 rounded-lg object-cover border border-input" />
+              <button type="button" onClick={() => onChange('')} className="absolute -top-1.5 -right-1.5 rounded-full bg-destructive text-white text-xs w-5 h-5 flex items-center justify-center">×</button>
+            </div>
+          : <div className="flex h-16 w-16 items-center justify-center rounded-lg border-2 border-dashed border-input text-muted-foreground text-2xl">📷</div>
+        }
+        <label className="cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-accent transition-colors">
+          {m.imageHint}
+          <input type="file" accept="image/*" className="hidden" onChange={handle} />
+        </label>
+      </div>
+    </Field>
+  );
+}
+
+// ── StatusTracker ──────────────────────────────────────────────────────────────
+function StatusTracker({ status }) {
+  const idx = ORDER_STATUS_FLOW.indexOf(status);
+  return (
+    <div className="flex items-center gap-1">
+      {ORDER_STATUS_FLOW.map((s, i) => (
+        <div key={s} className="flex items-center gap-1">
+          <span className={`flex size-5 items-center justify-center rounded-full text-[10px] font-bold ${i <= idx ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+            {i < idx ? <CheckCircle2 size={10} /> : i + 1}
+          </span>
+          {i < ORDER_STATUS_FLOW.length - 1 && <span className={`h-0.5 w-4 ${i < idx ? 'bg-primary' : 'bg-muted'}`} />}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Create Listing Form (any authenticated user) ───────────────────────────────
+function CreateListingForm({ listingType = 'crop', m }) {
+  const [name, setName] = useState('');
+  const [type, setType] = useState(listingType === 'crop' ? CROP_TYPES[0] : PRODUCT_TYPES[0]);
+  const [qty, setQty] = useState('');
+  const [unit, setUnit] = useState('kg');
+  const [price, setPrice] = useState('');
+  const [location, setLocation] = useState('');
+  const [desc, setDesc] = useState('');
+  const [image, setImage] = useState('');
+  const [busy, setBusy] = useState(false);
+  const types = listingType === 'crop' ? CROP_TYPES : PRODUCT_TYPES;
+
+  async function submit(e) {
+    e.preventDefault();
+    if (!name || !qty || !price) { toast.error(m.requiredFields); return; }
+    setBusy(true);
+    try {
+      await apiPost('/api/marketplace/listings', {
+        crop_name: name, crop_type: type, quantity: Number(qty), unit,
+        price_per_unit: Number(price), location, description: desc, image,
+        listing_type: listingType,
+      });
+      toast.success(`"${name}" ${m.listed}`);
+      setName(''); setQty(''); setPrice(''); setLocation(''); setDesc(''); setImage('');
+      refreshListings();
+    } catch (err) { toast.error(err.message); }
+    finally { setBusy(false); }
+  }
+
+  const title = listingType === 'crop' ? m.addListingTitle : m.addProductTitle;
+  const sub   = listingType === 'crop' ? m.addListingSub   : m.addProductSub;
+  const icon  = listingType === 'crop' ? <Sprout size={18} className="text-primary" /> : <Store size={18} className="text-primary" />;
+
+  return (
+    <Card>
+      <div className="p-6 pb-4">
+        <h2 className="flex items-center gap-2 text-lg font-semibold">{icon}{title}</h2>
+        <p className="text-sm text-muted-foreground mt-0.5">{sub}</p>
+      </div>
+      <div className="p-6 pt-0">
+        <form onSubmit={submit} className="grid gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label={listingType === 'crop' ? m.cropName : (m.productName || 'Product name')}>
+              <Input placeholder={listingType === 'crop' ? 'e.g. Fresh Tomatoes' : 'e.g. NPK Fertilizer'} value={name} onChange={e => setName(e.target.value)} />
+            </Field>
+            <Field label={listingType === 'crop' ? m.cropType : m.productCategory}>
+              <Select options={types} value={type} onChange={e => setType(e.target.value)} />
+            </Field>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Field label={m.quantity}>
+              <Input type="number" min="0.01" step="0.01" placeholder="500" value={qty} onChange={e => setQty(e.target.value)} />
+            </Field>
+            <Field label={m.unit}>
+              <Select value={unit} onChange={e => setUnit(e.target.value)}
+                options={listingType === 'crop'
+                  ? ['kg','ton','quintal','crate','bag']
+                  : ['kg','L','bag','bottle','box','packet','unit']} />
+            </Field>
+            <Field label={m.pricePerUnit}>
+              <Input type="number" min="0.01" step="0.01" placeholder="350" value={price} onChange={e => setPrice(e.target.value)} />
+            </Field>
+          </div>
+          <Field label={m.location}>
+            <Input placeholder="e.g. Anuradhapura" value={location} onChange={e => setLocation(e.target.value)} />
+          </Field>
+          <Field label={m.description}>
+            <Textarea placeholder="Quality, harvest date, grade…" value={desc} onChange={e => setDesc(e.target.value)} rows={2} />
+          </Field>
+          <ImageUpload value={image} onChange={setImage} m={m} />
+          <div>
+            <Btn type="submit" disabled={busy}>
+              <Plus size={16} />
+              {busy ? m.listingInProgress : m.publishListing}
+            </Btn>
+          </div>
+        </form>
+      </div>
+    </Card>
+  );
+}
+
+// ── Order dialog (buyer places order) ─────────────────────────────────────────
+function OrderDialog({ listing, currentUserId, m }) {
+  const [open, setOpen] = useState(false);
+  const [qty, setQty] = useState(String(Math.min(listing.quantity, 50)));
+  const [proposedPrice, setProposedPrice] = useState(String(listing.price_per_unit));
+  const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
+  const total = (Number(qty) || 0) * (Number(proposedPrice) || 0);
+  const isActive = listing.status === 'Active';
+  const btnLabel = listing.listing_type === 'product' ? m.sendBuyRequest : m.sendRequest;
+
+  async function submit() {
+    if (!Number(qty) || !Number(proposedPrice)) { toast.error(m.requestInvalid); return; }
+    if (Number(qty) > listing.quantity) { toast.error(`Only ${listing.quantity} ${listing.unit} available`); return; }
+    setBusy(true);
+    try {
+      await apiPost('/api/marketplace/orders', {
+        listing_id: listing.id,
+        requested_quantity: Number(qty),
+        proposed_price: Number(proposedPrice),
+        buyer_note: note || undefined,
+      });
+      toast.success(btnLabel + ' sent!');
+      setOpen(false);
+      refreshOrders();
+    } catch (err) { toast.error(err.message); }
+    finally { setBusy(false); }
+  }
+
+  if (listing.owner_id === currentUserId) {
+    return <p className="text-xs text-muted-foreground text-center w-full">{m.yourListing}</p>;
+  }
+
+  return (
+    <>
+      <Btn className="w-full" disabled={!isActive} onClick={() => setOpen(true)}>
+        <ShoppingCart size={16} />
+        {!isActive ? (listing.status === 'Sold' ? m.soldOut : listing.status) : btnLabel}
+      </Btn>
+      <Modal open={open} onClose={() => setOpen(false)}
+        title={btnLabel + ' — ' + listing.crop_name}
+        desc={`Listed by ${listing.owner_name} · Rs. ${Number(listing.price_per_unit).toLocaleString()}/${listing.unit}`}>
+        <div className="grid gap-3">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label={`${m.quantity} (${listing.unit})`}>
+              <Input type="number" min="0.01" max={listing.quantity} value={qty} onChange={e => setQty(e.target.value)} />
+              <p className="text-xs text-muted-foreground">{listing.quantity} {listing.unit} {m.available}</p>
+            </Field>
+            <Field label={`${m.pricePerUnit} / ${listing.unit}`}>
+              <Input type="number" min="0.01" step="0.01" value={proposedPrice} onChange={e => setProposedPrice(e.target.value)} />
+            </Field>
+          </div>
+          <Field label={m.buyerNote + ' (optional)'}>
+            <Textarea placeholder={m.yourNote} value={note} onChange={e => setNote(e.target.value)} rows={2} />
+          </Field>
+          <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-sm">
+            <span className="text-muted-foreground">{m.estimatedTotal}</span>
+            <span className="font-semibold">Rs. {total.toLocaleString()}</span>
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <Btn onClick={submit} disabled={busy}>
+            <Send size={16} />
+            {busy ? m.sending : m.sendRequestBtn}
+          </Btn>
+        </div>
+      </Modal>
+    </>
+  );
+}
+
+// ── Delete listing dialog ──────────────────────────────────────────────────────
+function DeleteDialog({ listingId, cropName, m }) {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  async function confirm() {
+    setBusy(true);
+    try {
+      await request(`/api/marketplace/listings/${listingId}`, { method: 'DELETE' });
+      toast.success(`"${cropName}" deleted.`);
+      setOpen(false);
+      refreshListings();
+    } catch (err) { toast.error(err.message); }
+    finally { setBusy(false); }
+  }
+  return (
+    <>
+      <Btn variant="danger" size="sm" onClick={() => setOpen(true)}><Trash2 size={14} /></Btn>
+      <Modal open={open} onClose={() => setOpen(false)} title={m.deleteListing} desc={m.deleteConfirm}>
+        <div className="flex justify-end gap-2">
+          <Btn variant="outline" onClick={() => setOpen(false)}>{m.cancel}</Btn>
+          <Btn variant="danger" onClick={confirm} disabled={busy}>{busy ? '…' : m.deleteListing}</Btn>
+        </div>
+      </Modal>
+    </>
+  );
+}
+
+// ── Listing card ───────────────────────────────────────────────────────────────
+function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = false }) {
+  const isOwn = listing.owner_id === currentUserId;
+
+  return (
+    <Card className="flex flex-col overflow-hidden">
+      {listing.image && (
+        <div className="h-40 w-full overflow-hidden">
+          <img src={listing.image} alt={listing.crop_name} className="h-full w-full object-cover" />
+        </div>
+      )}
+      <div className="p-5 pb-3 flex flex-col flex-1">
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <h3 className="font-semibold text-foreground text-balance">{listing.crop_name}</h3>
+          <Badge color={listingStatusColor(listing.status)}>{listing.status}</Badge>
+        </div>
+        {listing.crop_type && (
+          <span className="text-xs text-muted-foreground mb-2">{listing.crop_type}
+            {listing.listing_type === 'product' && ' · Agricultural Product'}
+          </span>
+        )}
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground mb-3">
+          <span className="flex items-center gap-1"><Package size={12} />{listing.quantity} {listing.unit}</span>
+          {listing.location && <span className="flex items-center gap-1"><MapPin size={12} />{listing.location}</span>}
+        </div>
+        {listing.description && <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{listing.description}</p>}
+        <div className="text-2xl font-bold text-primary mb-1">
+          Rs. {Number(listing.price_per_unit).toLocaleString()}
+          <span className="text-sm font-normal text-muted-foreground">/{listing.unit}</span>
+        </div>
+        <p className="text-xs text-muted-foreground mb-4">Seller: {listing.owner_name}</p>
+
+        <div className="mt-auto flex gap-2">
+          {showDelete && isOwn
+            ? <DeleteDialog listingId={listing.id} cropName={listing.crop_name} m={m} />
+            : null
+          }
+          {isAuthenticated && !isOwn
+            ? <OrderDialog listing={listing} currentUserId={currentUserId} m={m} />
+            : isOwn
+              ? null
+              : <p className="text-xs text-muted-foreground">{m.demoWarning.replace('⚠️ ', '')}</p>
+          }
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+// ── Listings grid ──────────────────────────────────────────────────────────────
+function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDelete = false }) {
+  const { data, isLoading } = useSWR('/api/marketplace/listings', publicFetcher, { refreshInterval: 5000 });
+  const listings = (data || []).filter(l => (l.listing_type || 'crop') === listingType);
+
+  if (isLoading) return <p className="text-sm text-muted-foreground">{m.loadingCrops}</p>;
+  if (listings.length === 0) {
+    const msg = listingType === 'crop'
+      ? (showDelete ? m.noListingsOwner : m.noListingsTrader)
+      : (showDelete ? m.noProductsTrader : m.noProductsOwner);
+    return (
+      <Card><div className="py-12 text-center text-sm text-muted-foreground">{msg}</div></Card>
+    );
+  }
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {listings.map(l => (
+        <ListingCard key={l.id} listing={l} currentUserId={currentUserId} isAuthenticated={isAuthenticated} m={m} showDelete={showDelete} />
+      ))}
+    </div>
+  );
+}
+
+// ── My Listings grid (seller's own listings) ───────────────────────────────────
+function MyListingsGrid({ listingType, currentUserId, m }) {
+  const { data, isLoading } = useSWR('/api/marketplace/listings/me', authFetcher, { refreshInterval: 5000 });
+  const listings = (data || []).filter(l => (l.listing_type || 'crop') === listingType);
+
+  if (isLoading) return <p className="text-sm text-muted-foreground">{m.loadingCrops}</p>;
+  if (listings.length === 0) {
+    return <Card><div className="py-12 text-center text-sm text-muted-foreground">{listingType === 'crop' ? m.noListingsOwner : m.noProductsTrader}</div></Card>;
+  }
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {listings.map(l => (
+        <Card key={l.id} className="flex flex-col overflow-hidden">
+          {l.image && <div className="h-36 w-full overflow-hidden"><img src={l.image} alt={l.crop_name} className="h-full w-full object-cover" /></div>}
+          <div className="p-4 flex flex-col flex-1">
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <h3 className="font-semibold text-foreground">{l.crop_name}</h3>
+              <Badge color={listingStatusColor(l.status)}>{l.status}</Badge>
+            </div>
+            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground mb-2">
+              <span>{l.quantity} {l.unit}</span>
+              {l.location && <span className="flex items-center gap-1"><MapPin size={10} />{l.location}</span>}
+            </div>
+            <div className="text-xl font-bold text-primary mb-1">Rs. {Number(l.price_per_unit).toLocaleString()}<span className="text-xs font-normal text-muted-foreground">/{l.unit}</span></div>
+            <div className="mt-auto pt-2 flex justify-end">
+              <DeleteDialog listingId={l.id} cropName={l.crop_name} m={m} />
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+// ── Negotiation dialog ─────────────────────────────────────────────────────────
+function NegotiationDialog({ order, isSeller, m }) {
+  const [open, setOpen] = useState(false);
+  const [note, setNote] = useState('');
+  const [counter, setCounter] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function send() {
+    if (!note) { toast.error('Type a note first'); return; }
+    setBusy(true);
+    try {
+      await apiPost(`/api/marketplace/orders/${order.id}/negotiation`, {
+        message: note,
+        proposed_price: counter ? Number(counter) : undefined,
+      });
+      toast.success('Note sent.');
+      setNote(''); setCounter('');
+      refreshOrders();
+    } catch (err) { toast.error(err.message); }
+    finally { setBusy(false); }
+  }
+
+  return (
+    <>
+      <Btn variant="outline" size="sm" onClick={() => setOpen(true)}>
+        <MessageSquare size={14} />
+        {m.negotiate}
+      </Btn>
+      <Modal open={open} onClose={() => setOpen(false)} title={m.negotiate}
+        desc={`${order.listing_name} · ${order.requested_quantity} ${order.unit ?? 'units'} @ Rs. ${Number(order.proposed_price || 0).toLocaleString()}`}>
+        <div className="grid gap-3">
+          {order.buyer_note && (
+            <div className="rounded-md border bg-muted/50 p-3">
+              <p className="text-xs font-semibold text-muted-foreground mb-1">{m.buyerNote}</p>
+              <p className="text-sm">{order.buyer_note}</p>
+              {order.proposed_price && (
+                <p className="text-xs mt-1 text-primary font-medium">Proposed: Rs. {Number(order.proposed_price).toLocaleString()}</p>
+              )}
+            </div>
+          )}
+          {order.seller_note && (
+            <div className="rounded-md border bg-muted/50 p-3">
+              <p className="text-xs font-semibold text-muted-foreground mb-1">{m.sellerNote}</p>
+              <p className="text-sm">{order.seller_note}</p>
+              {order.counter_offer_price && (
+                <p className="text-xs mt-1 text-amber-600 font-medium">{m.counterOffer}: Rs. {Number(order.counter_offer_price).toLocaleString()}</p>
+              )}
+            </div>
+          )}
+          {!order.buyer_note && !order.seller_note && (
+            <p className="text-sm text-muted-foreground text-center py-4">{m.noNotes}</p>
+          )}
+          {order.status === 'Pending' || order.status === 'Confirmed' ? (
+            <div className="grid gap-2 border-t pt-3">
+              <p className="text-xs font-semibold text-muted-foreground">{m.addNote}</p>
+              <Textarea placeholder={m.yourNote} value={note} onChange={e => setNote(e.target.value)} rows={2} />
+              {isSeller && (
+                <Input type="number" min="0.01" step="0.01" placeholder={m.yourCounter} value={counter} onChange={e => setCounter(e.target.value)} />
+              )}
+              <Btn onClick={send} disabled={busy} size="sm">
+                <Send size={14} />
+                {busy ? m.saving : m.save}
+              </Btn>
+            </div>
+          ) : null}
+        </div>
+      </Modal>
+    </>
+  );
+}
+
+// ── Order card ─────────────────────────────────────────────────────────────────
+function OrderCard({ order, currentUserId, m, showHistory = false }) {
+  const isSeller = order.seller_id === currentUserId;
+  const isBuyer  = order.buyer_id  === currentUserId;
+  const [busy, setBusy] = useState(false);
+
+  async function updateStatus(newStatus) {
+    setBusy(true);
+    try {
+      await apiPost(`/api/marketplace/orders/${order.id}/status`, { status: newStatus }, 'PUT');
+      toast.success(`Order marked as ${newStatus}`);
+      refreshOrders();
+    } catch (err) { toast.error(err.message); }
+    finally { setBusy(false); }
+  }
+
+  const idx  = ORDER_STATUS_FLOW.indexOf(order.status);
+  const next = ORDER_STATUS_FLOW[idx + 1];
+
+  const effectivePrice = order.agreed_price ?? order.counter_offer_price ?? order.proposed_price ?? 0;
+  const totalVal = order.requested_quantity * effectivePrice;
+
+  return (
+    <Card>
+      <div className="p-4 grid gap-3">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-semibold text-foreground">{order.listing_name}</span>
+              <Badge color={statusColor(order.status)}>{statusLabel(order.status, m)}</Badge>
+            </div>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {order.requested_quantity} units · Rs. {Number(effectivePrice).toLocaleString()} ea. ={' '}
+              <span className="font-medium text-foreground">Rs. {totalVal.toLocaleString()}</span>
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {isSeller ? `${m.buyer}: ${order.buyer_name}` : `${m.seller}: ${order.seller_name}`}
+              {' · '}{new Date(order.created_at).toLocaleDateString()}
+            </p>
+          </div>
+        </div>
+
+        {!showHistory && ORDER_STATUS_FLOW.includes(order.status) && (
+          <StatusTracker status={order.status} />
+        )}
+
+        <div className="flex flex-wrap gap-2">
+          <NegotiationDialog order={order} isSeller={isSeller} m={m} />
+
+          {/* Seller actions */}
+          {isSeller && order.status === 'Pending' && (
+            <>
+              <Btn size="sm" onClick={() => updateStatus('Confirmed')} disabled={busy}>
+                <Check size={14} />{m.accept}
+              </Btn>
+              <Btn size="sm" variant="danger" onClick={() => updateStatus('Rejected')} disabled={busy}>
+                <X size={14} />{m.reject}
+              </Btn>
+            </>
+          )}
+          {isSeller && order.status === 'Confirmed' && (
+            <Btn size="sm" onClick={() => updateStatus('Delivered')} disabled={busy}>
+              <ArrowRight size={14} />{m.markAs} Delivered
+            </Btn>
+          )}
+
+          {/* Buyer confirms receipt */}
+          {isBuyer && order.status === 'Delivered' && (
+            <Btn size="sm" onClick={() => updateStatus('Completed')} disabled={busy}>
+              <CheckCircle2 size={14} />{m.confirmComplete}
+            </Btn>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+// ── Orders panel ───────────────────────────────────────────────────────────────
+function OrdersPanel({ currentUserId, m, historyMode = false }) {
+  const { data, isLoading } = useSWR('/api/marketplace/orders', authFetcher, { refreshInterval: 5000 });
+  const allOrders = data || [];
+
+  const active = allOrders.filter(o => ['Pending', 'Confirmed', 'Delivered'].includes(o.status));
+  const history = allOrders.filter(o => ['Completed', 'Rejected', 'Cancelled'].includes(o.status));
+  const orders = historyMode ? history : active;
+
+  if (isLoading) return <p className="text-sm text-muted-foreground">{m.loadingOrders}</p>;
+  if (orders.length === 0) {
+    return (
+      <Card>
+        <div className="flex flex-col items-center gap-2 py-12 text-center text-sm text-muted-foreground">
+          {historyMode ? <History size={24} /> : <Package2 size={24} />}
+          {historyMode ? m.noHistoryYet : m.noOrdersYet}
+        </div>
+      </Card>
+    );
+  }
+
+  // History: summary stats
+  if (historyMode) {
+    const completed = orders.filter(o => o.status === 'Completed');
+    const totalVal  = completed.reduce((s, o) => s + o.requested_quantity * (o.agreed_price ?? o.proposed_price ?? 0), 0);
+    return (
+      <div className="grid gap-4">
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: 'Total Orders', val: orders.length },
+            { label: 'Completed', val: completed.length },
+            { label: 'Total Value', val: `Rs. ${totalVal.toLocaleString()}` },
+          ].map(c => (
+            <Card key={c.label}>
+              <div className="py-4 text-center">
+                <p className="text-2xl font-bold text-foreground">{c.val}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{c.label}</p>
+              </div>
+            </Card>
+          ))}
+        </div>
+        <div className="grid gap-3">
+          {orders.map(o => <OrderCard key={o.id} order={o} currentUserId={currentUserId} m={m} showHistory />)}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-3">
+      {orders.map(o => <OrderCard key={o.id} order={o} currentUserId={currentUserId} m={m} />)}
+    </div>
+  );
+}
+
+// ── Main page ──────────────────────────────────────────────────────────────────
 export default function MarketplacePage() {
   const outlet = useOutletContext() || {};
   const lang = outlet?.lang || 'en';
-  const m = MESSAGES[lang] || MESSAGES.en;
+  const m = M[lang] || M.en;
+
   const { user } = getAuthSession();
-
-  // Force re-render when user switches role in this page
-  const [roleVersion, setRoleVersion] = useState(0);
-  const sessionRole = getActiveRole();
-  const authRole = sessionRole === 'Land Owner' ? 'owner' : sessionRole === 'Trader' ? 'trader' : null;
   const isAuthenticated = !!user;
+  const sessionRole = getActiveRole();
+  const role = sessionRole === 'Land Owner' ? 'owner' : sessionRole === 'Trader' ? 'trader' : 'guest';
   const userRoles = getUserRoles();
-  const isDualRole = userRoles.includes('Land Owner') && userRoles.includes('Trader');
+  const isDual = userRoles.includes('Land Owner') && userRoles.includes('Trader');
 
-  function switchToRole(targetRole) {
-    setActiveRole(targetRole);
-    setRoleVersion(v => v + 1);
-  }
+  const [roleVersion, setRoleVersion] = useState(0);
+  function switchToRole(r) { setActiveRole(r); setRoleVersion(v => v + 1); }
 
-  const [ownerTab, setOwnerTab] = useState('listings');
+  const [ownerTab, setOwnerTab] = useState('my-listings');
   const [traderTab, setTraderTab] = useState('browse');
 
-  const role = authRole || 'owner';
-  const currentName = user?.full_name || 'Guest';
+  const currentUserId = user?.id ?? null;
 
   return (
     <div className="marketplace-sprint min-h-screen bg-background">
       <Toaster />
 
-      {/* ── Hero banner ─────────────────────────────────────────────────── */}
+      {/* Hero */}
       <div className="marketplace-hero">
         <div className="marketplace-hero-inner">
           <div className="marketplace-hero-badge">{m.badge}</div>
@@ -1365,104 +911,109 @@ export default function MarketplacePage() {
       </div>
       <div className="marketplace-hero-wave" />
 
+      {/* Header bar */}
       <header className="border-b bg-card">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Leaf className="size-6" />
+              <Leaf size={22} />
             </div>
             <div>
-              <h1 className="text-xl font-bold leading-tight">{m.headerTitle}</h1>
-              <p className="text-xs text-muted-foreground">{m.headerSub} {isAuthenticated && `· ${sessionRole ?? user?.role}`}</p>
+              <h2 className="text-xl font-bold leading-tight text-foreground">{m.headerTitle}</h2>
+              <p className="text-xs text-muted-foreground">
+                {m.headerSub}
+                {isAuthenticated && ` · ${sessionRole ?? user?.role}`}
+              </p>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-3 flex-wrap">
             {isAuthenticated ? (
-              <div className="flex rounded-lg border bg-muted p-1" title={isDualRole ? m.switchRole : ''}>
+              <div className="flex rounded-lg border bg-muted p-1">
                 <button
-                  disabled={!isDualRole}
-                  onClick={() => isDualRole && role !== 'owner' ? switchToRole('Land Owner') : undefined}
-                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                    role === 'owner'
-                      ? 'bg-primary text-primary-foreground'
-                      : isDualRole
-                        ? 'text-muted-foreground hover:text-foreground cursor-pointer'
-                        : 'text-muted-foreground cursor-default'
-                  }`}
-                >
-                  <Tractor className="size-4" />
-                  {m.landOwner}
+                  onClick={() => isDual && role !== 'owner' ? switchToRole('Land Owner') : undefined}
+                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${role === 'owner' ? 'bg-primary text-primary-foreground' : isDual ? 'text-muted-foreground hover:text-foreground cursor-pointer' : 'text-muted-foreground cursor-default'}`}>
+                  <Tractor size={15} />{m.landOwner}
                 </button>
                 <button
-                  disabled={!isDualRole}
-                  onClick={() => isDualRole && role !== 'trader' ? switchToRole('Trader') : undefined}
-                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                    role === 'trader'
-                      ? 'bg-primary text-primary-foreground'
-                      : isDualRole
-                        ? 'text-muted-foreground hover:text-foreground cursor-pointer'
-                        : 'text-muted-foreground cursor-default'
-                  }`}
-                >
-                  <Store className="size-4" />
-                  {m.trader}
+                  onClick={() => isDual && role !== 'trader' ? switchToRole('Trader') : undefined}
+                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${role === 'trader' ? 'bg-primary text-primary-foreground' : isDual ? 'text-muted-foreground hover:text-foreground cursor-pointer' : 'text-muted-foreground cursor-default'}`}>
+                  <Store size={15} />{m.trader}
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-500 bg-slate-100 dark:bg-slate-700 px-3 py-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                <User className="size-4" />
-                Guest
+              <div className="flex items-center gap-1.5 rounded-lg border bg-muted px-3 py-1.5 text-sm text-muted-foreground">
+                <User size={15} />{m.guest}
               </div>
             )}
 
             {isAuthenticated && (
               <div className="flex items-center gap-2 text-sm">
-                {user?.profile_image ? (
-                  <img src={user.profile_image} alt={currentName} className="size-8 rounded-full object-cover ring-2 ring-primary/30" />
-                ) : (
-                  <div className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold ring-2 ring-primary/30">
-                    {currentName.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span className="font-medium text-foreground">{currentName}</span>
+                {user?.profile_image
+                  ? <img src={user.profile_image} alt={user.full_name} className="size-8 rounded-full object-cover ring-2 ring-primary/30" />
+                  : <div className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold ring-2 ring-primary/30">{(user?.full_name || 'U').charAt(0).toUpperCase()}</div>
+                }
+                <span className="font-medium text-foreground">{user?.full_name}</span>
               </div>
             )}
           </div>
         </div>
       </header>
 
+      {/* Content */}
       <div className="mx-auto max-w-6xl px-4 py-6">
+
+        {/* Role context banner */}
         {!isAuthenticated ? (
           <div className="mb-5 rounded-lg border border-amber-400 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 dark:border-amber-500/60 dark:bg-amber-950/40 dark:text-amber-300">
             {m.demoWarning}
+            {' '}<Link to="/login" className="underline font-semibold ml-1">Login</Link>
+            {' '}<span className="mx-1">·</span>
+            <Link to="/register" className="underline font-semibold">Register</Link>
           </div>
         ) : (
           <div className="mb-5 rounded-lg border bg-accent/40 px-4 py-3 text-sm text-accent-foreground">
-            {m.actAs} <span className="font-semibold">{currentName}</span> ({role === 'owner' ? m.landOwner : m.trader}).{' '}
+            {m.actAs} <strong>{user?.full_name}</strong> ({role === 'owner' ? m.landOwner : m.trader}).{' '}
             {m.loggedInRole}
+            {isDual && (
+              <button
+                onClick={() => switchToRole(role === 'owner' ? 'Trader' : 'Land Owner')}
+                className="ml-3 underline text-primary font-semibold"
+              >{m.switchRole} →</button>
+            )}
           </div>
         )}
 
-        {role === 'owner' ? (
+        {/* Guest view — browse only */}
+        {!isAuthenticated && (
+          <div className="grid gap-8">
+            <div className="grid gap-3">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{m.availableCrops}</h2>
+              <ListingsGrid listingType="crop" currentUserId={null} isAuthenticated={false} m={m} />
+            </div>
+            <div className="grid gap-3">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{m.availableProducts}</h2>
+              <ListingsGrid listingType="product" currentUserId={null} isAuthenticated={false} m={m} />
+            </div>
+          </div>
+        )}
+
+        {/* Land Owner view */}
+        {isAuthenticated && role === 'owner' && (
           <div className="grid gap-5">
-            <Tabs
-              value={ownerTab}
-              onChange={setOwnerTab}
-              tabs={[
-                { value: 'listings', label: m.ownerTabs[0] },
-                { value: 'browse', label: m.ownerTabs[1] },
-                { value: 'requests', label: m.ownerTabs[2] },
-                { value: 'orders', label: m.ownerTabs[3] },
-                { value: 'history', label: m.ownerTabs[4] },
-              ]}
-            />
-            {ownerTab === 'listings' && (
+            <Tabs value={ownerTab} onChange={setOwnerTab} tabs={[
+              { value: 'my-listings', label: m.ownerTabs[0] },
+              { value: 'browse',      label: m.ownerTabs[1] },
+              { value: 'orders',      label: m.ownerTabs[2] },
+              { value: 'history',     label: m.ownerTabs[3] },
+            ]} />
+
+            {ownerTab === 'my-listings' && (
               <div className="grid gap-6">
-                <CreateListingForm ownerName={currentName} m={m} />
+                <CreateListingForm listingType="crop" m={m} />
                 <div className="grid gap-3">
-                  <h2 className="text-sm font-semibold text-muted-foreground">{m.availableCrops}</h2>
-                  <ListingsGrid role={role} currentName={currentName} m={m} listingType="crop" />
+                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{m.availableCrops}</h2>
+                  <MyListingsGrid listingType="crop" currentUserId={currentUserId} m={m} />
                 </div>
               </div>
             )}
@@ -1470,55 +1021,52 @@ export default function MarketplacePage() {
               <div className="grid gap-8">
                 <div className="grid gap-3">
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{m.availableCrops}</h2>
-                  <ListingsGrid role={role} currentName={currentName} m={m} listingType="crop" />
+                  <ListingsGrid listingType="crop" currentUserId={currentUserId} isAuthenticated m={m} />
                 </div>
                 <div className="grid gap-3">
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{m.availableProducts}</h2>
-                  <ListingsGrid role={role} currentName={currentName} m={m} listingType="product" />
+                  <ListingsGrid listingType="product" currentUserId={currentUserId} isAuthenticated m={m} />
                 </div>
               </div>
             )}
-            {ownerTab === 'requests' && <RequestsPanel role={role} currentName={currentName} m={m} />}
-            {ownerTab === 'orders' && <OrdersPanel role={role} currentName={currentName} m={m} />}
-            {ownerTab === 'history' && <TransactionsPanel role={role} currentName={currentName} m={m} />}
+            {ownerTab === 'orders'  && <OrdersPanel currentUserId={currentUserId} m={m} />}
+            {ownerTab === 'history' && <OrdersPanel currentUserId={currentUserId} m={m} historyMode />}
           </div>
-        ) : (
+        )}
+
+        {/* Trader view */}
+        {isAuthenticated && role === 'trader' && (
           <div className="grid gap-5">
-            <Tabs
-              value={traderTab}
-              onChange={setTraderTab}
-              tabs={[
-                { value: 'browse', label: m.traderTabs[0] },
-                { value: 'my-products', label: m.traderTabs[1] },
-                { value: 'requests', label: m.traderTabs[2] },
-                { value: 'orders', label: m.traderTabs[3] },
-                { value: 'history', label: m.traderTabs[4] },
-              ]}
-            />
+            <Tabs value={traderTab} onChange={setTraderTab} tabs={[
+              { value: 'browse',       label: m.traderTabs[0] },
+              { value: 'my-products',  label: m.traderTabs[1] },
+              { value: 'orders',       label: m.traderTabs[2] },
+              { value: 'history',      label: m.traderTabs[3] },
+            ]} />
+
             {traderTab === 'browse' && (
               <div className="grid gap-8">
                 <div className="grid gap-3">
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{m.availableCrops}</h2>
-                  <ListingsGrid role={role} currentName={currentName} m={m} listingType="crop" />
+                  <ListingsGrid listingType="crop" currentUserId={currentUserId} isAuthenticated m={m} />
                 </div>
                 <div className="grid gap-3">
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{m.availableProducts}</h2>
-                  <ListingsGrid role={role} currentName={currentName} m={m} listingType="product" />
+                  <ListingsGrid listingType="product" currentUserId={currentUserId} isAuthenticated m={m} />
                 </div>
               </div>
             )}
             {traderTab === 'my-products' && (
               <div className="grid gap-6">
-                <CreateProductForm traderName={currentName} m={m} />
+                <CreateListingForm listingType="product" m={m} />
                 <div className="grid gap-3">
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{m.availableProducts}</h2>
-                  <ListingsGrid role={role} currentName={currentName} m={m} listingType="product" />
+                  <MyListingsGrid listingType="product" currentUserId={currentUserId} m={m} />
                 </div>
               </div>
             )}
-            {traderTab === 'requests' && <RequestsPanel role={role} currentName={currentName} m={m} />}
-            {traderTab === 'orders' && <OrdersPanel role={role} currentName={currentName} m={m} />}
-            {traderTab === 'history' && <TransactionsPanel role={role} currentName={currentName} m={m} />}
+            {traderTab === 'orders'  && <OrdersPanel currentUserId={currentUserId} m={m} />}
+            {traderTab === 'history' && <OrdersPanel currentUserId={currentUserId} m={m} historyMode />}
           </div>
         )}
       </div>
