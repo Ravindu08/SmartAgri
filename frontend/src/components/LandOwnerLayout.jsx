@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import { useApp } from '../context/AppContext';
-import { getAuthSession, clearAuthSession, getActiveRole, isDualRole, submitFeedback } from '../services/api';
+import { getAuthSession, clearAuthSession, getActiveRole, isDualRole, submitFeedback, fetchNotifications, markNotificationRead, markAllNotificationsRead } from '../services/api';
 import { getCrops } from '../services/cropService';
 import { listCultivations } from '../utils/cultivationApi';
 import { getCropLabel } from '../data/cropData';
@@ -120,6 +120,7 @@ export default function LandOwnerLayout() {
   const [profileOpen,  setProfileOpen]  = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [notifs,       setNotifs]       = useState([]);
+  const [apiNotifs,    setApiNotifs]    = useState([]);
   const [notifLoading, setNotifLoading] = useState(false);
   const [dismissed, setDismissed] = useState(() => {
     try { return new Set(JSON.parse(localStorage.getItem('sa_dismissed_notifs') || '[]')); }
@@ -137,6 +138,31 @@ export default function LandOwnerLayout() {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  // Poll backend notifications every 30 s
+  useEffect(() => {
+    if (!user?.id) return;
+    const loadApiNotifs = () => {
+      fetchNotifications().then(data => {
+        setApiNotifs(
+          (data || [])
+            .filter(n => !n.is_read)
+            .map(n => ({
+              id: `api-${n.id}`,
+              _apiId: n.id,
+              type: n.type.includes('danger') || n.type === 'order_rejected' ? 'danger' : 'task',
+              icon: n.type === 'order_created' ? '🛒' : n.type === 'order_confirmed' ? '✅' : n.type === 'order_rejected' ? '❌' : n.type === 'order_delivered' ? '🚚' : n.type === 'order_completed' ? '🎉' : n.type === 'rating_received' ? '⭐' : '🔔',
+              title: n.title,
+              detail: n.body || '',
+              href: n.link || null,
+            }))
+        );
+      }).catch(() => {});
+    };
+    loadApiNotifs();
+    const interval = setInterval(loadApiNotifs, 30000);
+    return () => clearInterval(interval);
+  }, [user?.id]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -206,6 +232,13 @@ export default function LandOwnerLayout() {
   }, [user?.id, lang]);
 
   const dismissNotif = id => {
+    // If it's a backend notification, mark it read in the DB
+    const apiNotif = apiNotifs.find(n => n.id === id);
+    if (apiNotif) {
+      markNotificationRead(apiNotif._apiId).catch(() => {});
+      setApiNotifs(prev => prev.filter(n => n.id !== id));
+      return;
+    }
     setDismissed(prev => {
       const next = new Set(prev);
       next.add(id);
@@ -239,7 +272,7 @@ export default function LandOwnerLayout() {
   ];
 
   const initials     = user?.full_name ? user.full_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : 'LO';
-  const visibleNotifs = notifs.filter(n => !dismissed.has(n.id));
+  const visibleNotifs = [...notifs.filter(n => !dismissed.has(n.id)), ...apiNotifs];
 
   return (
     <div className="lo-shell">

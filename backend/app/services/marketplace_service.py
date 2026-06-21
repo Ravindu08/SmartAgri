@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import select
@@ -49,12 +50,27 @@ def get_listing_for_owner(db: Session, listing_id: UUID, owner_id: int) -> Marke
     ).scalar_one_or_none()
 
 
-def list_active_listings(db: Session) -> list[MarketplaceListing]:
-    return db.execute(
-        select(MarketplaceListing)
-        .where(MarketplaceListing.status == MarketplaceListingStatus.ACTIVE)
-        .order_by(MarketplaceListing.created_at.desc())
-    ).scalars().all()
+def list_active_listings(
+    db: Session,
+    *,
+    search: Optional[str] = None,
+    crop_type: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    district: Optional[str] = None,
+) -> list[MarketplaceListing]:
+    q = select(MarketplaceListing).where(MarketplaceListing.status == MarketplaceListingStatus.ACTIVE)
+    if search:
+        q = q.where(MarketplaceListing.crop_name.ilike(f"%{search}%"))
+    if crop_type:
+        q = q.where(MarketplaceListing.crop_type.ilike(f"%{crop_type}%"))
+    if min_price is not None:
+        q = q.where(MarketplaceListing.price_per_unit >= min_price)
+    if max_price is not None:
+        q = q.where(MarketplaceListing.price_per_unit <= max_price)
+    if district:
+        q = q.where(MarketplaceListing.location.ilike(f"%{district}%"))
+    return db.execute(q.order_by(MarketplaceListing.created_at.desc())).scalars().all()
 
 
 def list_owner_listings(db: Session, owner_id: int) -> list[MarketplaceListing]:

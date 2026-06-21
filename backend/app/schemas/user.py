@@ -17,12 +17,14 @@ class UserRead(BaseModel):
     is_suspended: bool = False
     created_at: datetime
     profile_image: Optional[str] = None
+    phone_number: Optional[str] = None
 
 
 class UserUpdate(BaseModel):
     full_name: Optional[str] = Field(default=None, min_length=2, max_length=255)
     email: Optional[EmailStr] = None
     profile_image: Optional[str] = None
+    phone_number: Optional[str] = Field(default=None, max_length=20)
 
 
 class PasswordChange(BaseModel):

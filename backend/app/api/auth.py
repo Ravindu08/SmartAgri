@@ -224,6 +224,8 @@ def update_profile(
         current_user.email = str(payload.email)
     if "profile_image" in payload.model_fields_set:
         current_user.profile_image = payload.profile_image
+    if "phone_number" in payload.model_fields_set:
+        current_user.phone_number = payload.phone_number
     db.commit()
     db.refresh(current_user)
     return UserRead.model_validate(current_user)

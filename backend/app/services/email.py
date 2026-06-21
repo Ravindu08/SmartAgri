@@ -89,6 +89,43 @@ def send_verification_email(to_email: str, full_name: str, token: str) -> None:
     _send(to_email, subject, html)
 
 
+def send_order_event_email(to_email: str, full_name: str, event: str, crop_name: str, order_link: str) -> None:
+    event_labels = {
+        "order_created":   ("New Purchase Request",   "A trader has placed a purchase request for your listing."),
+        "order_confirmed": ("Order Confirmed",         "The seller has confirmed your order."),
+        "order_rejected":  ("Order Rejected",          "The seller has declined your order request."),
+        "order_delivered": ("Order Marked Delivered",  "The seller has marked your order as delivered."),
+        "order_completed": ("Order Completed",         "The buyer has confirmed receipt. The order is now complete."),
+        "counter_offer":   ("Counter-Offer Received",  "You have received a counter-offer on your order."),
+    }
+    label, body_text = event_labels.get(event, ("Order Update", "Your order status has been updated."))
+    subject = f"SmartAgri — {label}: {crop_name}"
+    url = f"{_frontend_url()}{order_link}"
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#f9f9f9">
+      <div style="background:#fff;border-radius:10px;padding:32px;border:1px solid #e0e0e0">
+        <div style="text-align:center;margin-bottom:24px">
+          <span style="font-size:32px">🌿</span>
+          <h2 style="color:#1a7a4a;margin:8px 0 0">SmartAgri</h2>
+        </div>
+        <h3 style="color:#111;margin-bottom:8px">Hi {full_name},</h3>
+        <p style="color:#555;line-height:1.6">{body_text}</p>
+        <p style="color:#555;line-height:1.6"><strong>Item:</strong> {crop_name}</p>
+        <div style="text-align:center;margin:28px 0">
+          <a href="{url}"
+             style="background:#1a7a4a;color:#fff;padding:13px 32px;border-radius:7px;
+                    text-decoration:none;font-weight:600;font-size:15px;display:inline-block">
+            View Order
+          </a>
+        </div>
+        <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
+        <p style="color:#aaa;font-size:12px;text-align:center">SmartAgri — Agribusiness Platform for Sri Lanka</p>
+      </div>
+    </div>
+    """
+    _send(to_email, subject, html)
+
+
 def send_password_reset_email(to_email: str, full_name: str, token: str) -> None:
     url = f"{_frontend_url()}/reset-password?token={token}"
     subject = "Reset your SmartAgri password"
