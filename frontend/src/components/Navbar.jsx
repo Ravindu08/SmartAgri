@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { clearAuthSession, getAuthSession } from '../services/api';
+import { clearAuthSession, getAuthSession, getActiveRole } from '../services/api';
 import { useApp } from '../context/AppContext';
 
 const NAV_T = {
@@ -12,7 +12,9 @@ const NAV_T = {
     weather: 'Weather',
     aboutUs: 'About Us',
     contactUs: 'Contact Us',
+    marketplace: '🏪 Marketplace',
     myFarms: '🌱 My Farms',
+    myOrders: '📦 My Orders',
     logout: 'Logout',
     login: 'Login',
     register: 'Register',
@@ -25,7 +27,9 @@ const NAV_T = {
     weather: 'කාලගුණය',
     aboutUs: 'අප ගැන',
     contactUs: 'සම්බන්ධ කරගන්න',
+    marketplace: '🏪 වෙළඳසැල',
     myFarms: '🌱 මගේ ගොවිපළ',
+    myOrders: '📦 මගේ ඇණවුම්',
     logout: 'ලොග් අවුට්',
     login: 'ලොගින්',
     register: 'ලියාපදිංචිය',
@@ -38,7 +42,9 @@ const NAV_T = {
     weather: 'வானிலை',
     aboutUs: 'எங்களை பற்றி',
     contactUs: 'தொடர்பு',
+    marketplace: '🏪 சந்தை',
     myFarms: '🌱 என் பண்ணைகள்',
+    myOrders: '📦 என் ஆர்டர்கள்',
     logout: 'வெளியேறு',
     login: 'உள்நுழை',
     register: 'பதிவு செய்',
@@ -51,6 +57,7 @@ export default function Navbar() {
   const { lang, setLang, theme, toggleTheme } = useApp();
   const { user } = getAuthSession();
   const isSignedIn = Boolean(user);
+  const activeRole = getActiveRole();
   const [menuOpen, setMenuOpen] = useState(false);
   const t = NAV_T[lang] || NAV_T.en;
 
@@ -84,9 +91,13 @@ export default function Navbar() {
         <Link to="/wx" className={`nav-link${isActive('/wx') ? ' nav-link--active' : ''}`} onClick={close}>{t.weather}</Link>
         <Link to="/about" className={`nav-link${isActive('/about') ? ' nav-link--active' : ''}`} onClick={close}>{t.aboutUs}</Link>
         <Link to="/contact" className={`nav-link${isActive('/contact') ? ' nav-link--active' : ''}`} onClick={close}>{t.contactUs}</Link>
+        <Link to="/marketplace" className={`nav-link${isActive('/marketplace') ? ' nav-link--active' : ''}`} onClick={close}>{t.marketplace}</Link>
 
-        {isSignedIn && user.role === 'Land Owner' && (
+        {isSignedIn && activeRole === 'Land Owner' && (
           <Link className="navbar__farm-link" to="/landowner/farms" onClick={close}>{t.myFarms}</Link>
+        )}
+        {isSignedIn && activeRole === 'Trader' && (
+          <Link className="navbar__farm-link" to="/trader/orders" onClick={close}>{t.myOrders}</Link>
         )}
       </nav>
 
@@ -104,10 +115,10 @@ export default function Navbar() {
         </button>
         {isSignedIn ? (
           <>
-            {!location.pathname.startsWith('/landowner') && (
+            {!location.pathname.startsWith('/landowner') && !location.pathname.startsWith('/trader') && (
               <>
                 <span className="navbar__session">
-                  <span className="navbar__role">{user.role}</span>
+                  <span className="navbar__role">{activeRole}</span>
                   <span className="navbar__user">{user.full_name}</span>
                 </span>
                 <button className="navbar__logout" type="button" onClick={handleLogout}>{t.logout}</button>

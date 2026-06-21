@@ -446,19 +446,16 @@
    AUTH PAGES
 ═══════════════════════════════════════════════════════════ */
 .auth-page,
-.dashboard-page,
-.marketplace-page {
+.dashboard-page {
   min-height: 100vh;
   display: grid;
   padding: 2rem;
   background: var(--page-bg);
 }
-.auth-page,
-.marketplace-page { place-items: center; }
+.auth-page { place-items: center; }
 
 .auth-panel,
-.dashboard-card,
-.marketplace-card {
+.dashboard-card {
   width: min(100%, 980px);
   padding: 2rem;
   border-radius: 28px;
@@ -472,10 +469,8 @@
   gap: 1.4rem;
 }
 .auth-panel__copy h1,
-.marketplace-card h1,
 .dashboard-card h1 { margin: 0.75rem 0; color: var(--text); }
 .auth-panel__copy p,
-.marketplace-card p,
 .dashboard-card p { color: var(--muted); line-height: 1.7; }
 
 .auth-note {
@@ -588,8 +583,7 @@
 }
 .dashboard-card__actions { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end; }
 .dashboard-card__header { margin-top: 1.25rem; }
-.dashboard-actions,
-.marketplace-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.4rem; }
+.dashboard-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.4rem; }
 .dashboard-highlights {
   display: grid;
   grid-template-columns: repeat(2, minmax(0,1fr));
@@ -606,8 +600,6 @@
 .dashboard-highlight:hover { background: var(--surface-hover); border-color: var(--accent); }
 .dashboard-highlight h2 { margin: 0 0 0.5rem; font-size: 1.1rem; color: var(--text); }
 .dashboard-highlight p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
-.marketplace-card { width: min(100%, 720px); text-align: center; }
-
 /* ═══════════════════════════════════════════════════════════
    LAND OWNER LAYOUT
 ═══════════════════════════════════════════════════════════ */
@@ -1475,56 +1467,6 @@
   .auth-split__illustration { font-size: 60px; flex: none; }
   .auth-split__right { padding: 32px 24px; }
 }
-
-/* ═══════════════════════════════════════════════════════════
-   MARKETPLACE PAGE
-═══════════════════════════════════════════════════════════ */
-.marketplace-page {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center;
-  padding: var(--nav-h) 24px 24px; background: var(--page-bg);
-}
-.marketplace-hero {
-  text-align: center; max-width: 520px;
-  padding: 60px 48px; border-radius: var(--radius);
-  background: var(--card); border: 1px solid var(--border);
-  box-shadow: var(--shadow-xl);
-  display: flex; flex-direction: column; align-items: center; gap: 20px;
-}
-.marketplace-hero__illustration {
-  font-size: 72px; background: var(--accent-light); border-radius: 50%;
-  width: 120px; height: 120px; display: flex; align-items: center; justify-content: center;
-}
-.marketplace-hero__title { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 800; color: var(--text); margin: 0; }
-.marketplace-hero__sub { color: var(--muted); line-height: 1.7; font-size: 0.95rem; margin: 0; }
-.marketplace-coming-soon-badge {
-  background: var(--accent-light); color: var(--accent);
-  border: 1px solid rgba(15,90,42,0.3); border-radius: 999px;
-  padding: 6px 18px; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.04em;
-}
-.marketplace-logged-in-notice {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--surface-1); border: 1px solid var(--border);
-  border-radius: var(--radius-md); padding: 10px 16px;
-  font-size: 0.85rem; color: var(--muted); width: 100%;
-}
-.marketplace-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-.marketplace-actions .button--outline { border-color: var(--border); background: var(--surface-1); color: var(--text); }
-.marketplace-actions .button--outline:hover { border-color: var(--accent); color: var(--accent); }
-.marketplace-trust-strip {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
-  width: 100%; margin-top: 8px; padding-top: 20px;
-  border-top: 1px solid var(--border);
-}
-.marketplace-trust-card {
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  padding: 16px 12px; border-radius: var(--radius-md);
-  background: var(--surface-1); border: 1px solid var(--border);
-  text-align: center; transition: background var(--tr), border-color var(--tr);
-}
-.marketplace-trust-card:hover { background: var(--accent-light); border-color: rgba(15,90,42,0.25); }
-.marketplace-trust-card__icon { font-size: 24px; }
-.marketplace-trust-card__title { font-size: 13px; font-weight: 700; color: var(--text); }
-.marketplace-trust-card__desc  { font-size: 11px; color: var(--muted); line-height: 1.5; }
 
 /* ═══════════════════════════════════════════════════════════
    DASHBOARD PAGE
@@ -2777,38 +2719,6 @@
   padding: 0 5px;
 }
 
-/* ── Marketplace preview (guest tease) ───────────────────────────────────── */
-.marketplace-preview {
-  width: 100%; margin: 4px 0;
-}
-.marketplace-preview-label {
-  font-size: 11px; font-weight: 700; color: var(--muted);
-  text-transform: uppercase; letter-spacing: 0.8px;
-  margin-bottom: 10px; text-align: left;
-}
-.marketplace-preview-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
-  filter: blur(2px) opacity(0.7);
-  pointer-events: none; user-select: none;
-}
-.marketplace-preview-card {
-  background: var(--surface-1); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 12px 10px;
-  display: flex; flex-direction: column; gap: 4px; align-items: flex-start;
-}
-.marketplace-preview-card__emoji { font-size: 22px; }
-.marketplace-preview-card__name  { font-size: 12px; font-weight: 700; color: var(--text); }
-.marketplace-preview-card__price { font-size: 11px; color: var(--accent); font-weight: 600; }
-.marketplace-preview-card__loc   { font-size: 10px; color: var(--muted); }
-.marketplace-preview-overlay {
-  margin-top: -8px; text-align: center;
-  font-size: 12px; font-weight: 700; color: var(--accent);
-  letter-spacing: 0.3px;
-}
-
-/* ── Marketplace trust card text fix ─────────────────────────────────────── */
-.marketplace-trust-card__desc { font-size: 12px; }
-
 /* ── 404 Not Found page ──────────────────────────────────────────────────── */
 .not-found-page {
   min-height: 80vh; display: flex; flex-direction: column;
@@ -2903,7 +2813,7 @@
   width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
 }
 .lo-sidebar__user-info { flex: 1; min-width: 0; }
-.lo-sidebar__user-role { font-size: 0.7rem; color: var(--muted); margin-top: 1px; }
+.lo-sidebar__user-role { font-size: 0.7rem; color: rgba(255,255,255,0.65); margin-top: 1px; }
 
 /* Profile button in topbar */
 .lo-topbar__profile-wrap { position: relative; }
@@ -3058,11 +2968,6 @@
   .crop-status-tabs { flex-wrap: wrap; }
   .crop-status-tab { padding: 6px 10px; }
   .crop-status-tab__label { font-size: 0.75rem; }
-
-  /* Marketplace */
-  .marketplace-hero { padding: 40px 16px; }
-  .marketplace-trust-strip { grid-template-columns: 1fr !important; }
-  .marketplace-preview-grid { grid-template-columns: 1fr !important; }
 
   /* About */
   .about-team-grid { grid-template-columns: repeat(2, 1fr) !important; }

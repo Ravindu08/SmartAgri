@@ -58,9 +58,9 @@ function NotifCard({ type, icon, title, detail, onDismiss, onClick, viewTasksLab
   );
 }
 
-async function fetchWeatherAdvice(district) {
+async function fetchWeatherAdvice(district, lang = "en") {
   try {
-    const res = await fetch(`/weather?district=${encodeURIComponent(district)}`);
+    const res = await fetch(`/weather?district=${encodeURIComponent(district)}&lang=${lang}`);
     if (!res.ok) return [];
     const data = await res.json();
     return (data.advice || []).filter(a => a.type !== 'info');
@@ -190,7 +190,7 @@ export default function LandOwnerDashboard() {
       )].slice(0, 3); // cap at 3 districts
 
       for (const district of districts) {
-        const advice = await fetchWeatherAdvice(district);
+        const advice = await fetchWeatherAdvice(district, lang);
         advice.forEach((a, i) => {
           allNotifs.push({
             id: `wx-${district}-${i}`,

@@ -7,13 +7,20 @@ import { useApp } from './context/AppContext';
 // ── Layouts ───────────────────────────────────────────────────────────────────
 import AppLayout from './components/AppLayout';
 import LandOwnerLayout from './components/LandOwnerLayout';
+import TraderLayout from './components/TraderLayout';
+import AdminLayout from './components/AdminLayout';
 
-// ── Part 2: Auth / Farm / Crop pages ─────────────────────────────────────────
+// ── Auth / public pages ───────────────────────────────────────────────────────
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import RoleSelectPage from './pages/RoleSelectPage';
 import MarketplacePage from './pages/MarketplacePage';
-import DashboardPage from './pages/DashboardPage';
+
+// ── Land Owner pages ──────────────────────────────────────────────────────────
+import LandOwnerDashboard from './pages/landowner/LandOwnerDashboard';
+import Settings from './pages/landowner/Settings';
+import HelpSupport from './pages/landowner/HelpSupport';
 import MyFarms from './pages/farms/MyFarms';
 import AddFarm from './pages/farms/AddFarm';
 import EditFarm from './pages/farms/EditFarm';
@@ -22,11 +29,26 @@ import MyCrops from './pages/crops/MyCrops';
 import AddCrop from './pages/crops/AddCrop';
 import CropDetails from './pages/crops/CropDetails';
 import MyCultivations from './pages/cultivations/MyCultivations';
-import LandOwnerDashboard from './pages/landowner/LandOwnerDashboard';
-import Settings from './pages/landowner/Settings';
-import HelpSupport from './pages/landowner/HelpSupport';
 
-// ── Part 1: ML / Guidance / Weather pages ────────────────────────────────────
+// ── Trader pages ──────────────────────────────────────────────────────────────
+import TraderDashboard from './pages/trader/TraderDashboard';
+import TraderRequests from './pages/trader/TraderRequests';
+import TraderOrders from './pages/trader/TraderOrders';
+import TraderHistory from './pages/trader/TraderHistory';
+import TraderSettings from './pages/trader/TraderSettings';
+import TraderHelp from './pages/trader/TraderHelp';
+
+// ── Admin pages ───────────────────────────────────────────────────────────────
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminUserCreate from './pages/admin/AdminUserCreate';
+import AdminMarketplace from './pages/admin/AdminMarketplace';
+import AdminFarms from './pages/admin/AdminFarms';
+import AdminActivity from './pages/admin/AdminActivity';
+import AdminFeedback from './pages/admin/AdminFeedback';
+import AdminReports from './pages/admin/AdminReports';
+
+// ── ML / Guidance / Weather pages ────────────────────────────────────────────
 import CropRecommendation from './pages/CropRecommendation';
 import CropGuidance from './pages/CropGuidance';
 import YieldPrice from './pages/YieldPrice';
@@ -36,29 +58,14 @@ import ContactPage from './pages/ContactPage';
 import { T } from './data/translations';
 
 // ── Styles ────────────────────────────────────────────────────────────────────
-import './styles/globals.css';   // Design tokens (CSS variables, dark/light themes)
-import './styles.css';           // Page & component styles (uses variables from globals)
+import './styles/globals.css';
+import './styles.css';
 
 // ── 404 Not Found ─────────────────────────────────────────────────────────────
 const NOT_FOUND_T = {
-  en: {
-    title: 'Page Not Found',
-    sub: "The page you're looking for doesn't exist or may have been moved. Let's get you back on track.",
-    backHome: '← Back to Home',
-    tryCrop: 'Try Crop Recommendation',
-  },
-  si: {
-    title: 'පිටුව හමු නොවීය',
-    sub: 'ඔබ සොයන පිටුව නොමැත හෝ මාරු කර ඇත. ආපසු නිවැරදි මාර්ගයට යමු.',
-    backHome: '← මුල් පිටුවට',
-    tryCrop: 'බෝග නිර්දේශ',
-  },
-  ta: {
-    title: 'பக்கம் கிடைக்கவில்லை',
-    sub: 'நீங்கள் தேடும் பக்கம் இல்லை அல்லது நகர்த்தப்பட்டிருக்கலாம். சரியான பாதையில் திரும்பி வருவோம்.',
-    backHome: '← முகப்பு பக்கத்திற்கு',
-    tryCrop: 'பயிர் பரிந்துரை',
-  },
+  en: { title: 'Page Not Found', sub: "The page you're looking for doesn't exist or may have been moved.", backHome: '← Back to Home', tryCrop: 'Try Crop Recommendation' },
+  si: { title: 'පිටුව හමු නොවීය', sub: 'ඔබ සොයන පිටුව නොමැත හෝ මාරු කර ඇත.', backHome: '← මුල් පිටුවට', tryCrop: 'බෝග නිර්දේශ' },
+  ta: { title: 'பக்கம் கிடைக்கவில்லை', sub: 'நீங்கள் தேடும் பக்கம் இல்லை.', backHome: '← முகப்பு பக்கத்திற்கு', tryCrop: 'பயிர் பரிந்துரை' },
 };
 
 function NotFound() {
@@ -78,32 +85,23 @@ function NotFound() {
   );
 }
 
-// ── Wrapper components for Part 1 pages ──────────────────────────────────────
-// These read shared state from the Outlet context set by AppLayout,
-// then pass them as props exactly as the original pages expect — no changes
-// needed inside the Part 1 page files.
-
+// ── Wrapper components for ML tool pages ─────────────────────────────────────
 function CropRecommendationPage() {
   const { lang, setLang, setPage, weather, setWeather } = useOutletContext();
   return <CropRecommendation lang={lang} setLang={setLang} setPage={setPage} weather={weather} setWeather={setWeather} />;
 }
-
 function CropGuidancePage() {
   const { lang, weather, setWeather } = useOutletContext();
-  const t = T[lang] || T.en;
-  return <CropGuidance lang={lang} t={t} weather={weather} setWeather={setWeather} />;
+  return <CropGuidance lang={lang} t={T[lang] || T.en} weather={weather} setWeather={setWeather} />;
 }
-
 function WeatherPage() {
   const { lang, setWeather } = useOutletContext();
   return <Weather lang={lang} onWeatherFetched={setWeather} />;
 }
-
 function YieldPricePage() {
   const { lang } = useOutletContext();
   return <YieldPrice lang={lang} />;
 }
-
 function AboutPage() {
   const { lang } = useOutletContext();
   return <About lang={lang} />;
@@ -113,36 +111,31 @@ function AboutPage() {
 function AppRoutes() {
   return (
     <Routes>
-      {/* Stand-alone auth pages (no shared Navbar) */}
-      <Route path="/login"    element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      {/* Stand-alone auth pages */}
+      <Route path="/login"       element={<LoginPage />} />
+      <Route path="/register"    element={<RegisterPage />} />
+      <Route path="/role-select" element={<RoleSelectPage />} />
 
-      {/* All pages with the shared Navbar */}
+      {/* Public pages with shared Navbar */}
       <Route element={<AppLayout />}>
-        {/* Landing page (Part 2 HomePage) */}
         <Route path="/" element={<div className="app-shell"><HomePage /></div>} />
-
-        {/* Marketplace */}
         <Route path="/marketplace" element={<MarketplacePage />} />
-
-        {/* Dashboards */}
-        <Route path="/dashboard/admin"      element={<DashboardPage title="Admin Dashboard"      role="Admin"       summary="Review platform activity, users, and system operations."              primaryLink="/marketplace" primaryLabel="Open platform view"   highlights={[{ title:'User oversight',  description:'Monitor registered traders and land owners across the system.' },{ title:'Platform control', description:'Maintain the marketplace and administrative workflows.' }]} stats={[{icon:'👥',label:'Total Users',value:'1,248'},{icon:'🌾',label:'Land Owners',value:'832'},{icon:'📦',label:'Traders',value:'416'},{icon:'📋',label:'Active Listings',value:'320'}]} />} />
-        <Route path="/dashboard/trader"     element={<DashboardPage title="Trader Dashboard"     role="Trader"      summary="Manage products, trade opportunities, and marketplace activity."      primaryLink="/marketplace" primaryLabel="Open marketplace"      highlights={[{ title:'Market listings', description:'Track product listings and trading opportunities in one place.' },{ title:'Buyer activity', description:'Review interest from land owners and buyers across the platform.' }]} stats={[{icon:'📋',label:'Active Listings',value:'12'},{icon:'🛒',label:'Total Orders',value:'27'},{icon:'💰',label:'Revenue',value:'Rs. 245K'},{icon:'💬',label:'Messages',value:'5'}]} />} />
-
-        {/* Part 1 — ML tool pages */}
         <Route path="/crop-recommendation" element={<CropRecommendationPage />} />
         <Route path="/crop-guidance"       element={<CropGuidancePage />} />
         <Route path="/wx"                  element={<WeatherPage />} />
         <Route path="/yield-price"         element={<YieldPricePage />} />
         <Route path="/about"               element={<AboutPage />} />
         <Route path="/contact"             element={<ContactPage />} />
-        <Route path="*"                    element={<NotFound />} />
+        {/* Legacy redirect — admin now lives at /admin/dashboard */}
+        <Route path="/dashboard/admin"  element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/dashboard/trader" element={<Navigate to="/trader/dashboard" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Route>
 
-      {/* Land Owner section (protected layout) */}
+      {/* Land Owner section */}
       <Route path="/landowner" element={<LandOwnerLayout />}>
         <Route index element={<Navigate to="/landowner/dashboard" replace />} />
-        <Route path="dashboard" element={<LandOwnerDashboard />} />
+        <Route path="dashboard"      element={<LandOwnerDashboard />} />
         <Route path="farms"          element={<MyFarms />} />
         <Route path="farms/add"      element={<AddFarm />} />
         <Route path="farms/edit/:id" element={<EditFarm />} />
@@ -155,6 +148,29 @@ function AppRoutes() {
         <Route path="help"           element={<HelpSupport />} />
       </Route>
 
+      {/* Trader section */}
+      <Route path="/trader" element={<TraderLayout />}>
+        <Route index element={<Navigate to="/trader/dashboard" replace />} />
+        <Route path="dashboard" element={<TraderDashboard />} />
+        <Route path="requests"  element={<TraderRequests />} />
+        <Route path="orders"    element={<TraderOrders />} />
+        <Route path="history"   element={<TraderHistory />} />
+        <Route path="settings"  element={<TraderSettings />} />
+        <Route path="help"      element={<TraderHelp />} />
+      </Route>
+
+      {/* Admin section */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="dashboard"   element={<AdminDashboard />} />
+        <Route path="users"       element={<AdminUsers />} />
+        <Route path="users/create" element={<AdminUserCreate />} />
+        <Route path="marketplace" element={<AdminMarketplace />} />
+        <Route path="farms"       element={<AdminFarms />} />
+        <Route path="activity"    element={<AdminActivity />} />
+        <Route path="feedback"    element={<AdminFeedback />} />
+        <Route path="reports"     element={<AdminReports />} />
+      </Route>
     </Routes>
   );
 }

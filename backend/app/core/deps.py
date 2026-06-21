@@ -43,15 +43,44 @@ def get_current_user(
     user = db.execute(select(User).where(User.email == email)).scalar_one_or_none()
     if user is None:
         raise credentials_exception
+    if user.is_suspended:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Account has been suspended",
+        )
     return user
 
 
 def get_current_land_owner(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    if current_user.role != UserRole.LAND_OWNER:
+    user_roles = current_user.roles or [current_user.role.value]
+    if UserRole.LAND_OWNER.value not in user_roles and current_user.role != UserRole.LAND_OWNER:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Land Owner access required",
+        )
+    return current_user
+
+
+def get_current_trader(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    user_roles = current_user.roles or [current_user.role.value]
+    if UserRole.TRADER.value not in user_roles and current_user.role != UserRole.TRADER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Trader access required",
+        )
+    return current_user
+
+
+def require_admin(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
         )
     return current_user

@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.models.user import UserRole
@@ -8,7 +9,7 @@ class UserRegister(BaseModel):
     full_name: str = Field(min_length=2, max_length=255)
     email: EmailStr
     password: str = Field(min_length=8, max_length=255)
-    role: UserRole = UserRole.VISITOR
+    roles: list[UserRole] = Field(default_factory=lambda: [UserRole.TRADER])
 
 
 class UserLogin(BaseModel):

@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from enum import Enum
 
-from sqlalchemy import DateTime, Enum as SAEnum, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Enum as SAEnum, Integer, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.database import Base
@@ -30,6 +30,8 @@ class User(Base):
         nullable=False,
         default=UserRole.VISITOR,
     )
+    roles: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    is_suspended: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default='false')
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

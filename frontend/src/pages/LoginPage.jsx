@@ -19,6 +19,7 @@ const LOGIN_T = {
     noAccount: "Don't have an account?",
     register: 'Register',
     backHome: 'Back to Home',
+    errLoginFailed: 'Incorrect email or password',
   },
   si: {
     panelTitle: 'නැවත සාදරයෙන් පිළිගනිමු!',
@@ -35,6 +36,7 @@ const LOGIN_T = {
     noAccount: 'ගිණුමක් නොමැතිද?',
     register: 'ලියාපදිංචිය',
     backHome: 'ආරම්භ පිටුවට',
+    errLoginFailed: 'ඊ-තැපැල් ලිපිනය හෝ මුරපදය වැරදිය',
   },
   ta: {
     panelTitle: 'மீண்டும் வரவேற்கிறோம்!',
@@ -51,6 +53,7 @@ const LOGIN_T = {
     noAccount: 'கணக்கு இல்லையா?',
     register: 'பதிவு செய்க',
     backHome: 'முகப்பு பக்கத்திற்கு',
+    errLoginFailed: 'மின்னஞ்சல் முகவரி அல்லது கடவுச்சொல் தவறானது',
   },
 };
 
@@ -76,8 +79,8 @@ export default function LoginPage() {
       const response = await loginUser(formData);
       saveAuthSession(response);
       navigate(response.redirect_to, { replace: true });
-    } catch (requestError) {
-      setError(requestError.message);
+    } catch {
+      setError(t.errLoginFailed);
     } finally {
       setIsSubmitting(false);
     }

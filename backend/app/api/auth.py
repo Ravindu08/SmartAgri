@@ -23,12 +23,35 @@ router = APIRouter()
 def register_user(payload: UserRegister, db: Session = Depends(get_db)) -> AuthResponse:
     existing_user = get_user_by_email(db, payload.email)
     if existing_user is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Email is already registered",
+        # Allow adding a new role to an existing account if the password matches
+        if not verify_password(payload.password, existing_user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Email is already registered",
+            )
+        current_roles = set(existing_user.roles or [existing_user.role.value])
+        new_roles = [r for r in payload.roles if r not in current_roles and r in {UserRole.LAND_OWNER, UserRole.TRADER}]
+        if not new_roles:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Email is already registered with these roles",
+            )
+        existing_user.roles = sorted(current_roles | {r.value for r in new_roles})
+        db.commit()
+        db.refresh(existing_user)
+        access_token = create_access_token(
+            data={"sub": existing_user.email},
+            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+        )
+        return AuthResponse(
+            access_token=access_token,
+            token_type="bearer",
+            redirect_to=get_redirect_path(existing_user),
+            user=UserRead.model_validate(existing_user),
         )
 
-    if payload.role not in {UserRole.LAND_OWNER, UserRole.TRADER}:
+    valid_roles = [r for r in payload.roles if r in {UserRole.LAND_OWNER, UserRole.TRADER}]
+    if not valid_roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only Trader and Land Owner users can register",
@@ -43,7 +66,7 @@ def register_user(payload: UserRegister, db: Session = Depends(get_db)) -> AuthR
     return AuthResponse(
         access_token=access_token,
         token_type="bearer",
-        redirect_to=get_redirect_path(user.role),
+        redirect_to=get_redirect_path(user),
         user=UserRead.model_validate(user),
     )
 
@@ -58,6 +81,12 @@ def login_user(payload: UserLogin, db: Session = Depends(get_db)) -> AuthRespons
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    if user.is_suspended:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your account has been suspended. Please contact support.",
+        )
+
     access_token = create_access_token(
         data={"sub": user.email},
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
@@ -65,7 +94,7 @@ def login_user(payload: UserLogin, db: Session = Depends(get_db)) -> AuthRespons
     return AuthResponse(
         access_token=access_token,
         token_type="bearer",
-        redirect_to=get_redirect_path(user.role),
+        redirect_to=get_redirect_path(user),
         user=UserRead.model_validate(user),
     )
 

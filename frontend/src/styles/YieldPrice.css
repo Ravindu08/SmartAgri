@@ -231,7 +231,6 @@
 .yp-field input:hover:not(:focus),
 .yp-field select:hover:not(:focus) {
   border-color: #9CA3AF;
-  background: #fff;
 }
 .yp-hint {
   font-size: 11px;
