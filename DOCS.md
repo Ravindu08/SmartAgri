@@ -1,6 +1,6 @@
 # SmartAgri — Complete Project Documentation
 
-**ML Service v5.3 · Main API v0.1** | AI-Powered Agribusiness Platform for Sri Lanka
+**ML Service v5.3 · Main API v1.0** | AI-Powered Agribusiness Platform for Sri Lanka
 
 ---
 
@@ -518,9 +518,12 @@ Full-featured FastAPI app with PostgreSQL persistence. At startup it runs Alembi
 | `cultivation_sessions` | `id` (UUID) | `crop_id` → crops.id (SET NULL), `farm_id` → farms.id (SET NULL) |
 | `cultivation_tasks` | `id` (varchar) | `session_id` → cultivation_sessions.id (CASCADE) |
 | `marketplace_listings` | `id` (int) | `seller_id` → users.id; `listing_type`, `location`, `image` columns |
-| `marketplace_orders` | `id` (int) | `listing_id` → listings.id, `buyer_id` / `seller_id` → users.id; status: Pending/Confirmed/Delivered/Completed/Rejected/Cancelled |
+| `marketplace_orders` | `id` (UUID) | `listing_id` → listings.id, `buyer_id` / `seller_id` → users.id; status: Pending/Confirmed/Delivered/Completed/Rejected/Cancelled; `proposed_price`, `agreed_price`, `counter_offer_price`, `buyer_note`, `seller_note`, `accepted_at`, `delivered_at`, `completed_at` |
+| `marketplace_negotiations` | `id` (int) | `order_id` → orders.id; `sender_id` → users.id; `message`, `proposed_price`, `created_at` |
+| `notifications` | `id` (int) | `user_id` → users.id; `type`, `title`, `message`, `is_read` (bool), `created_at` |
+| `ratings` | `id` (int) | `order_id` → orders.id (unique); `reviewer_id` / `seller_id` → users.id; `score` (1–5), `comment`, `created_at` |
 | `user_activity` | `id` (int) | `actor_id` (int, not name), `action`, `target`, `timestamp` |
-| `feedback` | `id` (int) | `user_id` → users.id; `status`: open/resolved; `reply` text |
+| `feedback` | `id` (int) | `user_id` → users.id; `type`, `subject`, `message`; `status`: open/resolved; `reply` text |
 
 **Authentication flow:**
 1. Client `POST /auth/register` → server creates account (`is_verified=false`), sends verification email
@@ -861,9 +864,47 @@ Deletes the authenticated user's account. Returns `204`.
 | `DELETE` | `/api/marketplace/listings/{id}` | Seller | Remove listing |
 | `GET` | `/api/marketplace/orders` | JWT | All orders where user is buyer or seller |
 | `POST` | `/api/marketplace/orders` | Trader / Land Owner | Place a purchase request |
-| `PUT` | `/api/marketplace/orders/{id}` | Seller / Buyer | Update order status (confirm, deliver, complete, reject, cancel) |
+| `PUT` | `/api/marketplace/orders/{id}/status` | Seller / Buyer | Update order status |
 
-Order status lifecycle: `Pending → Confirmed → Delivered → Completed` (or `Rejected` / `Cancelled`).
+Order status lifecycle: `Pending → Confirmed` (seller) `→ Delivered` (seller) `→ Completed` (buyer), or `Rejected` / `Cancelled`.
+Seller phone number is included in the order response (`seller_phone`).
+
+---
+
+#### Marketplace — supplementary endpoints
+
+| Method | Path | Who | Description |
+|---|---|---|---|
+| `GET` | `/api/marketplace/listings/me` | JWT | List the current user's own listings |
+| `GET` | `/api/marketplace/listings/{id}` | Anyone | Get one listing |
+| `PUT` | `/api/marketplace/orders/{id}/status` | Seller / Buyer | Update order status (`Confirmed`, `Delivered`, `Completed`, `Rejected`, `Cancelled`) |
+| `POST` | `/api/marketplace/orders/{id}/negotiation` | Buyer or Seller | Post a negotiation message with optional `proposed_price` |
+| `GET` | `/api/marketplace/history` | JWT | Completed/rejected/cancelled orders |
+
+---
+
+#### Notifications — JWT required
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/notifications` | List all notifications for the current user |
+| `GET` | `/api/notifications/unread-count` | Returns `{"count": N}` — used for the bell badge |
+| `POST` | `/api/notifications/{id}/read` | Mark one notification as read |
+| `POST` | `/api/notifications/read-all` | Mark all notifications as read |
+
+Notifications are auto-created by the backend when: a purchase request is placed (seller notified), an order is confirmed/delivered/completed (buyer notified), a negotiation message is sent.
+
+---
+
+#### Ratings — JWT required
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/ratings/orders/{order_id}` | Submit a rating `{score: 1–5, comment: "…"}` for a completed order |
+| `GET` | `/api/ratings/orders/{order_id}` | Get the rating for a specific order |
+| `GET` | `/api/ratings/users/{user_id}` | Get aggregate rating for a user `{average_score, total_ratings}` |
+
+Ratings can only be submitted once per order, and only after the order reaches `Completed` status.
 
 ---
 
@@ -871,17 +912,22 @@ Order status lifecycle: `Pending → Confirmed → Delivered → Completed` (or 
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/api/admin/users` | List all users with role badges |
+| `GET` | `/api/admin/users` | List all users with `is_verified`, role badges, status |
 | `POST` | `/api/admin/users` | Create a user account |
-| `PUT` | `/api/admin/users/{id}/suspend` | Suspend or unsuspend a user |
+| `PATCH` | `/api/admin/users/{id}` | Suspend or unsuspend a user (`{"is_suspended": true/false}`) |
 | `DELETE` | `/api/admin/users/{id}` | Delete a user |
+| `POST` | `/api/admin/users/{id}/resend-verification` | Resend verification email for an unverified user |
 | `GET` | `/api/admin/farms` | List all farms across all users |
-| `GET` | `/api/admin/marketplace` | All listings and orders |
-| `PUT` | `/api/admin/marketplace/listings/{id}/archive` | Archive a listing |
+| `GET` | `/api/admin/marketplace/listings` | All listings (any status) |
+| `PATCH` | `/api/admin/marketplace/listings/{id}/archive` | Archive a listing |
+| `GET` | `/api/admin/marketplace/orders` | All orders platform-wide |
 | `GET` | `/api/admin/activity` | User activity log |
 | `GET` | `/api/admin/feedback` | All feedback submissions |
-| `PUT` | `/api/admin/feedback/{id}` | Reply to or resolve a feedback ticket |
+| `POST` | `/api/admin/feedback/{id}/reply` | Reply to or resolve a feedback ticket |
 | `GET` | `/api/admin/reports` | Platform stats: `{users:{total,land_owners,traders,suspended}, farms:{total}, marketplace:{total_listings,total_orders}, feedback:{open}}` |
+| `GET` | `/api/admin/export/users.csv` | Download all users as CSV |
+| `GET` | `/api/admin/export/orders.csv` | Download all orders as CSV |
+| `GET` | `/api/admin/export/activity.csv` | Download activity log as CSV |
 
 ---
 
@@ -956,6 +1002,19 @@ Order status lifecycle: `Pending → Confirmed → Delivered → Completed` (or 
 - **Axios** added for platform API calls; `services/` layer added for farm and crop API functions.
 - Cultivation tracker sessions migrated from in-memory ML service storage to PostgreSQL (`cultivation_sessions` + `cultivation_tasks` tables, 2 Alembic migrations).
 - Frontend i18n expanded; `AppContext` updated to include theme state.
+
+### v7.0 — Platform features, notifications, and admin tools
+
+- **Phone number field** added to user profiles; shown on marketplace listings and order detail cards.
+- **In-app notification system:** `notifications` DB table; bell icon with unread badge (polls every 30 seconds); mark-read and mark-all-read. Backend auto-creates notifications on purchase, confirmation, delivery, and completion events.
+- **Email notifications via SMTP:** order lifecycle events trigger emails when `EMAIL_ENABLED=true`; falls back to console logging in dev.
+- **Marketplace search & filters:** name search, min/max price, district filter — all applied server-side on the listings endpoint.
+- **PDF export:** `exportSessionPDF()` in `MyCultivations.jsx` uses `jsPDF` to generate a cultivation report for any active session client-side.
+- **5-star rating & review:** `ratings` DB table; `POST /api/ratings/orders/{id}` (once per order, Completed only); aggregate shown per seller.
+- **Admin CSV exports:** `GET /api/admin/export/{users,orders,activity}.csv` — streamed as `StreamingResponse` with `text/csv` content type.
+- **Admin resend verification:** `POST /api/admin/users/{id}/resend-verification`; `is_verified` field now force-included in `/api/admin/users` response (was being silently dropped by FastAPI's `response_model` filter).
+- **Cultivation task status:** ML service task update uses `{"status": "done"|"skipped"|"pending"|"overdue"}` (not `{"completed": bool}`).
+- **Multi-role accounts:** dual Land Owner + Trader users select active role at login; `Switch Role` button in sidebars for instant switching without re-login.
 
 ---
 
