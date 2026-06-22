@@ -14,6 +14,7 @@ class UserRead(BaseModel):
     email: EmailStr
     role: UserRole
     roles: Optional[list[str]] = None
+    is_verified: bool = Field(default=False)
     is_suspended: bool = False
     created_at: datetime
     profile_image: Optional[str] = None
