@@ -5,7 +5,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, EmailStr
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
@@ -93,14 +93,14 @@ def log_activity(db: Session, *, user_id: int | None, actor_id: int | None,
 
 # ── User management ───────────────────────────────────────────────────────────
 
-@router.get("/users", response_model=list[UserRead])
+@router.get("/users")
 def list_users(
     search: Optional[str] = None,
     role: Optional[str] = None,
     suspended: Optional[bool] = None,
     db: Session = Depends(get_db),
     _: User = Depends(require_admin),
-) -> list[UserRead]:
+):
     q = select(User)
     if search:
         like = f"%{search}%"
@@ -114,7 +114,12 @@ def list_users(
         q = q.where(User.is_suspended == suspended)
     q = q.order_by(User.created_at.desc())
     users = db.execute(q).scalars().all()
-    return [UserRead.model_validate(u) for u in users]
+    rows = []
+    for u in users:
+        d = UserRead.model_validate(u).model_dump(mode="json")
+        d["is_verified"] = bool(u.is_verified)  # force-include
+        rows.append(d)
+    return JSONResponse(rows)
 
 
 @router.post("/users", response_model=UserRead, status_code=status.HTTP_201_CREATED)
