@@ -1,6 +1,6 @@
 # SmartAgri — AI-Powered Agribusiness Platform for Sri Lanka
 
-**ML Service v5.3 · Main API v1.0** | Multi-role platform | AI Crop Recommendation | Farm Management | Trilingual
+**ML Service v5.3 · Main API v1.0** | Multi-role platform | AI Crop Recommendation | Farm Management | Marketplace | Trilingual
 
 Full-stack web application for Sri Lankan agribusiness. Farmers get AI-driven crop recommendations and lifecycle guidance; land owners manage farms, crops, and cultivation sessions; traders access their own dashboard and marketplace; admins have full platform oversight.
 
@@ -113,13 +113,22 @@ python -m pytest backend/tests/ -v
 - Purchase request negotiation with counter-offer messaging
 - Order lifecycle: pending → confirmed → delivered → completed
 - Transaction history panel
+- Seller phone number shown on listings and orders
+- 5-star rating and review system after completed orders
+
+**Notifications**
+- In-app notification bell with unread badge (auto-polls every 30 seconds)
+- Notifications for new purchase requests and order status changes
+- Email notifications via SMTP (configurable; disabled in dev — prints to console)
 
 **Admin Dashboard**
-- User management (view, suspend, role assignment, create accounts)
+- User management (view, suspend/unsuspend, role assignment, create accounts, delete)
+- Resend email verification for unverified users
 - Farm and cultivation oversight
 - Activity feed and user feedback review
-- Marketplace moderation
+- Marketplace moderation (archive listings)
 - Platform statistics and reports
+- CSV export for users, orders, and activity log
 
 **Auth & Security**
 - Email verification required on registration (token emailed via SMTP)
@@ -151,4 +160,5 @@ python -m pytest backend/tests/ -v
 | Role | Email | Password |
 |---|---|---|
 | Land Owner + Trader | induwara.ihalavithana@gmail.com | 12345678 |
+| Trader | testtrader@smartagri.com | NewPass@2026 |
 | Admin | admin@smartagri.lk | Admin@12345 |
