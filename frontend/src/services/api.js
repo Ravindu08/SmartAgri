@@ -95,8 +95,11 @@ export function resendVerificationEmail(email) {
   return request(`/auth/resend-verification?email=${encodeURIComponent(email)}`, { method: 'POST' });
 }
 
-export function verifyEmail(token) {
-  return request(`/auth/verify-email?token=${encodeURIComponent(token)}`);
+export function verifyEmail(email, code) {
+  return request('/auth/verify-email', {
+    method: 'POST',
+    body: JSON.stringify({ email, code }),
+  });
 }
 
 export function forgotPassword(email) {
