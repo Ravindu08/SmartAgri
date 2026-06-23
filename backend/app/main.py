@@ -31,7 +31,7 @@ def _run_migrations() -> None:
         cfg.set_main_option("script_location", str(Path(__file__).resolve().parents[1] / "alembic"))
         alembic_command.upgrade(cfg, "head")
     except Exception as exc:
-        logger.warning("[startup] migration warning: %s", exc)
+        logger.warning("[startup] migration warning: %s", exc, exc_info=True)
 
 
 # ── Lifespan (replaces deprecated @app.on_event) ─────────────────────────────
@@ -41,6 +41,8 @@ async def lifespan(app: FastAPI):
     db = SessionLocal()
     try:
         ensure_admin_user(db)
+    except Exception as exc:
+        logger.warning("[startup] admin user setup warning: %s", exc)
     finally:
         db.close()
     yield  # app runs here
