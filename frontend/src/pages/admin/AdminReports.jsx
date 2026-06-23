@@ -5,7 +5,7 @@ import { useApp } from '../../context/AppContext';
 const T = {
   en: {
     title: 'Reports', loading: 'Loading…', failedLoad: 'Failed to load reports',
-    exportCsv: '⬇ Export CSV',
+    exportCsv: '⬇ Export CSV', exportFarms: '⬇ Farm Data CSV', exportHarvest: '⬇ Harvest CSV',
     userDist: 'User Distribution', landOwners: 'Land Owners', traders: 'Traders', suspended: 'Suspended',
     totalUsers: 'Total users:',
     farms: 'Farms', totalFarmsReg: 'Total farms registered',
@@ -14,7 +14,7 @@ const T = {
   },
   si: {
     title: 'වාර්තා', loading: 'පූරණය වෙමින්...', failedLoad: 'වාර්තා ලෝඩ් කිරීමට අසමත් විය',
-    exportCsv: '⬇ CSV ලෙස දිනා',
+    exportCsv: '⬇ CSV ලෙස දිනා', exportFarms: '⬇ ගොවිපල CSV', exportHarvest: '⬇ අස්වනු CSV',
     userDist: 'පරිශීලක බෙදාහැරීම', landOwners: 'ඉඩම් හිමිකරුවන්', traders: 'වෙළෙන්දන්', suspended: 'අත්හිටුවා ඇත',
     totalUsers: 'සම්පූර්ණ පරිශීලකයන්:',
     farms: 'ගොවිපල', totalFarmsReg: 'ලියාපදිංචි ගොවිපල',
@@ -23,7 +23,7 @@ const T = {
   },
   ta: {
     title: 'அறிக்கைகள்', loading: 'ஏற்றுகிறது...', failedLoad: 'அறிக்கைகளை ஏற்ற முடியவில்லை',
-    exportCsv: '⬇ CSV ஆக ஏற்றுமதி',
+    exportCsv: '⬇ CSV ஆக ஏற்றுமதி', exportFarms: '⬇ பண்ணை CSV', exportHarvest: '⬇ அறுவடை CSV',
     userDist: 'பயனர் விநியோகம்', landOwners: 'நில உரிமையாளர்கள்', traders: 'வணிகர்கள்', suspended: 'இடைநிறுத்தப்பட்டது',
     totalUsers: 'மொத்த பயனர்கள்:',
     farms: 'பண்ணைகள்', totalFarmsReg: 'பதிவு செய்யப்பட்ட பண்ணைகள்',
@@ -107,6 +107,14 @@ export default function AdminReports() {
           <button onClick={() => downloadAdminCSV('activity').catch(e => alert(e.message))}
             style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--text)', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}>
             ⬇ Activity CSV
+          </button>
+          <button onClick={() => downloadAdminCSV('farms').catch(e => alert(e.message))}
+            style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--text)', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}>
+            {t.exportFarms}
+          </button>
+          <button onClick={() => downloadAdminCSV('harvest').catch(e => alert(e.message))}
+            style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--text)', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}>
+            {t.exportHarvest}
           </button>
         </div>
       </div>

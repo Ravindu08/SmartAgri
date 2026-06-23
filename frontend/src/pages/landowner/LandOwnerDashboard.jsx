@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getFarms } from '../../services/farmService';
 import { getCrops } from '../../services/cropService';
-import { getAuthSession } from '../../services/api';
+import { getAuthSession, ML_BASE_URL } from '../../services/api';
 import { listCultivations } from '../../utils/cultivationApi';
 import { CROP_EMOJI, getCropLabel } from '../../data/cropData';
 import { useApp } from '../../context/AppContext';
@@ -60,7 +60,7 @@ function NotifCard({ type, icon, title, detail, onDismiss, onClick, viewTasksLab
 
 async function fetchWeatherAdvice(district, lang = "en") {
   try {
-    const res = await fetch(`/weather?district=${encodeURIComponent(district)}&lang=${lang}`);
+    const res = await fetch(`${ML_BASE_URL}/weather?district=${encodeURIComponent(district)}&lang=${lang}`);
     if (!res.ok) return [];
     const data = await res.json();
     return (data.advice || []).filter(a => a.type !== 'info');

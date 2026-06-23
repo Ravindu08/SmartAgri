@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { ML_BASE_URL } from "../services/api";
 import { Link } from "react-router-dom";
 import CultivationTracker from "../components/CultivationTracker";
 import WeatherLocationPicker from "../components/WeatherLocationPicker";
@@ -8,9 +9,7 @@ import "../styles/CropGuidance.css";
 import { getCropLabel } from "../data/cropData";
 import { ZONE_LABELS, FERT_TIMING_LABELS, STAGE_NAME_LABELS, PROPAGATION_LABELS } from "../data/translations";
 
-// Guidance endpoints live on the ML service (port 8000).
-// Use an empty base so Vite's dev-server proxy forwards /guidance → port 8000.
-const API_BASE = "";
+const API_BASE = ML_BASE_URL;
 
 // ── Activity type metadata ─────────────────────────────────────────────────
 const ACT_META = {

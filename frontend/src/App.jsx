@@ -45,11 +45,14 @@ import TraderHelp from './pages/trader/TraderHelp';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminUserCreate from './pages/admin/AdminUserCreate';
+import AdminUserImport from './pages/admin/AdminUserImport';
 import AdminMarketplace from './pages/admin/AdminMarketplace';
 import AdminFarms from './pages/admin/AdminFarms';
+import AdminFarmImport from './pages/admin/AdminFarmImport';
 import AdminActivity from './pages/admin/AdminActivity';
 import AdminFeedback from './pages/admin/AdminFeedback';
 import AdminReports from './pages/admin/AdminReports';
+import AdminHarvestForecast from './pages/admin/AdminHarvestForecast';
 
 // ── ML / Guidance / Weather pages ────────────────────────────────────────────
 import CropRecommendation from './pages/CropRecommendation';
@@ -126,7 +129,11 @@ function AppRoutes() {
       {/* Public pages with shared Navbar */}
       <Route element={<AppLayout />}>
         <Route path="/" element={<div className="app-shell"><HomePage /></div>} />
-        <Route path="/marketplace" element={<MarketplacePage />} />
+        <Route path="/marketplace" element={
+          import.meta.env.VITE_SHOW_MARKETPLACE === 'false'
+            ? <Navigate to="/landowner/dashboard" replace />
+            : <MarketplacePage />
+        } />
         <Route path="/crop-recommendation" element={<CropRecommendationPage />} />
         <Route path="/crop-guidance"       element={<CropGuidancePage />} />
         <Route path="/wx"                  element={<WeatherPage />} />
@@ -170,13 +177,16 @@ function AppRoutes() {
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="dashboard"   element={<AdminDashboard />} />
-        <Route path="users"       element={<AdminUsers />} />
-        <Route path="users/create" element={<AdminUserCreate />} />
-        <Route path="marketplace" element={<AdminMarketplace />} />
-        <Route path="farms"       element={<AdminFarms />} />
-        <Route path="activity"    element={<AdminActivity />} />
-        <Route path="feedback"    element={<AdminFeedback />} />
-        <Route path="reports"     element={<AdminReports />} />
+        <Route path="users"            element={<AdminUsers />} />
+        <Route path="users/create"     element={<AdminUserCreate />} />
+        <Route path="users/import"     element={<AdminUserImport />} />
+        <Route path="marketplace"      element={<AdminMarketplace />} />
+        <Route path="farms"            element={<AdminFarms />} />
+        <Route path="farms/import"     element={<AdminFarmImport />} />
+        <Route path="activity"         element={<AdminActivity />} />
+        <Route path="feedback"         element={<AdminFeedback />} />
+        <Route path="reports"          element={<AdminReports />} />
+        <Route path="harvest-forecast" element={<AdminHarvestForecast />} />
       </Route>
     </Routes>
   );
