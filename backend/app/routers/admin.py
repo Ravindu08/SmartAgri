@@ -1,6 +1,6 @@
 import csv
 import io
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
 
@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_current_user, get_db, require_admin
 from app.core.security import hash_password
 from app.models.activity import Feedback, UserActivity
+from app.models.cultivation import CultivationSession, CultivationTask
 from app.models.farm import Farm
 from app.models.marketplace import MarketplaceListing, MarketplaceListingStatus, MarketplaceOrder
 from app.models.user import User, UserRole
@@ -73,6 +74,33 @@ class FeedbackRead(BaseModel):
     admin_reply: Optional[str] = None
     created_at: datetime
     resolved_at: Optional[datetime] = None
+
+
+class BulkUserRow(BaseModel):
+    full_name: str
+    email: EmailStr
+
+
+class BulkUserImport(BaseModel):
+    users: list[BulkUserRow]
+    default_password: str
+    role: str = "Land Owner"
+
+
+class BulkFarmRow(BaseModel):
+    farmer_name: str
+    email: EmailStr
+    district: str
+    farm_name: str
+    soil_type: str
+    size: float
+    size_unit: str = "acres"
+    irrigation_type: str = "Rain-fed"
+
+
+class BulkFarmImport(BaseModel):
+    farms: list[BulkFarmRow]
+    default_password: str
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -491,3 +519,214 @@ def export_activity_csv(db: Session = Depends(get_db), _: User = Depends(require
         for a in activities
     ]
     return _csv_response(rows, "smartagri_activity.csv")
+
+
+# ── Bulk user import ──────────────────────────────────────────────────────────
+
+@router.post("/users/bulk", status_code=status.HTTP_201_CREATED)
+def admin_bulk_create_users(
+    payload: BulkUserImport,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    try:
+        role_enum = UserRole(payload.role)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid role: {payload.role}")
+
+    created, skipped, errors = 0, 0, []
+    for row in payload.users:
+        email_str = str(row.email)
+        if db.execute(select(User).where(User.email == email_str)).scalar_one_or_none():
+            skipped += 1
+            continue
+        try:
+            user = User(
+                full_name=row.full_name,
+                email=email_str,
+                hashed_password=hash_password(payload.default_password),
+                role=role_enum,
+                roles=[payload.role],
+                is_verified=True,
+            )
+            db.add(user)
+            db.flush()
+            created += 1
+        except Exception as e:
+            errors.append({"email": email_str, "error": str(e)})
+
+    db.commit()
+    log_activity(db, user_id=None, actor_id=admin.id, action="admin_bulk_import_users",
+                 entity_type="user", details=f"created={created} skipped={skipped}")
+    return {"created": created, "skipped": skipped, "errors": errors}
+
+
+# ── Bulk farm + user import ───────────────────────────────────────────────────
+
+@router.post("/farms/bulk", status_code=status.HTTP_201_CREATED)
+def admin_bulk_import_farms(
+    payload: BulkFarmImport,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    created_users, created_farms, skipped, errors = 0, 0, 0, []
+    for row in payload.farms:
+        email_str = str(row.email)
+        try:
+            user = db.execute(select(User).where(User.email == email_str)).scalar_one_or_none()
+            if not user:
+                user = User(
+                    full_name=row.farmer_name,
+                    email=email_str,
+                    hashed_password=hash_password(payload.default_password),
+                    role=UserRole.LAND_OWNER,
+                    roles=["Land Owner"],
+                    is_verified=True,
+                )
+                db.add(user)
+                db.flush()
+                created_users += 1
+            else:
+                skipped += 1
+
+            farm = Farm(
+                farm_name=row.farm_name,
+                district=row.district,
+                soil_type=row.soil_type,
+                farm_size=row.size,
+                size_unit=row.size_unit,
+                irrigation_type=row.irrigation_type,
+                owner_id=user.id,
+                location=row.district,
+                season="Maha",
+            )
+            db.add(farm)
+            db.flush()
+            created_farms += 1
+        except Exception as e:
+            errors.append({"email": email_str, "error": str(e)})
+
+    db.commit()
+    log_activity(db, user_id=None, actor_id=admin.id, action="admin_bulk_import_farms",
+                 entity_type="farm", details=f"users={created_users} farms={created_farms} skipped={skipped}")
+    return {"created_users": created_users, "created_farms": created_farms, "skipped": skipped, "errors": errors}
+
+
+# ── Farm data export (for research) ──────────────────────────────────────────
+
+@router.get("/export/farms.csv")
+def export_farms_csv(db: Session = Depends(get_db), _: User = Depends(require_admin)):
+    farms = db.execute(select(Farm).order_by(Farm.created_at.desc())).scalars().all()
+    rows = []
+    for f in farms:
+        owner = db.get(User, f.owner_id)
+        sessions = db.execute(
+            select(CultivationSession).where(CultivationSession.farm_id == f.id)
+        ).scalars().all()
+        if sessions:
+            for s in sessions:
+                rows.append({
+                    "farm_id": str(f.id),
+                    "farm_name": f.farm_name,
+                    "district": f.district or "",
+                    "soil_type": f.soil_type or "",
+                    "irrigation_type": f.irrigation_type or "",
+                    "size": f.farm_size,
+                    "size_unit": f.size_unit,
+                    "season": f.season or "",
+                    "owner_name": owner.full_name if owner else "",
+                    "owner_email": owner.email if owner else "",
+                    "crop": s.crop,
+                    "cultivation_status": s.status,
+                    "planting_date": s.planting_date or "",
+                })
+        else:
+            rows.append({
+                "farm_id": str(f.id),
+                "farm_name": f.farm_name,
+                "district": f.district or "",
+                "soil_type": f.soil_type or "",
+                "irrigation_type": f.irrigation_type or "",
+                "size": f.farm_size,
+                "size_unit": f.size_unit,
+                "season": f.season or "",
+                "owner_name": owner.full_name if owner else "",
+                "owner_email": owner.email if owner else "",
+                "crop": "",
+                "cultivation_status": "",
+                "planting_date": "",
+            })
+    return _csv_response(rows, "smartagri_farms.csv")
+
+
+# ── Harvest forecast ──────────────────────────────────────────────────────────
+
+@router.get("/harvest-forecast")
+def admin_harvest_forecast(
+    district: Optional[str] = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    q = select(CultivationSession).where(CultivationSession.status == "active")
+    if district:
+        q = q.where(CultivationSession.district == district)
+    sessions = db.execute(q).scalars().all()
+
+    results = []
+    for session in sessions:
+        tasks = db.execute(
+            select(CultivationTask).where(CultivationTask.session_id == session.id)
+        ).scalars().all()
+        if not tasks:
+            continue
+
+        max_day = max((t.day for t in tasks), default=0)
+        try:
+            plant_dt = datetime.strptime(session.planting_date, "%Y-%m-%d").date()
+            harvest_dt = plant_dt + timedelta(days=max_day)
+            harvest_str = harvest_dt.isoformat()
+        except (ValueError, TypeError):
+            harvest_str = None
+
+        farm = db.get(Farm, session.farm_id) if session.farm_id else None
+        try:
+            user = db.get(User, int(session.user_id)) if session.user_id else None
+        except (ValueError, TypeError):
+            user = None
+
+        results.append({
+            "session_id": str(session.id),
+            "farm_name": farm.farm_name if farm else "—",
+            "district": session.district or (farm.district if farm else "—") or "—",
+            "crop": session.crop,
+            "farmer_name": user.full_name if user else "—",
+            "planting_date": session.planting_date or "",
+            "estimated_harvest_date": harvest_str,
+            "farm_size": farm.farm_size if farm else None,
+            "size_unit": farm.size_unit if farm else "acres",
+        })
+
+    results.sort(key=lambda x: x["estimated_harvest_date"] or "9999-12-31")
+    return results
+
+
+@router.get("/export/harvest.csv")
+def export_harvest_csv(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    data = admin_harvest_forecast(db=db, _=_)
+    rows = [
+        {
+            "farm_name": r["farm_name"],
+            "district": r["district"],
+            "crop": r["crop"],
+            "farmer_name": r["farmer_name"],
+            "planting_date": r["planting_date"],
+            "estimated_harvest_date": r["estimated_harvest_date"] or "",
+            "farm_size": r["farm_size"] or "",
+            "size_unit": r["size_unit"],
+        }
+        for r in data
+    ]
+    return _csv_response(rows, "smartagri_harvest_forecast.csv")
