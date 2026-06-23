@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { adminRequest, downloadAdminCSV } from '../../services/api';
 import { useApp } from '../../context/AppContext';
 
 const T = {
   en: {
-    title: 'Users', loading: 'Loading…', addUser: '+ Add User',
+    title: 'Users', loading: 'Loading…', addUser: '+ Add User', importCsv: 'Import CSV',
     searchPlaceholder: 'Search name or email…', allRoles: 'All roles',
     colName: 'Name', colEmail: 'Email', colRoles: 'Role(s)',
     colJoined: 'Joined', colStatus: 'Status', colActions: 'Actions',
@@ -18,7 +18,7 @@ const T = {
     toastDeleted: (name) => `${name} deleted`,
   },
   si: {
-    title: 'පරිශීලකයන්', loading: 'පූරණය වෙමින්...', addUser: '+ පරිශීලකයෙකු එකතු කරන්න',
+    title: 'පරිශීලකයන්', loading: 'පූරණය වෙමින්...', addUser: '+ පරිශීලකයෙකු එකතු කරන්න', importCsv: 'CSV ආයාත කරන්න',
     searchPlaceholder: 'නම හෝ ඊ-මේල් සොයන්න...', allRoles: 'සෑම භූමිකාවක්ම',
     colName: 'නම', colEmail: 'ඊ-මේල්', colRoles: 'භූමිකාව(ය)',
     colJoined: 'සම්බන්ධ වූ', colStatus: 'තත්ත්වය', colActions: 'ක්‍රියා',
@@ -31,7 +31,7 @@ const T = {
     toastDeleted: (name) => `${name} මකන ලදී`,
   },
   ta: {
-    title: 'பயனர்கள்', loading: 'ஏற்றுகிறது...', addUser: '+ பயனரைச் சேர்க்கவும்',
+    title: 'பயனர்கள்', loading: 'ஏற்றுகிறது...', addUser: '+ பயனரைச் சேர்க்கவும்', importCsv: 'CSV இறக்கு',
     searchPlaceholder: 'பெயர் அல்லது மின்னஞ்சல் தேடவும்...', allRoles: 'அனைத்து பங்குகளும்',
     colName: 'பெயர்', colEmail: 'மின்னஞ்சல்', colRoles: 'பங்கு(கள்)',
     colJoined: 'இணைந்தது', colStatus: 'நிலை', colActions: 'நடவடிக்கைகள்',
@@ -52,6 +52,7 @@ const ROLE_COLOR = {
 export default function AdminUsers() {
   const { lang } = useApp();
   const t = T[lang] || T.en;
+  const navigate = useNavigate();
 
   const [users, setUsers]     = useState([]);
   const [loading, setLoading] = useState(true);
@@ -105,6 +106,13 @@ export default function AdminUsers() {
             style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--text)', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}
           >
             ⬇ Export CSV
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/admin/users/import')}
+            style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--text)', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}
+          >
+            📥 {t.importCsv}
           </button>
           <Link to="/admin/users/create" style={{
             padding: '8px 18px', borderRadius: '8px', background: '#7c3aed', color: '#fff',

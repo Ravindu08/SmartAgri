@@ -1,22 +1,23 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { adminRequest } from '../../services/api';
 import { useApp } from '../../context/AppContext';
 
 const T = {
   en: {
-    title: 'All Farms', loading: 'Loading…', noFarms: 'No farms found',
+    title: 'All Farms', loading: 'Loading…', noFarms: 'No farms found', importCsv: 'Import CSV',
     searchPlaceholder: 'Search name or district…',
     colFarmName: 'Farm Name', colDistrict: 'District', colSize: 'Size',
     colOwner: 'Owner ID', colCreated: 'Created',
   },
   si: {
-    title: 'සිය‍ල්ල ගොවිපල', loading: 'පූරණය වෙමින්...', noFarms: 'ගොවිපල හමු නොවීය',
+    title: 'සිය‍ල්ල ගොවිපල', loading: 'පූරණය වෙමින්...', noFarms: 'ගොවිපල හමු නොවීය', importCsv: 'CSV ආයාත කරන්න',
     searchPlaceholder: 'නම හෝ දිස්ත්‍රික්කය සොයන්න...',
     colFarmName: 'ගොවිපල නම', colDistrict: 'දිස්ත්‍රික්කය', colSize: 'ප්‍රමාණය',
     colOwner: 'හිමිකරු ID', colCreated: 'සාදන ලද',
   },
   ta: {
-    title: 'அனைத்து பண்ணைகளும்', loading: 'ஏற்றுகிறது...', noFarms: 'பண்ணைகள் கிடைக்கவில்லை',
+    title: 'அனைத்து பண்ணைகளும்', loading: 'ஏற்றுகிறது...', noFarms: 'பண்ணைகள் கிடைக்கவில்லை', importCsv: 'CSV இறக்கு',
     searchPlaceholder: 'பெயர் அல்லது மாவட்டம் தேடவும்...',
     colFarmName: 'பண்ணை பெயர்', colDistrict: 'மாவட்டம்', colSize: 'அளவு',
     colOwner: 'உரிமையாளர் ID', colCreated: 'உருவாக்கப்பட்டது',
@@ -26,6 +27,7 @@ const T = {
 export default function AdminFarms() {
   const { lang } = useApp();
   const t = T[lang] || T.en;
+  const navigate = useNavigate();
 
   const [farms, setFarms]     = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,8 +49,14 @@ export default function AdminFarms() {
     <div style={{ padding: '28px', maxWidth: '1100px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <h2 style={{ margin: 0, color: 'var(--text)' }}>{t.title} <span style={{ fontSize: '16px', color: 'var(--muted)', fontWeight: 400 }}>({farms.length})</span></h2>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t.searchPlaceholder}
-          style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '14px', width: '220px' }} />
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <button type="button" onClick={() => navigate('/admin/farms/import')}
+            style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--text)', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}>
+            📥 {t.importCsv}
+          </button>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t.searchPlaceholder}
+            style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '14px', width: '220px' }} />
+        </div>
       </div>
 
       <div style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', overflow: 'hidden' }}>

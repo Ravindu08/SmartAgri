@@ -1,4 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+export const ML_BASE_URL = import.meta.env.VITE_ML_URL || '';
 
 export async function fetchBackendHealth() {
   const response = await fetch(`${API_BASE_URL}/health`);
@@ -175,7 +176,7 @@ export function fetchListings(params = {}) {
 // ── Admin exports ─────────────────────────────────────────────────────────────
 export async function downloadAdminCSV(type) {
   const { token } = getAuthSession();
-  const response = await fetch(`/api/admin/export/${type}.csv`, {
+  const response = await fetch(`${API_BASE_URL}/api/admin/export/${type}.csv`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!response.ok) throw new Error('Export failed');

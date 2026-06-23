@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ML_BASE_URL } from '../../services/api';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getFarm } from '../../services/farmService';
 import { createCrop, getCropsByFarm } from '../../services/cropService';
@@ -78,7 +79,7 @@ export default function FarmDetails() {
       // Fetch crop-specific duration from ML service (port 8000 via Vite proxy)
       let duration = 120;
       try {
-        const gr = await fetch(`/guidance/${encodeURIComponent(modalForm.crop_name)}`);
+        const gr = await fetch(`${ML_BASE_URL}/guidance/${encodeURIComponent(modalForm.crop_name)}`);
         const gd = await gr.json();
         const stages = gd.data?.stages || [];
         const maxDay = stages.reduce((m, s) => Math.max(m, s.day_end || 0), 0);

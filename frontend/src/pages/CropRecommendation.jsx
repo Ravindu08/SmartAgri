@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { ML_BASE_URL } from "../services/api";
 
 import "../styles/CropRecommendation.css";
 import { T, DISTRICT_LABELS, ZONE_LABELS, IRR_LABELS, SEA_LABELS, SEA_DESC } from "../data/translations";
@@ -14,9 +15,7 @@ import HistoryPanel, { saveToHistory, loadHistory, clearHistory }
                       from "../components/HistoryPanel";
 import CustomSelect   from "../components/CustomSelect";
 
-// Predict/weather endpoints live on the ML service (port 8000).
-// Use an empty base so Vite's dev-server proxy forwards /predict, /weather → port 8000.
-const API_BASE = "";
+const API_BASE = ML_BASE_URL;
 
 // ── Mock fallback (used only when backend is unreachable) ─────────────────────
 const MOCK_CROPS = ["Tomato","Chilli","Capsicum","Cabbage","Carrot","Maize","Okra","Soybean","Mung Bean","Cowpea"];
