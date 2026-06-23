@@ -82,13 +82,13 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     try {
       const response = await registerUser({ ...formData, roles: selectedRoles });
-      // If the backend returned a role-add message, just go to login
-      if (response.message?.includes('Role added')) {
-        navigate('/login', { replace: true });
+      // Role-add on existing account, or auto-verified (EMAIL_ENABLED=false) — go straight to login
+      if (response.message?.includes('Role added') || response.message?.includes('now log in')) {
+        navigate('/login', { replace: true, state: { registered: true } });
         return;
       }
-      // New registration — must verify email before logging in
-      navigate('/verify-email-sent', { replace: true, state: { email: formData.email } });
+      // New registration — email verification required
+      navigate('/verify-code', { replace: true, state: { email: formData.email } });
     } catch (err) {
       setError(err.message);
     } finally {
