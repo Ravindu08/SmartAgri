@@ -23,20 +23,30 @@ def get_user_by_email(db: Session, email: str) -> User | None:
     return db.execute(select(User).where(User.email == email)).scalar_one_or_none()
 
 
+def _otp_code() -> str:
+    return f"{secrets.randbelow(1000000):06d}"
+
+
 def create_user(db: Session, user_in: UserRegister) -> User:
+    import os
+    from datetime import datetime, timezone, timedelta
     valid_roles = [r for r in user_in.roles if r in ALLOWED_REGISTRATION_ROLES]
     if not valid_roles:
         raise ValueError("Only Trader and Land Owner accounts can register")
 
     primary_role = valid_roles[0]
+    email_enabled = os.getenv("EMAIL_ENABLED", "true").lower() == "true"
+    code = _otp_code() if email_enabled else None
+    expires = datetime.now(timezone.utc) + timedelta(minutes=10) if email_enabled else None
     user = User(
         full_name=user_in.full_name,
         email=user_in.email,
         hashed_password=hash_password(user_in.password),
         role=primary_role,
         roles=[r.value for r in valid_roles],
-        is_verified=False,
-        email_verification_token=secrets.token_urlsafe(32),
+        is_verified=not email_enabled,
+        email_verification_token=code,
+        email_code_expires=expires,
     )
     db.add(user)
     db.commit()
@@ -45,10 +55,12 @@ def create_user(db: Session, user_in: UserRegister) -> User:
 
 
 def generate_verification_token(db: Session, user: User) -> str:
-    token = secrets.token_urlsafe(32)
-    user.email_verification_token = token
+    from datetime import datetime, timezone, timedelta
+    code = _otp_code()
+    user.email_verification_token = code
+    user.email_code_expires = datetime.now(timezone.utc) + timedelta(minutes=10)
     db.commit()
-    return token
+    return code
 
 
 def generate_reset_token(db: Session, user: User) -> str:
