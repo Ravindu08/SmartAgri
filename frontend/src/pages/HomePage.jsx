@@ -32,7 +32,7 @@ const HOME_T = {
     offline: '⚠️ Some features may be temporarily unavailable',
     checking: '⏳ Loading...',
     btnMarket: 'Explore Marketplace →',
-    btnLearn: 'Learn More →',
+    btnDemo: 'Request a Demo →',
     cardSoilLabel: 'Soil Health Score', cardSoilStatus: '● Healthy',
     cardWeatherLabel: 'Weather Forecast', cardWeatherVal: '28°C', cardWeatherStatus: 'Partly Cloudy',
     cardCropLabel: 'Crop Recommendation', cardCropVal: 'High Yield', cardCropStatus: 'Maize',
@@ -49,10 +49,10 @@ const HOME_T = {
     statsLabel: 'BY THE NUMBERS',
     statsTitle: 'Built to make a real impact',
     stats: [
-      { num: '500', suffix: '+', label: 'Farmers Supported' },
+      { num: '3',   suffix: '',  label: 'Languages Supported' },
       { num: '4',   suffix: '',  label: 'AI-Powered Tools' },
       { num: '25',  suffix: '+', label: 'Districts Covered' },
-      { num: '100', suffix: '%', label: 'Free to Use' },
+      { num: '41',  suffix: '+', label: 'Crops Supported' },
     ],
     howLabel: 'HOW IT WORKS',
     howTitle: 'Start farming smarter in four steps',
@@ -75,7 +75,7 @@ const HOME_T = {
     ctaTitle: 'Ready to farm smarter?',
     ctaSub: 'Join farmers across Sri Lanka using AI to reduce losses and maximise harvests.',
     ctaBtn1: 'Get Started Free →',
-    ctaBtn2: 'Explore AI Tools →',
+    ctaBtn2: 'Request a Demo →',
   },
   si: {
     badge: 'AI-ශක්‍ය ගොවිතැන',
@@ -87,7 +87,7 @@ const HOME_T = {
     offline: '⚠️ සමහර විශේෂාංග තාවකාලිකව නොමැත',
     checking: '⏳ පූරණය කරමින්...',
     btnMarket: 'වෙළඳසැල ගවේෂණය →',
-    btnLearn: 'තව දැනගන්න →',
+    btnDemo: 'ආදර්ශනයක් ඉල්ලන්න →',
     cardSoilLabel: 'ඉඩම් සෞඛ්‍ය ලකුණු', cardSoilStatus: '● සෞඛ්‍ය සම්පන්නය',
     cardWeatherLabel: 'කාලගුණ අනාවැකිය', cardWeatherVal: '28°C', cardWeatherStatus: 'අර්ධ වලාකුළු',
     cardCropLabel: 'බෝග නිර්දේශ', cardCropVal: 'ඉහළ අස්වැන්න', cardCropStatus: 'ඉරිඟු',
@@ -104,10 +104,10 @@ const HOME_T = {
     statsLabel: 'සංඛ්‍යා',
     statsTitle: 'සැබෑ බලපෑමක් ඇති කිරීමට',
     stats: [
-      { num: '500', suffix: '+', label: 'ගොවීන් සහාය කළා' },
+      { num: '3',   suffix: '',  label: 'භාෂා සහාය' },
       { num: '4',   suffix: '',  label: 'AI-ශක්‍ය මෙවලම්' },
       { num: '25',  suffix: '+', label: 'දිස්ත්‍රික්ක ආවරණය' },
-      { num: '100', suffix: '%', label: 'නොමිලේ' },
+      { num: '41',  suffix: '+', label: 'සහිත බෝග' },
     ],
     howLabel: 'ක්‍රියා කරන ආකාරය',
     howTitle: 'සිව් පියවරකින් ස්මාර්ට් ගොවිකිරීම',
@@ -130,7 +130,7 @@ const HOME_T = {
     ctaTitle: 'ස්මාර්ට් ගොවිකිරීමට සූදානම්ද?',
     ctaSub: 'ශ්‍රී ලංකාව පුරා ගොවීන් AI භාවිතා කර අස්වනු වැඩිකරගනිති.',
     ctaBtn1: 'නොමිලේ ලියාපදිංචි →',
-    ctaBtn2: 'AI මෙවලම් ගවේෂණය →',
+    ctaBtn2: 'ආදර්ශනයක් ඉල්ලන්න →',
   },
   ta: {
     badge: 'AI-இயக்கப்படும் வேளாண்மை',
@@ -142,7 +142,7 @@ const HOME_T = {
     offline: '⚠️ சில அம்சங்கள் தற்காலிகமாக இல்லை',
     checking: '⏳ ஏற்றுகிறது...',
     btnMarket: 'சந்தையை ஆராயுங்கள் →',
-    btnLearn: 'மேலும் அறிக →',
+    btnDemo: 'டெமோ கோருங்கள் →',
     cardSoilLabel: 'மண் ஆரோக்கிய மதிப்பெண்', cardSoilStatus: '● ஆரோக்கியமானது',
     cardWeatherLabel: 'வானிலை முன்னறிவிப்பு', cardWeatherVal: '28°C', cardWeatherStatus: 'பகுதியளவு மேகம்',
     cardCropLabel: 'பயிர் பரிந்துரை', cardCropVal: 'அதிக விளைச்சல்', cardCropStatus: 'மக்காச்சோளம்',
@@ -159,10 +159,10 @@ const HOME_T = {
     statsLabel: 'எண்களில்',
     statsTitle: 'உண்மையான தாக்கத்தை ஏற்படுத்த',
     stats: [
-      { num: '500', suffix: '+', label: 'விவசாயிகளுக்கு உதவினோம்' },
+      { num: '3',   suffix: '',  label: 'மொழிகள் ஆதரிக்கப்படுகின்றன' },
       { num: '4',   suffix: '',  label: 'AI கருவிகள்' },
       { num: '25',  suffix: '+', label: 'மாவட்டங்கள் உள்ளடக்கப்பட்டன' },
-      { num: '100', suffix: '%', label: 'இலவசம்' },
+      { num: '41',  suffix: '+', label: 'பயிர்கள் ஆதரிக்கப்படுகின்றன' },
     ],
     howLabel: 'எப்படி செயல்படுகிறது',
     howTitle: 'நான்கு படிகளில் ஸ்மார்ட் விவசாயம்',
@@ -185,7 +185,7 @@ const HOME_T = {
     ctaTitle: 'ஸ்மார்ட் விவசாயத்திற்கு தயாரா?',
     ctaSub: 'இலங்கை முழுவதும் விவசாயிகள் AI பயன்படுத்தி மகசூலை அதிகரிக்கிறார்கள்.',
     ctaBtn1: 'இலவசமாக தொடங்கு →',
-    ctaBtn2: 'AI கருவிகளை ஆராய →',
+    ctaBtn2: 'டெமோ கோருங்கள் →',
   },
 };
 
@@ -249,7 +249,7 @@ export default function HomePage() {
           </div>
           <div className="home-hero__actions">
             <Link className="home-btn home-btn--primary" to="/marketplace">{t.btnMarket}</Link>
-            <Link className="home-btn home-btn--outline" to="/about">{t.btnLearn}</Link>
+            <Link className="home-btn home-btn--outline" to="/contact">{t.btnDemo}</Link>
           </div>
         </div>
         <div className="home-hero__cards">
@@ -359,7 +359,7 @@ export default function HomePage() {
           <p className="home-cta-sub">{t.ctaSub}</p>
           <div className="home-cta-actions">
             <Link className="home-btn home-btn--primary" to="/register">{t.ctaBtn1}</Link>
-            <Link className="home-btn home-btn--ghost" to="/crop-recommendation">{t.ctaBtn2}</Link>
+            <Link className="home-btn home-btn--ghost" to="/contact">{t.ctaBtn2}</Link>
           </div>
         </div>
       </section>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ML_BASE_URL } from "../services/api";
 import { DISTRICTS } from "../data/districtZones";
 import { DISTRICT_LABELS } from "../data/translations";
 import CustomSelect from "../components/CustomSelect";
@@ -235,9 +236,7 @@ function ForecastRow({ day, t }) {
   );
 }
 
-// Weather endpoint lives on the ML service (port 8000).
-// Use an empty base so Vite's dev-server proxy forwards /weather → port 8000.
-const API_BASE = "";
+const API_BASE = ML_BASE_URL;
 
 export default function Weather({ lang, onWeatherFetched }) {
   const t = WT[lang] || WT.en;

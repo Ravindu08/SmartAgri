@@ -266,7 +266,7 @@ export default function LandOwnerLayout() {
     { to: '/landowner/crops',        icon: '🌿', label: t.myCrops },
     { to: '/landowner/cultivations', icon: '📅', label: t.myCultivations },
     { to: '/crop-guidance',          icon: '🤖', label: t.advisories },
-    { to: '/marketplace',            icon: '🏪', label: t.marketplace },
+    ...(import.meta.env.VITE_SHOW_MARKETPLACE !== 'false' ? [{ to: '/marketplace', icon: '🏪', label: t.marketplace }] : []),
     { to: '/landowner/settings',     icon: '⚙️', label: t.settings },
     { to: '/landowner/help',         icon: '❓', label: t.helpSupport },
   ];

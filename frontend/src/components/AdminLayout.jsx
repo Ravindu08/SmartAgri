@@ -7,19 +7,19 @@ const ADMIN_T = {
   en: {
     dashboard: 'Dashboard', users: 'Users', marketplace: 'Marketplace',
     farms: 'All Farms', activity: 'Activity Log', feedback: 'Feedback',
-    reports: 'Reports', admin: 'Admin', profileSettings: 'Profile Settings',
+    reports: 'Reports', harvestForecast: 'Harvest Forecast', admin: 'Admin', profileSettings: 'Profile Settings',
     logout: 'Log Out', systemAdmin: 'System Administrator',
   },
   si: {
     dashboard: 'ඩැෂ්බෝඩ්', users: 'පරිශීලකයන්', marketplace: 'වෙළඳසැල',
     farms: 'සියලු ගොවිපළ', activity: 'ක්‍රියාකාරකම් ලොග', feedback: 'ප්‍රතිපෝෂණ',
-    reports: 'වාර්තා', admin: 'පරිපාලක', profileSettings: 'පැතිකඩ සැකසීම්',
+    reports: 'වාර්තා', harvestForecast: 'අස්වනු පෙරනිමිය', admin: 'පරිපාලක', profileSettings: 'පැතිකඩ සැකසීම්',
     logout: 'ලොග් අවුට්', systemAdmin: 'පද්ධති පරිපාලක',
   },
   ta: {
     dashboard: 'டாஷ்போர்டு', users: 'பயனர்கள்', marketplace: 'சந்தை',
     farms: 'அனைத்து பண்ணைகள்', activity: 'செயல்பாட்டு பதிவு', feedback: 'கருத்து',
-    reports: 'அறிக்கைகள்', admin: 'நிர்வாகி', profileSettings: 'சுயவிவர அமைப்புகள்',
+    reports: 'அறிக்கைகள்', harvestForecast: 'அறுவடை முன்னறிவிப்பு', admin: 'நிர்வாகி', profileSettings: 'சுயவிவர அமைப்புகள்',
     logout: 'வெளியேறு', systemAdmin: 'கணினி நிர்வாகி',
   },
 };
@@ -44,7 +44,8 @@ export default function AdminLayout() {
     { to: '/admin/farms',       icon: '🌾', label: t.farms },
     { to: '/admin/activity',    icon: '📋', label: t.activity },
     { to: '/admin/feedback',    icon: '💬', label: t.feedback },
-    { to: '/admin/reports',     icon: '📈', label: t.reports },
+    { to: '/admin/reports',           icon: '📈', label: t.reports },
+    { to: '/admin/harvest-forecast',  icon: '🗓️', label: t.harvestForecast },
   ];
 
   const initials = user?.full_name ? user.full_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : 'AD';

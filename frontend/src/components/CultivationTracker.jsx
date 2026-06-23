@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { ML_BASE_URL } from "../services/api";
 import * as API from "../utils/cultivationApi";
 import { getFarms, getFarm } from "../services/farmService";
 import { createCrop, deleteCrop } from "../services/cropService";
@@ -509,7 +510,7 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
   const [farmDistrict,     setFarmDistrict]     = useState(null);
 
   useEffect(() => {
-    fetch("/guidance")
+    fetch(`${ML_BASE_URL}/guidance`)
       .then(r => r.json())
       .then(d => setCropList(d.crops || []))
       .catch(() => {});
@@ -527,7 +528,7 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
   // Fetch crop-specific duration whenever the selected crop changes
   useEffect(() => {
     if (!crop) return;
-    fetch(`/guidance/${encodeURIComponent(crop)}`)
+    fetch(`${ML_BASE_URL}/guidance/${encodeURIComponent(crop)}`)
       .then(r => r.json())
       .then(d => {
         const stages = d.data?.stages || [];
@@ -666,8 +667,7 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
 
 // ── Main export ───────────────────────────────────────────────────────────────
 export default function CultivationTracker({ t, userId, initialSessionId, initialView, initialCrop, existingCropData, onExternalBack }) {
-  // Guidance endpoint lives on the ML service (port 8000); use empty base for Vite proxy.
-  const API_BASE = "";
+  const API_BASE = ML_BASE_URL;
   const { lang } = useApp();
 
   const [view, setView]               = useState(initialView || "list");  // list | start | dashboard
