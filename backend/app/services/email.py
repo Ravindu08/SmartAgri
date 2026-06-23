@@ -14,18 +14,14 @@ def _is_enabled() -> bool:
     return os.getenv("EMAIL_ENABLED", "true").lower() == "true"
 
 
-def _send(to_email: str, subject: str, html_body: str) -> None:
+def _send(to_email: str, subject: str, html_body: str, otp_code: str | None = None) -> None:
     if not _is_enabled():
         print(f"\n{'='*60}")
         print(f"[EMAIL — console fallback]")
         print(f"To:      {to_email}")
         print(f"Subject: {subject}")
-        # Extract the plain link from the HTML for easy copy-paste
-        import re
-        links = re.findall(r'href="([^"]+)"', html_body)
-        for link in links:
-            if "token=" in link:
-                print(f"Link:    {link}")
+        if otp_code:
+            print(f"Code:    {otp_code}")
         print('='*60 + "\n")
         return
 
@@ -54,9 +50,8 @@ def _frontend_url() -> str:
     return os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
 
 
-def send_verification_email(to_email: str, full_name: str, token: str) -> None:
-    url = f"{_frontend_url()}/verify-email?token={token}"
-    subject = "Verify your SmartAgri account"
+def send_verification_email(to_email: str, full_name: str, code: str) -> None:
+    subject = "Your SmartAgri verification code"
     html = f"""
     <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#f9f9f9">
       <div style="background:#fff;border-radius:10px;padding:32px;border:1px solid #e0e0e0">
@@ -66,18 +61,17 @@ def send_verification_email(to_email: str, full_name: str, token: str) -> None:
         </div>
         <h3 style="color:#111;margin-bottom:8px">Hi {full_name},</h3>
         <p style="color:#555;line-height:1.6">
-          Welcome to SmartAgri! Please verify your email address to activate your account.
+          Welcome to SmartAgri! Use the code below to verify your email address.
         </p>
-        <div style="text-align:center;margin:28px 0">
-          <a href="{url}"
-             style="background:#1a7a4a;color:#fff;padding:13px 32px;border-radius:7px;
-                    text-decoration:none;font-weight:600;font-size:15px;display:inline-block">
-            Verify Email Address
-          </a>
+        <div style="text-align:center;margin:32px 0">
+          <div style="display:inline-block;background:#f0faf5;border:2px solid #1a7a4a;
+                      border-radius:10px;padding:18px 40px">
+            <span style="font-size:38px;font-weight:700;letter-spacing:10px;
+                         color:#1a7a4a;font-family:monospace">{code}</span>
+          </div>
         </div>
-        <p style="color:#888;font-size:13px">
-          Or copy this link into your browser:<br>
-          <span style="color:#1a7a4a;word-break:break-all">{url}</span>
+        <p style="color:#888;font-size:13px;text-align:center">
+          This code expires in <strong>10 minutes</strong>. Do not share it with anyone.
         </p>
         <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
         <p style="color:#aaa;font-size:12px;text-align:center">
@@ -86,7 +80,7 @@ def send_verification_email(to_email: str, full_name: str, token: str) -> None:
       </div>
     </div>
     """
-    _send(to_email, subject, html)
+    _send(to_email, subject, html, otp_code=code)
 
 
 def send_order_event_email(to_email: str, full_name: str, event: str, crop_name: str, order_link: str) -> None:

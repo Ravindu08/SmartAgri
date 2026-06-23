@@ -2,7 +2,6 @@ from datetime import datetime, timezone, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db
@@ -56,13 +55,6 @@ def register_user(payload: UserRegister, db: Session = Depends(get_db)) -> Regis
         existing_user.roles = sorted(current_roles | {r.value for r in new_roles})
         db.commit()
         db.refresh(existing_user)
-        # Dual-role addition on a verified account — log them in directly
-        access_token = create_access_token(
-            data={"sub": existing_user.email},
-            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
-        )
-        # Return as AuthResponse via a different path — but this is the role-add flow
-        # so we return a message asking them to log in again
         return RegisterResponse(
             message="Role added successfully. Please log in again.",
             email=existing_user.email,
@@ -76,10 +68,15 @@ def register_user(payload: UserRegister, db: Session = Depends(get_db)) -> Regis
         )
 
     user = create_user(db, payload)
-    send_verification_email(user.email, user.full_name, user.email_verification_token)
-
+    if user.email_verification_token:
+        send_verification_email(user.email, user.full_name, user.email_verification_token)
+        return RegisterResponse(
+            message="Account created. Please check your email to verify your account.",
+            email=user.email,
+        )
+    # EMAIL_ENABLED=false — user is auto-verified, can log in immediately
     return RegisterResponse(
-        message="Account created. Please check your email to verify your account.",
+        message="Account created. You can now log in.",
         email=user.email,
     )
 
@@ -90,27 +87,34 @@ def register_user(payload: UserRegister, db: Session = Depends(get_db)) -> Regis
 def resend_verification(email: EmailStr, db: Session = Depends(get_db)):
     user = get_user_by_email(db, email)
     if user is None or user.is_verified:
-        # Don't leak whether the email exists
-        return {"message": "If that email is registered and unverified, a new link has been sent."}
-    token = generate_verification_token(db, user)
-    send_verification_email(user.email, user.full_name, token)
-    return {"message": "If that email is registered and unverified, a new link has been sent."}
+        return {"message": "If that email is registered and unverified, a new code has been sent."}
+    code = generate_verification_token(db, user)
+    send_verification_email(user.email, user.full_name, code)
+    return {"message": "If that email is registered and unverified, a new code has been sent."}
 
 
-@router.get("/verify-email")
-def verify_email(token: str, db: Session = Depends(get_db)):
-    user = db.execute(
-        select(User).where(User.email_verification_token == token)
-    ).scalar_one_or_none()
+class VerifyEmailRequest(BaseModel):
+    email: EmailStr
+    code: str
 
-    if user is None:
+
+@router.post("/verify-email")
+def verify_email(payload: VerifyEmailRequest, db: Session = Depends(get_db)):
+    user = get_user_by_email(db, payload.email)
+    if (
+        user is None
+        or user.is_verified
+        or user.email_verification_token != payload.code.strip()
+        or user.email_code_expires is None
+        or datetime.now(timezone.utc) > user.email_code_expires
+    ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired verification link.",
+            detail="Invalid or expired verification code.",
         )
-
     user.is_verified = True
     user.email_verification_token = None
+    user.email_code_expires = None
     db.commit()
     return {"message": "Email verified successfully. You can now log in."}
 

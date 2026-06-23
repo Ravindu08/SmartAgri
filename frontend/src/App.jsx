@@ -13,8 +13,7 @@ import AdminLayout from './components/AdminLayout';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import VerifyEmailSentPage from './pages/VerifyEmailSentPage';
-import VerifyEmailPage from './pages/VerifyEmailPage';
+import VerifyCodePage from './pages/VerifyCodePage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import RoleSelectPage from './pages/RoleSelectPage';
@@ -120,8 +119,7 @@ function AppRoutes() {
       {/* Stand-alone auth pages */}
       <Route path="/login"                element={<LoginPage />} />
       <Route path="/register"             element={<RegisterPage />} />
-      <Route path="/verify-email-sent"    element={<VerifyEmailSentPage />} />
-      <Route path="/verify-email"         element={<VerifyEmailPage />} />
+      <Route path="/verify-code"           element={<VerifyCodePage />} />
       <Route path="/forgot-password"      element={<ForgotPasswordPage />} />
       <Route path="/reset-password"       element={<ResetPasswordPage />} />
       <Route path="/role-select"          element={<RoleSelectPage />} />
