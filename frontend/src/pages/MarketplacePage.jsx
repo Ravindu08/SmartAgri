@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import useSWR, { mutate } from 'swr';
+import CustomSelect from '../components/CustomSelect';
 import { request, getAuthSession, getActiveRole, setActiveRole, getUserRoles } from '../services/api';
 import {
   Leaf, Tractor, Store, User, Sprout, Plus, Package, MapPin,
@@ -276,17 +277,19 @@ function Textarea({ className = '', ...rest }) {
   );
 }
 
-function Select({ options, className = '', ...rest }) {
+function Select({ options, className = '', value, onChange, ...rest }) {
   return (
-    <select
+    <CustomSelect
       className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${className}`}
+      value={value}
+      onChange={onChange}
       {...rest}
     >
       {options.map(o => typeof o === 'string'
         ? <option key={o} value={o}>{o}</option>
         : <option key={o.value} value={o.value}>{o.label}</option>
       )}
-    </select>
+    </CustomSelect>
   );
 }
 
