@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
+import CustomSelect from './CustomSelect';
 import { useApp } from '../context/AppContext';
 import { getAuthSession, clearAuthSession, getActiveRole, isDualRole, submitFeedback, fetchNotifications, markNotificationRead } from '../services/api';
 
@@ -78,12 +79,12 @@ function FeedbackModal({ t, onClose }) {
           <form onSubmit={handleSend} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', color: 'var(--muted)' }}>
               {t.fbType}
-              <select value={fbData.type} onChange={e => setFbData(d => ({ ...d, type: e.target.value }))}
+              <CustomSelect name="type" value={fbData.type} onChange={e => setFbData(d => ({ ...d, type: e.target.value }))}
                 style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '14px' }}>
                 <option value="feedback">{t.fbTypes.feedback}</option>
                 <option value="complaint">{t.fbTypes.complaint}</option>
                 <option value="bug">{t.fbTypes.bug}</option>
-              </select>
+              </CustomSelect>
             </label>
             <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', color: 'var(--muted)' }}>
               {t.fbSubject}

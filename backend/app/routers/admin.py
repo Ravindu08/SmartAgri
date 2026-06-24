@@ -6,7 +6,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse, StreamingResponse
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
@@ -43,13 +43,13 @@ class AdminUserPatch(BaseModel):
 
 
 class FeedbackCreate(BaseModel):
-    type: str = "feedback"
-    subject: str
-    message: str
+    type: str = Field(default="feedback", max_length=20)
+    subject: str = Field(max_length=255)
+    message: str = Field(max_length=5000)
 
 
 class FeedbackReply(BaseModel):
-    reply: str
+    reply: str = Field(max_length=5000)
 
 
 class ActivityRead(BaseModel):
@@ -129,19 +129,28 @@ def list_users(
     db: Session = Depends(get_db),
     _: User = Depends(require_admin),
 ):
+    # Validate role before building query so we fail fast with a clean error
+    role_val = None
+    if role:
+        try:
+            role_val = UserRole(role).value
+        except ValueError:
+            raise HTTPException(status_code=422, detail=f"Invalid role: {role}")
+
     q = select(User)
     if search:
         like = f"%{search}%"
         q = q.where((User.full_name.ilike(like)) | (User.email.ilike(like)))
-    if role:
-        try:
-            q = q.where(User.role == UserRole(role))
-        except ValueError:
-            raise HTTPException(status_code=422, detail=f"Invalid role: {role}")
     if suspended is not None:
         q = q.where(User.is_suspended == suspended)
     q = q.order_by(User.created_at.desc())
     users = db.execute(q).scalars().all()
+
+    # Filter by role: check both the primary role column AND the roles JSON array
+    # so dual-role users are included regardless of which role is their primary.
+    if role_val:
+        users = [u for u in users if role_val in (u.roles or [u.role.value])]
+
     rows = []
     for u in users:
         d = UserRead.model_validate(u).model_dump(mode="json")
@@ -171,6 +180,7 @@ def admin_create_user(
         hashed_password=hash_password(payload.password),
         role=role_enum,
         roles=roles_list,
+        is_verified=True,
     )
     db.add(user)
     db.commit()
@@ -198,6 +208,11 @@ def admin_patch_user(
         user.full_name = payload.full_name
         changes.append("name")
     if payload.email is not None:
+        existing = db.execute(
+            select(User).where(User.email == str(payload.email), User.id != user.id)
+        ).scalar_one_or_none()
+        if existing:
+            raise HTTPException(status_code=409, detail="Email already in use")
         user.email = str(payload.email)
         changes.append("email")
     if payload.roles is not None:
@@ -238,6 +253,8 @@ def admin_delete_user(
     ))
     db.execute(delete(MarketplaceListing).where(MarketplaceListing.owner_id == user.id))
     db.execute(delete(Farm).where(Farm.owner_id == user.id))
+    # CultivationSession.user_id is a plain String column (no FK cascade), delete manually
+    db.execute(delete(CultivationSession).where(CultivationSession.user_id == str(user.id)))
     db.delete(user)
     db.commit()
 
@@ -622,7 +639,7 @@ def export_farms_csv(db: Session = Depends(get_db), _: User = Depends(require_ad
         owner = db.get(User, f.owner_id)
         sessions = db.execute(
             select(CultivationSession).where(CultivationSession.farm_id == f.id)
-        ).scalars().all()
+        ).unique().scalars().all()
         if sessions:
             for s in sessions:
                 rows.append({
@@ -670,7 +687,7 @@ def admin_harvest_forecast(
     q = select(CultivationSession).where(CultivationSession.status == "active")
     if district:
         q = q.where(CultivationSession.district == district)
-    sessions = db.execute(q).scalars().all()
+    sessions = db.execute(q).unique().scalars().all()
 
     results = []
     for session in sessions:
