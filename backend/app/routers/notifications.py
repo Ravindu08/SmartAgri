@@ -3,7 +3,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db
@@ -45,10 +45,10 @@ def unread_count(
     db: Session = Depends(get_db),
 ):
     count = db.execute(
-        select(Notification)
+        select(func.count(Notification.id))
         .where(Notification.user_id == current_user.id, Notification.is_read == False)  # noqa: E712
-    ).scalars().all()
-    return {"count": len(count)}
+    ).scalar()
+    return {"count": count or 0}
 
 
 @router.post("/{notification_id}/read")

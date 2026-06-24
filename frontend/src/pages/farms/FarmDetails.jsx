@@ -76,7 +76,7 @@ export default function FarmDetails() {
 
     setIsStarting(true);
     try {
-      // Fetch crop-specific duration from ML service (port 8000 via Vite proxy)
+      // Fetch crop-specific duration from ML service (port 8001 via Vite proxy)
       let duration = 120;
       try {
         const gr = await fetch(`${ML_BASE_URL}/guidance/${encodeURIComponent(modalForm.crop_name)}`);

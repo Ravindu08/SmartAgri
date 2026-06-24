@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { adminRequest, downloadAdminCSV } from '../../services/api';
 import { useApp } from '../../context/AppContext';
+import CustomSelect from '../../components/CustomSelect';
 
 const T = {
   en: {
@@ -128,13 +129,13 @@ export default function AdminUsers() {
           placeholder={t.searchPlaceholder}
           style={{ flex: '1 1 200px', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '14px' }}
         />
-        <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
+        <CustomSelect name="roleFilter" value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
           style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '14px' }}>
           <option value="">{t.allRoles}</option>
           <option value="Land Owner">Land Owner</option>
           <option value="Trader">Trader</option>
           <option value="Admin">Admin</option>
-        </select>
+        </CustomSelect>
       </div>
 
       {loading ? (

@@ -119,12 +119,12 @@ def create_order_endpoint(
         type="order_created",
         title=f"New purchase request — {order.listing_name}",
         body=f"{order.buyer_name} wants to buy {order.requested_quantity} units.",
-        link=f"/landowner/settings",
+        link="/marketplace",
     )
     db.commit()
     if order.seller and order.seller.email:
         try:
-            send_order_event_email(order.seller.email, order.seller_name, "order_created", order.listing_name, "/landowner/settings")
+            send_order_event_email(order.seller.email, order.seller_name, "order_created", order.listing_name, "/marketplace")
         except Exception:
             pass
     return order
@@ -172,17 +172,18 @@ def update_order_status_endpoint(
     if new_status in event_map:
         event_key, notify_user_id, notify_name, notify_email = event_map[new_status]
         label = new_status.value.replace("_", " ").title()
+        notify_link = "/trader/orders" if notify_user_id == updated.buyer_id else "/marketplace"
         create_notification(
             db,
             user_id=notify_user_id,
             type=event_key,
             title=f"Order {label} — {updated.listing_name}",
-            link="/trader/orders" if notify_user_id == updated.buyer_id else "/landowner/settings",
+            link=notify_link,
         )
         db.commit()
         if notify_email:
             try:
-                send_order_event_email(notify_email, notify_name, event_key, updated.listing_name, "/trader/orders")
+                send_order_event_email(notify_email, notify_name, event_key, updated.listing_name, notify_link)
             except Exception:
                 pass
 

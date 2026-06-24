@@ -166,7 +166,11 @@ def update_order_status(
         order.completed_at = datetime.now(timezone.utc)
         order.listing.status = MarketplaceListingStatus.SOLD
     elif new_status == MarketplaceOrderStatus.CANCELLED:
-        order.listing.status = MarketplaceListingStatus.ACTIVE
+        # Only un-reserve the listing when the *confirmed* order is cancelled.
+        # Cancelling a PENDING order must not override a RESERVED status set by a
+        # different confirmed order on the same listing.
+        if current_status == MarketplaceOrderStatus.CONFIRMED:
+            order.listing.status = MarketplaceListingStatus.ACTIVE
 
     db.add(order)
     db.commit()

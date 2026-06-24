@@ -2,6 +2,7 @@ from datetime import datetime, timezone, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db
@@ -254,5 +255,21 @@ def delete_account(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> None:
+    from sqlalchemy import delete as sql_delete
+    from app.models.marketplace import MarketplaceListing, MarketplaceOrder
+    from app.models.farm import Farm
+    from app.models.cultivation import CultivationSession
+
+    # delete orders first (Rating.order_id has CASCADE so ratings go automatically)
+    db.execute(sql_delete(MarketplaceOrder).where(
+        (MarketplaceOrder.buyer_id == current_user.id) | (MarketplaceOrder.seller_id == current_user.id)
+    ))
+    # delete listings (no FK child constraints beyond orders already cleared)
+    db.execute(sql_delete(MarketplaceListing).where(MarketplaceListing.owner_id == current_user.id))
+    # delete farms (Crop.farm_id has CASCADE so crops go automatically)
+    db.execute(sql_delete(Farm).where(Farm.owner_id == current_user.id))
+    # delete cultivation sessions (user_id is a plain String column, no FK cascade)
+    db.execute(sql_delete(CultivationSession).where(CultivationSession.user_id == str(current_user.id)))
+    # delete user — Notification cascades, Feedback/UserActivity set NULL
     db.delete(current_user)
     db.commit()
