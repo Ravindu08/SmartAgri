@@ -1,5 +1,5 @@
-// Cultivation endpoints live on the ML service (port 8000).
-// Use an empty base so Vite's dev-server proxy forwards /cultivation → port 8000.
+// Cultivation endpoints live on the ML service (port 8001).
+// Use an empty base so Vite's dev-server proxy forwards /cultivation → port 8001.
 const BASE = "";
 
 async function req(method, path, body) {

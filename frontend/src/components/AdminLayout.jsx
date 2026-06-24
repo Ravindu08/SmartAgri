@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { getAuthSession, clearAuthSession } from '../services/api';
@@ -32,6 +32,13 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
+
+  useEffect(() => {
+    if (!profileOpen) return;
+    const handler = e => { if (!profileRef.current?.contains(e.target)) setProfileOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [profileOpen]);
 
   if (!user || user.role !== 'Admin') return <Navigate to="/login" replace />;
 
