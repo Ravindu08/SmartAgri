@@ -166,29 +166,33 @@ const MODULES = [
 
 const TEAM = [
   {
-    name: "Induwara",
-    role: "Lead Full-Stack Developer",
+    name: "Induwara Ihalavithana",
+    role: "Lead Developer",
     initial: "I",
+    photo: "/team/induwara.jpg",
     lead: true,
-    built: ["Trader Module", "Admin Dashboard", "Marketplace", "Navigation & i18n", "Dark Mode", "Multi-role System", "Admin API"],
+    built: ["Language Switcher", "Light & Dark Mode", "Crop Recommendation", "Crop Guidance", "Yield & Price Estimation", "Weather Forecast", "Admin Dashboard"],
   },
   {
-    name: "Dilini",
-    role: "Frontend Developer & UI Design",
-    initial: "D",
-    built: ["Crop Recommendation UI", "Land Owner Module", "Design System"],
-  },
-  {
-    name: "Nuha",
-    role: "Backend Developer & Database",
-    initial: "N",
-    built: ["Database Design", "REST API", "Authentication"],
-  },
-  {
-    name: "Ravindu",
-    role: "ML & System Architecture",
+    name: "Ravindu Tharusha",
+    role: "Land Owner Module",
     initial: "R",
-    built: ["ML Models", "Weather API", "Yield Estimation"],
+    photo: "/team/ravindu.jpg",
+    built: ["LO Dashboard", "Farm Management", "Crop Tracking", "Cultivation Sessions", "Account Settings"],
+  },
+  {
+    name: "Nuha Farook",
+    role: "Trader Module",
+    initial: "N",
+    photo: "/team/nuha.jpg",
+    built: ["Trader Dashboard", "Purchase Requests", "Order Management", "Transaction History", "Trader Help & Support"],
+  },
+  {
+    name: "Dilini Samarawickrama",
+    role: "Marketplace",
+    initial: "D",
+    photo: "/team/dilini.jpg",
+    built: ["Marketplace UI", "Crop & Product Listings", "Buyer-Seller Negotiation", "Order Lifecycle", "Role-based Views"],
   },
 ];
 
@@ -300,7 +304,9 @@ export default function About({ lang }) {
             {TEAM.map((member, i) => (
               <div key={i} className={`about-team-card${member.lead ? " about-team-lead" : ""}`}>
                 <div className={`about-team-avatar${member.lead ? " about-team-avatar--lead" : ""}`}>
-                  {member.initial}
+                  {member.photo
+                    ? <img src={member.photo} alt={member.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                    : member.initial}
                 </div>
                 <div className="about-team-name">{member.name}</div>
                 <div className="about-team-role">{member.role}</div>
