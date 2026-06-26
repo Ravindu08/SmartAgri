@@ -280,7 +280,7 @@ function Textarea({ className = '', ...rest }) {
 function Select({ options, className = '', value, onChange, ...rest }) {
   return (
     <CustomSelect
-      className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${className}`}
+      className={className}
       value={value}
       onChange={onChange}
       {...rest}
@@ -1105,12 +1105,6 @@ export default function MarketplacePage() {
           <div className="mb-5 rounded-lg border bg-accent/40 px-4 py-3 text-sm text-accent-foreground">
             {m.actAs} <strong>{user?.full_name}</strong> ({role === 'owner' ? m.landOwner : m.trader}).{' '}
             {m.loggedInRole}
-            {isDual && (
-              <button
-                onClick={() => switchToRole(role === 'owner' ? 'Trader' : 'Land Owner')}
-                className="ml-3 underline text-primary font-semibold"
-              >{m.switchRole} →</button>
-            )}
           </div>
         )}
 
