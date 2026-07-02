@@ -141,8 +141,8 @@ export default function AdminUsers() {
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>{t.loading}</div>
       ) : (
-        <div style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', overflowX: 'auto' }}>
+          <table style={{ width: '100%', minWidth: '760px', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
                 {headers.map(h => (

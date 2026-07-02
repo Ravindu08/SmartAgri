@@ -30,7 +30,7 @@ const M = {
     demoWarning: '⚠️ You are browsing as a guest. Log in or register to buy or list products.',
     addListingTitle: 'Add a Crop Listing', addListingSub: 'List your harvest for traders to browse and purchase.',
     addProductTitle: 'Add a Product Listing', addProductSub: 'List fertilizers, pesticides, seeds or other agricultural supplies.',
-    cropName: 'Crop name', cropType: 'Crop type', productCategory: 'Category',
+    cropName: 'Crop name', productName: 'Product name', cropType: 'Crop type', productCategory: 'Category',
     quantity: 'Quantity', unit: 'Unit', pricePerUnit: 'Price / unit (Rs.)',
     location: 'Location', description: 'Description',
     imageLabel: 'Product Image (optional)', imageHint: 'Upload photo',
@@ -77,7 +77,7 @@ const M = {
     demoWarning: '⚠️ ඔබ ආගන්තුකයෙකු ලෙස බ්‍රව්ස් කරයි. ලොගින් වන්න.',
     addListingTitle: 'බෝග ලැයිස්තු එක් කරන්න', addListingSub: 'ඔබගේ අස්වනු ලැයිස්තු ගොනු කරන්න.',
     addProductTitle: 'නිෂ්පාදන ලැයිස්තුව එක් කරන්න', addProductSub: 'පොහොර, කෘමිනාශක, බීජ ලැයිස්තු ගොනු කරන්න.',
-    cropName: 'බෝග නම', cropType: 'බෝග වර්ගය', productCategory: 'කාණ්ඩය',
+    cropName: 'බෝග නම', productName: 'නිෂ්පාදන නම', cropType: 'බෝග වර්ගය', productCategory: 'කාණ්ඩය',
     quantity: 'ප්‍රමාණය', unit: 'ඒකකය', pricePerUnit: 'මිල / ඒකකය (රු.)',
     location: 'ස්ථානය', description: 'විස්තරය',
     imageLabel: 'රූපය (අවශ්‍ය නොවේ)', imageHint: 'ඡායාරූපය',
@@ -124,7 +124,7 @@ const M = {
     demoWarning: '⚠️ நீங்கள் விருந்தினராக உலாவுகிறீர்கள். உள்நுழையவும்.',
     addListingTitle: 'பயிர் பட்டியலைச் சேர்க்கவும்', addListingSub: 'உங்கள் அறுவடையை பட்டியலிடவும்.',
     addProductTitle: 'தயாரிப்பு பட்டியல்', addProductSub: 'உரங்கள், பூச்சிக்கொல்லிகள் பட்டியலிடவும்.',
-    cropName: 'பயிர் பெயர்', cropType: 'பயிர் வகை', productCategory: 'வகை',
+    cropName: 'பயிர் பெயர்', productName: 'தயாரிப்பு பெயர்', cropType: 'பயிர் வகை', productCategory: 'வகை',
     quantity: 'அளவு', unit: 'அலகு', pricePerUnit: 'விலை / அலகு (ரூ.)',
     location: 'இடம்', description: 'விவரம்',
     imageLabel: 'படம் (விருப்பமான)', imageHint: 'படம் பதிவேற்று',
@@ -176,8 +176,7 @@ async function apiPost(path, body, method = 'POST') {
 }
 
 function refreshListings() {
-  mutate('/api/marketplace/listings');
-  mutate('/api/marketplace/listings/me');
+  mutate(key => typeof key === 'string' && key.startsWith('/api/marketplace/listings'));
 }
 function refreshOrders() {
   mutate('/api/marketplace/orders');
@@ -487,7 +486,7 @@ function OrderDialog({ listing, currentUserId, m }) {
     if (Number(qty) > listing.quantity) { toast.error(`Only ${listing.quantity} ${listing.unit} available`); return; }
     setBusy(true);
     try {
-      await apiPost('/api/marketplace/orders', {
+      const newOrder = await apiPost('/api/marketplace/orders', {
         listing_id: listing.id,
         requested_quantity: Number(qty),
         proposed_price: Number(proposedPrice),
@@ -495,7 +494,8 @@ function OrderDialog({ listing, currentUserId, m }) {
       });
       toast.success(btnLabel + ' sent!');
       setOpen(false);
-      refreshOrders();
+      mutate('/api/marketplace/orders', (prev) => [newOrder, ...(prev || [])], { revalidate: false });
+      refreshListings();
     } catch (err) { toast.error(err.message); }
     finally { setBusy(false); }
   }
@@ -631,12 +631,11 @@ function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDele
     if (filters.min_price) p.set('min_price', filters.min_price);
     if (filters.max_price) p.set('max_price', filters.max_price);
     if (filters.district)  p.set('district', filters.district);
-    p.set('crop_type', listingType === 'crop' ? '' : 'Fertilizer');
     const q = p.toString();
     return `/api/marketplace/listings${q ? `?${q}` : ''}`;
-  }, [filters, listingType]);
+  }, [filters]);
 
-  const { data, isLoading } = useSWR(swrKey, publicFetcher, { refreshInterval: 5000 });
+  const { data, isLoading } = useSWR(swrKey, publicFetcher);
   const listings = (data || []).filter(l => (l.listing_type || 'crop') === listingType);
 
   return (
@@ -700,7 +699,7 @@ function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDele
 
 // ── My Listings grid (seller's own listings) ───────────────────────────────────
 function MyListingsGrid({ listingType, currentUserId, m }) {
-  const { data, isLoading } = useSWR('/api/marketplace/listings/me', authFetcher, { refreshInterval: 5000 });
+  const { data, isLoading } = useSWR('/api/marketplace/listings/me', authFetcher);
   const listings = (data || []).filter(l => (l.listing_type || 'crop') === listingType);
 
   if (isLoading) return <p className="text-sm text-muted-foreground">{m.loadingCrops}</p>;
@@ -817,7 +816,7 @@ function RatingModal({ order, onClose }) {
     try {
       await request(`/api/ratings/orders/${order.id}`, { method: 'POST', body: JSON.stringify({ score, comment: comment.trim() || undefined }) });
       setDone(true);
-      setTimeout(onClose, 1200);
+      setTimeout(() => onClose(true), 1200);
     } catch (err) { toast.error(err.message); }
     finally { setBusy(false); }
   };
@@ -864,6 +863,7 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
   const isBuyer  = order.buyer_id  === currentUserId;
   const [busy, setBusy] = useState(false);
   const [ratingOpen, setRatingOpen] = useState(false);
+  const [rated, setRated] = useState(false);
 
   async function updateStatus(newStatus) {
     setBusy(true);
@@ -939,21 +939,21 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
           )}
 
           {/* Buyer rates completed order */}
-          {isBuyer && order.status === 'Completed' && (
+          {isBuyer && order.status === 'Completed' && !rated && (
             <Btn size="sm" variant="outline" onClick={() => setRatingOpen(true)}>
               ⭐ Rate Seller
             </Btn>
           )}
         </div>
       </div>
-      {ratingOpen && <RatingModal order={order} onClose={() => setRatingOpen(false)} />}
+      {ratingOpen && <RatingModal order={order} onClose={(wasSuccess) => { setRatingOpen(false); if (wasSuccess) setRated(true); }} />}
     </Card>
   );
 }
 
 // ── Orders panel ───────────────────────────────────────────────────────────────
 function OrdersPanel({ currentUserId, m, historyMode = false }) {
-  const { data, isLoading } = useSWR('/api/marketplace/orders', authFetcher, { refreshInterval: 5000 });
+  const { data, isLoading } = useSWR('/api/marketplace/orders', authFetcher);
   const allOrders = data || [];
 
   const active = allOrders.filter(o => ['Pending', 'Confirmed', 'Delivered'].includes(o.status));
