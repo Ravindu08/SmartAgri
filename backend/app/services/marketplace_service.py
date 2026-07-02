@@ -102,7 +102,13 @@ def create_order(db: Session, order_in: MarketplaceOrderCreate, buyer_id: int) -
     if listing.status != MarketplaceListingStatus.ACTIVE:
         raise ValueError("Listing is not available")
     if order_in.requested_quantity > listing.quantity:
-        raise ValueError("Requested quantity exceeds available stock")
+        raise ValueError(f"Requested quantity exceeds available stock ({listing.quantity} {listing.unit} left)")
+
+    # Deduct quantity immediately so concurrent orders cannot over-commit stock
+    listing.quantity -= order_in.requested_quantity
+    if listing.quantity <= 0:
+        listing.status = MarketplaceListingStatus.SOLD
+    db.add(listing)
 
     order = MarketplaceOrder(
         listing_id=listing.id,
@@ -157,20 +163,26 @@ def update_order_status(
     if new_status == MarketplaceOrderStatus.CONFIRMED:
         order.accepted_at = datetime.now(timezone.utc)
         order.agreed_price = payload.counter_offer_price or order.proposed_price or order.listing.price_per_unit
-        order.listing.status = MarketplaceListingStatus.RESERVED
+        # Quantity was already deducted at order-placement; no listing status change needed
     elif new_status == MarketplaceOrderStatus.REJECTED:
-        order.listing.status = MarketplaceListingStatus.ACTIVE
+        # Restore the deducted quantity and re-activate the listing if it was marked sold
+        order.listing.quantity += order.requested_quantity
+        if order.listing.status != MarketplaceListingStatus.ACTIVE:
+            order.listing.status = MarketplaceListingStatus.ACTIVE
+        db.add(order.listing)
     elif new_status == MarketplaceOrderStatus.DELIVERED:
         order.delivered_at = datetime.now(timezone.utc)
     elif new_status == MarketplaceOrderStatus.COMPLETED:
         order.completed_at = datetime.now(timezone.utc)
-        order.listing.status = MarketplaceListingStatus.SOLD
+        # Mark the listing SOLD only if no stock remains; otherwise it stays active
+        if order.listing.quantity <= 0:
+            order.listing.status = MarketplaceListingStatus.SOLD
     elif new_status == MarketplaceOrderStatus.CANCELLED:
-        # Only un-reserve the listing when the *confirmed* order is cancelled.
-        # Cancelling a PENDING order must not override a RESERVED status set by a
-        # different confirmed order on the same listing.
-        if current_status == MarketplaceOrderStatus.CONFIRMED:
+        # Restore quantity for any cancellation (Pending or Confirmed)
+        order.listing.quantity += order.requested_quantity
+        if order.listing.status != MarketplaceListingStatus.ACTIVE:
             order.listing.status = MarketplaceListingStatus.ACTIVE
+        db.add(order.listing)
 
     db.add(order)
     db.commit()
