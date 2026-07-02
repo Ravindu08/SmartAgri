@@ -367,6 +367,19 @@ def admin_list_feedback(
     return [FeedbackRead.model_validate(r) for r in rows]
 
 
+@router.delete("/feedback/{feedback_id}", status_code=status.HTTP_204_NO_CONTENT)
+def admin_delete_feedback(
+    feedback_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+) -> None:
+    fb = db.get(Feedback, feedback_id)
+    if not fb:
+        raise HTTPException(status_code=404, detail="Feedback not found")
+    db.delete(fb)
+    db.commit()
+
+
 @router.post("/feedback/{feedback_id}/reply", response_model=FeedbackRead)
 def admin_reply_feedback(
     feedback_id: int,

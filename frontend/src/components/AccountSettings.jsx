@@ -72,6 +72,9 @@ export default function AccountSettings() {
     new_password:     '',
     confirm_password: '',
   });
+  const [showCurrentPw, setShowCurrentPw]   = useState(false);
+  const [showNewPw, setShowNewPw]           = useState(false);
+  const [showConfirmPw, setShowConfirmPw]   = useState(false);
   const [pwSaving, setPwSaving] = useState(false);
 
   const handlePwChange = e =>
@@ -286,39 +289,66 @@ export default function AccountSettings() {
           <form className="settings-form" onSubmit={handlePwSave}>
             <div className="settings-field">
               <label htmlFor="current_password">{t.settingsCurrentPw}</label>
-              <input
-                id="current_password"
-                name="current_password"
-                type="password"
-                value={pwForm.current_password}
-                onChange={handlePwChange}
-                placeholder={t.settingsCurrentPw}
-                required
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="current_password"
+                  name="current_password"
+                  type={showCurrentPw ? 'text' : 'password'}
+                  value={pwForm.current_password}
+                  onChange={handlePwChange}
+                  placeholder={t.settingsCurrentPw}
+                  required
+                  style={{ paddingRight: '38px', width: '100%', boxSizing: 'border-box' }}
+                />
+                <button type="button" onClick={() => setShowCurrentPw(p => !p)} tabIndex={-1} aria-label={showCurrentPw ? 'Hide password' : 'Show password'} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--muted)', display: 'flex', alignItems: 'center' }}>
+                  {showCurrentPw
+                    ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  }
+                </button>
+              </div>
             </div>
             <div className="settings-field">
               <label htmlFor="new_password">{t.settingsNewPw}</label>
-              <input
-                id="new_password"
-                name="new_password"
-                type="password"
-                value={pwForm.new_password}
-                onChange={handlePwChange}
-                placeholder={t.settingsNewPw}
-                required
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="new_password"
+                  name="new_password"
+                  type={showNewPw ? 'text' : 'password'}
+                  value={pwForm.new_password}
+                  onChange={handlePwChange}
+                  placeholder={t.settingsNewPw}
+                  required
+                  style={{ paddingRight: '38px', width: '100%', boxSizing: 'border-box' }}
+                />
+                <button type="button" onClick={() => setShowNewPw(p => !p)} tabIndex={-1} aria-label={showNewPw ? 'Hide password' : 'Show password'} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--muted)', display: 'flex', alignItems: 'center' }}>
+                  {showNewPw
+                    ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  }
+                </button>
+              </div>
             </div>
             <div className="settings-field">
               <label htmlFor="confirm_password">{t.settingsConfirmPw}</label>
-              <input
-                id="confirm_password"
-                name="confirm_password"
-                type="password"
-                value={pwForm.confirm_password}
-                onChange={handlePwChange}
-                placeholder={t.settingsConfirmPw}
-                required
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="confirm_password"
+                  name="confirm_password"
+                  type={showConfirmPw ? 'text' : 'password'}
+                  value={pwForm.confirm_password}
+                  onChange={handlePwChange}
+                  placeholder={t.settingsConfirmPw}
+                  required
+                  style={{ paddingRight: '38px', width: '100%', boxSizing: 'border-box' }}
+                />
+                <button type="button" onClick={() => setShowConfirmPw(p => !p)} tabIndex={-1} aria-label={showConfirmPw ? 'Hide password' : 'Show password'} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--muted)', display: 'flex', alignItems: 'center' }}>
+                  {showConfirmPw
+                    ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  }
+                </button>
+              </div>
               {pwForm.confirm_password && pwForm.new_password !== pwForm.confirm_password && (
                 <span className="settings-field__error">{t.settingsPwMismatch}</span>
               )}
