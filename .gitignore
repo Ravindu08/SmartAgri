@@ -49,6 +49,11 @@ backend/*.log
 # Dev/test helper files
 frontend/public/test-login.html
 
+# SQLite test databases
+*.db
+*.db-shm
+*.db-wal
+
 # Dataset exports and Office documents (reference material, not code)
 data/
 *.docx

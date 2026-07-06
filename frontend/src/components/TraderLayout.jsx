@@ -113,6 +113,7 @@ export default function TraderLayout() {
   const { user }   = getAuthSession();
   const location   = useLocation();
   const navigate   = useNavigate();
+  const [sidebarOpen,  setSidebarOpen]  = useState(false);
   const [notifOpen,    setNotifOpen]    = useState(false);
   const [profileOpen,  setProfileOpen]  = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -187,10 +188,12 @@ export default function TraderLayout() {
   return (
     <div className="lo-shell">
       <Navbar />
-      <aside className="lo-sidebar">
+      {sidebarOpen && <div className="lo-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+      <aside className={`lo-sidebar${sidebarOpen ? ' lo-sidebar--open' : ''}`}>
         <nav className="lo-sidebar__nav">
           {navItems.map(({ to, icon, label }) => (
             <Link key={label} to={to}
+              onClick={() => setSidebarOpen(false)}
               className={`lo-sidebar__link${
                 location.pathname === to ||
                 (location.pathname.startsWith(to + '/') && to !== '/trader/dashboard')
@@ -239,6 +242,7 @@ export default function TraderLayout() {
 
       <div className="lo-main">
         <header className="lo-topbar">
+          <button className="lo-hamburger" type="button" onClick={() => setSidebarOpen(o => !o)} aria-label="Menu">☰</button>
           <div className="lo-topbar__title">{currentLabel}</div>
           <div className="lo-topbar__right">
             <div className="lo-topbar__notif-wrap" ref={notifRef}>
