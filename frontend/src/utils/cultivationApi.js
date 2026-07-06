@@ -39,11 +39,14 @@ export async function listCultivations(userId) {
   return data;
 }
 
-export const updateTask = (userId, sessionId, taskId, status) =>
-  req("PUT",
+export async function updateTask(userId, sessionId, taskId, status) {
+  const result = await req("PUT",
     `/cultivation/${encodeURIComponent(userId)}/${encodeURIComponent(sessionId)}/task/${encodeURIComponent(taskId)}`,
     { status },
   );
+  _listCache.ts = 0; // bust cache so next listCultivations call fetches fresh data
+  return result;
+}
 
 export const abandonCultivation = (userId, sessionId) =>
   req("DELETE",
