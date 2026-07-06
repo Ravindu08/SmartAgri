@@ -7,7 +7,28 @@ export async function fetchBackendHealth() {
   return response.json();
 }
 
-async function request(path, options = {}) {
+let _isRefreshing = false;
+
+async function _doRefresh() {
+  const refreshToken = localStorage.getItem('smartagri_refresh');
+  if (!refreshToken) return false;
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    localStorage.setItem('smartagri_token', data.access_token);
+    localStorage.setItem('smartagri_refresh', data.refresh_token);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function request(path, options = {}, _retry = true) {
   const { token } = getAuthSession();
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
@@ -21,6 +42,13 @@ async function request(path, options = {}) {
   const data = await response.json().catch(() => ({}));
 
   if (response.status === 401) {
+    // Try to refresh once before giving up
+    if (_retry && !_isRefreshing && path !== '/auth/refresh') {
+      _isRefreshing = true;
+      const refreshed = await _doRefresh();
+      _isRefreshing = false;
+      if (refreshed) return request(path, options, false);
+    }
     const msg = data?.detail ?? data?.message ?? 'Session expired. Please log in again.';
     if (window.location.pathname !== '/login') {
       clearAuthSession();
@@ -40,8 +68,9 @@ async function request(path, options = {}) {
 
 export { request };
 
-export function saveAuthSession({ access_token: accessToken, user }) {
+export function saveAuthSession({ access_token: accessToken, refresh_token: refreshToken, user }) {
   localStorage.setItem('smartagri_token', accessToken);
+  if (refreshToken) localStorage.setItem('smartagri_refresh', refreshToken);
   localStorage.setItem('smartagri_user', JSON.stringify(user));
 }
 
@@ -56,6 +85,7 @@ export function getAuthSession() {
 
 export function clearAuthSession() {
   localStorage.removeItem('smartagri_token');
+  localStorage.removeItem('smartagri_refresh');
   localStorage.removeItem('smartagri_user');
   localStorage.removeItem('sa-active-role');
 }
