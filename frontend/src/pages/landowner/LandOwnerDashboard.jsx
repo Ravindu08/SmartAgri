@@ -203,6 +203,14 @@ export default function LandOwnerDashboard() {
       }
 
       setNotifs(allNotifs);
+      // Prune dismissed IDs whose notifications have naturally resolved
+      setDismissed(prev => {
+        const activeIds = new Set(allNotifs.map(n => n.id));
+        const cleaned   = new Set([...prev].filter(id => activeIds.has(id)));
+        if (cleaned.size === prev.size) return prev;
+        localStorage.setItem('sa_dismissed_notifs', JSON.stringify([...cleaned]));
+        return cleaned;
+      });
     }
     load();
   }, [userId, lang]);

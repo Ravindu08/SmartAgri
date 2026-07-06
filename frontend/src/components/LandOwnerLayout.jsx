@@ -169,68 +169,83 @@ export default function LandOwnerLayout() {
   useEffect(() => {
     if (!user?.id) return;
     const userId = String(user.id);
-    const lt     = LAND_T[lang] || LAND_T.en;
-    const today  = new Date().toISOString().slice(0, 10);
-    const in7    = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
-    const in3    = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
+
+    const loadCultNotifs = () => {
+      const lt    = LAND_T[lang] || LAND_T.en;
+      const today = new Date().toISOString().slice(0, 10);
+      const in7   = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+      const in3   = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
+
+      Promise.all([
+        listCultivations(userId).catch(() => ({ sessions: [] })),
+        getCrops().catch(() => []),
+      ]).then(([cultData, crops]) => {
+        const allNotifs = [];
+        const sessions  = cultData.sessions || [];
+
+        for (const session of sessions) {
+          if (session.status !== 'active') continue;
+          const tasks     = Object.values(session.tasks || {});
+          const cropLabel = getCropLabel(session.crop, lang);
+
+          const overdue = tasks.filter(tk =>
+            tk.status !== 'done' && tk.status !== 'skipped' && tk.scheduled_date < today
+          );
+          if (overdue.length > 0) {
+            allNotifs.push({
+              id: `overdue-${session.id}`, type: 'danger', icon: '🚨',
+              title: lt.overdueTasks(overdue.length, cropLabel),
+              detail: overdue.slice(0, 3).map(tk => tk.title).join(', ') + (overdue.length > 3 ? ` +${overdue.length - 3}` : ''),
+              href: '/landowner/cultivations',
+            });
+          }
+
+          const upcoming = tasks.filter(tk =>
+            tk.status === 'pending' && tk.scheduled_date >= today && tk.scheduled_date <= in7
+          );
+          if (upcoming.length > 0) {
+            const next     = upcoming.sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))[0];
+            const daysLeft = Math.floor((new Date(next.scheduled_date) - new Date(today)) / 86400000);
+            allNotifs.push({
+              id: `upcoming-${session.id}-${next.id}`, type: 'task', icon: '📅',
+              title: daysLeft === 0
+                ? lt.upcomingTaskToday(cropLabel, next.title)
+                : lt.upcomingTaskInDays(cropLabel, next.title, daysLeft),
+              detail: lt.upcomingTaskDetail(upcoming.length),
+              href: '/landowner/cultivations',
+            });
+          }
+        }
+
+        crops
+          .filter(cr => cr.status === 'Active' && cr.expected_harvest_date >= today && cr.expected_harvest_date <= in3)
+          .forEach(cr => {
+            const d         = Math.floor((new Date(cr.expected_harvest_date) - new Date(today)) / 86400000);
+            const cropLabel = getCropLabel(cr.crop_name, lang);
+            allNotifs.push({
+              id: `harvest-${cr.id}`, type: 'warning', icon: '🧺',
+              title: d === 0 ? lt.harvestTodayMsg(cropLabel) : lt.harvestInDaysMsg(d, cropLabel),
+              detail: lt.harvestDetailMsg(new Date(cr.expected_harvest_date).toLocaleDateString()),
+            });
+          });
+
+        setNotifs(allNotifs);
+        setNotifLoading(false);
+        // Prune dismissed IDs whose notifications have naturally resolved
+        setDismissed(prev => {
+          const activeIds = new Set(allNotifs.map(n => n.id));
+          const cleaned   = new Set([...prev].filter(id => activeIds.has(id)));
+          if (cleaned.size === prev.size) return prev;
+          localStorage.setItem('sa_dismissed_notifs', JSON.stringify([...cleaned]));
+          return cleaned;
+        });
+      });
+    };
 
     setNotifLoading(true);
-    Promise.all([
-      listCultivations(userId).catch(() => ({ sessions: [] })),
-      getCrops().catch(() => []),
-    ]).then(([cultData, crops]) => {
-      const allNotifs = [];
-      const sessions  = cultData.sessions || [];
-
-      for (const session of sessions) {
-        if (session.status !== 'active') continue;
-        const tasks     = Object.values(session.tasks || {});
-        const cropLabel = getCropLabel(session.crop, lang);
-
-        const overdue = tasks.filter(tk =>
-          tk.status !== 'done' && tk.status !== 'skipped' && tk.scheduled_date < today
-        );
-        if (overdue.length > 0) {
-          allNotifs.push({
-            id: `overdue-${session.id}`, type: 'danger', icon: '🚨',
-            title: lt.overdueTasks(overdue.length, cropLabel),
-            detail: overdue.slice(0, 3).map(tk => tk.title).join(', ') + (overdue.length > 3 ? ` +${overdue.length - 3}` : ''),
-            href: '/landowner/cultivations',
-          });
-        }
-
-        const upcoming = tasks.filter(tk =>
-          tk.status === 'pending' && tk.scheduled_date >= today && tk.scheduled_date <= in7
-        );
-        if (upcoming.length > 0) {
-          const next     = upcoming.sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))[0];
-          const daysLeft = Math.floor((new Date(next.scheduled_date) - new Date(today)) / 86400000);
-          allNotifs.push({
-            id: `upcoming-${session.id}-${next.id}`, type: 'task', icon: '📅',
-            title: daysLeft === 0
-              ? lt.upcomingTaskToday(cropLabel, next.title)
-              : lt.upcomingTaskInDays(cropLabel, next.title, daysLeft),
-            detail: lt.upcomingTaskDetail(upcoming.length),
-            href: '/landowner/cultivations',
-          });
-        }
-      }
-
-      crops
-        .filter(cr => cr.status === 'Active' && cr.expected_harvest_date >= today && cr.expected_harvest_date <= in3)
-        .forEach(cr => {
-          const d         = Math.floor((new Date(cr.expected_harvest_date) - new Date(today)) / 86400000);
-          const cropLabel = getCropLabel(cr.crop_name, lang);
-          allNotifs.push({
-            id: `harvest-${cr.id}`, type: 'warning', icon: '🧺',
-            title: d === 0 ? lt.harvestTodayMsg(cropLabel) : lt.harvestInDaysMsg(d, cropLabel),
-            detail: lt.harvestDetailMsg(new Date(cr.expected_harvest_date).toLocaleDateString()),
-          });
-        });
-
-      setNotifs(allNotifs);
-      setNotifLoading(false);
-    });
+    loadCultNotifs();
+    const id = setInterval(loadCultNotifs, 30_000);
+    return () => clearInterval(id);
   }, [user?.id, lang]);
 
   const dismissNotif = id => {
