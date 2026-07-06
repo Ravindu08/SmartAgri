@@ -14,6 +14,7 @@ htmlcov/
 # Model binaries (large — store in cloud storage or DVC)
 backend/ai_models/training/models/*.pkl
 backend/ai_models/training/models/*.joblib
+backend/ai_models/training/models/backup_*/
 
 # Model evaluation artifacts
 backend/ai_models/training/models/*.png
