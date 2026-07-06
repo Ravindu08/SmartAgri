@@ -30,6 +30,7 @@ export default function AdminLayout() {
   const { user } = getAuthSession();
   const location = useLocation();
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
 
@@ -60,8 +61,9 @@ export default function AdminLayout() {
 
   return (
     <div className="lo-shell">
+      {sidebarOpen && <div className="lo-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
       {/* Admin sidebar — reuses lo-sidebar CSS but with admin accent color */}
-      <aside className="lo-sidebar" style={{ '--sidebar-accent': '#7c3aed' }}>
+      <aside className={`lo-sidebar${sidebarOpen ? ' lo-sidebar--open' : ''}`} style={{ '--sidebar-accent': '#7c3aed' }}>
         {/* Logo */}
         <div style={{ padding: '20px 20px 8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
@@ -77,6 +79,7 @@ export default function AdminLayout() {
         <nav className="lo-sidebar__nav">
           {navItems.map(({ to, icon, label }) => (
             <Link key={label} to={to}
+              onClick={() => setSidebarOpen(false)}
               className={`lo-sidebar__link${location.pathname.startsWith(to) ? ' active' : ''}`}
               style={location.pathname.startsWith(to) ? { '--link-active-bg': '#7c3aed22', '--link-active-color': '#7c3aed' } : {}}>
               <span className="lo-sidebar__link-icon">{icon}</span>
@@ -99,6 +102,7 @@ export default function AdminLayout() {
 
       <div className="lo-main">
         <header className="lo-topbar">
+          <button className="lo-hamburger" type="button" onClick={() => setSidebarOpen(o => !o)} aria-label="Menu">☰</button>
           <div className="lo-topbar__title">{currentLabel}</div>
           <div className="lo-topbar__right">
             <div style={{ position: 'relative' }} ref={profileRef}>

@@ -1,12 +1,19 @@
 from datetime import datetime, timezone, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db
-from app.core.security import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, hash_password, verify_password
+from app.core.security import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+    hash_password,
+    verify_password,
+)
 from app.models.user import User, UserRole
 from app.schemas.auth import AuthResponse, UserLogin, UserRegister
 from app.schemas.user import PasswordChange, UserRead, UserUpdate
@@ -19,7 +26,7 @@ from app.services.auth import (
     get_user_by_email,
 )
 from app.services.email import send_password_reset_email, send_verification_email
-
+from app.core.limiter import limiter
 
 router = APIRouter()
 
@@ -32,7 +39,8 @@ class RegisterResponse(BaseModel):
 
 
 @router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
-def register_user(payload: UserRegister, db: Session = Depends(get_db)) -> RegisterResponse:
+@limiter.limit("5/minute")
+def register_user(request: Request, payload: UserRegister, db: Session = Depends(get_db)) -> RegisterResponse:
     existing_user = get_user_by_email(db, payload.email)
     if existing_user is not None:
         # Allow adding a new role to an existing verified account
@@ -85,7 +93,8 @@ def register_user(payload: UserRegister, db: Session = Depends(get_db)) -> Regis
 # ── Email verification ────────────────────────────────────────────────────────
 
 @router.post("/resend-verification")
-def resend_verification(email: EmailStr, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def resend_verification(request: Request, email: EmailStr, db: Session = Depends(get_db)):
     user = get_user_by_email(db, email)
     if user is None or user.is_verified:
         return {"message": "If that email is registered and unverified, a new code has been sent."}
@@ -123,7 +132,8 @@ def verify_email(payload: VerifyEmailRequest, db: Session = Depends(get_db)):
 # ── Login ─────────────────────────────────────────────────────────────────────
 
 @router.post("/login", response_model=AuthResponse)
-def login_user(payload: UserLogin, db: Session = Depends(get_db)) -> AuthResponse:
+@limiter.limit("10/minute")
+def login_user(request: Request, payload: UserLogin, db: Session = Depends(get_db)) -> AuthResponse:
     user = authenticate_user(db, payload.email, payload.password)
     if user is None:
         raise HTTPException(
@@ -148,12 +158,50 @@ def login_user(payload: UserLogin, db: Session = Depends(get_db)) -> AuthRespons
         data={"sub": user.email},
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
     )
+    refresh_token = create_refresh_token(data={"sub": user.email})
     return AuthResponse(
         access_token=access_token,
+        refresh_token=refresh_token,
         token_type="bearer",
         redirect_to=get_redirect_path(user),
         user=UserRead.model_validate(user),
     )
+
+
+# ── Token refresh ────────────────────────────────────────────────────────────
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+class RefreshResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+
+@router.post("/refresh", response_model=RefreshResponse)
+def refresh_token(payload: RefreshRequest, db: Session = Depends(get_db)) -> RefreshResponse:
+    from jose import JWTError
+    try:
+        data = decode_token(payload.refresh_token)
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired refresh token")
+
+    if data.get("type") != "refresh":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
+
+    email = data.get("sub")
+    user = get_user_by_email(db, email) if email else None
+    if user is None or user.is_suspended:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or suspended")
+
+    new_access = create_access_token(
+        data={"sub": user.email},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
+    new_refresh = create_refresh_token(data={"sub": user.email})
+    return RefreshResponse(access_token=new_access, refresh_token=new_refresh)
 
 
 # ── Forgot / reset password ───────────────────────────────────────────────────
@@ -168,7 +216,8 @@ class ResetPasswordRequest(BaseModel):
 
 
 @router.post("/forgot-password")
-def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def forgot_password(request: Request, payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
     user = get_user_by_email(db, payload.email)
     if user is not None and user.is_verified:
         token = generate_reset_token(db, user)

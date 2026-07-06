@@ -117,6 +117,7 @@ export default function LandOwnerLayout() {
   const { user } = getAuthSession();
   const location = useLocation();
   const navigate = useNavigate();
+  const [sidebarOpen,  setSidebarOpen]  = useState(false);
   const [notifOpen,    setNotifOpen]    = useState(false);
   const [profileOpen,  setProfileOpen]  = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -278,11 +279,13 @@ export default function LandOwnerLayout() {
   return (
     <div className="lo-shell">
       <Navbar />
-      <aside className="lo-sidebar">
+      {sidebarOpen && <div className="lo-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+      <aside className={`lo-sidebar${sidebarOpen ? ' lo-sidebar--open' : ''}`}>
         <nav className="lo-sidebar__nav">
           {navItems.map(({ to, icon, label }) => (
             <Link
               key={label} to={to}
+              onClick={() => setSidebarOpen(false)}
               className={`lo-sidebar__link${
                 location.pathname === to ||
                 (location.pathname.startsWith(to + '/') && to !== '/landowner/dashboard')
@@ -336,6 +339,7 @@ export default function LandOwnerLayout() {
 
       <div className="lo-main">
         <header className="lo-topbar">
+          <button className="lo-hamburger" type="button" onClick={() => setSidebarOpen(o => !o)} aria-label="Menu">☰</button>
           <div className="lo-topbar__title">
             {navItems.find(n => location.pathname.startsWith(n.to))?.label || t.dashboard}
           </div>
