@@ -166,7 +166,7 @@ const M = {
 
 // ── API helpers ────────────────────────────────────────────────────────────────
 const authFetcher = url => request(url);
-const publicFetcher = url => fetch(url).then(async r => {
+const publicFetcher = url => fetch(`${import.meta.env.VITE_API_URL || ''}${url}`).then(async r => {
   if (!r.ok) throw new Error('Failed to load');
   return r.json();
 });
