@@ -17,6 +17,7 @@ const LO_LAYOUT_T = {
     helpSupport: 'Help & Support', landOwner: 'Land Owner',
     profileSettings: 'Profile Settings', logout: 'Log Out',
     notifications: 'Notifications', noNotifications: 'No new notifications.',
+    markAllSeen: 'Mark all as seen', markSeen: 'Mark as seen', seenLabel: 'Seen',
     switchRole: 'Switch to Trader', sendFeedback: 'Send Feedback',
     fbTitle: 'Send Feedback', fbType: 'Type', fbSubject: 'Subject',
     fbMessage: 'Message', fbSend: 'Send', fbSending: 'Sending…', fbSent: 'Sent!',
@@ -29,6 +30,7 @@ const LO_LAYOUT_T = {
     helpSupport: 'උදව් සහ සහාය', landOwner: 'ඉඩම් හිමිකරු',
     profileSettings: 'පැතිකඩ සැකසීම්', logout: 'ලොග් අවුට්',
     notifications: 'දැනුම්දීම්', noNotifications: 'නව දැනුම්දීම් නොමැත.',
+    markAllSeen: 'සියල්ල දුටු ලෙස ලකුණු කරන්න', markSeen: 'දුටු ලෙස ලකුණු කරන්න', seenLabel: 'දුටුවා',
     switchRole: 'ව්‍යාපාරිකයාට මාරු වන්න', sendFeedback: 'ප්‍රතිපෝෂණ',
     fbTitle: 'ප්‍රතිපෝෂණ යවන්න', fbType: 'වර්ගය', fbSubject: 'විෂය',
     fbMessage: 'පණිවිඩය', fbSend: 'යවන්න', fbSending: 'යවමින්…', fbSent: 'යැවීය!',
@@ -41,6 +43,7 @@ const LO_LAYOUT_T = {
     helpSupport: 'உதவி & ஆதரவு', landOwner: 'நில உரிமையாளர்',
     profileSettings: 'சுயவிவர அமைப்புகள்', logout: 'வெளியேறு',
     notifications: 'அறிவிப்புகள்', noNotifications: 'புதிய அறிவிப்புகள் இல்லை.',
+    markAllSeen: 'அனைத்தையும் பார்த்ததாகக் குறி', markSeen: 'பார்த்ததாகக் குறி', seenLabel: 'பார்த்தது',
     switchRole: 'வணிகருக்கு மாறு', sendFeedback: 'கருத்து',
     fbTitle: 'கருத்து அனுப்பு', fbType: 'வகை', fbSubject: 'தலைப்பு',
     fbMessage: 'செய்தி', fbSend: 'அனுப்பு', fbSending: 'அனுப்புகிறது…', fbSent: 'அனுப்பப்பட்டது!',
@@ -148,16 +151,19 @@ export default function LandOwnerLayout() {
       fetchNotifications().then(data => {
         setApiNotifs(
           (data || [])
-            .filter(n => !n.is_read)
             .map(n => ({
               id: `api-${n.id}`,
               _apiId: n.id,
+              seen: !!n.is_read,
               type: n.type.includes('danger') || n.type === 'order_rejected' ? 'danger' : 'task',
               icon: n.type === 'order_created' ? '🛒' : n.type === 'order_confirmed' ? '✅' : n.type === 'order_rejected' ? '❌' : n.type === 'order_delivered' ? '🚚' : n.type === 'order_completed' ? '🎉' : n.type === 'rating_received' ? '⭐' : '🔔',
               title: n.title,
               detail: n.body || '',
               href: n.link || null,
             }))
+            // unseen first; keep seen history but cap it so the panel stays scannable
+            .sort((a, b) => a.seen - b.seen)
+            .slice(0, 25)
         );
       }).catch(() => {});
     };
@@ -249,19 +255,25 @@ export default function LandOwnerLayout() {
   }, [user?.id, lang]);
 
   const dismissNotif = id => {
-    // If it's a backend notification, mark it read in the DB
+    // Backend notifications: mark seen (kept in the list, dimmed) rather than removed
     const apiNotif = apiNotifs.find(n => n.id === id);
     if (apiNotif) {
       markNotificationRead(apiNotif._apiId).catch(() => {});
-      setApiNotifs(prev => prev.filter(n => n.id !== id));
+      setApiNotifs(prev => prev.map(n => n.id === id ? { ...n, seen: true } : n));
       return;
     }
+    // Cultivation-derived notifications: local dismiss (they self-clear once resolved)
     setDismissed(prev => {
       const next = new Set(prev);
       next.add(id);
       localStorage.setItem('sa_dismissed_notifs', JSON.stringify([...next]));
       return next;
     });
+  };
+
+  const markAllSeen = () => {
+    markAllNotificationsRead().catch(() => {});
+    setApiNotifs(prev => prev.map(n => ({ ...n, seen: true })));
   };
 
   if (!user) return <Navigate to="/login" replace />;
@@ -290,6 +302,7 @@ export default function LandOwnerLayout() {
 
   const initials     = user?.full_name ? user.full_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : 'LO';
   const visibleNotifs = [...notifs.filter(n => !dismissed.has(n.id)), ...apiNotifs];
+  const unseenCount   = visibleNotifs.filter(n => !n.seen).length;
 
   return (
     <div className="lo-shell">
@@ -364,31 +377,41 @@ export default function LandOwnerLayout() {
                 onClick={() => { setNotifOpen(o => !o); setProfileOpen(false); }}
                 aria-label={t.notifications}>
                 🔔
-                {visibleNotifs.length > 0
-                  ? <span className="lo-topbar__notif-badge">{visibleNotifs.length}</span>
+                {unseenCount > 0
+                  ? <span className="lo-topbar__notif-badge">{unseenCount}</span>
                   : <span className="lo-topbar__notif-dot" />}
               </button>
               {notifOpen && (
                 <div className="lo-topbar__notif-panel">
                   <div className="lo-topbar__notif-panel-header">
                     <span>{t.notifications}</span>
-                    <button type="button" onClick={() => setNotifOpen(false)}
-                      style={{background:'none',border:'none',cursor:'pointer',color:'var(--muted)',fontSize:'14px'}}>✕</button>
+                    <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                      {apiNotifs.some(n => !n.seen) && (
+                        <button type="button" className="lo-notif-mark-all" onClick={markAllSeen}>
+                          ✓ {t.markAllSeen}
+                        </button>
+                      )}
+                      <button type="button" onClick={() => setNotifOpen(false)}
+                        style={{background:'none',border:'none',cursor:'pointer',color:'var(--muted)',fontSize:'14px'}}>✕</button>
+                    </div>
                   </div>
                   <div className="lo-topbar__notif-panel-body">
                     {notifLoading ? <p className="lo-topbar__notif-empty">…</p>
                       : visibleNotifs.length === 0 ? <p className="lo-topbar__notif-empty">{t.noNotifications}</p>
                       : visibleNotifs.map(n => (
                         <div key={n.id}
-                          className={`dash-notif-card dash-notif-card--${n.type}${n.href ? ' dash-notif-card--clickable' : ''}`}
+                          className={`dash-notif-card dash-notif-card--${n.type}${n.href ? ' dash-notif-card--clickable' : ''}${n.seen ? ' dash-notif-card--seen' : ''}`}
                           onClick={() => { if (n.href) { navigate(n.href); setNotifOpen(false); } }}>
                           <span className="dash-notif-icon">{n.icon}</span>
                           <div className="dash-notif-body">
                             <strong className="dash-notif-strong">{n.title}</strong>
                             <p>{n.detail}</p>
                           </div>
-                          <button className="dash-notif-dismiss" type="button"
-                            onClick={e => { e.stopPropagation(); dismissNotif(n.id); }} title="Dismiss">✕</button>
+                          {n.seen
+                            ? <span className="dash-notif-seen-tag">{t.seenLabel}</span>
+                            : <button className="dash-notif-dismiss" type="button"
+                                onClick={e => { e.stopPropagation(); dismissNotif(n.id); }}
+                                title={n._apiId ? t.markSeen : 'Dismiss'}>{n._apiId ? '✓' : '✕'}</button>}
                         </div>
                       ))}
                   </div>

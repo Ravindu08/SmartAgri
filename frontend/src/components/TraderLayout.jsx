@@ -3,7 +3,7 @@ import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-d
 import Navbar from './Navbar';
 import CustomSelect from './CustomSelect';
 import { useApp } from '../context/AppContext';
-import { getAuthSession, clearAuthSession, getActiveRole, isDualRole, submitFeedback, fetchNotifications, markNotificationRead } from '../services/api';
+import { getAuthSession, clearAuthSession, getActiveRole, isDualRole, submitFeedback, fetchNotifications, markNotificationRead, markAllNotificationsRead } from '../services/api';
 
 const TR_LAYOUT_T = {
   en: {
@@ -13,6 +13,7 @@ const TR_LAYOUT_T = {
     helpSupport: 'Help & Support', trader: 'Trader',
     profileSettings: 'Profile Settings', logout: 'Log Out',
     notifications: 'Notifications', noNotifications: 'No new notifications.',
+    markAllSeen: 'Mark all as seen', markSeen: 'Mark as seen', seenLabel: 'Seen',
     switchRole: 'Switch to Land Owner', sendFeedback: 'Send Feedback',
     fbTitle: 'Send Feedback', fbType: 'Type', fbSubject: 'Subject',
     fbMessage: 'Message', fbSend: 'Send', fbSending: 'Sending…', fbSent: 'Sent!',
@@ -25,6 +26,7 @@ const TR_LAYOUT_T = {
     helpSupport: 'උදව් සහ සහාය', trader: 'වෙළෙන්ද',
     profileSettings: 'පැතිකඩ සැකසීම්', logout: 'ලොග් අවුට්',
     notifications: 'දැනුම්දීම්', noNotifications: 'නව දැනුම්දීම් නොමැත.',
+    markAllSeen: 'සියල්ල දුටු ලෙස ලකුණු කරන්න', markSeen: 'දුටු ලෙස ලකුණු කරන්න', seenLabel: 'දුටුවා',
     switchRole: 'ඉඩම් හිමිකරුට මාරු වන්න', sendFeedback: 'ප්‍රතිපෝෂණ',
     fbTitle: 'ප්‍රතිපෝෂණ යවන්න', fbType: 'වර්ගය', fbSubject: 'විෂය',
     fbMessage: 'පණිවිඩය', fbSend: 'යවන්න', fbSending: 'යවමින්…', fbSent: 'යැවීය!',
@@ -37,6 +39,7 @@ const TR_LAYOUT_T = {
     helpSupport: 'உதவி & ஆதரவு', trader: 'கடைவர்',
     profileSettings: 'சுயவிவர அமைப்புகள்', logout: 'வெளியேறு',
     notifications: 'அறிவிப்புகள்', noNotifications: 'புதிய அறிவிப்புகள் இல்லை.',
+    markAllSeen: 'அனைத்தையும் பார்த்ததாகக் குறி', markSeen: 'பார்த்ததாகக் குறி', seenLabel: 'பார்த்தது',
     switchRole: 'நில உரிமையாளருக்கு மாறு', sendFeedback: 'கருத்து',
     fbTitle: 'கருத்து அனுப்பு', fbType: 'வகை', fbSubject: 'தலைப்பு',
     fbMessage: 'செய்தி', fbSend: 'அனுப்பு', fbSending: 'அனுப்புகிறது…', fbSent: 'அனுப்பப்பட்டது!',
@@ -136,13 +139,17 @@ export default function TraderLayout() {
     const load = () => {
       fetchNotifications().then(data => {
         setApiNotifs(
-          (data || []).filter(n => !n.is_read).map(n => ({
+          (data || []).map(n => ({
             id: n.id,
+            seen: !!n.is_read,
             icon: n.type === 'order_confirmed' ? '✅' : n.type === 'order_rejected' ? '❌' : n.type === 'order_delivered' ? '🚚' : n.type === 'order_completed' ? '🎉' : '🔔',
             title: n.title,
             body: n.body || '',
             link: n.link || null,
           }))
+          // unseen first; keep seen history but cap it so the panel stays scannable
+          .sort((a, b) => a.seen - b.seen)
+          .slice(0, 25)
         );
       }).catch(() => {});
     };
@@ -153,7 +160,12 @@ export default function TraderLayout() {
 
   const dismissTraderNotif = id => {
     markNotificationRead(id).catch(() => {});
-    setApiNotifs(prev => prev.filter(n => n.id !== id));
+    setApiNotifs(prev => prev.map(n => n.id === id ? { ...n, seen: true } : n));
+  };
+
+  const markAllSeen = () => {
+    markAllNotificationsRead().catch(() => {});
+    setApiNotifs(prev => prev.map(n => ({ ...n, seen: true })));
   };
 
   if (!user) return <Navigate to="/login" replace />;
@@ -250,31 +262,40 @@ export default function TraderLayout() {
                 onClick={() => { setNotifOpen(o => !o); setProfileOpen(false); }}
                 aria-label={t.notifications}>
                 🔔
-                {apiNotifs.length > 0
-                  ? <span className="lo-topbar__notif-badge">{apiNotifs.length}</span>
+                {apiNotifs.filter(n => !n.seen).length > 0
+                  ? <span className="lo-topbar__notif-badge">{apiNotifs.filter(n => !n.seen).length}</span>
                   : <span className="lo-topbar__notif-dot" />}
               </button>
               {notifOpen && (
                 <div className="lo-topbar__notif-panel">
                   <div className="lo-topbar__notif-panel-header">
                     <span>{t.notifications}</span>
-                    <button type="button" onClick={() => setNotifOpen(false)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '14px' }}>✕</button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      {apiNotifs.some(n => !n.seen) && (
+                        <button type="button" className="lo-notif-mark-all" onClick={markAllSeen}>
+                          ✓ {t.markAllSeen}
+                        </button>
+                      )}
+                      <button type="button" onClick={() => setNotifOpen(false)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '14px' }}>✕</button>
+                    </div>
                   </div>
                   <div className="lo-topbar__notif-panel-body">
                     {apiNotifs.length === 0
                       ? <p className="lo-topbar__notif-empty">{t.noNotifications}</p>
                       : apiNotifs.map(n => (
                         <div key={n.id}
-                          className={`dash-notif-card dash-notif-card--task${n.link ? ' dash-notif-card--clickable' : ''}`}
+                          className={`dash-notif-card dash-notif-card--task${n.link ? ' dash-notif-card--clickable' : ''}${n.seen ? ' dash-notif-card--seen' : ''}`}
                           onClick={() => { if (n.link) { navigate(n.link); setNotifOpen(false); } }}>
                           <span className="dash-notif-icon">{n.icon}</span>
                           <div className="dash-notif-body">
                             <strong className="dash-notif-strong">{n.title}</strong>
                             {n.body && <p>{n.body}</p>}
                           </div>
-                          <button className="dash-notif-dismiss" type="button"
-                            onClick={e => { e.stopPropagation(); dismissTraderNotif(n.id); }} title="Dismiss">✕</button>
+                          {n.seen
+                            ? <span className="dash-notif-seen-tag">{t.seenLabel}</span>
+                            : <button className="dash-notif-dismiss" type="button"
+                                onClick={e => { e.stopPropagation(); dismissTraderNotif(n.id); }} title={t.markSeen}>✓</button>}
                         </div>
                       ))
                     }
