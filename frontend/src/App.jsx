@@ -146,51 +146,45 @@ function AppRoutes() {
 
       {/* Land Owner section */}
       <Route path="/landowner" element={<LandOwnerLayout />}>
-        <Suspense fallback={<PageLoader />}>
-          <Route index element={<Navigate to="/landowner/dashboard" replace />} />
-          <Route path="dashboard"      element={<LandOwnerDashboard />} />
-          <Route path="farms"          element={<MyFarms />} />
-          <Route path="farms/add"      element={<AddFarm />} />
-          <Route path="farms/edit/:id" element={<EditFarm />} />
-          <Route path="farms/:id"      element={<FarmDetails />} />
-          <Route path="crops"          element={<MyCrops />} />
-          <Route path="crops/add"      element={<AddCrop />} />
-          <Route path="crops/:id"      element={<CropDetails />} />
-          <Route path="cultivations"   element={<MyCultivations />} />
-          <Route path="settings"       element={<Settings />} />
-          <Route path="help"           element={<HelpSupport />} />
-        </Suspense>
+        <Route index element={<Navigate to="/landowner/dashboard" replace />} />
+        <Route path="dashboard"      element={<LandOwnerDashboard />} />
+        <Route path="farms"          element={<MyFarms />} />
+        <Route path="farms/add"      element={<AddFarm />} />
+        <Route path="farms/edit/:id" element={<EditFarm />} />
+        <Route path="farms/:id"      element={<FarmDetails />} />
+        <Route path="crops"          element={<MyCrops />} />
+        <Route path="crops/add"      element={<AddCrop />} />
+        <Route path="crops/:id"      element={<CropDetails />} />
+        <Route path="cultivations"   element={<MyCultivations />} />
+        <Route path="settings"       element={<Settings />} />
+        <Route path="help"           element={<HelpSupport />} />
       </Route>
 
       {/* Trader section */}
       <Route path="/trader" element={<TraderLayout />}>
-        <Suspense fallback={<PageLoader />}>
-          <Route index element={<Navigate to="/trader/dashboard" replace />} />
-          <Route path="dashboard" element={<TraderDashboard />} />
-          <Route path="requests"  element={<TraderRequests />} />
-          <Route path="orders"    element={<TraderOrders />} />
-          <Route path="history"   element={<TraderHistory />} />
-          <Route path="settings"  element={<TraderSettings />} />
-          <Route path="help"      element={<TraderHelp />} />
-        </Suspense>
+        <Route index element={<Navigate to="/trader/dashboard" replace />} />
+        <Route path="dashboard" element={<TraderDashboard />} />
+        <Route path="requests"  element={<TraderRequests />} />
+        <Route path="orders"    element={<TraderOrders />} />
+        <Route path="history"   element={<TraderHistory />} />
+        <Route path="settings"  element={<TraderSettings />} />
+        <Route path="help"      element={<TraderHelp />} />
       </Route>
 
       {/* Admin section */}
       <Route path="/admin" element={<AdminLayout />}>
-        <Suspense fallback={<PageLoader />}>
-          <Route index element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="dashboard"        element={<AdminDashboard />} />
-          <Route path="users"            element={<AdminUsers />} />
-          <Route path="users/create"     element={<AdminUserCreate />} />
-          <Route path="users/import"     element={<AdminUserImport />} />
-          <Route path="marketplace"      element={<AdminMarketplace />} />
-          <Route path="farms"            element={<AdminFarms />} />
-          <Route path="farms/import"     element={<AdminFarmImport />} />
-          <Route path="activity"         element={<AdminActivity />} />
-          <Route path="feedback"         element={<AdminFeedback />} />
-          <Route path="reports"          element={<AdminReports />} />
-          <Route path="harvest-forecast" element={<AdminHarvestForecast />} />
-        </Suspense>
+        <Route index element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="dashboard"        element={<AdminDashboard />} />
+        <Route path="users"            element={<AdminUsers />} />
+        <Route path="users/create"     element={<AdminUserCreate />} />
+        <Route path="users/import"     element={<AdminUserImport />} />
+        <Route path="marketplace"      element={<AdminMarketplace />} />
+        <Route path="farms"            element={<AdminFarms />} />
+        <Route path="farms/import"     element={<AdminFarmImport />} />
+        <Route path="activity"         element={<AdminActivity />} />
+        <Route path="feedback"         element={<AdminFeedback />} />
+        <Route path="reports"          element={<AdminReports />} />
+        <Route path="harvest-forecast" element={<AdminHarvestForecast />} />
       </Route>
     </Routes>
   );
@@ -200,7 +194,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppProvider>
-        <AppRoutes />
+        <Suspense fallback={<PageLoader />}>
+          <AppRoutes />
+        </Suspense>
       </AppProvider>
     </BrowserRouter>
   );
