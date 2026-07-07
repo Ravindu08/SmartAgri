@@ -2528,6 +2528,21 @@
   padding: 0 2px; line-height: 1;
 }
 .dash-notif-dismiss:hover { color: #555; }
+
+/* Seen notifications: kept in the list, visually de-emphasised */
+.dash-notif-card--seen { opacity: 0.55; filter: saturate(0.6); }
+.dash-notif-seen-tag {
+  flex-shrink: 0; font-size: 11px; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 1px 8px; line-height: 1.6; align-self: flex-start;
+}
+.lo-notif-mark-all {
+  background: none; border: none; cursor: pointer;
+  color: var(--green-primary); font-size: 12px; font-weight: 600;
+  padding: 0; line-height: 1;
+}
+.lo-notif-mark-all:hover { text-decoration: underline; }
+
 .dash-notif-empty {
   display: flex; align-items: center; gap: 8px;
   font-size: 13px; color: var(--muted); padding: 12px 0;
