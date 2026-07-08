@@ -49,7 +49,7 @@ const M = {
     estimatedTotal: 'Estimated total',
     available: 'available', soldLabel: 'Sold', reservedLabel: 'Reserved',
     ownerTabs: ['My Listings', 'Browse', 'Incoming Orders', 'History'],
-    traderTabs: ['Browse', 'My Products', 'My Orders', 'History'],
+    traderTabs: ['Browse', 'My Products', 'My Orders', 'History', 'Incoming Requests'],
     availableCrops: 'Crop Listings', availableProducts: 'Agricultural Products',
     loadingOrders: 'Loading orders…',
     noOrdersYet: 'No orders yet.', noHistoryYet: 'No completed orders yet.',
@@ -96,7 +96,7 @@ const M = {
     estimatedTotal: 'අනුමාන මුළු',
     available: 'ලබා ගත හැකි', soldLabel: 'විකිණී', reservedLabel: 'වෙන් කළ',
     ownerTabs: ['මගේ ලැයිස්තු', 'බ්‍රව්ස්', 'ලැබෙන ඇණවුම්', 'ඉතිහාසය'],
-    traderTabs: ['බ්‍රව්ස්', 'මගේ නිෂ්පාදන', 'මගේ ඇණවුම්', 'ඉතිහාසය'],
+    traderTabs: ['බ්‍රව්ස්', 'මගේ නිෂ්පාදන', 'මගේ ඇණවුම්', 'ඉතිහාසය', 'එන ඉල්ලීම්'],
     availableCrops: 'බෝග ලැයිස්තු', availableProducts: 'කෘෂි නිෂ්පාදන',
     loadingOrders: 'ඇණවුම් ලෝඩ් වෙමින්…',
     noOrdersYet: 'ඇණවුම් නොමැත.', noHistoryYet: 'සම්පූර්ණ ඇණවුම් නොමැත.',
@@ -143,7 +143,7 @@ const M = {
     estimatedTotal: 'மதிப்பிடப்பட்ட மொத்தம்',
     available: 'கிடைக்கிறது', soldLabel: 'விற்கப்பட்டது', reservedLabel: 'ஒதுக்கப்பட்டது',
     ownerTabs: ['என் பட்டியல்கள்', 'உலாவு', 'வரும் ஆர்டர்கள்', 'வரலாறு'],
-    traderTabs: ['உலாவு', 'என் தயாரிப்புகள்', 'என் ஆர்டர்கள்', 'வரலாறு'],
+    traderTabs: ['உலாவு', 'என் தயாரிப்புகள்', 'என் ஆர்டர்கள்', 'வரலாறு', 'வரும் கோரிக்கைகள்'],
     availableCrops: 'பயிர் பட்டியல்கள்', availableProducts: 'விவசாய தயாரிப்புகள்',
     loadingOrders: 'ஆர்டர்கள் ஏற்றுகிறது…',
     noOrdersYet: 'ஆர்டர்கள் இல்லை.', noHistoryYet: 'முடிந்த ஆர்டர்கள் இல்லை.',
@@ -599,7 +599,14 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
           Rs. {Number(listing.price_per_unit).toLocaleString()}
           <span className="text-sm font-normal text-muted-foreground">/{listing.unit}</span>
         </div>
-        <p className="text-xs text-muted-foreground mb-1">Seller: {listing.owner_name}</p>
+        <p className="text-xs text-muted-foreground mb-1">
+          Seller: {listing.owner_name}
+          {listing.seller_rating != null && (
+            <span style={{ color: 'var(--amber, #f59e0b)', fontWeight: 600 }}>
+              {' '}⭐ {listing.seller_rating} ({listing.seller_rating_count})
+            </span>
+          )}
+        </p>
         {listing.owner_phone && (
           <p className="text-xs text-muted-foreground mb-3" style={{ color: 'var(--green-primary)' }}>📞 {listing.owner_phone}</p>
         )}
@@ -938,6 +945,13 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
             </Btn>
           )}
 
+          {/* Buyer can cancel before delivery (stock is restored automatically) */}
+          {isBuyer && (order.status === 'Pending' || order.status === 'Confirmed') && (
+            <Btn size="sm" variant="danger" onClick={() => updateStatus('Cancelled')} disabled={busy}>
+              <X size={14} />{m.cancel}
+            </Btn>
+          )}
+
           {/* Buyer rates completed order */}
           {isBuyer && order.status === 'Completed' && !rated && (
             <Btn size="sm" variant="outline" onClick={() => setRatingOpen(true)}>
@@ -952,9 +966,13 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
 }
 
 // ── Orders panel ───────────────────────────────────────────────────────────────
-function OrdersPanel({ currentUserId, m, historyMode = false }) {
+function OrdersPanel({ currentUserId, m, historyMode = false, filterRole }) {
   const { data, isLoading } = useSWR('/api/marketplace/orders', authFetcher);
-  const allOrders = data || [];
+  let allOrders = data || [];
+
+  // 'seller' → incoming requests on my listings; 'buyer' → my purchases
+  if (filterRole === 'seller') allOrders = allOrders.filter(o => o.seller_id === currentUserId);
+  if (filterRole === 'buyer')  allOrders = allOrders.filter(o => o.buyer_id === currentUserId);
 
   const active = allOrders.filter(o => ['Pending', 'Confirmed', 'Delivered'].includes(o.status));
   const history = allOrders.filter(o => ['Completed', 'Rejected', 'Cancelled'].includes(o.status));
@@ -1153,7 +1171,7 @@ export default function MarketplacePage() {
                 </div>
               </div>
             )}
-            {ownerTab === 'orders'  && <OrdersPanel currentUserId={currentUserId} m={m} />}
+            {ownerTab === 'orders'  && <OrdersPanel currentUserId={currentUserId} m={m} filterRole="seller" />}
             {ownerTab === 'history' && <OrdersPanel currentUserId={currentUserId} m={m} historyMode />}
           </div>
         )}
@@ -1164,6 +1182,7 @@ export default function MarketplacePage() {
             <Tabs value={traderTab} onChange={setTraderTab} tabs={[
               { value: 'browse',       label: m.traderTabs[0] },
               { value: 'my-products',  label: m.traderTabs[1] },
+              { value: 'incoming',     label: m.traderTabs[4] || 'Incoming Requests' },
               { value: 'orders',       label: m.traderTabs[2] },
               { value: 'history',      label: m.traderTabs[3] },
             ]} />
@@ -1189,8 +1208,9 @@ export default function MarketplacePage() {
                 </div>
               </div>
             )}
-            {traderTab === 'orders'  && <OrdersPanel currentUserId={currentUserId} m={m} />}
-            {traderTab === 'history' && <OrdersPanel currentUserId={currentUserId} m={m} historyMode />}
+            {traderTab === 'incoming' && <OrdersPanel currentUserId={currentUserId} m={m} filterRole="seller" />}
+            {traderTab === 'orders'   && <OrdersPanel currentUserId={currentUserId} m={m} filterRole="buyer" />}
+            {traderTab === 'history'  && <OrdersPanel currentUserId={currentUserId} m={m} historyMode />}
           </div>
         )}
       </div>
