@@ -2,10 +2,12 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db
 from app.models.marketplace import MarketplaceListing, MarketplaceListingStatus, MarketplaceOrderStatus
+from app.models.rating import Rating
 from app.schemas.marketplace import (
     MarketplaceListingCreate,
     MarketplaceListingRead,
@@ -36,6 +38,24 @@ from app.services.notification_service import create_notification
 router = APIRouter(prefix="/api/marketplace", tags=["marketplace"])
 
 
+def _attach_seller_ratings(db: Session, listings: list[MarketplaceListing]) -> list[MarketplaceListing]:
+    """Annotate each listing with the seller's average rating (one grouped query)."""
+    owner_ids = {l.owner_id for l in listings}
+    stats: dict[int, tuple[float, int]] = {}
+    if owner_ids:
+        rows = db.execute(
+            select(Rating.ratee_id, func.avg(Rating.score), func.count(Rating.id))
+            .where(Rating.ratee_id.in_(owner_ids))
+            .group_by(Rating.ratee_id)
+        ).all()
+        stats = {row[0]: (round(float(row[1]), 1), row[2]) for row in rows}
+    for listing in listings:
+        rating = stats.get(listing.owner_id)
+        listing.seller_rating = rating[0] if rating else None
+        listing.seller_rating_count = rating[1] if rating else 0
+    return listings
+
+
 @router.get("/listings", response_model=list[MarketplaceListingRead])
 def read_listings(
     search: Optional[str] = Query(default=None, max_length=100),
@@ -45,7 +65,8 @@ def read_listings(
     district: Optional[str] = Query(default=None, max_length=128),
     db: Session = Depends(get_db),
 ) -> list[MarketplaceListingRead]:
-    return list_active_listings(db, search=search, crop_type=crop_type, min_price=min_price, max_price=max_price, district=district)
+    listings = list_active_listings(db, search=search, crop_type=crop_type, min_price=min_price, max_price=max_price, district=district)
+    return _attach_seller_ratings(db, listings)
 
 
 @router.get("/listings/me", response_model=list[MarketplaceListingRead])
