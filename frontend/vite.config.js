@@ -11,6 +11,8 @@ export default defineConfig({
     port: parseInt(process.env.PORT || '5173'),
     strictPort: false,
     proxy: {
+      // ── Main backend (port 8000) — uploaded listing images ──────────────────
+      "/uploads":     { target: "http://localhost:8000", changeOrigin: true },
       // ── ML Service (port 8001) — AI, weather, guidance, cultivation ─────────
       // (Main backend calls use VITE_API_URL directly; no proxy needed for /auth or /api)
       "/predict":     { target: "http://localhost:8001", changeOrigin: true },

@@ -57,6 +57,9 @@ class MarketplaceListingRead(BaseModel):
     status: MarketplaceListingStatus
     created_at: datetime
     updated_at: datetime
+    # Aggregated from the ratings table in the listings endpoints
+    seller_rating: Optional[float] = None
+    seller_rating_count: int = 0
 
 
 class MarketplaceOrderCreate(BaseModel):

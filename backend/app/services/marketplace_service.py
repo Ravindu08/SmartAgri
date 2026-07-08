@@ -1,4 +1,8 @@
+import base64
+import re
+import uuid as uuid_lib
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Optional
 from uuid import UUID
 
@@ -20,6 +24,24 @@ from app.schemas.marketplace import (
 )
 
 
+# Listing images arrive as base64 data URIs; store them as files under
+# backend/uploads/ and keep only the URL in the DB (served via /uploads mount).
+UPLOAD_DIR = Path(__file__).resolve().parents[2] / "uploads"
+
+
+def _store_image(image: Optional[str]) -> Optional[str]:
+    if not image or not image.startswith("data:image/"):
+        return image  # already a URL (or empty) — leave untouched
+    m = re.match(r"data:image/(\w+);base64,(.+)", image, re.DOTALL)
+    if not m:
+        return image
+    ext = "jpg" if m.group(1).lower() in ("jpeg", "jpg") else m.group(1).lower()
+    UPLOAD_DIR.mkdir(exist_ok=True)
+    filename = f"{uuid_lib.uuid4().hex}.{ext}"
+    (UPLOAD_DIR / filename).write_bytes(base64.b64decode(m.group(2)))
+    return f"/uploads/{filename}"
+
+
 def create_listing(db: Session, listing_in: MarketplaceListingCreate, owner_id: int) -> MarketplaceListing:
     listing = MarketplaceListing(
         owner_id=owner_id,
@@ -30,7 +52,7 @@ def create_listing(db: Session, listing_in: MarketplaceListingCreate, owner_id: 
         price_per_unit=listing_in.price_per_unit,
         description=listing_in.description,
         location=listing_in.location,
-        image=listing_in.image,
+        image=_store_image(listing_in.image),
         listing_type=listing_in.listing_type,
         status=listing_in.status,
     )
@@ -83,7 +105,10 @@ def list_owner_listings(db: Session, owner_id: int) -> list[MarketplaceListing]:
 
 def update_listing(db: Session, listing: MarketplaceListing, listing_in: MarketplaceListingUpdate) -> MarketplaceListing:
     for field in listing_in.model_fields_set:
-        setattr(listing, field, getattr(listing_in, field))
+        value = getattr(listing_in, field)
+        if field == "image":
+            value = _store_image(value)
+        setattr(listing, field, value)
     db.add(listing)
     db.commit()
     db.refresh(listing)
@@ -162,7 +187,15 @@ def update_order_status(
 
     if new_status == MarketplaceOrderStatus.CONFIRMED:
         order.accepted_at = datetime.now(timezone.utc)
-        order.agreed_price = payload.counter_offer_price or order.proposed_price or order.listing.price_per_unit
+        # Precedence: explicit counter in this request > counter stored during
+        # negotiation > buyer's proposed price > listing price. The buyer can
+        # still cancel a Confirmed order if they disagree with the counter.
+        order.agreed_price = (
+            payload.counter_offer_price
+            or order.counter_offer_price
+            or order.proposed_price
+            or order.listing.price_per_unit
+        )
         # Quantity was already deducted at order-placement; no listing status change needed
     elif new_status == MarketplaceOrderStatus.REJECTED:
         # Restore the deducted quantity and re-activate the listing if it was marked sold

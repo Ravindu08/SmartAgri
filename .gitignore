@@ -46,6 +46,9 @@ frontend/dist/
 *.log
 backend/*.log
 
+# User-uploaded listing images (runtime data, not code)
+backend/uploads/
+
 # Dev/test helper files
 frontend/public/test-login.html
 
