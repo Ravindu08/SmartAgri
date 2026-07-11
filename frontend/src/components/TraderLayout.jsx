@@ -168,6 +168,20 @@ export default function TraderLayout() {
     setApiNotifs(prev => prev.map(n => ({ ...n, seen: true })));
   };
 
+  // Shake the bell whenever the unseen count goes up (new notification arrived)
+  const [bellShaking, setBellShaking] = useState(false);
+  const prevUnseenRef = useRef(0);
+  useEffect(() => {
+    const unseen = apiNotifs.filter(n => !n.seen).length;
+    if (unseen > prevUnseenRef.current) {
+      setBellShaking(true);
+      const id = setTimeout(() => setBellShaking(false), 600);
+      prevUnseenRef.current = unseen;
+      return () => clearTimeout(id);
+    }
+    prevUnseenRef.current = unseen;
+  }, [apiNotifs]);
+
   if (!user) return <Navigate to="/login" replace />;
   const activeRole = getActiveRole();
   if (activeRole && activeRole !== 'Trader') return <Navigate to="/login" replace />;
@@ -261,7 +275,7 @@ export default function TraderLayout() {
               <button className="lo-topbar__notif-btn" type="button"
                 onClick={() => { setNotifOpen(o => !o); setProfileOpen(false); }}
                 aria-label={t.notifications}>
-                🔔
+                <span className={bellShaking ? 'bell-shake' : undefined}>🔔</span>
                 {apiNotifs.filter(n => !n.seen).length > 0
                   ? <span className="lo-topbar__notif-badge">{apiNotifs.filter(n => !n.seen).length}</span>
                   : <span className="lo-topbar__notif-dot" />}
@@ -350,7 +364,9 @@ export default function TraderLayout() {
           </div>
         </header>
         <main className="lo-content">
-          <Outlet />
+          <div key={location.pathname} className="page-transition">
+            <Outlet />
+          </div>
         </main>
       </div>
 

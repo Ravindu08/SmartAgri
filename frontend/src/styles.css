@@ -2170,7 +2170,9 @@
   background: var(--card); border: 1px solid var(--border);
   border-radius: var(--radius-md); padding: 18px 12px;
   box-shadow: var(--shadow-sm); text-align: center;
+  transition: transform var(--tr), box-shadow var(--tr);
 }
+.lo-dash-stat:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .lo-dash-stat--warn  { border-color: #d97706; }
 .lo-dash-stat--danger { border-color: var(--danger); }
 .lo-dash-stat__icon  { font-size: 22px; }
@@ -3075,4 +3077,55 @@
   padding: 16px; display: flex; flex-direction: column; gap: 10px; align-items: center;
 }
 .skel-stat-icon { width: 32px; height: 32px; border-radius: var(--radius-sm); }
+
+/* ═══════════════════════════════════════════════════════════
+   MICRO-ANIMATIONS
+═══════════════════════════════════════════════════════════ */
+
+/* Page transition — replays because the wrapping div is keyed by route path */
+@keyframes page-fade-slide {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-transition { animation: page-fade-slide 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .page-transition { animation: none; }
+}
+
+/* Notification bell shake — toggled briefly when unread count increases */
+@keyframes bell-shake {
+  0%, 100% { transform: rotate(0); }
+  15%, 45%, 75% { transform: rotate(-14deg); }
+  30%, 60%, 90% { transform: rotate(14deg); }
+}
+.lo-topbar__notif-btn .bell-shake {
+  display: inline-block; transform-origin: top center;
+  animation: bell-shake 0.55s ease;
+}
+
+/* Count-up target number (no animation of its own — JS drives the digits,
+   this just keeps a stable tabular-nums width so cards don't jitter) */
+.count-up { font-variant-numeric: tabular-nums; }
+
+/* Generic hover lift for clickable cards that don't already have one */
+.hover-lift { transition: transform var(--tr), box-shadow var(--tr); }
+.hover-lift:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+
+/* Status badge flash — toggled briefly when an order/task status changes */
+@keyframes status-flash {
+  0%   { box-shadow: 0 0 0 0 rgba(15, 90, 42, 0.45); }
+  70%  { box-shadow: 0 0 0 8px rgba(15, 90, 42, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(15, 90, 42, 0); }
+}
+[data-theme="dark"] .status-flash { animation-name: status-flash-dark; }
+@keyframes status-flash-dark {
+  0%   { box-shadow: 0 0 0 0 rgba(124, 197, 118, 0.5); }
+  70%  { box-shadow: 0 0 0 8px rgba(124, 197, 118, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(124, 197, 118, 0); }
+}
+.status-flash { animation: status-flash 1s ease; border-radius: 99px; }
+
+/* Dashboard stat card hover (used by admin/LO/trader stat grids) */
+.stat-card-hover { transition: transform var(--tr), box-shadow var(--tr); }
+.stat-card-hover:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 

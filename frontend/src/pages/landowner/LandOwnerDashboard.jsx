@@ -8,6 +8,7 @@ import { CROP_EMOJI, getCropLabel } from '../../data/cropData';
 import { useApp } from '../../context/AppContext';
 import { LAND_T, SEA_LABELS, IRR_LABELS, GROWTH_STAGE_LABELS, CROP_STATUS_LABELS, DISTRICT_LABELS } from '../../data/translations';
 import { getSoilLabel } from '../../data/cropData';
+import CountUp from '../../components/CountUp';
 
 function daysBetween(a, b) {
   return Math.floor((new Date(b) - new Date(a)) / 86400000);
@@ -236,7 +237,7 @@ export default function LandOwnerDashboard() {
       <div className="lo-dash__stats">
         <div className="lo-dash-stat">
           <span className="lo-dash-stat__icon">🌾</span>
-          <span className="lo-dash-stat__val">{loading ? '—' : farms.length}</span>
+          <span className="lo-dash-stat__val">{loading ? '—' : <CountUp value={farms.length} />}</span>
           <span className="lo-dash-stat__lbl">{t.statFarms}</span>
           {!loading && farms.length === 0 && (
             <Link className="lo-dash-stat__hint" to="/landowner/farms/add">{t.addFirstFarmHint}</Link>
@@ -244,7 +245,7 @@ export default function LandOwnerDashboard() {
         </div>
         <div className="lo-dash-stat">
           <span className="lo-dash-stat__icon">🌱</span>
-          <span className="lo-dash-stat__val">{loading ? '—' : active.length}</span>
+          <span className="lo-dash-stat__val">{loading ? '—' : <CountUp value={active.length} />}</span>
           <span className="lo-dash-stat__lbl">{t.statActiveCrops}</span>
           {!loading && active.length === 0 && farms.length > 0 && (
             <Link className="lo-dash-stat__hint" to="/landowner/cultivations">{t.startGrowingHint}</Link>
@@ -252,7 +253,7 @@ export default function LandOwnerDashboard() {
         </div>
         <div className="lo-dash-stat lo-dash-stat--warn">
           <span className="lo-dash-stat__icon">🧺</span>
-          <span className="lo-dash-stat__val">{loading ? '—' : upcoming.length}</span>
+          <span className="lo-dash-stat__val">{loading ? '—' : <CountUp value={upcoming.length} />}</span>
           <span className="lo-dash-stat__lbl">{t.statHarvestSoon}</span>
           {!loading && upcoming.length === 0 && (
             <span className="lo-dash-stat__hint">{t.nothingDue}</span>
@@ -260,7 +261,7 @@ export default function LandOwnerDashboard() {
         </div>
         <div className="lo-dash-stat">
           <span className="lo-dash-stat__icon">✅</span>
-          <span className="lo-dash-stat__val">{loading ? '—' : completed.length}</span>
+          <span className="lo-dash-stat__val">{loading ? '—' : <CountUp value={completed.length} />}</span>
           <span className="lo-dash-stat__lbl">{t.statCompleted}</span>
           {!loading && completed.length === 0 && (
             <span className="lo-dash-stat__hint">{t.completedCropsHint}</span>
@@ -269,7 +270,7 @@ export default function LandOwnerDashboard() {
         {overdue.length > 0 && (
           <div className="lo-dash-stat lo-dash-stat--danger">
             <span className="lo-dash-stat__icon">⚠️</span>
-            <span className="lo-dash-stat__val">{overdue.length}</span>
+            <span className="lo-dash-stat__val"><CountUp value={overdue.length} /></span>
             <span className="lo-dash-stat__lbl">{t.statOverdue}</span>
           </div>
         )}
