@@ -276,6 +276,20 @@ export default function LandOwnerLayout() {
     setApiNotifs(prev => prev.map(n => ({ ...n, seen: true })));
   };
 
+  // Shake the bell whenever the unseen count goes up (new notification arrived)
+  const [bellShaking, setBellShaking] = useState(false);
+  const prevUnseenRef = useRef(0);
+  useEffect(() => {
+    const unseen = [...notifs.filter(n => !dismissed.has(n.id)), ...apiNotifs].filter(n => !n.seen).length;
+    if (unseen > prevUnseenRef.current) {
+      setBellShaking(true);
+      const id = setTimeout(() => setBellShaking(false), 600);
+      prevUnseenRef.current = unseen;
+      return () => clearTimeout(id);
+    }
+    prevUnseenRef.current = unseen;
+  }, [notifs, dismissed, apiNotifs]);
+
   if (!user) return <Navigate to="/login" replace />;
   const activeRole = getActiveRole();
   if (activeRole && activeRole !== 'Land Owner') return <Navigate to="/login" replace />;
@@ -376,7 +390,7 @@ export default function LandOwnerLayout() {
               <button className="lo-topbar__notif-btn" type="button"
                 onClick={() => { setNotifOpen(o => !o); setProfileOpen(false); }}
                 aria-label={t.notifications}>
-                🔔
+                <span className={bellShaking ? 'bell-shake' : undefined}>🔔</span>
                 {unseenCount > 0
                   ? <span className="lo-topbar__notif-badge">{unseenCount}</span>
                   : <span className="lo-topbar__notif-dot" />}
@@ -465,7 +479,9 @@ export default function LandOwnerLayout() {
           </div>
         </header>
         <main className="lo-content">
-          <Outlet />
+          <div key={location.pathname} className="page-transition">
+            <Outlet />
+          </div>
         </main>
       </div>
 
