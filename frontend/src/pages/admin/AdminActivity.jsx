@@ -2,19 +2,22 @@ import { useEffect, useState } from 'react';
 import { adminRequest } from '../../services/api';
 import { useApp } from '../../context/AppContext';
 import { SkeletonTable } from '../../components/Skeleton';
+import Pagination from '../../components/Pagination';
+
+const PAGE_SIZE = 15;
 
 const T = {
   en: {
     title: 'Activity Log', loading: 'Loading…', noActivity: 'No activity recorded yet',
-    user: 'User #', byAdmin: 'by Admin #',
+    user: 'User #', byAdmin: 'by Admin #', searchPlaceholder: 'Search action, details, or user #…',
   },
   si: {
     title: 'ක්‍රියාකාරකම් ලොගය', loading: 'පූරණය වෙමින්...', noActivity: 'ක්‍රියාකාරකම් තවම නොමැත',
-    user: 'පරිශීලකයා #', byAdmin: 'ශාසකයා #',
+    user: 'පරිශීලකයා #', byAdmin: 'ශාසකයා #', searchPlaceholder: 'ක්‍රියාව, විස්තර, හෝ පරිශීලක # සොයන්න...',
   },
   ta: {
     title: 'செயல்பாட்டு பதிவு', loading: 'ஏற்றுகிறது...', noActivity: 'செயல்பாடு பதிவு செய்யப்படவில்லை',
-    user: 'பயனர் #', byAdmin: 'நிர்வாகி #',
+    user: 'பயனர் #', byAdmin: 'நிர்வாகி #', searchPlaceholder: 'செயல், விவரங்கள் அல்லது பயனர் # தேடவும்…',
   },
 };
 
@@ -29,10 +32,25 @@ export default function AdminActivity() {
 
   const [activity, setActivity] = useState([]);
   const [loading, setLoading]   = useState(true);
+  const [search, setSearch]     = useState('');
+  const [page, setPage]         = useState(1);
 
   useEffect(() => {
     adminRequest('/activity?limit=200').then(data => { setActivity(data); setLoading(false); }).catch(() => setLoading(false));
   }, []);
+
+  useEffect(() => { setPage(1); }, [search]);
+
+  const filtered = activity.filter(a => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return a.action?.toLowerCase().includes(q)
+      || a.details?.toLowerCase().includes(q)
+      || String(a.user_id ?? '').includes(q)
+      || String(a.actor_id ?? '').includes(q);
+  });
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pageActivity = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (loading) return <SkeletonTable rows={8} cols={3} />;
 
@@ -40,14 +58,17 @@ export default function AdminActivity() {
     <div style={{ padding: '28px', maxWidth: '900px' }}>
       <h2 style={{ margin: '0 0 20px', color: 'var(--text)' }}>{t.title}</h2>
 
-      {activity.length === 0 ? (
+      <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t.searchPlaceholder}
+        style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '14px', width: '100%', maxWidth: '360px', marginBottom: '20px' }} />
+
+      {filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px', color: 'var(--muted)' }}>{t.noActivity}</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-          {activity.map((a, i) => (
+          {pageActivity.map((a, i) => (
             <div key={a.id} style={{
               display: 'flex', gap: '16px', padding: '14px 0',
-              borderBottom: i < activity.length - 1 ? '1px solid var(--border)' : 'none',
+              borderBottom: i < pageActivity.length - 1 ? '1px solid var(--border)' : 'none',
               alignItems: 'flex-start',
             }}>
               <div style={{
@@ -76,6 +97,7 @@ export default function AdminActivity() {
           ))}
         </div>
       )}
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
     </div>
   );
 }
