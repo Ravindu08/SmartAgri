@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminRequest } from '../../services/api';
 import { useApp } from '../../context/AppContext';
+import { SkeletonTable } from '../../components/Skeleton';
 
 const T = {
   en: {
@@ -41,7 +42,7 @@ export default function AdminFarms() {
     !search || f.name?.toLowerCase().includes(search.toLowerCase()) || f.district?.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>{t.loading}</div>;
+  if (loading) return <SkeletonTable rows={6} cols={4} />;
 
   const headers = [t.colFarmName, t.colDistrict, t.colSize, t.colOwner, t.colCreated];
 

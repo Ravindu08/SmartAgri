@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { adminRequest, downloadAdminCSV } from '../../services/api';
 import { useApp } from '../../context/AppContext';
 import CustomSelect from '../../components/CustomSelect';
+import { SkeletonTable } from '../../components/Skeleton';
 
 const T = {
   en: {
@@ -139,7 +140,7 @@ export default function AdminUsers() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>{t.loading}</div>
+        <SkeletonTable rows={6} cols={5} />
       ) : (
         <div style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', overflowX: 'auto' }}>
           <table style={{ width: '100%', minWidth: '760px', borderCollapse: 'collapse' }}>

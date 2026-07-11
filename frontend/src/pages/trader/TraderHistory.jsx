@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import useSWR from 'swr';
 import { useApp } from '../../context/AppContext';
 import { getAuthSession, request } from '../../services/api';
+import { SkeletonRows } from '../../components/Skeleton';
 
 const T = {
   en: {
@@ -155,7 +156,7 @@ export default function TraderHistory() {
 
       {/* Table / List */}
       {isLoading ? (
-        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>Loading…</div>
+        <SkeletonRows count={3} />
       ) : filtered.length === 0 ? (
         <div style={{
           background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px',
