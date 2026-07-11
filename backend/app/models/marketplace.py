@@ -136,8 +136,18 @@ class MarketplaceOrder(Base):
     def buyer_name(self) -> str:
         return self.buyer.full_name if self.buyer is not None else ""
 
+    # Phone numbers are only shared once the seller has confirmed the order —
+    # a Pending/Rejected/Cancelled request shouldn't leak either side's contact info.
+    _PHONE_VISIBLE_STATUSES = {
+        MarketplaceOrderStatus.CONFIRMED,
+        MarketplaceOrderStatus.DELIVERED,
+        MarketplaceOrderStatus.COMPLETED,
+    }
+
     @property
     def buyer_phone(self) -> Optional[str]:
+        if self.status not in self._PHONE_VISIBLE_STATUSES:
+            return None
         return self.buyer.phone_number if self.buyer is not None else None
 
     @property
@@ -146,6 +156,8 @@ class MarketplaceOrder(Base):
 
     @property
     def seller_phone(self) -> Optional[str]:
+        if self.status not in self._PHONE_VISIBLE_STATUSES:
+            return None
         return self.seller.phone_number if self.seller is not None else None
 
 
