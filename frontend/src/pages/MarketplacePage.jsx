@@ -697,8 +697,17 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
 }
 
 // ── Listings grid ──────────────────────────────────────────────────────────────
+const SORT_OPTIONS = [
+  { value: 'newest',     label: 'Newest first' },
+  { value: 'price_asc',  label: 'Price: Low to High' },
+  { value: 'price_desc', label: 'Price: High to Low' },
+  { value: 'rating',     label: 'Seller rating' },
+];
+
 function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDelete = false }) {
-  const [filters, setFilters] = useState({ search: '', min_price: '', max_price: '', district: '' });
+  const [filters, setFilters] = useState({ search: '', min_price: '', max_price: '', district: '', category: '' });
+  const [sortBy, setSortBy] = useState('newest');
+  const categoryOptions = listingType === 'crop' ? CROP_TYPES : PRODUCT_TYPES;
 
   const swrKey = useMemo(() => {
     const p = new URLSearchParams();
@@ -706,12 +715,20 @@ function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDele
     if (filters.min_price) p.set('min_price', filters.min_price);
     if (filters.max_price) p.set('max_price', filters.max_price);
     if (filters.district)  p.set('district', filters.district);
+    if (filters.category)  p.set('crop_type', filters.category);
     const q = p.toString();
     return `/api/marketplace/listings${q ? `?${q}` : ''}`;
   }, [filters]);
 
   const { data, isLoading } = useSWR(swrKey, publicFetcher);
-  const listings = (data || []).filter(l => (l.listing_type || 'crop') === listingType);
+  const listings = (data || [])
+    .filter(l => (l.listing_type || 'crop') === listingType)
+    .sort((a, b) => {
+      if (sortBy === 'price_asc')  return a.price_per_unit - b.price_per_unit;
+      if (sortBy === 'price_desc') return b.price_per_unit - a.price_per_unit;
+      if (sortBy === 'rating')     return (b.seller_rating || 0) - (a.seller_rating || 0);
+      return new Date(b.created_at) - new Date(a.created_at);
+    });
 
   return (
     <>
@@ -745,10 +762,22 @@ function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDele
           onChange={e => setFilters(f => ({ ...f, district: e.target.value }))}
           style={{ flex: '1 1 120px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '13px' }}
         />
-        {(filters.search || filters.min_price || filters.max_price || filters.district) && (
+        <Select
+          style={{ flex: '1 1 150px' }}
+          value={filters.category}
+          onChange={e => setFilters(f => ({ ...f, category: e.target.value }))}
+          options={[{ value: '', label: 'All categories' }, ...categoryOptions]}
+        />
+        <Select
+          style={{ flex: '1 1 170px' }}
+          value={sortBy}
+          onChange={e => setSortBy(e.target.value)}
+          options={SORT_OPTIONS}
+        />
+        {(filters.search || filters.min_price || filters.max_price || filters.district || filters.category) && (
           <button
             type="button"
-            onClick={() => setFilters({ search: '', min_price: '', max_price: '', district: '' })}
+            onClick={() => setFilters({ search: '', min_price: '', max_price: '', district: '', category: '' })}
             style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--muted)', cursor: 'pointer', fontSize: '13px' }}
           >
             ✕ Clear
