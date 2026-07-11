@@ -2,7 +2,7 @@
  * SmartAgri — Marketplace  (Real DB-backed via /api/marketplace/*)
  * ================================================================================== */
 
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import useSWR, { mutate } from 'swr';
 import CustomSelect from '../components/CustomSelect';
@@ -575,10 +575,10 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
   const isOwn = listing.owner_id === currentUserId;
 
   return (
-    <Card className="flex flex-col overflow-hidden">
+    <Card className="flex flex-col overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
       {listing.image && (
         <div className="h-40 w-full overflow-hidden">
-          <img src={listing.image} alt={listing.crop_name} className="h-full w-full object-cover" />
+          <img src={listing.image} alt={listing.crop_name} className="h-full w-full object-cover transition-transform duration-300 hover:scale-105" />
         </div>
       )}
       <div className="p-5 pb-3 flex flex-col flex-1">
@@ -873,6 +873,18 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
   const [ratingOpen, setRatingOpen] = useState(false);
   const [rated, setRated] = useState(false);
 
+  // Briefly ring-flash the status badge when the status actually changes
+  const [statusFlash, setStatusFlash] = useState(false);
+  const prevStatusRef = useRef(order.status);
+  useEffect(() => {
+    if (prevStatusRef.current !== order.status) {
+      setStatusFlash(true);
+      prevStatusRef.current = order.status;
+      const id = setTimeout(() => setStatusFlash(false), 1000);
+      return () => clearTimeout(id);
+    }
+  }, [order.status]);
+
   async function updateStatus(newStatus) {
     setBusy(true);
     try {
@@ -896,7 +908,9 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-semibold text-foreground">{order.listing_name}</span>
-              <Badge color={statusColor(order.status)}>{statusLabel(order.status, m)}</Badge>
+              <span className={statusFlash ? 'status-flash' : undefined}>
+                <Badge color={statusColor(order.status)}>{statusLabel(order.status, m)}</Badge>
+              </span>
             </div>
             <p className="text-sm text-muted-foreground mt-0.5">
               {order.requested_quantity} units · Rs. {Number(effectivePrice).toLocaleString()} ea. ={' '}

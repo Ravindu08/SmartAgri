@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import useSWR from 'swr';
 import { useApp } from '../../context/AppContext';
 import { getAuthSession, request } from '../../services/api';
+import CountUp from '../../components/CountUp';
 
 const T = {
   en: {
@@ -119,14 +120,14 @@ export default function TraderDashboard() {
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
         {stats.map(s => (
-          <div key={s.label} style={{
+          <div key={s.label} className="stat-card-hover" style={{
             background: 'var(--card)', borderRadius: '12px',
             padding: '20px', border: '1px solid var(--border)',
             display: 'flex', flexDirection: 'column', gap: '8px',
           }}>
             <div style={{ fontSize: '28px' }}>{s.icon}</div>
             <div style={{ fontSize: '28px', fontWeight: 700, color: s.color, lineHeight: 1 }}>
-              {s.value}
+              <CountUp value={s.value} />
             </div>
             <div style={{ fontSize: '13px', color: 'var(--muted)', fontWeight: 500 }}>{s.label}</div>
           </div>
