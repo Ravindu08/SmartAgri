@@ -382,16 +382,28 @@ function ImageUpload({ value, onChange, m }) {
 }
 
 // ── StatusTracker ──────────────────────────────────────────────────────────────
-function StatusTracker({ status }) {
-  const idx = ORDER_STATUS_FLOW.indexOf(status);
+// Timestamp for each step, in ORDER_STATUS_FLOW order — created_at always
+// exists (step 1 = order placed); the rest are only set once that step happens.
+function stepDate(order, i) {
+  const field = [order.created_at, order.accepted_at, order.delivered_at, order.completed_at][i];
+  return field ? new Date(field).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : null;
+}
+
+function StatusTracker({ order }) {
+  const idx = ORDER_STATUS_FLOW.indexOf(order.status);
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-start gap-1">
       {ORDER_STATUS_FLOW.map((s, i) => (
-        <div key={s} className="flex items-center gap-1">
-          <span className={`flex size-5 items-center justify-center rounded-full text-[10px] font-bold ${i <= idx ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-            {i < idx ? <CheckCircle2 size={10} /> : i + 1}
-          </span>
-          {i < ORDER_STATUS_FLOW.length - 1 && <span className={`h-0.5 w-4 ${i < idx ? 'bg-primary' : 'bg-muted'}`} />}
+        <div key={s} className="flex items-start gap-1">
+          <div className="flex flex-col items-center" style={{ width: '36px' }}>
+            <span className={`flex size-5 items-center justify-center rounded-full text-[10px] font-bold ${i <= idx ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+              {i < idx ? <CheckCircle2 size={10} /> : i + 1}
+            </span>
+            <span className="text-[10px] text-muted-foreground mt-1 whitespace-nowrap">
+              {i <= idx ? (stepDate(order, i) || ' ') : ' '}
+            </span>
+          </div>
+          {i < ORDER_STATUS_FLOW.length - 1 && <span className={`h-0.5 w-4 mt-2.5 ${i < idx ? 'bg-primary' : 'bg-muted'}`} />}
         </div>
       ))}
     </div>
@@ -990,7 +1002,7 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
         </div>
 
         {!showHistory && ORDER_STATUS_FLOW.includes(order.status) && (
-          <StatusTracker status={order.status} />
+          <StatusTracker order={order} />
         )}
 
         <div className="flex flex-wrap gap-2">
