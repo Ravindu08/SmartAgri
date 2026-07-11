@@ -69,6 +69,7 @@ const M = {
     pendingStatus: 'Pending', confirmedStatus: 'Confirmed',
     deliveredStatus: 'Delivered', completedStatus: 'Completed',
     rejectedStatus: 'Rejected', cancelledStatus: 'Cancelled',
+    phoneAfterConfirm: 'Contact number visible once the order is confirmed',
   },
   si: {
     badge: '🛒 කෘෂි වෙළඳසැල', title: 'කෘෂි නිෂ්පාදන මිලදී ගැනීම සහ විකිණීම',
@@ -116,6 +117,7 @@ const M = {
     pendingStatus: 'අපේක්ෂිත', confirmedStatus: 'තහවුරු',
     deliveredStatus: 'බෙදාදුන්', completedStatus: 'සම්පූර්ණ',
     rejectedStatus: 'ප්‍රතික්ෂේප', cancelledStatus: 'අවලංගු',
+    phoneAfterConfirm: 'ඇණවුම තහවුරු වූ පසු ඇමතුම් අංකය පෙන්වයි',
   },
   ta: {
     badge: '🛒 விவசாய சந்தை', title: 'விவசாய பொருட்களை வாங்கவும் விற்கவும்',
@@ -163,6 +165,7 @@ const M = {
     pendingStatus: 'நிலுவை', confirmedStatus: 'உறுதி',
     deliveredStatus: 'வழங்கல்', completedStatus: 'முடிந்தது',
     rejectedStatus: 'நிராகரிக்கப்பட்டது', cancelledStatus: 'ரத்தானது',
+    phoneAfterConfirm: 'ஆர்டர் உறுதிசெய்யப்பட்டதும் தொடர்பு எண் தெரியும்',
   },
 };
 
@@ -1035,11 +1038,13 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
               {isSeller ? `${m.buyer}: ${order.buyer_name}` : `${m.seller}: ${order.seller_name}`}
               {' · '}{new Date(order.created_at).toLocaleDateString()}
             </p>
-            {isSeller && order.buyer_phone && (
-              <p className="text-xs mt-0.5" style={{ color: 'var(--green-primary)' }}>📞 {order.buyer_phone}</p>
+            {isSeller && (order.buyer_phone
+              ? <p className="text-xs mt-0.5" style={{ color: 'var(--green-primary)' }}>📞 {order.buyer_phone}</p>
+              : order.status === 'Pending' && <p className="text-xs mt-0.5 text-muted-foreground">🔒 {m.phoneAfterConfirm}</p>
             )}
-            {isBuyer && order.seller_phone && (
-              <p className="text-xs mt-0.5" style={{ color: 'var(--green-primary)' }}>📞 {order.seller_phone}</p>
+            {isBuyer && (order.seller_phone
+              ? <p className="text-xs mt-0.5" style={{ color: 'var(--green-primary)' }}>📞 {order.seller_phone}</p>
+              : order.status === 'Pending' && <p className="text-xs mt-0.5 text-muted-foreground">🔒 {m.phoneAfterConfirm}</p>
             )}
           </div>
         </div>
