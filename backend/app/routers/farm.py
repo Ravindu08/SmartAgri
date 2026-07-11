@@ -12,6 +12,7 @@ from app.services.farm_service import (
     get_farms_by_owner,
     update_farm,
 )
+from app.utils.image_storage import ImageTooLargeError
 
 router = APIRouter(prefix="/api/farms", tags=["farms"])
 
@@ -22,7 +23,10 @@ def create_farm_endpoint(
     current_user=Depends(get_current_land_owner),
     db: Session = Depends(get_db),
 ) -> FarmRead:
-    farm = create_farm(db, payload, owner_id=current_user.id)
+    try:
+        farm = create_farm(db, payload, owner_id=current_user.id)
+    except ImageTooLargeError as exc:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=str(exc)) from exc
     return farm
 
 
@@ -56,7 +60,10 @@ def update_farm_endpoint(
     farm = get_farm_by_owner(db, farm_id=farm_id, owner_id=current_user.id)
     if farm is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Farm not found")
-    return update_farm(db, farm, payload)
+    try:
+        return update_farm(db, farm, payload)
+    except ImageTooLargeError as exc:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=str(exc)) from exc
 
 
 @router.delete("/{farm_id}", status_code=status.HTTP_204_NO_CONTENT)
