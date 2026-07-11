@@ -48,7 +48,7 @@ except Exception as _db_err:
     _DB_AVAILABLE = False
     logger.warning("[WARN] Cultivation DB unavailable: %s — sessions will be in-memory only", _db_err)
 
-from app.utils.image_storage import ImageTooLargeError, store_image as _store_task_photo
+from app.utils.image_storage import ImageTooLargeError, InvalidImageError, store_image as _store_task_photo
 
 app = FastAPI(
     title="SMARTAGRI ML Service",
@@ -1205,6 +1205,8 @@ def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: T
             raise
         except ImageTooLargeError as exc:
             raise HTTPException(413, str(exc))
+        except InvalidImageError as exc:
+            raise HTTPException(400, str(exc))
         except Exception as exc:
             logger.exception("DB task update failed: %s", exc)
 
@@ -1221,6 +1223,8 @@ def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: T
             task["photo"] = _store_task_photo(body.photo)
         except ImageTooLargeError as exc:
             raise HTTPException(413, str(exc))
+        except InvalidImageError as exc:
+            raise HTTPException(400, str(exc))
     return task
 
 
