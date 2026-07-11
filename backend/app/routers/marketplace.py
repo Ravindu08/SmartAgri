@@ -16,6 +16,7 @@ from app.schemas.marketplace import (
     MarketplaceOrderCreate,
     MarketplaceOrderRead,
     MarketplaceOrderStatusUpdate,
+    NegotiationMessageRead,
 )
 from app.services.email import send_order_event_email
 from app.services.marketplace_service import (
@@ -27,6 +28,7 @@ from app.services.marketplace_service import (
     get_listing_for_owner,
     get_order,
     list_active_listings,
+    list_negotiation_messages,
     list_orders_for_user,
     list_owner_listings,
     update_listing,
@@ -224,7 +226,21 @@ def add_negotiation_endpoint(
     if current_user.id not in {order.buyer_id, order.seller_id}:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You cannot negotiate this order")
     sender_role = "Trader" if current_user.id == order.buyer_id else "Land Owner"
-    return add_negotiation(db, order, payload, sender_role)
+    return add_negotiation(db, order, payload, sender_role, sender_id=current_user.id)
+
+
+@router.get("/orders/{order_id}/negotiation", response_model=list[NegotiationMessageRead])
+def list_negotiation_endpoint(
+    order_id: UUID,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[NegotiationMessageRead]:
+    order = get_order(db, order_id)
+    if order is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+    if current_user.id not in {order.buyer_id, order.seller_id}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You cannot view this negotiation")
+    return list_negotiation_messages(db, order_id)
 
 
 @router.get("/history", response_model=list[MarketplaceOrderRead])
