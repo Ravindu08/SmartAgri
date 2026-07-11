@@ -4,6 +4,7 @@ import Navbar from './Navbar';
 import CustomSelect from './CustomSelect';
 import { useApp } from '../context/AppContext';
 import { getAuthSession, clearAuthSession, getActiveRole, isDualRole, submitFeedback, fetchNotifications, markNotificationRead, markAllNotificationsRead } from '../services/api';
+import { relativeTime } from '../utils/relativeTime';
 
 const TR_LAYOUT_T = {
   en: {
@@ -146,6 +147,7 @@ export default function TraderLayout() {
             title: n.title,
             body: n.body || '',
             link: n.link || null,
+            createdAt: n.created_at,
           }))
           // unseen first; keep seen history but cap it so the panel stays scannable
           .sort((a, b) => a.seen - b.seen)
@@ -305,6 +307,7 @@ export default function TraderLayout() {
                           <div className="dash-notif-body">
                             <strong className="dash-notif-strong">{n.title}</strong>
                             {n.body && <p>{n.body}</p>}
+                            {n.createdAt && <span className="dash-notif-time">{relativeTime(n.createdAt)}</span>}
                           </div>
                           {n.seen
                             ? <span className="dash-notif-seen-tag">{t.seenLabel}</span>
