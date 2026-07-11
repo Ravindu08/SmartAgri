@@ -397,17 +397,31 @@
             "day": -14,
             "title": "Plough and level",
             "description": "Deep plough to 30 cm. Remove weeds. Form raised beds.",
-            "why": "Good drainage prevents Phytophthora collar rot, common in chilli."
+            "why": "Good drainage prevents Phytophthora collar rot, common in chilli.",
+            "title_si": "සී කර මට්ටම් කරන්න",
+            "description_si": "සෙන්ටිමීටර් 30 දක්වා ගැඹුරින් සී කරන්න. වල් පැළෑටි ඉවත් කරන්න. උස් වැපිලි සාදන්න.",
+            "why_si": "හොඳ ජල බැසීම මිරිස්වල බහුලව දක්නට ලැබෙන Phytophthora මූල කුණුවීම වළක්වයි.",
+            "title_ta": "உழுது சமன் செய்யவும்",
+            "description_ta": "30 செ.மீ ஆழத்திற்கு ஆழமாக உழவும். களைகளை அகற்றவும். உயர்த்தப்பட்ட படுகைகளை உருவாக்கவும்.",
+            "why_ta": "நல்ல வடிகால் மிளகாயில் பொதுவான Phytophthora வேர் அழுகலைத் தடுக்கிறது."
           },
           {
             "type": "fertilize",
             "day": -7,
             "title": "Apply compost",
             "description": "Incorporate compost 10 t/ha.",
-            "why": "Organic matter improves moisture retention in dry-zone soils."
+            "why": "Organic matter improves moisture retention in dry-zone soils.",
+            "title_si": "කොම්පෝස්ට් යොදන්න",
+            "description_si": "හෙක්ටයාරයකට ටොන් 10ක් කොම්පෝස්ට් මිශ්‍ර කරන්න.",
+            "why_si": "කාබනික ද්‍රව්‍ය වියළි කලාප පසෙහි තෙතමනය රඳවා තබා ගැනීම වැඩි දියුණු කරයි.",
+            "title_ta": "உரம் இடவும்",
+            "description_ta": "ஹெக்டேருக்கு 10 டன் உரத்தை கலக்கவும்.",
+            "why_ta": "கரிமப் பொருள் வறண்ட வலய மண்ணின் ஈரப்பத தேக்கத்தை மேம்படுத்துகிறது."
           }
         ],
-        "warnings": []
+        "warnings": [],
+        "description_si": "හොඳින් ජලය බැස යන කුඹුර සකස් කරන්න.",
+        "description_ta": "நல்ல வடிகால் உள்ள வயலை தயார் செய்யவும்."
       },
       {
         "id": "transplanting",
@@ -423,17 +437,31 @@
             "day": 0,
             "title": "Transplant in evening",
             "description": "Use healthy 25–30 day seedlings. Plant at 45 × 60 cm spacing. Water immediately.",
-            "why": "Evening planting reduces transplant shock."
+            "why": "Evening planting reduces transplant shock.",
+            "title_si": "සවස් කාලයේ පැළ රෝපණය කරන්න",
+            "description_si": "සෞඛ්‍ය සම්පන්න දින 25-30 පැළ භාවිත කරන්න. සෙන්ටිමීටර් 45 × 60 පරතරයෙන් සිටුවන්න. වහාම ජලය දෙන්න.",
+            "why_si": "සවස් කාලයේ සිටුවීම රෝපණ කම්පනය අඩු කරයි.",
+            "title_ta": "மாலை நேரத்தில் நடவு செய்யவும்",
+            "description_ta": "ஆரோக்கியமான 25-30 நாள் நாற்றுகளைப் பயன்படுத்தவும். 45 × 60 செ.மீ இடைவெளியில் நடவும். உடனே நீர் பாய்ச்சவும்.",
+            "why_ta": "மாலை நேர நடவு நடவு அதிர்ச்சியைக் குறைக்கிறது."
           },
           {
             "type": "water",
             "day": 1,
             "title": "Daily watering for 10 days",
             "description": "Water gently at base. Avoid wetting foliage.",
-            "why": "Consistent moisture prevents early wilting."
+            "why": "Consistent moisture prevents early wilting.",
+            "title_si": "දින 10ක් නිතිපතා ජලය දෙන්න",
+            "description_si": "පදනමට මෘදු ලෙස ජලය දෙන්න. පත්‍ර තෙත් වීමෙන් වළකින්න.",
+            "why_si": "නිරන්තර තෙතමනය මුල් වියළීම වළක්වයි.",
+            "title_ta": "10 நாட்கள் தினமும் நீர் பாய்ச்சவும்",
+            "description_ta": "அடிப்பகுதியில் மெதுவாக நீர் பாய்ச்சவும். இலைகளை நனைப்பதைத் தவிர்க்கவும்.",
+            "why_ta": "தொடர்ச்சியான ஈரப்பதம் ஆரம்ப வாடலைத் தடுக்கிறது."
           }
         ],
-        "warnings": []
+        "warnings": [],
+        "description_si": "පැළ ප්‍රවේශමෙන් තහවුරු කරන්න.",
+        "description_ta": "நாற்றுகளை கவனமாக நிலைநிறுத்தவும்."
       },
       {
         "id": "vegetative",
@@ -449,24 +477,44 @@
             "day": 21,
             "title": "Weed and hill up",
             "description": "Remove weeds and heap soil around base of plant.",
-            "why": "Hilling strengthens stem base and prevents root exposure."
+            "why": "Hilling strengthens stem base and prevents root exposure.",
+            "title_si": "වල් නෙලා පස් රැස් කරන්න",
+            "description_si": "වල් පැළෑටි ඉවත් කර පැළයේ පාමුල පස් රැස් කරන්න.",
+            "why_si": "පස් රැස් කිරීම කඳේ පදනම ශක්තිමත් කර මූල නිරාවරණය වළක්වයි.",
+            "title_ta": "களை எடுத்து மண் அணைத்தல்",
+            "description_ta": "களைகளை அகற்றி செடியின் அடிப்பகுதியில் மண்ணை குவிக்கவும்.",
+            "why_ta": "மண் அணைத்தல் தண்டு அடிப்பகுதியை வலுப்படுத்தி வேர் வெளிப்பாட்டைத் தடுக்கிறது."
           },
           {
             "type": "fertilize",
             "day": 28,
             "title": "Top dressing 1",
             "description": "Apply Urea 75 kg/ha as ring around plants. Cover and water.",
-            "why": "Nitrogen supports branching for higher fruit-bearing capacity."
+            "why": "Nitrogen supports branching for higher fruit-bearing capacity.",
+            "title_si": "1 වන මතුපිට පොහොර යෙදීම",
+            "description_si": "හෙක්ටයාරයකට යූරියා කිලෝග්‍රෑම් 75ක් පැළ වටා මුදුවක් සේ යොදන්න. ආවරණය කර ජලය දෙන්න.",
+            "why_si": "නයිට්‍රජන් වැඩි අස්වැන්නක් සඳහා අතු ශාඛා වර්ධනයට උපකාරී වේ.",
+            "title_ta": "1வது மேல் உரமிடல்",
+            "description_ta": "ஹெக்டேருக்கு 75 கிலோ யூரியாவை செடிகள் சுற்றி வளையமாக இடவும். மூடி நீர் பாய்ச்சவும்.",
+            "why_ta": "நைட்ரஜன் அதிக பழ விளைச்சலுக்கான கிளைப்பை ஆதரிக்கிறது."
           },
           {
             "type": "monitor",
             "day": 35,
             "title": "Scout for thrips",
             "description": "Check young leaves for silvering and distortion — signs of thrips. Check for viral symptoms (mosaic, crinkle).",
-            "why": "Thrips are the main vector of chilli viral diseases."
+            "why": "Thrips are the main vector of chilli viral diseases.",
+            "title_si": "ත්‍රිප්ස් සඳහා පරීක්ෂා කරන්න",
+            "description_si": "තරුණ පත්‍ර රිදී පැහැ වී විකෘති වී ඇත්දැයි පරීක්ෂා කරන්න — ත්‍රිප්ස් ලක්ෂණ. වෛරස් ලක්ෂණ (මොසෙයික්, රැලි වැටීම) සඳහාද පරීක්ෂා කරන්න.",
+            "why_si": "ත්‍රිප්ස් යනු මිරිස් වෛරස් රෝගවල ප්‍රධාන වාහකයාය.",
+            "title_ta": "த்ரிப்ஸுக்கு ஆய்வு செய்யவும்",
+            "description_ta": "இளம் இலைகளில் வெள்ளித்தன்மை மற்றும் சிதைவு உள்ளதா எனப் பாருங்கள் — த்ரிப்ஸ் அறிகுறிகள். வைரஸ் அறிகுறிகளையும் (மொசைக், சுருள்) சரிபார்க்கவும்.",
+            "why_ta": "த்ரிப்ஸ் மிளகாய் வைரஸ் நோய்களின் முக்கிய வாககம்."
           }
         ],
-        "warnings": []
+        "warnings": [],
+        "description_si": "ශක්තිමත් අතු ශාඛා හා පත්‍ර වර්ධනය.",
+        "description_ta": "வலுவான கிளைப்பு மற்றும் இலை வளர்ச்சி."
       },
       {
         "id": "flowering",
@@ -482,17 +530,31 @@
             "day": 56,
             "title": "Top dressing 2",
             "description": "Apply Urea 50 kg/ha + MOP 50 kg/ha.",
-            "why": "Potassium improves fruit pungency and weight."
+            "why": "Potassium improves fruit pungency and weight.",
+            "title_si": "2 වන මතුපිට පොහොර යෙදීම",
+            "description_si": "හෙක්ටයාරයකට යූරියා කිලෝග්‍රෑම් 50ක් + MOP කිලෝග්‍රෑම් 50ක් යොදන්න.",
+            "why_si": "පොටෑසියම් ගෙඩි රසය හා බර වැඩි දියුණු කරයි.",
+            "title_ta": "2வது மேல் உரமிடல்",
+            "description_ta": "ஹெக்டேருக்கு 50 கிலோ யூரியா + 50 கிலோ MOP இடவும்.",
+            "why_ta": "பொட்டாசியம் பழத்தின் காரம் மற்றும் எடையை மேம்படுத்துகிறது."
           },
           {
             "type": "monitor",
             "day": 60,
             "title": "Check for anthracnose",
             "description": "Look for sunken dark lesions on fruits. Remove and destroy.",
-            "why": "Anthracnose spreads rapidly in humid conditions."
+            "why": "Anthracnose spreads rapidly in humid conditions.",
+            "title_si": "ඇන්ත්‍රැක්නෝස් සඳහා පරීක්ෂා කරන්න",
+            "description_si": "ගෙඩිවල ගිලුණු අඳුරු පැල්ලම් සොයන්න. ඉවත් කර විනාශ කරන්න.",
+            "why_si": "ඇන්ත්‍රැක්නෝස් ආර්ද්‍ර තත්ත්වයන් තුළ ඉක්මනින් පැතිරේ.",
+            "title_ta": "ஆந்த்ராக்னோஸை சரிபார்க்கவும்",
+            "description_ta": "பழங்களில் அமிழ்ந்த கரும் புள்ளிகளைத் தேடவும். அகற்றி அழிக்கவும்.",
+            "why_ta": "ஆந்த்ராக்னோஸ் ஈரப்பதமான சூழலில் வேகமாக பரவுகிறது."
           }
         ],
-        "warnings": []
+        "warnings": [],
+        "description_si": "මල් හා ගෙඩි වර්ධනය වේ. පෝෂණය පවත්වා ගන්න.",
+        "description_ta": "பூக்களும் பழங்களும் வளரும். ஊட்டச்சத்தை பராமரிக்கவும்."
       },
       {
         "id": "harvest",
@@ -508,17 +570,31 @@
             "day": 75,
             "title": "Begin harvest (green or red)",
             "description": "Pick green chillies for fresh market. Allow to turn red for dried/powder market.",
-            "why": "Red chillies have higher capsaicin and dry weight."
+            "why": "Red chillies have higher capsaicin and dry weight.",
+            "title_si": "අස්වනු නෙළීම ආරම්භ කරන්න (කොළ හෝ රතු)",
+            "description_si": "නැවුම් වෙළඳපොළ සඳහා කොළ මිරිස් නෙළන්න. වියළි/කුඩු වෙළඳපොළ සඳහා රතු වන තුරු තබන්න.",
+            "why_si": "රතු මිරිස්වල කැප්සයිසින් හා වියළි බර වැඩිය.",
+            "title_ta": "அறுவடையைத் தொடங்கவும் (பச்சை அல்லது சிவப்பு)",
+            "description_ta": "புதிய சந்தைக்கு பச்சை மிளகாயை பறிக்கவும். உலர்/தூள் சந்தைக்கு சிவப்பாக மாறும் வரை விடவும்.",
+            "why_ta": "சிவப்பு மிளகாயில் அதிக காப்சைசின் மற்றும் உலர் எடை உள்ளது."
           },
           {
             "type": "harvest",
             "day": 78,
             "title": "Harvest every 5–7 days",
             "description": "Pick mature fruits regularly to encourage continuous production.",
-            "why": "Regular harvesting extends productive period by 4–6 weeks."
+            "why": "Regular harvesting extends productive period by 4–6 weeks.",
+            "title_si": "දින 5-7කට වරක් නෙළන්න",
+            "description_si": "අඛණ්ඩ නිෂ්පාදනය දිරිමත් කිරීමට වැඩුණු ගෙඩි නිතිපතා නෙළන්න.",
+            "why_si": "නිතිපතා නෙළීම ඵලදායි කාලය සති 4-6කින් දික් කරයි.",
+            "title_ta": "5-7 நாட்களுக்கு ஒருமுறை அறுவடை செய்யவும்",
+            "description_ta": "தொடர்ச்சியான உற்பத்தியை ஊக்குவிக்க முதிர்ந்த பழங்களை தொடர்ந்து பறிக்கவும்.",
+            "why_ta": "வழக்கமான அறுவடை உற்பத்தி காலத்தை 4-6 வாரங்கள் நீட்டிக்கிறது."
           }
         ],
-        "warnings": []
+        "warnings": [],
+        "description_si": "අවශ්‍ය අවධියට අනුව අස්වනු නෙළන්න.",
+        "description_ta": "பயன்பாட்டிற்கு ஏற்ற சரியான நிலையில் அறுவடை செய்யவும்."
       }
     ],
     "fertilization": [
@@ -529,20 +605,40 @@
           {
             "material": "Compost",
             "rate": "10 t/ha",
-            "method": "Incorporate"
+            "method": "Incorporate",
+            "material_si": "Compost",
+            "rate_si": "හෙක්. 10 t",
+            "method_si": "මිශ්‍ර කරන්න",
+            "material_ta": "Compost",
+            "rate_ta": "ஹெக். 10 t",
+            "method_ta": "கலக்கவும்"
           },
           {
             "material": "TSP",
             "rate": "125 kg/ha",
-            "method": "Band application"
+            "method": "Band application",
+            "material_si": "TSP",
+            "rate_si": "හෙක්. කි.ග්‍රෑ. 125",
+            "method_si": "පටි යෙදීම",
+            "material_ta": "TSP",
+            "rate_ta": "ஹெக். 125 கிலோ",
+            "method_ta": "பட்டை இடல்"
           },
           {
             "material": "MOP",
             "rate": "75 kg/ha",
-            "method": "Incorporate"
+            "method": "Incorporate",
+            "material_si": "MOP",
+            "rate_si": "හෙක්. කි.ග්‍රෑ. 75",
+            "method_si": "මිශ්‍ර කරන්න",
+            "material_ta": "MOP",
+            "rate_ta": "ஹெக். 75 கிலோ",
+            "method_ta": "கலக்கவும்"
           }
         ],
-        "why": "Foundation nutrients for establishment."
+        "why": "Foundation nutrients for establishment.",
+        "why_si": "ස්ථාපනය සඳහා මූලික පෝෂක.",
+        "why_ta": "நிறுவனத்திற்கான அடிப்படை ஊட்டச்சத்துக்கள்."
       },
       {
         "timing": "Top dressing 1 — 4 WAP",
@@ -551,10 +647,18 @@
           {
             "material": "Urea",
             "rate": "75 kg/ha",
-            "method": "Ring, cover, water"
+            "method": "Ring, cover, water",
+            "material_si": "Urea",
+            "rate_si": "හෙක්. කි.ග්‍රෑ. 75",
+            "method_si": "මුදුව, ආවරණය, ජලය",
+            "material_ta": "Urea",
+            "rate_ta": "ஹெக். 75 கிலோ",
+            "method_ta": "வளையம், மூடி, நீர்"
           }
         ],
-        "why": "Nitrogen for branching."
+        "why": "Nitrogen for branching.",
+        "why_si": "අතු ශාඛා සඳහා නයිට්‍රජන්.",
+        "why_ta": "கிளைப்புக்கான நைட்ரஜன்."
       },
       {
         "timing": "Top dressing 2 — 8 WAP",
@@ -563,15 +667,29 @@
           {
             "material": "Urea",
             "rate": "50 kg/ha",
-            "method": "Ring"
+            "method": "Ring",
+            "material_si": "Urea",
+            "rate_si": "හෙක්. කි.ග්‍රෑ. 50",
+            "method_si": "මුදුව",
+            "material_ta": "Urea",
+            "rate_ta": "ஹெக். 50 கிலோ",
+            "method_ta": "வளையம்"
           },
           {
             "material": "MOP",
             "rate": "50 kg/ha",
-            "method": "Ring, water"
+            "method": "Ring, water",
+            "material_si": "MOP",
+            "rate_si": "හෙක්. කි.ග්‍රෑ. 50",
+            "method_si": "මුදුව, ජලය",
+            "material_ta": "MOP",
+            "rate_ta": "ஹெக். 50 கிலோ",
+            "method_ta": "வளையம், நீர்"
           }
         ],
-        "why": "Potassium for fruit quality."
+        "why": "Potassium for fruit quality.",
+        "why_si": "ගෙඩි ගුණාත්මකභාවය සඳහා පොටෑසියම්.",
+        "why_ta": "பழத் தரத்திற்கான பொட்டாசியம்."
       }
     ],
     "irrigation": {
@@ -589,7 +707,31 @@
         "Collar rot at base",
         "Yellowing lower leaves"
       ],
-      "notes": "Chilli tolerates short dry spells better than waterlogging. Reduce watering before red harvest."
+      "notes": "Chilli tolerates short dry spells better than waterlogging. Reduce watering before red harvest.",
+      "frequency_si": "දින 3-4කට වරක්",
+      "method_si": "අගල හෝ බින්දු ජලාපවහන",
+      "notes_si": "මිරිස් ජලයෙන් යටවීමට වඩා කෙටි වියළි කාල පරිච්ෙඡ්ද වඩා හොඳින් ඉවසයි. රතු අස්වැන්නට පෙර ජල සැපයුම අඩු කරන්න.",
+      "critical_stages_text_si": "මල් හටගැනීම · ගෙඩි පිරවීම",
+      "water_stress_signs_si": [
+        "මධ්‍යාහ්නයේ පත්‍ර මැලවීම",
+        "මල් වැටීම"
+      ],
+      "over_watering_signs_si": [
+        "පාමුලේ කුණුවීම",
+        "පහළ පත්‍ර කහ වීම"
+      ],
+      "frequency_ta": "3-4 நாட்களுக்கு ஒருமுறை",
+      "method_ta": "வாய்க்கால் அல்லது சொட்டு நீர்ப்பாசனம்",
+      "notes_ta": "மிளகாய் நீர் தேக்கத்தை விட குறுகிய வறட்சியை நன்கு தாங்கும். சிவப்பு அறுவடைக்கு முன் நீர்ப்பாசனத்தைக் குறைக்கவும்.",
+      "critical_stages_text_ta": "பூக்கும் காலம் · பழம் நிரம்பும் காலம்",
+      "water_stress_signs_ta": [
+        "மதிய நேரத்தில் இலை வாடல்",
+        "பூ உதிர்தல்"
+      ],
+      "over_watering_signs_ta": [
+        "அடிப்பகுதி அழுகல்",
+        "கீழ் இலைகள் மஞ்சளாதல்"
+      ]
     },
     "diseases": [
       {
@@ -600,7 +742,19 @@
         "symptoms": "Dark sunken circular lesions on green and red fruits; fruits rot and shrivel.",
         "favorable_conditions": "Humid conditions, 25–30°C, wounded fruits, high rainfall.",
         "prevention": "Avoid overhead irrigation. Good spacing. Remove infected fruits immediately.",
-        "treatment": "Mancozeb 80WP (2.5 g/L) or Copper Oxychloride (3 g/L) every 7 days."
+        "treatment": "Mancozeb 80WP (2.5 g/L) or Copper Oxychloride (3 g/L) every 7 days.",
+        "name_si": "ඇන්ත්‍රැක්නෝස්",
+        "cause_si": "දිලීර (Colletotrichum spp.)",
+        "symptoms_si": "කොළ හා රතු ගෙඩිවල අඳුරු ගිලුණු කවච ලක්ෂණ; ගෙඩි කුණුවී හැකිලේ.",
+        "favorable_conditions_si": "ආර්ද්‍ර තත්ත්වයන්, අංශක 25-30, තුවාල වූ ගෙඩි, අධික වර්ෂාපතනය.",
+        "prevention_si": "ඉහළින් ජලය දැමීමෙන් වළකින්න. හොඳ පරතරය. ආසාදිත ගෙඩි වහාම ඉවත් කරන්න.",
+        "treatment_si": "Mancozeb 80WP (ලීටර් 2.5g) හෝ Copper Oxychloride (ලීටර් 3g) සතියකට වරක්.",
+        "name_ta": "ஆந்த்ராக்னோஸ்",
+        "cause_ta": "பூஞ்சை (Colletotrichum spp.)",
+        "symptoms_ta": "பச்சை மற்றும் சிவப்பு பழங்களில் அமிழ்ந்த கரும் புள்ளிகள்; பழங்கள் அழுகி சுருங்கும்.",
+        "favorable_conditions_ta": "ஈரப்பதமான சூழல், 25-30°C, காயமடைந்த பழங்கள், அதிக மழைவீழ்ச்சி.",
+        "prevention_ta": "மேலிருந்து நீர்ப்பாசனத்தைத் தவிர்க்கவும். நல்ல இடைவெளி. பாதிக்கப்பட்ட பழங்களை உடனடியாக அகற்றவும்.",
+        "treatment_ta": "Mancozeb 80WP (லிட்டர் 2.5g) அல்லது Copper Oxychloride (லிட்டர் 3g) ஒவ்வொரு 7 நாட்களும்."
       },
       {
         "name": "Bacterial Wilt",
@@ -610,7 +764,19 @@
         "symptoms": "Sudden complete wilting; vascular browning visible in cut stem; milky ooze in water.",
         "favorable_conditions": "Wet soil, poor drainage, 25–35°C.",
         "prevention": "Raised beds. Crop rotation. Certified disease-free seedlings.",
-        "treatment": "No cure. Remove infected plants immediately. Lime affected soil area."
+        "treatment": "No cure. Remove infected plants immediately. Lime affected soil area.",
+        "name_si": "බැක්ටීරියා විල්ට්",
+        "cause_si": "බැක්ටීරියා (Ralstonia solanacearum)",
+        "symptoms_si": "හදිසි සම්පූර්ණ මැලවීම; කැපූ කඳේ පෙනෙන සනාල දුඹුරු වීම; ජලයේ කිරි වර්ණ ස්‍රාවය.",
+        "favorable_conditions_si": "තෙත් පස, දුර්වල ජලාපවහනය, අංශක 25-35.",
+        "prevention_si": "උස් වැපිලි. බෝග මාරුව. සහතික කළ රෝග රහිත පැළ.",
+        "treatment_si": "ප්‍රතිකාරයක් නැත. ආසාදිත ශාක වහාම ඉවත් කරන්න. ආසාදිත ප්‍රදේශයට හුණු යොදන්න.",
+        "name_ta": "பாக்டீரியா வாட்டம்",
+        "cause_ta": "பாக்டீரியா (Ralstonia solanacearum)",
+        "symptoms_ta": "திடீர் முழுமையான வாடல்; வெட்டிய தண்டில் தெரியும் நாள சிவப்பு-பழுப்பு நிறம்; நீரில் பாலுள்ள கசிவு.",
+        "favorable_conditions_ta": "ஈரமான மண், மோசமான வடிகால், 25-35°C.",
+        "prevention_ta": "உயர்த்தப்பட்ட படுகைகள். பயிர் சுழற்சி. சான்றளிக்கப்பட்ட நோய் இல்லாத நாற்றுகள்.",
+        "treatment_ta": "குணப்படுத்த முடியாது. பாதிக்கப்பட்ட செடிகளை உடனடியாக அகற்றவும். பாதிக்கப்பட்ட மண் பகுதிக்கு சுண்ணாம்பு இடவும்."
       },
       {
         "name": "Leaf Curl Virus",
@@ -620,7 +786,19 @@
         "symptoms": "Severe leaf curling, yellowing, and distortion; stunted growth; drastically reduced fruit yield.",
         "favorable_conditions": "High thrips and whitefly populations; hot dry weather.",
         "prevention": "Control vector insects with sticky traps. Remove infected plants immediately.",
-        "treatment": "No cure. Manage thrips: Spinosad (0.3 ml/L). Manage whitefly: Imidacloprid (0.3 ml/L)."
+        "treatment": "No cure. Manage thrips: Spinosad (0.3 ml/L). Manage whitefly: Imidacloprid (0.3 ml/L).",
+        "name_si": "ලිෆ් කර්ල් වයිරසය",
+        "cause_si": "වෛරස් (ChLCV — ත්‍රිප්ස්/සුදුමැස්සන් මගින් සම්ප්‍රේෂණය වේ)",
+        "symptoms_si": "දරුණු පත්‍ර රැලි වැටීම, කහ වීම සහ විකෘති වීම; වර්ධන අවහිරතාව; අස්වැන්න තියුනු ලෙස අඩුවීම.",
+        "favorable_conditions_si": "ඉහළ ත්‍රිප්ස් සහ සුදුමැස්සන් ප්‍රමාණය; උණුසුම් වියළි කාලගුණය.",
+        "prevention_si": "ඇලෙන සුළු උගුල් වලින් වාහක කෘමීන් පාලනය කරන්න. ආසාදිත ශාක වහාම ඉවත් කරන්න.",
+        "treatment_si": "ප්‍රතිකාරයක් නැත. ත්‍රිප්ස් කළමනාකරණය: Spinosad (ලීටර් 0.3ml). සුදුමැස්සන් කළමනාකරණය: Imidacloprid (ලීටර් 0.3ml).",
+        "name_ta": "இலைச் சுருள் வைரஸ்",
+        "cause_ta": "வைரஸ் (ChLCV — த்ரிப்ஸ்/வெள்ளை ஈ மூலம் பரவுகிறது)",
+        "symptoms_ta": "கடுமையான இலைச் சுருள், மஞ்சளாதல் மற்றும் சிதைவு; வளர்ச்சி குன்றல்; பெரிதும் குறைந்த பழ விளைச்சல்.",
+        "favorable_conditions_ta": "அதிக த்ரிப்ஸ் மற்றும் வெள்ளை ஈ எண்ணிக்கை; வெப்பமான வறண்ட காலநிலை.",
+        "prevention_ta": "ஒட்டும் பொறிகளுடன் வாகக பூச்சிகளைக் கட்டுப்படுத்தவும். பாதிக்கப்பட்ட செடிகளை உடனடியாக அகற்றவும்.",
+        "treatment_ta": "குணப்படுத்த முடியாது. த்ரிப்ஸ் மேலாண்மை: Spinosad (லிட்டர் 0.3ml). வெள்ளை ஈ மேலாண்மை: Imidacloprid (லிட்டர் 0.3ml)."
       }
     ],
     "pests": [
@@ -631,7 +809,17 @@
         "damage": "Sucks sap from young leaves and flowers; causes silvering, curling, and distortion; primary vector of leaf curl virus.",
         "identification": "Tiny yellowish insects in flower buds and leaf folds; silver streaks on leaves.",
         "prevention": "Blue sticky traps. Reflective mulch. Avoid over-fertilisation with nitrogen.",
-        "treatment": "Spinosad 45SC (0.3 ml/L) or Fipronil. Apply every 7 days during high infestation."
+        "treatment": "Spinosad 45SC (0.3 ml/L) or Fipronil. Apply every 7 days during high infestation.",
+        "name_si": "ත්‍රිප්ස්",
+        "damage_si": "තරුණ පත්‍ර හා මල් වලින් යුෂ උරාබොයි; රිදී පැහැ වීම, රැලි වැටීම හා විකෘති වීම ඇති කරයි; ලිෆ් කර්ල් වයිරසයේ ප්‍රධාන වාහකයා.",
+        "identification_si": "මල් අංකුර සහ පත්‍ර නැමුම්වල කුඩා කහ පාට කෘමීන්; පත්‍රවල රිදී ඉරි.",
+        "prevention_si": "නිල් ඇලෙන සුළු උගුල්. ප්‍රතිබිම්බන කාබනික ආවරණය. අධික නයිට්‍රජන් යෙදීමෙන් වළකින්න.",
+        "treatment_si": "Spinosad 45SC (ලීටර් 0.3ml) හෝ Fipronil. අධික ව්‍යාප්තියේදී සතියකට වරක් යොදන්න.",
+        "name_ta": "த்ரிப்ஸ்",
+        "damage_ta": "இளம் இலைகள் மற்றும் பூக்களிலிருந்து சாற்றை உறிஞ்சும்; வெள்ளித்தன்மை, சுருள் மற்றும் சிதைவை ஏற்படுத்தும்; இலைச் சுருள் வைரஸின் முதன்மை வாககம்.",
+        "identification_ta": "பூ மொட்டுகள் மற்றும் இலை மடிப்புகளில் சிறிய மஞ்சள் பூச்சிகள்; இலைகளில் வெள்ளி கோடுகள்.",
+        "prevention_ta": "நீல ஒட்டும் பொறிகள். பிரதிபலிப்பு மல்ச். அதிக நைட்ரஜன் உரமிடலைத் தவிர்க்கவும்.",
+        "treatment_ta": "Spinosad 45SC (லிட்டர் 0.3ml) அல்லது Fipronil. அதிக பாதிப்பின் போது ஒவ்வொரு 7 நாட்களும் பயன்படுத்தவும்."
       },
       {
         "name": "Fruit Borer",
@@ -640,7 +828,17 @@
         "damage": "Larvae bore into fruits causing internal damage and market rejection.",
         "identification": "Entry holes with frass on fruit surface; larvae visible inside when cut.",
         "prevention": "Pheromone traps. Remove and destroy infested fruits immediately.",
-        "treatment": "Spinosad 45SC (0.3 ml/L) at fruiting stage."
+        "treatment": "Spinosad 45SC (0.3 ml/L) at fruiting stage.",
+        "name_si": "පළතුරු බෝරර්",
+        "damage_si": "කීටයන් ගෙඩි තුළට කා ඇතුල් වී අභ්‍යන්තර හානිය හා වෙළඳපොළ ප්‍රතික්ෂේප කිරීම ඇති කරයි.",
+        "identification_si": "ගෙඩි මතුපිට කුහර සහ අපද්‍රව්‍ය; කැපූ විට ඇතුළත කීටයන් දිස්වේ.",
+        "prevention_si": "ෆෙරමෝන් උගුල්. ආසාදිත ගෙඩි වහාම ඉවත් කර විනාශ කරන්න.",
+        "treatment_si": "ගෙඩි හටගැනීමේදී Spinosad 45SC (ලීටර් 0.3ml).",
+        "name_ta": "பழம் துளைப்பான்",
+        "damage_ta": "புழுக்கள் பழங்களுக்குள் துளைத்து உள் சேதத்தையும் சந்தை நிராகரிப்பையும் ஏற்படுத்தும்.",
+        "identification_ta": "பழத்தின் மேற்பரப்பில் நுழைவு துளைகள்; வெட்டும்போது உள்ளே புழுக்கள் தெரியும்.",
+        "prevention_ta": "பெரோமோன் பொறிகள். பாதிக்கப்பட்ட பழங்களை உடனடியாக அகற்றி அழிக்கவும்.",
+        "treatment_ta": "பழம் காலத்தில் Spinosad 45SC (லிட்டர் 0.3ml)."
       },
       {
         "name": "Whitefly",
@@ -649,7 +847,17 @@
         "damage": "Sucks sap; transmits leaf curl virus causing major yield loss.",
         "identification": "Clouds of tiny white insects on leaf undersides when disturbed.",
         "prevention": "Yellow sticky traps. Neem oil spray.",
-        "treatment": "Imidacloprid 200SL (0.3 ml/L) on leaf undersides."
+        "treatment": "Imidacloprid 200SL (0.3 ml/L) on leaf undersides.",
+        "name_si": "සුදු මැස්සා",
+        "damage_si": "යුෂ උරාබොයි; ලිෆ් කර්ල් වයිරසය සම්ප්‍රේෂණය කර විශාල අස්වැන්න පාඩුවක් ඇති කරයි.",
+        "identification_si": "බාධා කළ විට පත්‍රවල යටි පැත්තේ කුඩා සුදු කෘමීන් වලාකුළු.",
+        "prevention_si": "කහ ඇලෙන සුළු උගුල්. නීම් තෙල් ඉසින.",
+        "treatment_si": "පත්‍ර යටි පැත්තේ Imidacloprid 200SL (ලීටර් 0.3ml).",
+        "name_ta": "வெள்ளை ஈ",
+        "damage_ta": "சாற்றை உறிஞ்சும்; இலைச் சுருள் வைரஸைப் பரப்பி பெரும் விளைச்சல் இழப்பை ஏற்படுத்தும்.",
+        "identification_ta": "தொந்தரவு செய்யும்போது இலையின் அடிப்பகுதியில் சிறிய வெள்ளை பூச்சிகளின் மேகங்கள்.",
+        "prevention_ta": "மஞ்சள் ஒட்டும் பொறிகள். வேப்ப எண்ணெய் தெளிப்பு.",
+        "treatment_ta": "இலையின் அடிப்பகுதியில் Imidacloprid 200SL (லிட்டர் 0.3ml)."
       },
       {
         "name": "Aphid",
@@ -658,7 +866,17 @@
         "damage": "Sucks sap; causes leaf curling and stunted shoot growth; transmits viruses.",
         "identification": "Dense colonies on new shoot tips and leaf undersides.",
         "prevention": "Yellow sticky traps. Neem oil spray.",
-        "treatment": "Dimethoate 40EC (1.5 ml/L) if infestation exceeds threshold."
+        "treatment": "Dimethoate 40EC (1.5 ml/L) if infestation exceeds threshold.",
+        "name_si": "ගෑනු",
+        "damage_si": "යුෂ උරාබොයි; පත්‍ර රැලි වැටීම හා අංකුර වර්ධන අවහිරතාව ඇති කරයි; වෛරස් සම්ප්‍රේෂණය කරයි.",
+        "identification_si": "නව අංකුර ඉඟි සහ පත්‍ර යටි පැත්තේ ඝන කාණ්ඩ.",
+        "prevention_si": "කහ ඇලෙන සුළු උගුල්. නීම් තෙල් ඉසින.",
+        "treatment_si": "ව්‍යාප්තිය සීමාව ඉක්මවුවහොත් Dimethoate 40EC (ලීටර් 1.5ml).",
+        "name_ta": "அசுவினிப் பூச்சி",
+        "damage_ta": "சாற்றை உறிஞ்சும்; இலைச் சுருளையும் தளிர் வளர்ச்சி குன்றலையும் ஏற்படுத்தும்; வைரஸ்களைப் பரப்பும்.",
+        "identification_ta": "புதிய தளிர் நுனிகள் மற்றும் இலையின் அடியில் அடர்த்தியான கூட்டங்கள்.",
+        "prevention_ta": "மஞ்சள் ஒட்டும் பொறிகள். வேப்ப எண்ணெய் தெளிப்பு.",
+        "treatment_ta": "பாதிப்பு வரம்பை மீறினால் Dimethoate 40EC (லிட்டர் 1.5ml)."
       }
     ],
     "risks": [
@@ -668,7 +886,15 @@
         "severity": "medium",
         "description": "Dry spells during flowering cause flower and fruit drop.",
         "signs": "Midday wilting, flower drop.",
-        "mitigation": "Drip or furrow irrigation every 3–4 days. Mulch."
+        "mitigation": "Drip or furrow irrigation every 3–4 days. Mulch.",
+        "name_si": "නියඟය",
+        "description_si": "මල් හටගැනීමේදී වියළි කාල පරිච්ෙඡ්ද මල් හා ගෙඩි වැටීම ඇති කරයි.",
+        "signs_si": "මධ්‍යාහ්නයේ මැලවීම, මල් වැටීම.",
+        "mitigation_si": "දින 3-4කට වරක් බින්දු හෝ අගල් ජලාපවහනය. වසුන්කරණය.",
+        "name_ta": "வறட்சி",
+        "description_ta": "பூக்கும் காலத்தில் வறண்ட காலம் பூ மற்றும் பழம் உதிர்தலை ஏற்படுத்தும்.",
+        "signs_ta": "மதிய நேர வாடல், பூ உதிர்தல்.",
+        "mitigation_ta": "3-4 நாட்களுக்கு ஒருமுறை சொட்டு அல்லது வாய்க்கால் நீர்ப்பாசனம். மல்ச்."
       },
       {
         "type": "weather",
@@ -676,7 +902,15 @@
         "severity": "high",
         "description": "Promotes anthracnose and Phytophthora root rot.",
         "signs": "Collar rotting, waterlogged soil.",
-        "mitigation": "Raised beds. Copper spray before rain period."
+        "mitigation": "Raised beds. Copper spray before rain period.",
+        "name_si": "අධික වර්ෂාව",
+        "description_si": "ඇන්ත්‍රැක්නෝස් සහ Phytophthora මූල කුණුවීම ප්‍රවර්ධනය කරයි.",
+        "signs_si": "පාමුලේ කුණුවීම, ජලයෙන් යටවූ පස.",
+        "mitigation_si": "උස් වැපිලි. වර්ෂාවට පෙර තඹ ඉසින.",
+        "name_ta": "அதிக மழை",
+        "description_ta": "ஆந்த்ராக்னோஸ் மற்றும் Phytophthora வேர் அழுகலை ஊக்குவிக்கும்.",
+        "signs_ta": "அடிப்பகுதி அழுகல், நீர் தேங்கிய மண்.",
+        "mitigation_ta": "உயர்த்தப்பட்ட படுகைகள். மழைக்கு முன் காப்பர் தெளிப்பு."
       }
     ],
     "harvest": {
@@ -691,12 +925,28 @@
       "method": "Hand pick with short stalk. Avoid bruising.",
       "frequency": "Every 5–7 days",
       "yield": "8–12 t/ha (fresh)",
-      "post_harvest": "Dry in sun for red/dried market. Grade by size and colour. Store in dry ventilated area."
+      "post_harvest": "Dry in sun for red/dried market. Grade by size and colour. Store in dry ventilated area.",
+      "method_si": "කෙටි කඳක් සමඟ අතින් නෙළන්න. තැලීම වළක්වන්න.",
+      "frequency_si": "දින 5-7කට වරක්",
+      "post_harvest_si": "රතු/වියළි වෙළඳපොළ සඳහා අව්වේ වියළන්න. ප්‍රමාණය හා වර්ණය අනුව වර්ග කරන්න. වියළි වාතාශ්‍රය ඇති ස්ථානයක ගබඩා කරන්න.",
+      "indicators_si": [
+        "කොළ අවධිය: ස්ථීර පූර්ණ ප්‍රමාණයේ ගෙඩි",
+        "රතු අවධිය: සම්පූර්ණයෙන් රතු, තරමක් ස්ථීර"
+      ],
+      "method_ta": "குறுகிய காம்புடன் கையால் பறிக்கவும். அடிபடுவதைத் தவிர்க்கவும்.",
+      "frequency_ta": "5-7 நாட்களுக்கு ஒருமுறை",
+      "post_harvest_ta": "சிவப்பு/உலர் சந்தைக்கு வெயிலில் உலர்த்தவும். அளவு மற்றும் நிறத்தின்படி தரம் பிரிக்கவும். உலர்ந்த காற்றோட்டமான இடத்தில் சேமிக்கவும்.",
+      "indicators_ta": [
+        "பச்சை நிலை: உறுதியான முழு அளவு பழங்கள்",
+        "சிவப்பு நிலை: முழுவதும் சிவப்பு, சற்று உறுதி"
+      ]
     },
     "growth_stages_text": "Chilli cultivation follows several important growth stages including seed germination, seedling establishment, vegetative growth, flowering, fruit setting, fruit development, ripening, and harvesting. Seeds are usually sown in nursery beds and germinate within 7–14 days under favorable conditions. Seedlings are maintained in the nursery for approximately 30–45 days before transplanting into the main field. After transplanting, plants undergo rapid vegetative growth with the development of branches and leaves. Flowering generally begins around 35–50 days after transplanting, followed by fruit setting and fruit development. Fruits gradually enlarge and change color from green to red or other mature colors depending on the variety. Harvesting can begin approximately 70–100 days after transplanting and may continue for several months through multiple pickings.",
     "management_text": "Successful chilli cultivation requires a well-organized crop management schedule including land preparation, nursery establishment, transplanting, fertilizer application, irrigation, weed control, pest monitoring, and harvesting. Farmers generally transplant seedlings at a spacing of about 45–60 cm between plants and 60–75 cm between rows to provide adequate sunlight and airflow. Fertilizer management is essential for achieving high yields. Nitrogen promotes vegetative growth, phosphorus supports root development and flowering, while potassium improves fruit size, color, and quality. Organic manure or compost is commonly incorporated during land preparation to improve soil fertility and moisture retention.",
     "disease_management_text": "Irrigation management plays a critical role in chilli production. Frequent light irrigation is required immediately after transplanting to ensure successful establishment. During vegetative growth and flowering, soil moisture should be maintained consistently to support healthy plant development. Water stress during flowering and fruit setting can result in flower drop and reduced fruit production. However, excessive irrigation should be avoided because waterlogged conditions encourage root diseases and reduce plant vigor. Drip irrigation systems are often recommended because they improve water-use efficiency and reduce disease incidence.",
-    "risk_mitigation_text": "Disease and pest management are among the most important aspects of chilli cultivation. Thrips attack young leaves and flowers, causing curling, silvering, and distorted growth. Aphids and whiteflies feed on plant sap and act as vectors for viral diseases, particularly leaf curl virus. Fruit borers damage developing fruits by boring holes and feeding internally, leading to direct yield losses. Bacterial wilt causes sudden wilting and plant death, especially under warm and moist conditions. Anthracnose disease produces dark, sunken lesions on fruits, making them unsuitable for market. Viral leaf curl disease causes severe leaf curling, stunted growth, and reduced fruit production. Regular monitoring, field sanitation, removal of infected plants, use of resistant varieties, balanced fertilization, and integrated pest management practices are effective strategies for controlling these problems. Risk mitigation strategies are important for maintaining stable chilli production and minimizing losses. During periods of heavy rainfall, proper drainage systems should be maintained to prevent waterlogging and disease outbreaks. During drought conditions, mulching and efficient irrigation practices help conserve soil moisture and reduce plant stress. Farmers should regularly inspect fields for early signs of pest and disease infestations to enable timely intervention. Crop rotation, use of certified healthy seedlings, proper plant spacing, and balanced nutrient management improve crop health and reduce vulnerability to environmental stresses. These practices help ensure consistent yields, high-quality fruits, and greater resilience to changing climatic conditions."
+    "risk_mitigation_text": "Disease and pest management are among the most important aspects of chilli cultivation. Thrips attack young leaves and flowers, causing curling, silvering, and distorted growth. Aphids and whiteflies feed on plant sap and act as vectors for viral diseases, particularly leaf curl virus. Fruit borers damage developing fruits by boring holes and feeding internally, leading to direct yield losses. Bacterial wilt causes sudden wilting and plant death, especially under warm and moist conditions. Anthracnose disease produces dark, sunken lesions on fruits, making them unsuitable for market. Viral leaf curl disease causes severe leaf curling, stunted growth, and reduced fruit production. Regular monitoring, field sanitation, removal of infected plants, use of resistant varieties, balanced fertilization, and integrated pest management practices are effective strategies for controlling these problems. Risk mitigation strategies are important for maintaining stable chilli production and minimizing losses. During periods of heavy rainfall, proper drainage systems should be maintained to prevent waterlogging and disease outbreaks. During drought conditions, mulching and efficient irrigation practices help conserve soil moisture and reduce plant stress. Farmers should regularly inspect fields for early signs of pest and disease infestations to enable timely intervention. Crop rotation, use of certified healthy seedlings, proper plant spacing, and balanced nutrient management improve crop health and reduce vulnerability to environmental stresses. These practices help ensure consistent yields, high-quality fruits, and greater resilience to changing climatic conditions.",
+    "overview_si": "මිරිස්, ශ්‍රී ලංකාවේ සුලභ මෙන්ම වැදගත් කුළුබඩු බෝගයකි. එය Solanaceae කුලයට අයත් වන අතර විද්‍යාත්මක නාමය Capsicum annuum (රස මිරිස් වර්ග) වේ. අනුරාධපුරය, පොළොන්නරුව, හම්බන්තොට වැනි වියළි හා අතරමැදි කලාප වල මිරිස් වගාව බහුලව සිදුවේ. මිරිස් සඳහා ඉතා සුදුසු වන්නේ අංශක සෙල්සියස් 20-30ත් අතර උෂ්ණත්වයක් වන අතර, pH අගය 5.5-6.8 අතර වූ, හොඳින් ජලය බැස යන වැලි හෝ මැටි මිශ්‍ර පස් අවශ්‍ය වේ. සෞඛ්‍ය සම්පන්න වර්ධනයක් සහ ඉහළ අස්වැන්නක් සඳහා මධ්‍යස්ථ වර්ෂාපතනයක්, නිතිපතා ජල සම්පාදනයක් සහ පූර්ණ හිරු එළියක් අවශ්‍ය වේ. ශ්‍රී ලාංකික ආහාර සම්ප්‍රදායේ අත්‍යවශ්‍ය අමුද්‍රව්‍යයක් වන මිරිස්, නැවුම්, වියළි සහ කුඩු ආකාරයෙන් බහුලව භාවිත වේ. බෝගය සාමාන්‍යයෙන් සිටුවීමෙන් දින 70-100ක් තුළ අස්වනු නෙළීම ආරම්භ කළ හැක. උෂ්ණත්වය, පස් තෙතමනය, වර්ෂාපතනය, හිරු එළිය, ආර්ද්‍රතාවය සහ පස් සාරවත්භාවය මිරිස් වගාවට බලපාන ප්‍රධාන සාධක වේ. ත්‍රිප්ස්, ගෑනු, සුදු මැස්සන්, පළතුරු බෝරර්, බැක්ටීරියා විල්ට් සහ ඇන්ත්‍රැක්නෝස් වැනි පළිබෝධ හා රෝග නිසි ලෙස පාලනය නොකළහොත් අස්වැන්නට සහ ගුණාත්මකභාවයට සැලකිය යුතු හානියක් සිදුවිය හැක.",
+    "overview_ta": "மிளகாய், இலங்கையின் முக்கியமான மசாலா பயிராகும். இது Solanaceae குடும்பத்தைச் சேர்ந்தது, அறிவியல் பெயர் Capsicum annuum (காரமான வகைகள்). அனுராதபுரம், பொலன்னறுவை, அம்பாந்தோட்டை போன்ற வறண்ட மற்றும் இடைநிலை வலயங்களில் மிளகாய் பரவலாக பயிரிடப்படுகிறது. மிளகாய் 20-30°C வெப்பநிலையில் சிறப்பாக வளரும், pH 5.5-6.8 கொண்ட நல்ல வடிகால் அமைப்புள்ள மணல் அல்லது களிமண் கலந்த மண் தேவைப்படுகிறது. ஆரோக்கியமான வளர்ச்சிக்கும் அதிக விளைச்சலுக்கும் மிதமான மழைவீழ்ச்சி, தொடர்ச்சியான நீர்ப்பாசனம் மற்றும் முழு சூரிய ஒளி தேவை. இலங்கை உணவு பண்பாட்டில் இன்றியமையாத மசாலாப் பொருளான மிளகாய், புதிய, உலர்ந்த மற்றும் தூள் வடிவில் பரவலாகப் பயன்படுத்தப்படுகிறது. நடவு செய்த 70-100 நாட்களுக்குள் அறுவடை தொடங்கலாம். வெப்பநிலை, மண் ஈரப்பதம், மழைவீழ்ச்சி, சூரிய ஒளி, ஈரப்பதம் மற்றும் மண் வளம் ஆகியவை மிளகாய் சாகுபடியை பாதிக்கும் முக்கிய காரணிகள். த்ரிப்ஸ், அசுவினிப் பூச்சி, வெள்ளை ஈ, பழம் துளைப்பான், பாக்டீரியா வாட்டம், ஆந்த்ராக்னோஸ் மற்றும் இலைச் சுருள் நோய் ஆகியவை முறையாக கட்டுப்படுத்தப்படாவிட்டால் விளைச்சலையும் தரத்தையும் பெரிதும் பாதிக்கலாம்."
   },
   "Brinjal (Eggplant)": {
     "local_name": "වම්බටු (Wambatu)",
