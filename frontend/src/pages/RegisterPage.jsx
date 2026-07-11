@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { registerUser } from '../services/api';
 import { useApp } from '../context/AppContext';
+import { getPasswordStrength } from '../utils/passwordStrength';
 
 const REG_T = {
   en: {
@@ -18,6 +19,7 @@ const REG_T = {
     roleHint: 'Select at least one role.',
     btnRegister: 'Register →', btnLoading: 'Creating account...',
     hasAccount: 'Already have an account?', login: 'Login', backHome: 'Back to Home',
+    pwWeak: 'Weak', pwFair: 'Fair', pwGood: 'Good', pwStrong: 'Strong',
   },
   si: {
     panelTitle: 'අද SmartAgri හා සම්බන්ධ වන්න!',
@@ -33,6 +35,7 @@ const REG_T = {
     roleHint: 'අවම වශයෙන් භූමිකාවක් තෝරන්න.',
     btnRegister: 'ලියාපදිංචිය →', btnLoading: 'ගිණුම සාදමින්...',
     hasAccount: 'දැනටමත් ගිණුමක් ඇතිද?', login: 'ලොගින්', backHome: 'ආරම්භ පිටුවට',
+    pwWeak: 'දුර්වල', pwFair: 'මධ්‍යම', pwGood: 'හොඳයි', pwStrong: 'ශක්තිමත්',
   },
   ta: {
     panelTitle: 'இன்றே SmartAgri இல் சேருங்கள்!',
@@ -48,6 +51,7 @@ const REG_T = {
     roleHint: 'குறைந்தது ஒரு பாத்திரத்தை தேர்ந்தெடுக்கவும்.',
     btnRegister: 'பதிவு செய் →', btnLoading: 'கணக்கை உருவாக்குகிறது...',
     hasAccount: 'ஏற்கனவே கணக்கு உள்ளதா?', login: 'உள்நுழை', backHome: 'முகப்பு பக்கத்திற்கு',
+    pwWeak: 'பலவீனம்', pwFair: 'சராசரி', pwGood: 'நல்லது', pwStrong: 'வலிமையானது',
   },
 };
 
@@ -158,6 +162,20 @@ export default function RegisterPage() {
                   }
                 </button>
               </div>
+              {formData.password && (() => {
+                const { score, label } = getPasswordStrength(formData.password);
+                const labelText = { weak: t.pwWeak, fair: t.pwFair, good: t.pwGood, strong: t.pwStrong }[label];
+                return (
+                  <div className="pw-strength">
+                    <div className="pw-strength__bars">
+                      {[1, 2, 3, 4].map(i => (
+                        <div key={i} className={`pw-strength__bar${i <= score ? ` pw-strength__bar--filled pw-strength__bar--${label}` : ''}`} />
+                      ))}
+                    </div>
+                    <span className={`pw-strength__label pw-strength__label--${label}`}>{labelText}</span>
+                  </div>
+                );
+              })()}
             </label>
 
             {/* Dual-role checkboxes */}
