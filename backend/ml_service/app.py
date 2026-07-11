@@ -956,6 +956,26 @@ class StartCultivationRequest(BaseModel):
 
 class TaskStatusUpdate(BaseModel):
     status: str  # done | skipped | pending | overdue
+    photo: Optional[str] = None  # data URI (image/*) captured when marking the task done
+
+
+def _store_task_photo(photo: Optional[str]) -> Optional[str]:
+    """Save a base64 data URI to backend/uploads/ and return its URL, mirroring
+    marketplace_service._store_image so task photos are served the same way."""
+    if not photo or not photo.startswith("data:image/"):
+        return photo
+    import base64 as _b64
+    import re as _re
+    import uuid as _uuid
+    m = _re.match(r"data:image/(\w+);base64,(.+)", photo, _re.DOTALL)
+    if not m:
+        return photo
+    ext = "jpg" if m.group(1).lower() in ("jpeg", "jpg") else m.group(1).lower()
+    uploads_dir = Path(__file__).resolve().parents[1] / "uploads"
+    uploads_dir.mkdir(exist_ok=True)
+    filename = f"{_uuid.uuid4().hex}.{ext}"
+    (uploads_dir / filename).write_bytes(_b64.b64decode(m.group(2)))
+    return f"/uploads/{filename}"
 
 
 def _gen_cultivation_tasks(crop_data: dict, planting_date_str: str) -> list:
@@ -1045,6 +1065,7 @@ def _session_to_dict(session: "_CultivationSession") -> dict:
             "stage_id":       task.stage_id,
             "stage_name":     task.stage_name,
             "status":         task.status,
+            "photo":          task.photo,
         }
     return {
         "id":            str(session.id),
@@ -1179,6 +1200,8 @@ def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: T
                 if task_obj is None:
                     raise HTTPException(404, "Task not found")
                 task_obj.status = body.status
+                if body.photo is not None:
+                    task_obj.photo = _store_task_photo(body.photo)
                 db.commit()
                 return {
                     "id":             task_obj.id,
@@ -1191,6 +1214,7 @@ def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: T
                     "stage_id":       task_obj.stage_id,
                     "stage_name":     task_obj.stage_name,
                     "status":         task_obj.status,
+                    "photo":          task_obj.photo,
                 }
             finally:
                 db.close()
@@ -1207,6 +1231,8 @@ def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: T
     if not task:
         raise HTTPException(404, "Task not found")
     task["status"] = body.status
+    if body.photo is not None:
+        task["photo"] = _store_task_photo(body.photo)
     return task
 
 

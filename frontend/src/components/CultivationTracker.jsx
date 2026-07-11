@@ -91,6 +91,20 @@ function fmtDate(dateStr) {
 function TaskModal({ task, t, onClose, onUpdate }) {
   const meta   = ACT_META[task.type] || { icon: "📋" };
   const status = effectiveStatus(task);
+  const [photoPreview, setPhotoPreview] = useState(task.photo || null);
+  const fileRef = useRef(null);
+
+  function handlePhotoPick(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setPhotoPreview(reader.result);
+    reader.readAsDataURL(file);
+  }
+
+  // Only send the photo along when it actually changed (avoid re-uploading an
+  // unchanged /uploads/ URL as if it were fresh base64 data).
+  const photoToSend = photoPreview?.startsWith("data:") ? photoPreview : undefined;
 
   return (
     <div className="cult-modal-overlay" onClick={onClose}>
@@ -115,11 +129,23 @@ function TaskModal({ task, t, onClose, onUpdate }) {
             <span>💡</span> {task.why}
           </div>
         )}
+
+        <div className="cult-modal-photo">
+          {photoPreview ? (
+            <img src={photoPreview} alt="" className="cult-modal-photo-preview" onClick={() => fileRef.current?.click()} />
+          ) : (
+            <button type="button" className="cult-modal-photo-add" onClick={() => fileRef.current?.click()}>
+              📷 {t.addPhoto || "Add a photo"}
+            </button>
+          )}
+          <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={handlePhotoPick} />
+        </div>
+
         <div className="cult-modal-actions">
           {status !== "done" && (
             <button
               className="cult-btn cult-btn-done"
-              onClick={() => onUpdate(task.id, "done")}
+              onClick={() => onUpdate(task.id, "done", photoToSend)}
             >
               ✓ {t.markDone}
             </button>
@@ -127,7 +153,7 @@ function TaskModal({ task, t, onClose, onUpdate }) {
           {status !== "skipped" && (
             <button
               className="cult-btn cult-btn-skip"
-              onClick={() => onUpdate(task.id, "skipped")}
+              onClick={() => onUpdate(task.id, "skipped", photoToSend)}
             >
               — {t.markSkipped}
             </button>
@@ -348,8 +374,8 @@ function CultivationDashboard({ session, guidanceData, t, onBack, onUpdateTask, 
   const progress = sessionProgress(session);
   const stages   = guidanceData?.stages || [];
 
-  async function handleUpdate(taskId, status) {
-    await onUpdateTask(session.id, taskId, status);
+  async function handleUpdate(taskId, status, photo) {
+    await onUpdateTask(session.id, taskId, status, photo);
     setActiveTask(null);
   }
 
@@ -726,9 +752,9 @@ export default function CultivationTracker({ t, userId, initialSessionId, initia
     setView("dashboard");
   }
 
-  async function handleUpdateTask(sessionId, taskId, status) {
+  async function handleUpdateTask(sessionId, taskId, status, photo) {
     try {
-      const updated = await API.updateTask(userId, sessionId, taskId, status);
+      const updated = await API.updateTask(userId, sessionId, taskId, status, photo);
       setSessions(prev => prev.map(s => {
         if (s.id !== sessionId) return s;
         return { ...s, tasks: { ...s.tasks, [taskId]: updated } };

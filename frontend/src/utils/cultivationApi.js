@@ -39,10 +39,12 @@ export async function listCultivations(userId) {
   return data;
 }
 
-export async function updateTask(userId, sessionId, taskId, status) {
+export async function updateTask(userId, sessionId, taskId, status, photo) {
+  const body = { status };
+  if (photo !== undefined) body.photo = photo; // data URI, or null to clear
   const result = await req("PUT",
     `/cultivation/${encodeURIComponent(userId)}/${encodeURIComponent(sessionId)}/task/${encodeURIComponent(taskId)}`,
-    { status },
+    body,
   );
   _listCache.ts = 0; // bust cache so next listCultivations call fetches fresh data
   return result;
