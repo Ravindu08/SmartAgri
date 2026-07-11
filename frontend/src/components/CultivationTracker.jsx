@@ -7,6 +7,11 @@ import { useApp } from "../context/AppContext";
 import { getCropLabel, getSoilLabel } from "../data/cropData";
 import { STAGE_NAME_LABELS } from "../data/translations";
 import CustomSelect from "./CustomSelect";
+// Cultivation dashboard/calendar/modal styles live in CropGuidance.css. Import
+// directly here (not just from the CropGuidance page) so the tracker renders
+// fully styled even when a user lands on /landowner/cultivations first —
+// Vite only fetches a lazy page's CSS chunk once that page has been visited.
+import "../styles/CropGuidance.css";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const ACT_META = {
