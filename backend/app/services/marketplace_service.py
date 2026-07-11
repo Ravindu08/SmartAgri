@@ -1,7 +1,7 @@
 import base64
 import re
 import uuid as uuid_lib
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 from uuid import UUID
@@ -154,7 +154,37 @@ def get_order(db: Session, order_id: UUID) -> MarketplaceOrder | None:
     return db.execute(select(MarketplaceOrder).where(MarketplaceOrder.id == order_id)).scalar_one_or_none()
 
 
+PENDING_ORDER_MAX_AGE_DAYS = 7
+
+
+def expire_stale_pending_orders(db: Session) -> None:
+    """A Pending order left untouched for too long locks the seller's stock
+    indefinitely if the buyer never follows up. Rather than running a
+    scheduler, lazily auto-cancel stale ones (restoring stock) whenever
+    orders are listed - cheap and self-healing since it runs on every read."""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=PENDING_ORDER_MAX_AGE_DAYS)
+    stale = db.execute(
+        select(MarketplaceOrder).where(
+            MarketplaceOrder.status == MarketplaceOrderStatus.PENDING,
+            MarketplaceOrder.created_at < cutoff,
+        )
+    ).scalars().all()
+    if not stale:
+        return
+    for order in stale:
+        order.status = MarketplaceOrderStatus.CANCELLED
+        order.seller_note = ((order.seller_note + " ") if order.seller_note else "") + \
+            f"[Auto-cancelled: no response within {PENDING_ORDER_MAX_AGE_DAYS} days]"
+        order.listing.quantity += order.requested_quantity
+        if order.listing.status != MarketplaceListingStatus.ACTIVE:
+            order.listing.status = MarketplaceListingStatus.ACTIVE
+        db.add(order)
+        db.add(order.listing)
+    db.commit()
+
+
 def list_orders_for_user(db: Session, user_id: int) -> list[MarketplaceOrder]:
+    expire_stale_pending_orders(db)
     return db.execute(
         select(MarketplaceOrder)
         .where((MarketplaceOrder.buyer_id == user_id) | (MarketplaceOrder.seller_id == user_id))
