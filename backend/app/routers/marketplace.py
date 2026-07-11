@@ -19,6 +19,7 @@ from app.schemas.marketplace import (
     NegotiationMessageRead,
 )
 from app.services.email import send_order_event_email
+from app.utils.image_storage import ImageTooLargeError
 from app.services.marketplace_service import (
     add_negotiation,
     create_listing,
@@ -85,7 +86,10 @@ def create_listing_endpoint(
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> MarketplaceListingRead:
-    return create_listing(db, payload, owner_id=current_user.id)
+    try:
+        return create_listing(db, payload, owner_id=current_user.id)
+    except ImageTooLargeError as exc:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=str(exc)) from exc
 
 
 @router.get("/listings/{listing_id}", response_model=MarketplaceListingRead)
@@ -106,7 +110,10 @@ def update_listing_endpoint(
     listing = get_listing_for_owner(db, listing_id, current_user.id)
     if listing is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Listing not found")
-    return update_listing(db, listing, payload)
+    try:
+        return update_listing(db, listing, payload)
+    except ImageTooLargeError as exc:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=str(exc)) from exc
 
 
 @router.delete("/listings/{listing_id}", status_code=status.HTTP_204_NO_CONTENT)

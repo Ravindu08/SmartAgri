@@ -27,6 +27,7 @@ from app.services.auth import (
 )
 from app.services.email import send_password_reset_email, send_verification_email
 from app.core.limiter import limiter
+from app.utils.image_storage import ImageTooLargeError, store_image
 
 router = APIRouter()
 
@@ -277,7 +278,10 @@ def update_profile(
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email is already in use")
         current_user.email = str(payload.email)
     if "profile_image" in payload.model_fields_set:
-        current_user.profile_image = payload.profile_image
+        try:
+            current_user.profile_image = store_image(payload.profile_image)
+        except ImageTooLargeError as exc:
+            raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=str(exc)) from exc
     if "phone_number" in payload.model_fields_set:
         current_user.phone_number = payload.phone_number
     db.commit()

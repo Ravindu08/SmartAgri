@@ -48,6 +48,8 @@ except Exception as _db_err:
     _DB_AVAILABLE = False
     logger.warning("[WARN] Cultivation DB unavailable: %s — sessions will be in-memory only", _db_err)
 
+from app.utils.image_storage import ImageTooLargeError, store_image as _store_task_photo
+
 app = FastAPI(
     title="SMARTAGRI ML Service",
     description="Explainable dual-mode crop recommendation for Sri Lanka",
@@ -959,25 +961,6 @@ class TaskStatusUpdate(BaseModel):
     photo: Optional[str] = None  # data URI (image/*) captured when marking the task done
 
 
-def _store_task_photo(photo: Optional[str]) -> Optional[str]:
-    """Save a base64 data URI to backend/uploads/ and return its URL, mirroring
-    marketplace_service._store_image so task photos are served the same way."""
-    if not photo or not photo.startswith("data:image/"):
-        return photo
-    import base64 as _b64
-    import re as _re
-    import uuid as _uuid
-    m = _re.match(r"data:image/(\w+);base64,(.+)", photo, _re.DOTALL)
-    if not m:
-        return photo
-    ext = "jpg" if m.group(1).lower() in ("jpeg", "jpg") else m.group(1).lower()
-    uploads_dir = Path(__file__).resolve().parents[1] / "uploads"
-    uploads_dir.mkdir(exist_ok=True)
-    filename = f"{_uuid.uuid4().hex}.{ext}"
-    (uploads_dir / filename).write_bytes(_b64.b64decode(m.group(2)))
-    return f"/uploads/{filename}"
-
-
 def _gen_cultivation_tasks(crop_data: dict, planting_date_str: str) -> list:
     try:
         pd = _date.fromisoformat(planting_date_str)
@@ -1220,6 +1203,8 @@ def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: T
                 db.close()
         except HTTPException:
             raise
+        except ImageTooLargeError as exc:
+            raise HTTPException(413, str(exc))
         except Exception as exc:
             logger.exception("DB task update failed: %s", exc)
 
@@ -1232,7 +1217,10 @@ def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: T
         raise HTTPException(404, "Task not found")
     task["status"] = body.status
     if body.photo is not None:
-        task["photo"] = _store_task_photo(body.photo)
+        try:
+            task["photo"] = _store_task_photo(body.photo)
+        except ImageTooLargeError as exc:
+            raise HTTPException(413, str(exc))
     return task
 
 
