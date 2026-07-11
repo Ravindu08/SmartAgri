@@ -80,6 +80,17 @@ class MarketplaceNegotiationCreate(BaseModel):
     proposed_price: Optional[float] = Field(default=None, gt=0)
 
 
+class NegotiationMessageRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    sender_id: int
+    sender_name: str
+    message: str
+    proposed_price: Optional[float] = None
+    created_at: datetime
+
+
 class MarketplaceOrderRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

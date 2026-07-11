@@ -7,6 +7,7 @@ import { Link, useOutletContext } from 'react-router-dom';
 import useSWR, { mutate } from 'swr';
 import CustomSelect from '../components/CustomSelect';
 import { SkeletonListingGrid, SkeletonRows } from '../components/Skeleton';
+import { relativeTime } from '../utils/relativeTime';
 import { request, getAuthSession, getActiveRole, setActiveRole, getUserRoles } from '../services/api';
 import {
   Leaf, Tractor, Store, User, Sprout, Plus, Package, MapPin,
@@ -841,11 +842,22 @@ function MyListingsGrid({ listingType, currentUserId, m }) {
 }
 
 // ── Negotiation dialog ─────────────────────────────────────────────────────────
-function NegotiationDialog({ order, isSeller, m }) {
+function NegotiationDialog({ order, isSeller, currentUserId, m }) {
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState('');
   const [counter, setCounter] = useState('');
   const [busy, setBusy] = useState(false);
+  const [thread, setThread] = useState(null);
+  const [threadErr, setThreadErr] = useState('');
+
+  async function loadThread() {
+    try {
+      const rows = await request(`/api/marketplace/orders/${order.id}/negotiation`);
+      setThread(rows);
+    } catch (err) { setThreadErr(err.message); }
+  }
+
+  useEffect(() => { if (open) loadThread(); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function send() {
     if (!note) { toast.error('Type a note first'); return; }
@@ -857,6 +869,7 @@ function NegotiationDialog({ order, isSeller, m }) {
       });
       toast.success('Note sent.');
       setNote(''); setCounter('');
+      await loadThread();
       refreshOrders();
     } catch (err) { toast.error(err.message); }
     finally { setBusy(false); }
@@ -871,27 +884,28 @@ function NegotiationDialog({ order, isSeller, m }) {
       <Modal open={open} onClose={() => setOpen(false)} title={m.negotiate}
         desc={`${order.listing_name} · ${order.requested_quantity} ${order.unit ?? 'units'} @ Rs. ${Number(order.proposed_price || 0).toLocaleString()}`}>
         <div className="grid gap-3">
-          {order.buyer_note && (
-            <div className="rounded-md border bg-muted/50 p-3">
-              <p className="text-xs font-semibold text-muted-foreground mb-1">{m.buyerNote}</p>
-              <p className="text-sm">{order.buyer_note}</p>
-              {order.proposed_price && (
-                <p className="text-xs mt-1 text-primary font-medium">Proposed: Rs. {Number(order.proposed_price).toLocaleString()}</p>
-              )}
-            </div>
-          )}
-          {order.seller_note && (
-            <div className="rounded-md border bg-muted/50 p-3">
-              <p className="text-xs font-semibold text-muted-foreground mb-1">{m.sellerNote}</p>
-              <p className="text-sm">{order.seller_note}</p>
-              {order.counter_offer_price && (
-                <p className="text-xs mt-1 text-amber-600 font-medium">{m.counterOffer}: Rs. {Number(order.counter_offer_price).toLocaleString()}</p>
-              )}
-            </div>
-          )}
-          {!order.buyer_note && !order.seller_note && (
-            <p className="text-sm text-muted-foreground text-center py-4">{m.noNotes}</p>
-          )}
+          <div className="grid gap-2" style={{ maxHeight: '45vh', overflowY: 'auto' }}>
+            {threadErr && <p className="text-sm text-red-600">{threadErr}</p>}
+            {thread === null && !threadErr && <p className="text-sm text-muted-foreground">Loading…</p>}
+            {thread?.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">{m.noNotes}</p>
+            )}
+            {thread?.map(msg => {
+              const mine = msg.sender_id === currentUserId;
+              return (
+                <div key={msg.id} className="rounded-md border bg-muted/50 p-3" style={{ marginLeft: mine ? '20%' : 0, marginRight: mine ? 0 : '20%' }}>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold text-muted-foreground">{msg.sender_name}</p>
+                    <p className="text-xs text-muted-foreground">{relativeTime(msg.created_at)}</p>
+                  </div>
+                  <p className="text-sm mt-1">{msg.message}</p>
+                  {msg.proposed_price && (
+                    <p className="text-xs mt-1 text-primary font-medium">Offer: Rs. {Number(msg.proposed_price).toLocaleString()}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
           {order.status === 'Pending' || order.status === 'Confirmed' ? (
             <div className="grid gap-2 border-t pt-3">
               <p className="text-xs font-semibold text-muted-foreground">{m.addNote}</p>
@@ -1035,7 +1049,7 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
         )}
 
         <div className="flex flex-wrap gap-2">
-          <NegotiationDialog order={order} isSeller={isSeller} m={m} />
+          <NegotiationDialog order={order} isSeller={isSeller} currentUserId={currentUserId} m={m} />
 
           {/* Seller actions */}
           {isSeller && order.status === 'Pending' && (
