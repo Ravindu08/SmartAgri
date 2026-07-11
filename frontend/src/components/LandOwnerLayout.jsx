@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import CustomSelect from './CustomSelect';
+import ErrorBoundary from './ErrorBoundary';
 import { useApp } from '../context/AppContext';
 import { getAuthSession, clearAuthSession, getActiveRole, isDualRole, submitFeedback, fetchNotifications, markNotificationRead, markAllNotificationsRead } from '../services/api';
 import { getCrops } from '../services/cropService';
@@ -483,7 +484,9 @@ export default function LandOwnerLayout() {
         </header>
         <main className="lo-content">
           <div key={location.pathname} className="page-transition">
-            <Outlet />
+            <ErrorBoundary resetKey={location.pathname}>
+              <Outlet />
+            </ErrorBoundary>
           </div>
         </main>
       </div>
