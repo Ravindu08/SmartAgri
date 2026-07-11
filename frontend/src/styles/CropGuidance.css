@@ -1294,6 +1294,20 @@
   display: flex;
   gap: 8px;
 }
+.cult-modal-photo { margin-bottom: 16px; }
+.cult-modal-photo-preview {
+  width: 100%; max-height: 200px; object-fit: cover;
+  border-radius: var(--radius-sm); cursor: pointer;
+  border: 1.5px solid var(--border);
+}
+.cult-modal-photo-add {
+  width: 100%; padding: 14px; border: 1.5px dashed var(--border);
+  border-radius: var(--radius-sm); background: var(--border-soft);
+  color: var(--muted); font-size: 13px; font-family: var(--ff);
+  cursor: pointer; transition: var(--tr);
+}
+.cult-modal-photo-add:hover { border-color: var(--green-primary); color: var(--green-primary); }
+
 .cult-modal-actions {
   display: flex;
   gap: 8px;
