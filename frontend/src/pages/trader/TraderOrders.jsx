@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import useSWR, { mutate } from 'swr';
+import { SkeletonRows } from '../../components/Skeleton';
 import { useApp } from '../../context/AppContext';
 import { getAuthSession, request } from '../../services/api';
 
@@ -180,7 +181,7 @@ export default function TraderOrders() {
 
       {/* List */}
       {isLoading ? (
-        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>Loading…</div>
+        <SkeletonRows count={3} />
       ) : filtered.length === 0 ? (
         <div style={{
           background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px',

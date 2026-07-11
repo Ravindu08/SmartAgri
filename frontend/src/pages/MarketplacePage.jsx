@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import useSWR, { mutate } from 'swr';
 import CustomSelect from '../components/CustomSelect';
+import { SkeletonListingGrid, SkeletonRows } from '../components/Skeleton';
 import { request, getAuthSession, getActiveRole, setActiveRole, getUserRoles } from '../services/api';
 import {
   Leaf, Tractor, Store, User, Sprout, Plus, Package, MapPin,
@@ -689,7 +690,7 @@ function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDele
       </div>
 
       {isLoading
-        ? <p className="text-sm text-muted-foreground">{m.loadingCrops}</p>
+        ? <SkeletonListingGrid count={6} />
         : listings.length === 0
           ? <Card><div className="py-12 text-center text-sm text-muted-foreground">
               {listingType === 'crop' ? (showDelete ? m.noListingsOwner : m.noListingsTrader) : (showDelete ? m.noProductsTrader : m.noProductsOwner)}
@@ -709,7 +710,7 @@ function MyListingsGrid({ listingType, currentUserId, m }) {
   const { data, isLoading } = useSWR('/api/marketplace/listings/me', authFetcher);
   const listings = (data || []).filter(l => (l.listing_type || 'crop') === listingType);
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">{m.loadingCrops}</p>;
+  if (isLoading) return <SkeletonListingGrid count={3} />;
   if (listings.length === 0) {
     return <Card><div className="py-12 text-center text-sm text-muted-foreground">{listingType === 'crop' ? m.noListingsOwner : m.noProductsTrader}</div></Card>;
   }
@@ -978,7 +979,7 @@ function OrdersPanel({ currentUserId, m, historyMode = false, filterRole }) {
   const history = allOrders.filter(o => ['Completed', 'Rejected', 'Cancelled'].includes(o.status));
   const orders = historyMode ? history : active;
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">{m.loadingOrders}</p>;
+  if (isLoading) return <SkeletonRows count={3} />;
   if (orders.length === 0) {
     return (
       <Card>
