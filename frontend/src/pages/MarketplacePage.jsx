@@ -341,6 +341,16 @@ function statusLabel(s, m) {
 function listingStatusColor(s) {
   return { Active: 'green', Reserved: 'amber', Sold: 'muted', Archived: 'muted' }[s] || 'default';
 }
+// Category chip colour — greens for crops, warmer/cooler tones for supply types
+function categoryColor(cropType) {
+  const t = (cropType || '').toLowerCase();
+  if (t.includes('veget') || t.includes('fruit')) return 'green';
+  if (t.includes('grain')) return 'amber';
+  if (t.includes('fertil')) return 'blue';
+  if (t.includes('seed')) return 'purple';
+  if (t.includes('pestic') || t.includes('fungic') || t.includes('herbic')) return 'red';
+  return 'default';
+}
 
 // ── Image upload helper ────────────────────────────────────────────────────────
 function ImageUpload({ value, onChange, m }) {
@@ -587,9 +597,12 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
           <Badge color={listingStatusColor(listing.status)}>{listing.status}</Badge>
         </div>
         {listing.crop_type && (
-          <span className="text-xs text-muted-foreground mb-2">{listing.crop_type}
-            {listing.listing_type === 'product' && ' · Agricultural Product'}
-          </span>
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
+            <Badge color={categoryColor(listing.crop_type)}>{listing.crop_type}</Badge>
+            {listing.listing_type === 'product' && (
+              <span className="text-xs text-muted-foreground">Agricultural Product</span>
+            )}
+          </div>
         )}
         <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground mb-3">
           <span className="flex items-center gap-1"><Package size={12} />{listing.quantity} {listing.unit}</span>
@@ -717,13 +730,18 @@ function MyListingsGrid({ listingType, currentUserId, m }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {listings.map(l => (
-        <Card key={l.id} className="flex flex-col overflow-hidden">
-          {l.image && <div className="h-36 w-full overflow-hidden"><img src={l.image} alt={l.crop_name} className="h-full w-full object-cover" /></div>}
+        <Card key={l.id} className="flex flex-col overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+          {l.image && <div className="h-36 w-full overflow-hidden"><img src={l.image} alt={l.crop_name} className="h-full w-full object-cover transition-transform duration-300 hover:scale-105" /></div>}
           <div className="p-4 flex flex-col flex-1">
             <div className="flex items-start justify-between gap-2 mb-1">
               <h3 className="font-semibold text-foreground">{l.crop_name}</h3>
               <Badge color={listingStatusColor(l.status)}>{l.status}</Badge>
             </div>
+            {l.crop_type && (
+              <div className="mb-1">
+                <Badge color={categoryColor(l.crop_type)}>{l.crop_type}</Badge>
+              </div>
+            )}
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground mb-2">
               <span>{l.quantity} {l.unit}</span>
               {l.location && <span className="flex items-center gap-1"><MapPin size={10} />{l.location}</span>}
