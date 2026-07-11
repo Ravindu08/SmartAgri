@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { adminRequest, downloadAdminCSV } from '../../services/api';
 import { useApp } from '../../context/AppContext';
+import { SkeletonStatCards } from '../../components/Skeleton';
 
 const T = {
   en: {
@@ -88,7 +89,7 @@ export default function AdminReports() {
     URL.revokeObjectURL(url);
   };
 
-  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>{t.loading}</div>;
+  if (loading) return <SkeletonStatCards count={4} />;
   if (!data)   return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>{t.failedLoad}</div>;
 
   return (

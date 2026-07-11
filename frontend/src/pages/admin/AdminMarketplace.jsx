@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { adminRequest } from '../../services/api';
 import { useApp } from '../../context/AppContext';
+import { SkeletonTable } from '../../components/Skeleton';
 
 const T = {
   en: {
@@ -72,7 +73,7 @@ export default function AdminMarketplace() {
     showToast(t.toastArchived);
   };
 
-  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>{t.loading}</div>;
+  if (loading) return <SkeletonTable rows={6} cols={4} />;
 
   const listingHeaders = [t.colCrop, t.colType, t.colQty, t.colPrice, t.colStatus, t.colCreated, t.colAction];
   const orderHeaders   = [t.colOrderId, t.colBuyer, t.colSeller, t.colQtyReq, t.colAgreedPrice, t.colStatus, t.colDate];
