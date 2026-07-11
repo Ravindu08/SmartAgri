@@ -581,6 +581,50 @@ function DeleteDialog({ listingId, cropName, m }) {
 }
 
 // ── Listing card ───────────────────────────────────────────────────────────────
+// ── Seller reviews popover ───────────────────────────────────────────────────
+function SellerReviewsButton({ userId, rating, count }) {
+  const [open, setOpen] = useState(false);
+  const [reviews, setReviews] = useState(null);
+  const [err, setErr] = useState('');
+
+  useEffect(() => {
+    if (!open || reviews !== null) return;
+    fetch(`${import.meta.env.VITE_API_URL || ''}/api/ratings/users/${userId}/reviews`)
+      .then(r => { if (!r.ok) throw new Error('Failed to load reviews'); return r.json(); })
+      .then(setReviews)
+      .catch(e => setErr(e.message));
+  }, [open, userId, reviews]);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        style={{ color: 'var(--amber, #f59e0b)', fontWeight: 600, background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}
+      >
+        {' '}⭐ {rating} ({count})
+      </button>
+      <Modal open={open} onClose={() => setOpen(false)} title="Seller Reviews" desc={`${rating} ★ average from ${count} rating${count === 1 ? '' : 's'}`}>
+        <div className="grid gap-3" style={{ maxHeight: '50vh', overflowY: 'auto' }}>
+          {err && <p className="text-sm text-red-600">{err}</p>}
+          {reviews === null && !err && <p className="text-sm text-muted-foreground">Loading…</p>}
+          {reviews?.length === 0 && <p className="text-sm text-muted-foreground">No written reviews yet.</p>}
+          {reviews?.map(r => (
+            <div key={r.id} style={{ borderBottom: '1px solid var(--border)', paddingBottom: '10px' }}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium text-foreground">{r.rater_name}</span>
+                <span style={{ color: 'var(--amber, #f59e0b)', fontSize: '13px', fontWeight: 600 }}>{'⭐'.repeat(r.score)}</span>
+              </div>
+              {r.comment && <p className="text-sm text-muted-foreground mt-1">{r.comment}</p>}
+              <p className="text-xs text-muted-foreground mt-1">{new Date(r.created_at).toLocaleDateString()}</p>
+            </div>
+          ))}
+        </div>
+      </Modal>
+    </>
+  );
+}
+
 function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = false }) {
   const isOwn = listing.owner_id === currentUserId;
 
@@ -616,9 +660,7 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
         <p className="text-xs text-muted-foreground mb-1">
           Seller: {listing.owner_name}
           {listing.seller_rating != null && (
-            <span style={{ color: 'var(--amber, #f59e0b)', fontWeight: 600 }}>
-              {' '}⭐ {listing.seller_rating} ({listing.seller_rating_count})
-            </span>
+            <SellerReviewsButton userId={listing.owner_id} rating={listing.seller_rating} count={listing.seller_rating_count} />
           )}
         </p>
         {listing.owner_phone && (
