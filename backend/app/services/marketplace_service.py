@@ -1,8 +1,4 @@
-import base64
-import re
-import uuid as uuid_lib
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 from typing import Optional
 from uuid import UUID
 
@@ -23,24 +19,7 @@ from app.schemas.marketplace import (
     MarketplaceOrderCreate,
     MarketplaceOrderStatusUpdate,
 )
-
-
-# Listing images arrive as base64 data URIs; store them as files under
-# backend/uploads/ and keep only the URL in the DB (served via /uploads mount).
-UPLOAD_DIR = Path(__file__).resolve().parents[2] / "uploads"
-
-
-def _store_image(image: Optional[str]) -> Optional[str]:
-    if not image or not image.startswith("data:image/"):
-        return image  # already a URL (or empty) — leave untouched
-    m = re.match(r"data:image/(\w+);base64,(.+)", image, re.DOTALL)
-    if not m:
-        return image
-    ext = "jpg" if m.group(1).lower() in ("jpeg", "jpg") else m.group(1).lower()
-    UPLOAD_DIR.mkdir(exist_ok=True)
-    filename = f"{uuid_lib.uuid4().hex}.{ext}"
-    (UPLOAD_DIR / filename).write_bytes(base64.b64decode(m.group(2)))
-    return f"/uploads/{filename}"
+from app.utils.image_storage import store_image as _store_image
 
 
 def create_listing(db: Session, listing_in: MarketplaceListingCreate, owner_id: int) -> MarketplaceListing:
