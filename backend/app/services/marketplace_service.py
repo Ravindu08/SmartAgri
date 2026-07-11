@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.models.marketplace import (
     MarketplaceListing,
     MarketplaceListingStatus,
+    MarketplaceNegotiationMessage,
     MarketplaceOrder,
     MarketplaceOrderStatus,
 )
@@ -258,7 +259,10 @@ def add_negotiation(
     order: MarketplaceOrder,
     message: MarketplaceNegotiationCreate,
     sender_role: str,
+    sender_id: int,
 ) -> MarketplaceOrder:
+    # Denormalized "current offer" snapshot on the order — this is what
+    # update_order_status reads when confirming, so it must stay in sync.
     if sender_role == "Trader":
         order.buyer_note = message.message
         if message.proposed_price is not None:
@@ -268,6 +272,22 @@ def add_negotiation(
         if message.proposed_price is not None:
             order.counter_offer_price = message.proposed_price
     db.add(order)
+
+    # Immutable thread entry — never overwritten, so history survives.
+    db.add(MarketplaceNegotiationMessage(
+        order_id=order.id,
+        sender_id=sender_id,
+        message=message.message,
+        proposed_price=message.proposed_price,
+    ))
     db.commit()
     db.refresh(order)
     return order
+
+
+def list_negotiation_messages(db: Session, order_id: UUID) -> list[MarketplaceNegotiationMessage]:
+    return db.execute(
+        select(MarketplaceNegotiationMessage)
+        .where(MarketplaceNegotiationMessage.order_id == order_id)
+        .order_by(MarketplaceNegotiationMessage.created_at.asc())
+    ).scalars().all()
