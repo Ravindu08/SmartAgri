@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { getAuthSession, clearAuthSession } from '../services/api';
+import ErrorBoundary from './ErrorBoundary';
 
 const ADMIN_T = {
   en: {
@@ -139,7 +140,9 @@ export default function AdminLayout() {
         </header>
         <main className="lo-content">
           <div key={location.pathname} className="page-transition">
-            <Outlet />
+            <ErrorBoundary resetKey={location.pathname}>
+              <Outlet />
+            </ErrorBoundary>
           </div>
         </main>
       </div>

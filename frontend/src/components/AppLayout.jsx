@@ -6,6 +6,7 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import ErrorBoundary from './ErrorBoundary';
 import { useApp } from '../context/AppContext';
 
 export default function AppLayout() {
@@ -31,7 +32,9 @@ export default function AppLayout() {
       <Navbar />
       <main>
         <div key={location.pathname} className="page-transition">
-          <Outlet context={{ lang, setLang, weather, setWeather, setPage }} />
+          <ErrorBoundary resetKey={location.pathname}>
+            <Outlet context={{ lang, setLang, weather, setWeather, setPage }} />
+          </ErrorBoundary>
         </div>
       </main>
       <Footer />
