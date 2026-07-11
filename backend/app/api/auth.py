@@ -27,7 +27,7 @@ from app.services.auth import (
 )
 from app.services.email import send_password_reset_email, send_verification_email
 from app.core.limiter import limiter
-from app.utils.image_storage import ImageTooLargeError, store_image
+from app.utils.image_storage import ImageTooLargeError, InvalidImageError, store_image
 
 router = APIRouter()
 
@@ -282,6 +282,8 @@ def update_profile(
             current_user.profile_image = store_image(payload.profile_image)
         except ImageTooLargeError as exc:
             raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=str(exc)) from exc
+        except InvalidImageError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     if "phone_number" in payload.model_fields_set:
         current_user.phone_number = payload.phone_number
     db.commit()
