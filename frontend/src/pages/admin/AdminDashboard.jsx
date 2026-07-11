@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { adminRequest } from '../../services/api';
 import { useApp } from '../../context/AppContext';
+import { SkeletonStatCards } from '../../components/Skeleton';
 
 const T = {
   en: {
@@ -68,7 +69,7 @@ export default function AdminDashboard() {
     });
   }, []);
 
-  if (loading) return <div style={{ padding: '40px', color: 'var(--muted)', textAlign: 'center' }}>{t.loading}</div>;
+  if (loading) return <SkeletonStatCards count={8} />;
 
   const quickLinks = [
     { to: '/admin/users/create', label: t.addUser,       color: '#7c3aed' },

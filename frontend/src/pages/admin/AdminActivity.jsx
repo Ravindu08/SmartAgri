@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { adminRequest } from '../../services/api';
 import { useApp } from '../../context/AppContext';
+import { SkeletonTable } from '../../components/Skeleton';
 
 const T = {
   en: {
@@ -33,7 +34,7 @@ export default function AdminActivity() {
     adminRequest('/activity?limit=200').then(data => { setActivity(data); setLoading(false); }).catch(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>{t.loading}</div>;
+  if (loading) return <SkeletonTable rows={8} cols={3} />;
 
   return (
     <div style={{ padding: '28px', maxWidth: '900px' }}>
