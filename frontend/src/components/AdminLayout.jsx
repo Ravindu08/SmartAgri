@@ -138,7 +138,9 @@ export default function AdminLayout() {
           </div>
         </header>
         <main className="lo-content">
-          <Outlet />
+          <div key={location.pathname} className="page-transition">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
