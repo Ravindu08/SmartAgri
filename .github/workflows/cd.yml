@@ -1,0 +1,79 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  prepare:
+    name: Compute image namespace
+    runs-on: ubuntu-latest
+    outputs:
+      owner: ${{ steps.owner.outputs.lowercase }}
+    steps:
+      - name: Lowercase repository owner
+        id: owner
+        run: echo "lowercase=${OWNER,,}" >> "$GITHUB_OUTPUT"
+        env:
+          OWNER: ${{ github.repository_owner }}
+
+  build-backend:
+    name: Build & publish backend image
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ needs.prepare.outputs.owner }}/smartagri-backend:latest
+            ${{ env.REGISTRY }}/${{ needs.prepare.outputs.owner }}/smartagri-backend:sha-${{ github.sha }}
+
+  build-frontend:
+    name: Build & publish frontend image
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          build-args: |
+            VITE_API_URL=
+            VITE_ML_URL=
+          tags: |
+            ${{ env.REGISTRY }}/${{ needs.prepare.outputs.owner }}/smartagri-frontend:latest
+            ${{ env.REGISTRY }}/${{ needs.prepare.outputs.owner }}/smartagri-frontend:sha-${{ github.sha }}
