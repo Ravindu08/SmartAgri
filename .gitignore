@@ -14,6 +14,7 @@ htmlcov/
 # Model binaries (large — store in cloud storage or DVC)
 backend/ai_models/training/models/*.pkl
 backend/ai_models/training/models/*.joblib
+backend/ai_models/training/models/backup_*/
 
 # Model evaluation artifacts
 backend/ai_models/training/models/*.png
@@ -45,8 +46,16 @@ frontend/dist/
 *.log
 backend/*.log
 
+# User-uploaded listing images (runtime data, not code)
+backend/uploads/
+
 # Dev/test helper files
 frontend/public/test-login.html
+
+# SQLite test databases
+*.db
+*.db-shm
+*.db-wal
 
 # Dataset exports and Office documents (reference material, not code)
 data/

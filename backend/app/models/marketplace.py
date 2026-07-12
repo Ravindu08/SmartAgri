@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, Enum as SAEnum, ForeignKey, Float, String, Text
+from sqlalchemy import DateTime, Enum as SAEnum, ForeignKey, Float, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -136,8 +136,18 @@ class MarketplaceOrder(Base):
     def buyer_name(self) -> str:
         return self.buyer.full_name if self.buyer is not None else ""
 
+    # Phone numbers are only shared once the seller has confirmed the order —
+    # a Pending/Rejected/Cancelled request shouldn't leak either side's contact info.
+    _PHONE_VISIBLE_STATUSES = {
+        MarketplaceOrderStatus.CONFIRMED,
+        MarketplaceOrderStatus.DELIVERED,
+        MarketplaceOrderStatus.COMPLETED,
+    }
+
     @property
     def buyer_phone(self) -> Optional[str]:
+        if self.status not in self._PHONE_VISIBLE_STATUSES:
+            return None
         return self.buyer.phone_number if self.buyer is not None else None
 
     @property
@@ -146,4 +156,36 @@ class MarketplaceOrder(Base):
 
     @property
     def seller_phone(self) -> Optional[str]:
+        if self.status not in self._PHONE_VISIBLE_STATUSES:
+            return None
         return self.seller.phone_number if self.seller is not None else None
+
+
+class MarketplaceNegotiationMessage(Base):
+    """Append-only negotiation thread. order.buyer_note/seller_note/
+    counter_offer_price stay as the *current* offer snapshot (used by
+    update_order_status when confirming), but every message that was ever
+    sent is preserved here instead of being overwritten."""
+    __tablename__ = "marketplace_negotiation_messages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    order_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("marketplace_orders.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    sender_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    proposed_price: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+    sender = relationship("User", foreign_keys=[sender_id], lazy="joined")
+
+    @property
+    def sender_name(self) -> str:
+        return self.sender.full_name if self.sender is not None else ""

@@ -22,18 +22,18 @@ for %%P in (8000 8001 5173) do (
     )
 )
 
-echo  [1/3] Starting Backend API   ^| port 8000
-start "SmartAgri | Backend :8000" "%ROOT%_run_backend.bat"
+echo  [1/3] Starting Backend API   - port 8000
+start "SmartAgri - Backend :8000" "%ROOT%_run_backend.bat"
 
-echo  [2/3] Starting ML Service    ^| port 8001
-start "SmartAgri | ML Service :8001" "%ROOT%_run_ml.bat"
+echo  [2/3] Starting ML Service    - port 8001
+start "SmartAgri - ML Service :8001" "%ROOT%_run_ml.bat"
 
 echo.
 echo  Waiting 8 seconds for backends to initialise...
 timeout /t 8 /nobreak >nul
 
-echo  [3/3] Starting Frontend      ^| port 5173
-start "SmartAgri | Frontend :5173" "%ROOT%_run_frontend.bat"
+echo  [3/3] Starting Frontend      - port 5173
+start "SmartAgri - Frontend :5173" "%ROOT%_run_frontend.bat"
 
 echo.
 echo  ============================================================

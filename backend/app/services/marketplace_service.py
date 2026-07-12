@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
 
@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.models.marketplace import (
     MarketplaceListing,
     MarketplaceListingStatus,
+    MarketplaceNegotiationMessage,
     MarketplaceOrder,
     MarketplaceOrderStatus,
 )
@@ -18,6 +19,7 @@ from app.schemas.marketplace import (
     MarketplaceOrderCreate,
     MarketplaceOrderStatusUpdate,
 )
+from app.utils.image_storage import store_image as _store_image
 
 
 def create_listing(db: Session, listing_in: MarketplaceListingCreate, owner_id: int) -> MarketplaceListing:
@@ -30,7 +32,7 @@ def create_listing(db: Session, listing_in: MarketplaceListingCreate, owner_id: 
         price_per_unit=listing_in.price_per_unit,
         description=listing_in.description,
         location=listing_in.location,
-        image=listing_in.image,
+        image=_store_image(listing_in.image),
         listing_type=listing_in.listing_type,
         status=listing_in.status,
     )
@@ -83,7 +85,10 @@ def list_owner_listings(db: Session, owner_id: int) -> list[MarketplaceListing]:
 
 def update_listing(db: Session, listing: MarketplaceListing, listing_in: MarketplaceListingUpdate) -> MarketplaceListing:
     for field in listing_in.model_fields_set:
-        setattr(listing, field, getattr(listing_in, field))
+        value = getattr(listing_in, field)
+        if field == "image":
+            value = _store_image(value)
+        setattr(listing, field, value)
     db.add(listing)
     db.commit()
     db.refresh(listing)
@@ -102,7 +107,13 @@ def create_order(db: Session, order_in: MarketplaceOrderCreate, buyer_id: int) -
     if listing.status != MarketplaceListingStatus.ACTIVE:
         raise ValueError("Listing is not available")
     if order_in.requested_quantity > listing.quantity:
-        raise ValueError("Requested quantity exceeds available stock")
+        raise ValueError(f"Requested quantity exceeds available stock ({listing.quantity} {listing.unit} left)")
+
+    # Deduct quantity immediately so concurrent orders cannot over-commit stock
+    listing.quantity -= order_in.requested_quantity
+    if listing.quantity <= 0:
+        listing.status = MarketplaceListingStatus.SOLD
+    db.add(listing)
 
     order = MarketplaceOrder(
         listing_id=listing.id,
@@ -123,7 +134,37 @@ def get_order(db: Session, order_id: UUID) -> MarketplaceOrder | None:
     return db.execute(select(MarketplaceOrder).where(MarketplaceOrder.id == order_id)).scalar_one_or_none()
 
 
+PENDING_ORDER_MAX_AGE_DAYS = 7
+
+
+def expire_stale_pending_orders(db: Session) -> None:
+    """A Pending order left untouched for too long locks the seller's stock
+    indefinitely if the buyer never follows up. Rather than running a
+    scheduler, lazily auto-cancel stale ones (restoring stock) whenever
+    orders are listed - cheap and self-healing since it runs on every read."""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=PENDING_ORDER_MAX_AGE_DAYS)
+    stale = db.execute(
+        select(MarketplaceOrder).where(
+            MarketplaceOrder.status == MarketplaceOrderStatus.PENDING,
+            MarketplaceOrder.created_at < cutoff,
+        )
+    ).scalars().all()
+    if not stale:
+        return
+    for order in stale:
+        order.status = MarketplaceOrderStatus.CANCELLED
+        order.seller_note = ((order.seller_note + " ") if order.seller_note else "") + \
+            f"[Auto-cancelled: no response within {PENDING_ORDER_MAX_AGE_DAYS} days]"
+        order.listing.quantity += order.requested_quantity
+        if order.listing.status != MarketplaceListingStatus.ACTIVE:
+            order.listing.status = MarketplaceListingStatus.ACTIVE
+        db.add(order)
+        db.add(order.listing)
+    db.commit()
+
+
 def list_orders_for_user(db: Session, user_id: int) -> list[MarketplaceOrder]:
+    expire_stale_pending_orders(db)
     return db.execute(
         select(MarketplaceOrder)
         .where((MarketplaceOrder.buyer_id == user_id) | (MarketplaceOrder.seller_id == user_id))
@@ -156,21 +197,35 @@ def update_order_status(
 
     if new_status == MarketplaceOrderStatus.CONFIRMED:
         order.accepted_at = datetime.now(timezone.utc)
-        order.agreed_price = payload.counter_offer_price or order.proposed_price or order.listing.price_per_unit
-        order.listing.status = MarketplaceListingStatus.RESERVED
+        # Precedence: explicit counter in this request > counter stored during
+        # negotiation > buyer's proposed price > listing price. The buyer can
+        # still cancel a Confirmed order if they disagree with the counter.
+        order.agreed_price = (
+            payload.counter_offer_price
+            or order.counter_offer_price
+            or order.proposed_price
+            or order.listing.price_per_unit
+        )
+        # Quantity was already deducted at order-placement; no listing status change needed
     elif new_status == MarketplaceOrderStatus.REJECTED:
-        order.listing.status = MarketplaceListingStatus.ACTIVE
+        # Restore the deducted quantity and re-activate the listing if it was marked sold
+        order.listing.quantity += order.requested_quantity
+        if order.listing.status != MarketplaceListingStatus.ACTIVE:
+            order.listing.status = MarketplaceListingStatus.ACTIVE
+        db.add(order.listing)
     elif new_status == MarketplaceOrderStatus.DELIVERED:
         order.delivered_at = datetime.now(timezone.utc)
     elif new_status == MarketplaceOrderStatus.COMPLETED:
         order.completed_at = datetime.now(timezone.utc)
-        order.listing.status = MarketplaceListingStatus.SOLD
+        # Mark the listing SOLD only if no stock remains; otherwise it stays active
+        if order.listing.quantity <= 0:
+            order.listing.status = MarketplaceListingStatus.SOLD
     elif new_status == MarketplaceOrderStatus.CANCELLED:
-        # Only un-reserve the listing when the *confirmed* order is cancelled.
-        # Cancelling a PENDING order must not override a RESERVED status set by a
-        # different confirmed order on the same listing.
-        if current_status == MarketplaceOrderStatus.CONFIRMED:
+        # Restore quantity for any cancellation (Pending or Confirmed)
+        order.listing.quantity += order.requested_quantity
+        if order.listing.status != MarketplaceListingStatus.ACTIVE:
             order.listing.status = MarketplaceListingStatus.ACTIVE
+        db.add(order.listing)
 
     db.add(order)
     db.commit()
@@ -183,7 +238,10 @@ def add_negotiation(
     order: MarketplaceOrder,
     message: MarketplaceNegotiationCreate,
     sender_role: str,
+    sender_id: int,
 ) -> MarketplaceOrder:
+    # Denormalized "current offer" snapshot on the order — this is what
+    # update_order_status reads when confirming, so it must stay in sync.
     if sender_role == "Trader":
         order.buyer_note = message.message
         if message.proposed_price is not None:
@@ -193,6 +251,22 @@ def add_negotiation(
         if message.proposed_price is not None:
             order.counter_offer_price = message.proposed_price
     db.add(order)
+
+    # Immutable thread entry — never overwritten, so history survives.
+    db.add(MarketplaceNegotiationMessage(
+        order_id=order.id,
+        sender_id=sender_id,
+        message=message.message,
+        proposed_price=message.proposed_price,
+    ))
     db.commit()
     db.refresh(order)
     return order
+
+
+def list_negotiation_messages(db: Session, order_id: UUID) -> list[MarketplaceNegotiationMessage]:
+    return db.execute(
+        select(MarketplaceNegotiationMessage)
+        .where(MarketplaceNegotiationMessage.order_id == order_id)
+        .order_by(MarketplaceNegotiationMessage.created_at.asc())
+    ).scalars().all()

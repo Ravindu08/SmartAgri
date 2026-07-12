@@ -2,10 +2,12 @@
  * SmartAgri — Marketplace  (Real DB-backed via /api/marketplace/*)
  * ================================================================================== */
 
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import useSWR, { mutate } from 'swr';
 import CustomSelect from '../components/CustomSelect';
+import { SkeletonListingGrid, SkeletonRows } from '../components/Skeleton';
+import { relativeTime } from '../utils/relativeTime';
 import { request, getAuthSession, getActiveRole, setActiveRole, getUserRoles } from '../services/api';
 import {
   Leaf, Tractor, Store, User, Sprout, Plus, Package, MapPin,
@@ -30,7 +32,7 @@ const M = {
     demoWarning: '⚠️ You are browsing as a guest. Log in or register to buy or list products.',
     addListingTitle: 'Add a Crop Listing', addListingSub: 'List your harvest for traders to browse and purchase.',
     addProductTitle: 'Add a Product Listing', addProductSub: 'List fertilizers, pesticides, seeds or other agricultural supplies.',
-    cropName: 'Crop name', cropType: 'Crop type', productCategory: 'Category',
+    cropName: 'Crop name', productName: 'Product name', cropType: 'Crop type', productCategory: 'Category',
     quantity: 'Quantity', unit: 'Unit', pricePerUnit: 'Price / unit (Rs.)',
     location: 'Location', description: 'Description',
     imageLabel: 'Product Image (optional)', imageHint: 'Upload photo',
@@ -49,7 +51,7 @@ const M = {
     estimatedTotal: 'Estimated total',
     available: 'available', soldLabel: 'Sold', reservedLabel: 'Reserved',
     ownerTabs: ['My Listings', 'Browse', 'Incoming Orders', 'History'],
-    traderTabs: ['Browse', 'My Products', 'My Orders', 'History'],
+    traderTabs: ['Browse', 'My Products', 'My Orders', 'History', 'Incoming Requests'],
     availableCrops: 'Crop Listings', availableProducts: 'Agricultural Products',
     loadingOrders: 'Loading orders…',
     noOrdersYet: 'No orders yet.', noHistoryYet: 'No completed orders yet.',
@@ -67,6 +69,7 @@ const M = {
     pendingStatus: 'Pending', confirmedStatus: 'Confirmed',
     deliveredStatus: 'Delivered', completedStatus: 'Completed',
     rejectedStatus: 'Rejected', cancelledStatus: 'Cancelled',
+    phoneAfterConfirm: 'Contact number visible once the order is confirmed',
   },
   si: {
     badge: '🛒 කෘෂි වෙළඳසැල', title: 'කෘෂි නිෂ්පාදන මිලදී ගැනීම සහ විකිණීම',
@@ -77,7 +80,7 @@ const M = {
     demoWarning: '⚠️ ඔබ ආගන්තුකයෙකු ලෙස බ්‍රව්ස් කරයි. ලොගින් වන්න.',
     addListingTitle: 'බෝග ලැයිස්තු එක් කරන්න', addListingSub: 'ඔබගේ අස්වනු ලැයිස්තු ගොනු කරන්න.',
     addProductTitle: 'නිෂ්පාදන ලැයිස්තුව එක් කරන්න', addProductSub: 'පොහොර, කෘමිනාශක, බීජ ලැයිස්තු ගොනු කරන්න.',
-    cropName: 'බෝග නම', cropType: 'බෝග වර්ගය', productCategory: 'කාණ්ඩය',
+    cropName: 'බෝග නම', productName: 'නිෂ්පාදන නම', cropType: 'බෝග වර්ගය', productCategory: 'කාණ්ඩය',
     quantity: 'ප්‍රමාණය', unit: 'ඒකකය', pricePerUnit: 'මිල / ඒකකය (රු.)',
     location: 'ස්ථානය', description: 'විස්තරය',
     imageLabel: 'රූපය (අවශ්‍ය නොවේ)', imageHint: 'ඡායාරූපය',
@@ -96,7 +99,7 @@ const M = {
     estimatedTotal: 'අනුමාන මුළු',
     available: 'ලබා ගත හැකි', soldLabel: 'විකිණී', reservedLabel: 'වෙන් කළ',
     ownerTabs: ['මගේ ලැයිස්තු', 'බ්‍රව්ස්', 'ලැබෙන ඇණවුම්', 'ඉතිහාසය'],
-    traderTabs: ['බ්‍රව්ස්', 'මගේ නිෂ්පාදන', 'මගේ ඇණවුම්', 'ඉතිහාසය'],
+    traderTabs: ['බ්‍රව්ස්', 'මගේ නිෂ්පාදන', 'මගේ ඇණවුම්', 'ඉතිහාසය', 'එන ඉල්ලීම්'],
     availableCrops: 'බෝග ලැයිස්තු', availableProducts: 'කෘෂි නිෂ්පාදන',
     loadingOrders: 'ඇණවුම් ලෝඩ් වෙමින්…',
     noOrdersYet: 'ඇණවුම් නොමැත.', noHistoryYet: 'සම්පූර්ණ ඇණවුම් නොමැත.',
@@ -114,6 +117,7 @@ const M = {
     pendingStatus: 'අපේක්ෂිත', confirmedStatus: 'තහවුරු',
     deliveredStatus: 'බෙදාදුන්', completedStatus: 'සම්පූර්ණ',
     rejectedStatus: 'ප්‍රතික්ෂේප', cancelledStatus: 'අවලංගු',
+    phoneAfterConfirm: 'ඇණවුම තහවුරු වූ පසු ඇමතුම් අංකය පෙන්වයි',
   },
   ta: {
     badge: '🛒 விவசாய சந்தை', title: 'விவசாய பொருட்களை வாங்கவும் விற்கவும்',
@@ -124,7 +128,7 @@ const M = {
     demoWarning: '⚠️ நீங்கள் விருந்தினராக உலாவுகிறீர்கள். உள்நுழையவும்.',
     addListingTitle: 'பயிர் பட்டியலைச் சேர்க்கவும்', addListingSub: 'உங்கள் அறுவடையை பட்டியலிடவும்.',
     addProductTitle: 'தயாரிப்பு பட்டியல்', addProductSub: 'உரங்கள், பூச்சிக்கொல்லிகள் பட்டியலிடவும்.',
-    cropName: 'பயிர் பெயர்', cropType: 'பயிர் வகை', productCategory: 'வகை',
+    cropName: 'பயிர் பெயர்', productName: 'தயாரிப்பு பெயர்', cropType: 'பயிர் வகை', productCategory: 'வகை',
     quantity: 'அளவு', unit: 'அலகு', pricePerUnit: 'விலை / அலகு (ரூ.)',
     location: 'இடம்', description: 'விவரம்',
     imageLabel: 'படம் (விருப்பமான)', imageHint: 'படம் பதிவேற்று',
@@ -143,7 +147,7 @@ const M = {
     estimatedTotal: 'மதிப்பிடப்பட்ட மொத்தம்',
     available: 'கிடைக்கிறது', soldLabel: 'விற்கப்பட்டது', reservedLabel: 'ஒதுக்கப்பட்டது',
     ownerTabs: ['என் பட்டியல்கள்', 'உலாவு', 'வரும் ஆர்டர்கள்', 'வரலாறு'],
-    traderTabs: ['உலாவு', 'என் தயாரிப்புகள்', 'என் ஆர்டர்கள்', 'வரலாறு'],
+    traderTabs: ['உலாவு', 'என் தயாரிப்புகள்', 'என் ஆர்டர்கள்', 'வரலாறு', 'வரும் கோரிக்கைகள்'],
     availableCrops: 'பயிர் பட்டியல்கள்', availableProducts: 'விவசாய தயாரிப்புகள்',
     loadingOrders: 'ஆர்டர்கள் ஏற்றுகிறது…',
     noOrdersYet: 'ஆர்டர்கள் இல்லை.', noHistoryYet: 'முடிந்த ஆர்டர்கள் இல்லை.',
@@ -161,12 +165,13 @@ const M = {
     pendingStatus: 'நிலுவை', confirmedStatus: 'உறுதி',
     deliveredStatus: 'வழங்கல்', completedStatus: 'முடிந்தது',
     rejectedStatus: 'நிராகரிக்கப்பட்டது', cancelledStatus: 'ரத்தானது',
+    phoneAfterConfirm: 'ஆர்டர் உறுதிசெய்யப்பட்டதும் தொடர்பு எண் தெரியும்',
   },
 };
 
 // ── API helpers ────────────────────────────────────────────────────────────────
 const authFetcher = url => request(url);
-const publicFetcher = url => fetch(url).then(async r => {
+const publicFetcher = url => fetch(`${import.meta.env.VITE_API_URL || ''}${url}`).then(async r => {
   if (!r.ok) throw new Error('Failed to load');
   return r.json();
 });
@@ -176,8 +181,7 @@ async function apiPost(path, body, method = 'POST') {
 }
 
 function refreshListings() {
-  mutate('/api/marketplace/listings');
-  mutate('/api/marketplace/listings/me');
+  mutate(key => typeof key === 'string' && key.startsWith('/api/marketplace/listings'));
 }
 function refreshOrders() {
   mutate('/api/marketplace/orders');
@@ -341,6 +345,16 @@ function statusLabel(s, m) {
 function listingStatusColor(s) {
   return { Active: 'green', Reserved: 'amber', Sold: 'muted', Archived: 'muted' }[s] || 'default';
 }
+// Category chip colour — greens for crops, warmer/cooler tones for supply types
+function categoryColor(cropType) {
+  const t = (cropType || '').toLowerCase();
+  if (t.includes('veget') || t.includes('fruit')) return 'green';
+  if (t.includes('grain')) return 'amber';
+  if (t.includes('fertil')) return 'blue';
+  if (t.includes('seed')) return 'purple';
+  if (t.includes('pestic') || t.includes('fungic') || t.includes('herbic')) return 'red';
+  return 'default';
+}
 
 // ── Image upload helper ────────────────────────────────────────────────────────
 function ImageUpload({ value, onChange, m }) {
@@ -372,16 +386,28 @@ function ImageUpload({ value, onChange, m }) {
 }
 
 // ── StatusTracker ──────────────────────────────────────────────────────────────
-function StatusTracker({ status }) {
-  const idx = ORDER_STATUS_FLOW.indexOf(status);
+// Timestamp for each step, in ORDER_STATUS_FLOW order — created_at always
+// exists (step 1 = order placed); the rest are only set once that step happens.
+function stepDate(order, i) {
+  const field = [order.created_at, order.accepted_at, order.delivered_at, order.completed_at][i];
+  return field ? new Date(field).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : null;
+}
+
+function StatusTracker({ order }) {
+  const idx = ORDER_STATUS_FLOW.indexOf(order.status);
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-start gap-1">
       {ORDER_STATUS_FLOW.map((s, i) => (
-        <div key={s} className="flex items-center gap-1">
-          <span className={`flex size-5 items-center justify-center rounded-full text-[10px] font-bold ${i <= idx ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-            {i < idx ? <CheckCircle2 size={10} /> : i + 1}
-          </span>
-          {i < ORDER_STATUS_FLOW.length - 1 && <span className={`h-0.5 w-4 ${i < idx ? 'bg-primary' : 'bg-muted'}`} />}
+        <div key={s} className="flex items-start gap-1">
+          <div className="flex flex-col items-center" style={{ width: '36px' }}>
+            <span className={`flex size-5 items-center justify-center rounded-full text-[10px] font-bold ${i <= idx ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+              {i < idx ? <CheckCircle2 size={10} /> : i + 1}
+            </span>
+            <span className="text-[10px] text-muted-foreground mt-1 whitespace-nowrap">
+              {i <= idx ? (stepDate(order, i) || ' ') : ' '}
+            </span>
+          </div>
+          {i < ORDER_STATUS_FLOW.length - 1 && <span className={`h-0.5 w-4 mt-2.5 ${i < idx ? 'bg-primary' : 'bg-muted'}`} />}
         </div>
       ))}
     </div>
@@ -487,7 +513,7 @@ function OrderDialog({ listing, currentUserId, m }) {
     if (Number(qty) > listing.quantity) { toast.error(`Only ${listing.quantity} ${listing.unit} available`); return; }
     setBusy(true);
     try {
-      await apiPost('/api/marketplace/orders', {
+      const newOrder = await apiPost('/api/marketplace/orders', {
         listing_id: listing.id,
         requested_quantity: Number(qty),
         proposed_price: Number(proposedPrice),
@@ -495,7 +521,8 @@ function OrderDialog({ listing, currentUserId, m }) {
       });
       toast.success(btnLabel + ' sent!');
       setOpen(false);
-      refreshOrders();
+      mutate('/api/marketplace/orders', (prev) => [newOrder, ...(prev || [])], { revalidate: false });
+      refreshListings();
     } catch (err) { toast.error(err.message); }
     finally { setBusy(false); }
   }
@@ -570,14 +597,58 @@ function DeleteDialog({ listingId, cropName, m }) {
 }
 
 // ── Listing card ───────────────────────────────────────────────────────────────
+// ── Seller reviews popover ───────────────────────────────────────────────────
+function SellerReviewsButton({ userId, rating, count }) {
+  const [open, setOpen] = useState(false);
+  const [reviews, setReviews] = useState(null);
+  const [err, setErr] = useState('');
+
+  useEffect(() => {
+    if (!open || reviews !== null) return;
+    fetch(`${import.meta.env.VITE_API_URL || ''}/api/ratings/users/${userId}/reviews`)
+      .then(r => { if (!r.ok) throw new Error('Failed to load reviews'); return r.json(); })
+      .then(setReviews)
+      .catch(e => setErr(e.message));
+  }, [open, userId, reviews]);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        style={{ color: 'var(--amber, #f59e0b)', fontWeight: 600, background: 'none', border: 'none', padding: 0, cursor: 'pointer', font: 'inherit' }}
+      >
+        {' '}⭐ {rating} ({count})
+      </button>
+      <Modal open={open} onClose={() => setOpen(false)} title="Seller Reviews" desc={`${rating} ★ average from ${count} rating${count === 1 ? '' : 's'}`}>
+        <div className="grid gap-3" style={{ maxHeight: '50vh', overflowY: 'auto' }}>
+          {err && <p className="text-sm text-red-600">{err}</p>}
+          {reviews === null && !err && <p className="text-sm text-muted-foreground">Loading…</p>}
+          {reviews?.length === 0 && <p className="text-sm text-muted-foreground">No written reviews yet.</p>}
+          {reviews?.map(r => (
+            <div key={r.id} style={{ borderBottom: '1px solid var(--border)', paddingBottom: '10px' }}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium text-foreground">{r.rater_name}</span>
+                <span style={{ color: 'var(--amber, #f59e0b)', fontSize: '13px', fontWeight: 600 }}>{'⭐'.repeat(r.score)}</span>
+              </div>
+              {r.comment && <p className="text-sm text-muted-foreground mt-1">{r.comment}</p>}
+              <p className="text-xs text-muted-foreground mt-1">{new Date(r.created_at).toLocaleDateString()}</p>
+            </div>
+          ))}
+        </div>
+      </Modal>
+    </>
+  );
+}
+
 function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = false }) {
   const isOwn = listing.owner_id === currentUserId;
 
   return (
-    <Card className="flex flex-col overflow-hidden">
+    <Card className="flex flex-col overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
       {listing.image && (
         <div className="h-40 w-full overflow-hidden">
-          <img src={listing.image} alt={listing.crop_name} className="h-full w-full object-cover" />
+          <img src={listing.image} alt={listing.crop_name} className="h-full w-full object-cover transition-transform duration-300 hover:scale-105" />
         </div>
       )}
       <div className="p-5 pb-3 flex flex-col flex-1">
@@ -586,9 +657,12 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
           <Badge color={listingStatusColor(listing.status)}>{listing.status}</Badge>
         </div>
         {listing.crop_type && (
-          <span className="text-xs text-muted-foreground mb-2">{listing.crop_type}
-            {listing.listing_type === 'product' && ' · Agricultural Product'}
-          </span>
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
+            <Badge color={categoryColor(listing.crop_type)}>{listing.crop_type}</Badge>
+            {listing.listing_type === 'product' && (
+              <span className="text-xs text-muted-foreground">Agricultural Product</span>
+            )}
+          </div>
         )}
         <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground mb-3">
           <span className="flex items-center gap-1"><Package size={12} />{listing.quantity} {listing.unit}</span>
@@ -599,7 +673,12 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
           Rs. {Number(listing.price_per_unit).toLocaleString()}
           <span className="text-sm font-normal text-muted-foreground">/{listing.unit}</span>
         </div>
-        <p className="text-xs text-muted-foreground mb-1">Seller: {listing.owner_name}</p>
+        <p className="text-xs text-muted-foreground mb-1">
+          Seller: {listing.owner_name}
+          {listing.seller_rating != null && (
+            <SellerReviewsButton userId={listing.owner_id} rating={listing.seller_rating} count={listing.seller_rating_count} />
+          )}
+        </p>
         {listing.owner_phone && (
           <p className="text-xs text-muted-foreground mb-3" style={{ color: 'var(--green-primary)' }}>📞 {listing.owner_phone}</p>
         )}
@@ -622,8 +701,17 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
 }
 
 // ── Listings grid ──────────────────────────────────────────────────────────────
+const SORT_OPTIONS = [
+  { value: 'newest',     label: 'Newest first' },
+  { value: 'price_asc',  label: 'Price: Low to High' },
+  { value: 'price_desc', label: 'Price: High to Low' },
+  { value: 'rating',     label: 'Seller rating' },
+];
+
 function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDelete = false }) {
-  const [filters, setFilters] = useState({ search: '', min_price: '', max_price: '', district: '' });
+  const [filters, setFilters] = useState({ search: '', min_price: '', max_price: '', district: '', category: '' });
+  const [sortBy, setSortBy] = useState('newest');
+  const categoryOptions = listingType === 'crop' ? CROP_TYPES : PRODUCT_TYPES;
 
   const swrKey = useMemo(() => {
     const p = new URLSearchParams();
@@ -631,13 +719,20 @@ function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDele
     if (filters.min_price) p.set('min_price', filters.min_price);
     if (filters.max_price) p.set('max_price', filters.max_price);
     if (filters.district)  p.set('district', filters.district);
-    p.set('crop_type', listingType === 'crop' ? '' : 'Fertilizer');
+    if (filters.category)  p.set('crop_type', filters.category);
     const q = p.toString();
     return `/api/marketplace/listings${q ? `?${q}` : ''}`;
-  }, [filters, listingType]);
+  }, [filters]);
 
-  const { data, isLoading } = useSWR(swrKey, publicFetcher, { refreshInterval: 5000 });
-  const listings = (data || []).filter(l => (l.listing_type || 'crop') === listingType);
+  const { data, isLoading } = useSWR(swrKey, publicFetcher);
+  const listings = (data || [])
+    .filter(l => (l.listing_type || 'crop') === listingType)
+    .sort((a, b) => {
+      if (sortBy === 'price_asc')  return a.price_per_unit - b.price_per_unit;
+      if (sortBy === 'price_desc') return b.price_per_unit - a.price_per_unit;
+      if (sortBy === 'rating')     return (b.seller_rating || 0) - (a.seller_rating || 0);
+      return new Date(b.created_at) - new Date(a.created_at);
+    });
 
   return (
     <>
@@ -671,10 +766,22 @@ function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDele
           onChange={e => setFilters(f => ({ ...f, district: e.target.value }))}
           style={{ flex: '1 1 120px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '13px' }}
         />
-        {(filters.search || filters.min_price || filters.max_price || filters.district) && (
+        <Select
+          style={{ flex: '1 1 150px' }}
+          value={filters.category}
+          onChange={e => setFilters(f => ({ ...f, category: e.target.value }))}
+          options={[{ value: '', label: 'All categories' }, ...categoryOptions]}
+        />
+        <Select
+          style={{ flex: '1 1 170px' }}
+          value={sortBy}
+          onChange={e => setSortBy(e.target.value)}
+          options={SORT_OPTIONS}
+        />
+        {(filters.search || filters.min_price || filters.max_price || filters.district || filters.category) && (
           <button
             type="button"
-            onClick={() => setFilters({ search: '', min_price: '', max_price: '', district: '' })}
+            onClick={() => setFilters({ search: '', min_price: '', max_price: '', district: '', category: '' })}
             style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--muted)', cursor: 'pointer', fontSize: '13px' }}
           >
             ✕ Clear
@@ -683,7 +790,7 @@ function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDele
       </div>
 
       {isLoading
-        ? <p className="text-sm text-muted-foreground">{m.loadingCrops}</p>
+        ? <SkeletonListingGrid count={6} />
         : listings.length === 0
           ? <Card><div className="py-12 text-center text-sm text-muted-foreground">
               {listingType === 'crop' ? (showDelete ? m.noListingsOwner : m.noListingsTrader) : (showDelete ? m.noProductsTrader : m.noProductsOwner)}
@@ -700,23 +807,28 @@ function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDele
 
 // ── My Listings grid (seller's own listings) ───────────────────────────────────
 function MyListingsGrid({ listingType, currentUserId, m }) {
-  const { data, isLoading } = useSWR('/api/marketplace/listings/me', authFetcher, { refreshInterval: 5000 });
+  const { data, isLoading } = useSWR('/api/marketplace/listings/me', authFetcher);
   const listings = (data || []).filter(l => (l.listing_type || 'crop') === listingType);
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">{m.loadingCrops}</p>;
+  if (isLoading) return <SkeletonListingGrid count={3} />;
   if (listings.length === 0) {
     return <Card><div className="py-12 text-center text-sm text-muted-foreground">{listingType === 'crop' ? m.noListingsOwner : m.noProductsTrader}</div></Card>;
   }
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {listings.map(l => (
-        <Card key={l.id} className="flex flex-col overflow-hidden">
-          {l.image && <div className="h-36 w-full overflow-hidden"><img src={l.image} alt={l.crop_name} className="h-full w-full object-cover" /></div>}
+        <Card key={l.id} className="flex flex-col overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+          {l.image && <div className="h-36 w-full overflow-hidden"><img src={l.image} alt={l.crop_name} className="h-full w-full object-cover transition-transform duration-300 hover:scale-105" /></div>}
           <div className="p-4 flex flex-col flex-1">
             <div className="flex items-start justify-between gap-2 mb-1">
               <h3 className="font-semibold text-foreground">{l.crop_name}</h3>
               <Badge color={listingStatusColor(l.status)}>{l.status}</Badge>
             </div>
+            {l.crop_type && (
+              <div className="mb-1">
+                <Badge color={categoryColor(l.crop_type)}>{l.crop_type}</Badge>
+              </div>
+            )}
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground mb-2">
               <span>{l.quantity} {l.unit}</span>
               {l.location && <span className="flex items-center gap-1"><MapPin size={10} />{l.location}</span>}
@@ -733,11 +845,22 @@ function MyListingsGrid({ listingType, currentUserId, m }) {
 }
 
 // ── Negotiation dialog ─────────────────────────────────────────────────────────
-function NegotiationDialog({ order, isSeller, m }) {
+function NegotiationDialog({ order, isSeller, currentUserId, m }) {
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState('');
   const [counter, setCounter] = useState('');
   const [busy, setBusy] = useState(false);
+  const [thread, setThread] = useState(null);
+  const [threadErr, setThreadErr] = useState('');
+
+  async function loadThread() {
+    try {
+      const rows = await request(`/api/marketplace/orders/${order.id}/negotiation`);
+      setThread(rows);
+    } catch (err) { setThreadErr(err.message); }
+  }
+
+  useEffect(() => { if (open) loadThread(); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function send() {
     if (!note) { toast.error('Type a note first'); return; }
@@ -749,6 +872,7 @@ function NegotiationDialog({ order, isSeller, m }) {
       });
       toast.success('Note sent.');
       setNote(''); setCounter('');
+      await loadThread();
       refreshOrders();
     } catch (err) { toast.error(err.message); }
     finally { setBusy(false); }
@@ -763,27 +887,28 @@ function NegotiationDialog({ order, isSeller, m }) {
       <Modal open={open} onClose={() => setOpen(false)} title={m.negotiate}
         desc={`${order.listing_name} · ${order.requested_quantity} ${order.unit ?? 'units'} @ Rs. ${Number(order.proposed_price || 0).toLocaleString()}`}>
         <div className="grid gap-3">
-          {order.buyer_note && (
-            <div className="rounded-md border bg-muted/50 p-3">
-              <p className="text-xs font-semibold text-muted-foreground mb-1">{m.buyerNote}</p>
-              <p className="text-sm">{order.buyer_note}</p>
-              {order.proposed_price && (
-                <p className="text-xs mt-1 text-primary font-medium">Proposed: Rs. {Number(order.proposed_price).toLocaleString()}</p>
-              )}
-            </div>
-          )}
-          {order.seller_note && (
-            <div className="rounded-md border bg-muted/50 p-3">
-              <p className="text-xs font-semibold text-muted-foreground mb-1">{m.sellerNote}</p>
-              <p className="text-sm">{order.seller_note}</p>
-              {order.counter_offer_price && (
-                <p className="text-xs mt-1 text-amber-600 font-medium">{m.counterOffer}: Rs. {Number(order.counter_offer_price).toLocaleString()}</p>
-              )}
-            </div>
-          )}
-          {!order.buyer_note && !order.seller_note && (
-            <p className="text-sm text-muted-foreground text-center py-4">{m.noNotes}</p>
-          )}
+          <div className="grid gap-2" style={{ maxHeight: '45vh', overflowY: 'auto' }}>
+            {threadErr && <p className="text-sm text-red-600">{threadErr}</p>}
+            {thread === null && !threadErr && <p className="text-sm text-muted-foreground">Loading…</p>}
+            {thread?.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">{m.noNotes}</p>
+            )}
+            {thread?.map(msg => {
+              const mine = msg.sender_id === currentUserId;
+              return (
+                <div key={msg.id} className="rounded-md border bg-muted/50 p-3" style={{ marginLeft: mine ? '20%' : 0, marginRight: mine ? 0 : '20%' }}>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold text-muted-foreground">{msg.sender_name}</p>
+                    <p className="text-xs text-muted-foreground">{relativeTime(msg.created_at)}</p>
+                  </div>
+                  <p className="text-sm mt-1">{msg.message}</p>
+                  {msg.proposed_price && (
+                    <p className="text-xs mt-1 text-primary font-medium">Offer: Rs. {Number(msg.proposed_price).toLocaleString()}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
           {order.status === 'Pending' || order.status === 'Confirmed' ? (
             <div className="grid gap-2 border-t pt-3">
               <p className="text-xs font-semibold text-muted-foreground">{m.addNote}</p>
@@ -817,7 +942,7 @@ function RatingModal({ order, onClose }) {
     try {
       await request(`/api/ratings/orders/${order.id}`, { method: 'POST', body: JSON.stringify({ score, comment: comment.trim() || undefined }) });
       setDone(true);
-      setTimeout(onClose, 1200);
+      setTimeout(() => onClose(true), 1200);
     } catch (err) { toast.error(err.message); }
     finally { setBusy(false); }
   };
@@ -864,6 +989,19 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
   const isBuyer  = order.buyer_id  === currentUserId;
   const [busy, setBusy] = useState(false);
   const [ratingOpen, setRatingOpen] = useState(false);
+  const [rated, setRated] = useState(false);
+
+  // Briefly ring-flash the status badge when the status actually changes
+  const [statusFlash, setStatusFlash] = useState(false);
+  const prevStatusRef = useRef(order.status);
+  useEffect(() => {
+    if (prevStatusRef.current !== order.status) {
+      setStatusFlash(true);
+      prevStatusRef.current = order.status;
+      const id = setTimeout(() => setStatusFlash(false), 1000);
+      return () => clearTimeout(id);
+    }
+  }, [order.status]);
 
   async function updateStatus(newStatus) {
     setBusy(true);
@@ -888,7 +1026,9 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-semibold text-foreground">{order.listing_name}</span>
-              <Badge color={statusColor(order.status)}>{statusLabel(order.status, m)}</Badge>
+              <span className={statusFlash ? 'status-flash' : undefined}>
+                <Badge color={statusColor(order.status)}>{statusLabel(order.status, m)}</Badge>
+              </span>
             </div>
             <p className="text-sm text-muted-foreground mt-0.5">
               {order.requested_quantity} units · Rs. {Number(effectivePrice).toLocaleString()} ea. ={' '}
@@ -898,21 +1038,23 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
               {isSeller ? `${m.buyer}: ${order.buyer_name}` : `${m.seller}: ${order.seller_name}`}
               {' · '}{new Date(order.created_at).toLocaleDateString()}
             </p>
-            {isSeller && order.buyer_phone && (
-              <p className="text-xs mt-0.5" style={{ color: 'var(--green-primary)' }}>📞 {order.buyer_phone}</p>
+            {isSeller && (order.buyer_phone
+              ? <p className="text-xs mt-0.5" style={{ color: 'var(--green-primary)' }}>📞 {order.buyer_phone}</p>
+              : order.status === 'Pending' && <p className="text-xs mt-0.5 text-muted-foreground">🔒 {m.phoneAfterConfirm}</p>
             )}
-            {isBuyer && order.seller_phone && (
-              <p className="text-xs mt-0.5" style={{ color: 'var(--green-primary)' }}>📞 {order.seller_phone}</p>
+            {isBuyer && (order.seller_phone
+              ? <p className="text-xs mt-0.5" style={{ color: 'var(--green-primary)' }}>📞 {order.seller_phone}</p>
+              : order.status === 'Pending' && <p className="text-xs mt-0.5 text-muted-foreground">🔒 {m.phoneAfterConfirm}</p>
             )}
           </div>
         </div>
 
         {!showHistory && ORDER_STATUS_FLOW.includes(order.status) && (
-          <StatusTracker status={order.status} />
+          <StatusTracker order={order} />
         )}
 
         <div className="flex flex-wrap gap-2">
-          <NegotiationDialog order={order} isSeller={isSeller} m={m} />
+          <NegotiationDialog order={order} isSeller={isSeller} currentUserId={currentUserId} m={m} />
 
           {/* Seller actions */}
           {isSeller && order.status === 'Pending' && (
@@ -938,29 +1080,40 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
             </Btn>
           )}
 
+          {/* Buyer can cancel before delivery (stock is restored automatically) */}
+          {isBuyer && (order.status === 'Pending' || order.status === 'Confirmed') && (
+            <Btn size="sm" variant="danger" onClick={() => updateStatus('Cancelled')} disabled={busy}>
+              <X size={14} />{m.cancel}
+            </Btn>
+          )}
+
           {/* Buyer rates completed order */}
-          {isBuyer && order.status === 'Completed' && (
+          {isBuyer && order.status === 'Completed' && !rated && (
             <Btn size="sm" variant="outline" onClick={() => setRatingOpen(true)}>
               ⭐ Rate Seller
             </Btn>
           )}
         </div>
       </div>
-      {ratingOpen && <RatingModal order={order} onClose={() => setRatingOpen(false)} />}
+      {ratingOpen && <RatingModal order={order} onClose={(wasSuccess) => { setRatingOpen(false); if (wasSuccess) setRated(true); }} />}
     </Card>
   );
 }
 
 // ── Orders panel ───────────────────────────────────────────────────────────────
-function OrdersPanel({ currentUserId, m, historyMode = false }) {
-  const { data, isLoading } = useSWR('/api/marketplace/orders', authFetcher, { refreshInterval: 5000 });
-  const allOrders = data || [];
+function OrdersPanel({ currentUserId, m, historyMode = false, filterRole }) {
+  const { data, isLoading } = useSWR('/api/marketplace/orders', authFetcher);
+  let allOrders = data || [];
+
+  // 'seller' → incoming requests on my listings; 'buyer' → my purchases
+  if (filterRole === 'seller') allOrders = allOrders.filter(o => o.seller_id === currentUserId);
+  if (filterRole === 'buyer')  allOrders = allOrders.filter(o => o.buyer_id === currentUserId);
 
   const active = allOrders.filter(o => ['Pending', 'Confirmed', 'Delivered'].includes(o.status));
   const history = allOrders.filter(o => ['Completed', 'Rejected', 'Cancelled'].includes(o.status));
   const orders = historyMode ? history : active;
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">{m.loadingOrders}</p>;
+  if (isLoading) return <SkeletonRows count={3} />;
   if (orders.length === 0) {
     return (
       <Card>
@@ -1043,7 +1196,7 @@ export default function MarketplacePage() {
 
       {/* Header bar */}
       <header className="border-b bg-card">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-[1320px] flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Leaf size={22} />
@@ -1091,7 +1244,7 @@ export default function MarketplacePage() {
       </header>
 
       {/* Content */}
-      <div className="mx-auto max-w-6xl px-4 py-6">
+      <div className="mx-auto max-w-[1320px] px-4 py-6">
 
         {/* Role context banner */}
         {!isAuthenticated ? (
@@ -1153,7 +1306,7 @@ export default function MarketplacePage() {
                 </div>
               </div>
             )}
-            {ownerTab === 'orders'  && <OrdersPanel currentUserId={currentUserId} m={m} />}
+            {ownerTab === 'orders'  && <OrdersPanel currentUserId={currentUserId} m={m} filterRole="seller" />}
             {ownerTab === 'history' && <OrdersPanel currentUserId={currentUserId} m={m} historyMode />}
           </div>
         )}
@@ -1164,6 +1317,7 @@ export default function MarketplacePage() {
             <Tabs value={traderTab} onChange={setTraderTab} tabs={[
               { value: 'browse',       label: m.traderTabs[0] },
               { value: 'my-products',  label: m.traderTabs[1] },
+              { value: 'incoming',     label: m.traderTabs[4] || 'Incoming Requests' },
               { value: 'orders',       label: m.traderTabs[2] },
               { value: 'history',      label: m.traderTabs[3] },
             ]} />
@@ -1189,8 +1343,9 @@ export default function MarketplacePage() {
                 </div>
               </div>
             )}
-            {traderTab === 'orders'  && <OrdersPanel currentUserId={currentUserId} m={m} />}
-            {traderTab === 'history' && <OrdersPanel currentUserId={currentUserId} m={m} historyMode />}
+            {traderTab === 'incoming' && <OrdersPanel currentUserId={currentUserId} m={m} filterRole="seller" />}
+            {traderTab === 'orders'   && <OrdersPanel currentUserId={currentUserId} m={m} filterRole="buyer" />}
+            {traderTab === 'history'  && <OrdersPanel currentUserId={currentUserId} m={m} historyMode />}
           </div>
         )}
       </div>

@@ -750,6 +750,16 @@ export default function CropGuidance({ lang, t, weather, setWeather }) {
   }, []);
 
   return (
+    <div className="page-wrapper">
+    <div className="guidance-hero">
+      <div className="guidance-hero-inner">
+        <div className="guidance-hero-badge">
+          {lang === "si" ? "📖 බෝග මාර්ගෝපදේශය" : lang === "ta" ? "📖 பயிர் வழிகாட்டி" : "📖 CROP GUIDANCE"}
+        </div>
+        <h1 className="guidance-hero-title">{t.guidanceTitle}</h1>
+        <p className="guidance-hero-sub">{t.guidanceSub}</p>
+      </div>
+    </div>
     <div className="guidance-page">
       <WeatherLocationPicker weather={weather} onWeatherFetched={setWeather} t={t} lang={lang} />
 
@@ -791,6 +801,7 @@ export default function CropGuidance({ lang, t, weather, setWeather }) {
       ) : (
         <CultivationTracker t={t} lang={lang} userId={String(user.id)} />
       )}
+    </div>
     </div>
   );
 }

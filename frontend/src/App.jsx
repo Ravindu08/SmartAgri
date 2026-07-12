@@ -1,68 +1,69 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Link, Navigate, Route, Routes, useOutletContext } from 'react-router-dom';
 
 // ── Context ───────────────────────────────────────────────────────────────────
 import { AppProvider, useApp } from './context/AppContext';
 
-// ── Layouts ───────────────────────────────────────────────────────────────────
+// ── Layouts (kept eager — tiny shells needed immediately) ─────────────────────
 import AppLayout from './components/AppLayout';
 import LandOwnerLayout from './components/LandOwnerLayout';
 import TraderLayout from './components/TraderLayout';
 import AdminLayout from './components/AdminLayout';
+import PageLoader from './components/PageLoader';
 
 // ── Auth / public pages ───────────────────────────────────────────────────────
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import VerifyCodePage from './pages/VerifyCodePage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import RoleSelectPage from './pages/RoleSelectPage';
-import MarketplacePage from './pages/MarketplacePage';
+const HomePage          = lazy(() => import('./pages/HomePage'));
+const LoginPage         = lazy(() => import('./pages/LoginPage'));
+const RegisterPage      = lazy(() => import('./pages/RegisterPage'));
+const VerifyCodePage    = lazy(() => import('./pages/VerifyCodePage'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
+const RoleSelectPage    = lazy(() => import('./pages/RoleSelectPage'));
+const MarketplacePage   = lazy(() => import('./pages/MarketplacePage'));
+const About             = lazy(() => import('./pages/About'));
+const ContactPage       = lazy(() => import('./pages/ContactPage'));
+const YieldPrice        = lazy(() => import('./pages/YieldPrice'));
+
+// ── ML pages ─────────────────────────────────────────────────────────────────
+const CropRecommendation = lazy(() => import('./pages/CropRecommendation'));
+const CropGuidance       = lazy(() => import('./pages/CropGuidance'));
+const Weather            = lazy(() => import('./pages/Weather'));
 
 // ── Land Owner pages ──────────────────────────────────────────────────────────
-import LandOwnerDashboard from './pages/landowner/LandOwnerDashboard';
-import Settings from './pages/landowner/Settings';
-import HelpSupport from './pages/landowner/HelpSupport';
-import MyFarms from './pages/farms/MyFarms';
-import AddFarm from './pages/farms/AddFarm';
-import EditFarm from './pages/farms/EditFarm';
-import FarmDetails from './pages/farms/FarmDetails';
-import MyCrops from './pages/crops/MyCrops';
-import AddCrop from './pages/crops/AddCrop';
-import CropDetails from './pages/crops/CropDetails';
-import MyCultivations from './pages/cultivations/MyCultivations';
+const LandOwnerDashboard = lazy(() => import('./pages/landowner/LandOwnerDashboard'));
+const Settings           = lazy(() => import('./pages/landowner/Settings'));
+const HelpSupport        = lazy(() => import('./pages/landowner/HelpSupport'));
+const MyFarms            = lazy(() => import('./pages/farms/MyFarms'));
+const AddFarm            = lazy(() => import('./pages/farms/AddFarm'));
+const EditFarm           = lazy(() => import('./pages/farms/EditFarm'));
+const FarmDetails        = lazy(() => import('./pages/farms/FarmDetails'));
+const MyCrops            = lazy(() => import('./pages/crops/MyCrops'));
+const AddCrop            = lazy(() => import('./pages/crops/AddCrop'));
+const CropDetails        = lazy(() => import('./pages/crops/CropDetails'));
+const MyCultivations     = lazy(() => import('./pages/cultivations/MyCultivations'));
 
 // ── Trader pages ──────────────────────────────────────────────────────────────
-import TraderDashboard from './pages/trader/TraderDashboard';
-import TraderRequests from './pages/trader/TraderRequests';
-import TraderOrders from './pages/trader/TraderOrders';
-import TraderHistory from './pages/trader/TraderHistory';
-import TraderSettings from './pages/trader/TraderSettings';
-import TraderHelp from './pages/trader/TraderHelp';
+const TraderDashboard = lazy(() => import('./pages/trader/TraderDashboard'));
+const TraderRequests  = lazy(() => import('./pages/trader/TraderRequests'));
+const TraderOrders    = lazy(() => import('./pages/trader/TraderOrders'));
+const TraderHistory   = lazy(() => import('./pages/trader/TraderHistory'));
+const TraderSettings  = lazy(() => import('./pages/trader/TraderSettings'));
+const TraderHelp      = lazy(() => import('./pages/trader/TraderHelp'));
 
 // ── Admin pages ───────────────────────────────────────────────────────────────
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminUsers from './pages/admin/AdminUsers';
-import AdminUserCreate from './pages/admin/AdminUserCreate';
-import AdminUserImport from './pages/admin/AdminUserImport';
-import AdminMarketplace from './pages/admin/AdminMarketplace';
-import AdminFarms from './pages/admin/AdminFarms';
-import AdminFarmImport from './pages/admin/AdminFarmImport';
-import AdminActivity from './pages/admin/AdminActivity';
-import AdminFeedback from './pages/admin/AdminFeedback';
-import AdminReports from './pages/admin/AdminReports';
-import AdminHarvestForecast from './pages/admin/AdminHarvestForecast';
+const AdminDashboard      = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminUsers          = lazy(() => import('./pages/admin/AdminUsers'));
+const AdminUserCreate     = lazy(() => import('./pages/admin/AdminUserCreate'));
+const AdminUserImport     = lazy(() => import('./pages/admin/AdminUserImport'));
+const AdminMarketplace    = lazy(() => import('./pages/admin/AdminMarketplace'));
+const AdminFarms          = lazy(() => import('./pages/admin/AdminFarms'));
+const AdminFarmImport     = lazy(() => import('./pages/admin/AdminFarmImport'));
+const AdminActivity       = lazy(() => import('./pages/admin/AdminActivity'));
+const AdminFeedback       = lazy(() => import('./pages/admin/AdminFeedback'));
+const AdminReports        = lazy(() => import('./pages/admin/AdminReports'));
+const AdminHarvestForecast = lazy(() => import('./pages/admin/AdminHarvestForecast'));
 
-// ── ML / Guidance / Weather pages ────────────────────────────────────────────
-import CropRecommendation from './pages/CropRecommendation';
-import CropGuidance from './pages/CropGuidance';
-import YieldPrice from './pages/YieldPrice';
-import Weather from './pages/Weather';
-import About from './pages/About';
-import ContactPage from './pages/ContactPage';
 import { T } from './data/translations';
-
-// ── Styles ────────────────────────────────────────────────────────────────────
 import './styles/globals.css';
 import './styles.css';
 
@@ -117,28 +118,27 @@ function AppRoutes() {
   return (
     <Routes>
       {/* Stand-alone auth pages */}
-      <Route path="/login"                element={<LoginPage />} />
-      <Route path="/register"             element={<RegisterPage />} />
-      <Route path="/verify-code"           element={<VerifyCodePage />} />
-      <Route path="/forgot-password"      element={<ForgotPasswordPage />} />
-      <Route path="/reset-password"       element={<ResetPasswordPage />} />
-      <Route path="/role-select"          element={<RoleSelectPage />} />
+      <Route path="/login"           element={<Suspense fallback={<PageLoader />}><LoginPage /></Suspense>} />
+      <Route path="/register"        element={<Suspense fallback={<PageLoader />}><RegisterPage /></Suspense>} />
+      <Route path="/verify-code"     element={<Suspense fallback={<PageLoader />}><VerifyCodePage /></Suspense>} />
+      <Route path="/forgot-password" element={<Suspense fallback={<PageLoader />}><ForgotPasswordPage /></Suspense>} />
+      <Route path="/reset-password"  element={<Suspense fallback={<PageLoader />}><ResetPasswordPage /></Suspense>} />
+      <Route path="/role-select"     element={<Suspense fallback={<PageLoader />}><RoleSelectPage /></Suspense>} />
 
       {/* Public pages with shared Navbar */}
       <Route element={<AppLayout />}>
-        <Route path="/" element={<div className="app-shell"><HomePage /></div>} />
+        <Route path="/" element={<Suspense fallback={<PageLoader />}><div className="app-shell"><HomePage /></div></Suspense>} />
         <Route path="/marketplace" element={
           import.meta.env.VITE_SHOW_MARKETPLACE === 'false'
             ? <Navigate to="/landowner/dashboard" replace />
-            : <MarketplacePage />
+            : <Suspense fallback={<PageLoader />}><MarketplacePage /></Suspense>
         } />
-        <Route path="/crop-recommendation" element={<CropRecommendationPage />} />
-        <Route path="/crop-guidance"       element={<CropGuidancePage />} />
-        <Route path="/wx"                  element={<WeatherPage />} />
-        <Route path="/yield-price"         element={<YieldPricePage />} />
-        <Route path="/about"               element={<AboutPage />} />
-        <Route path="/contact"             element={<ContactPage />} />
-        {/* Legacy redirect — admin now lives at /admin/dashboard */}
+        <Route path="/crop-recommendation" element={<Suspense fallback={<PageLoader />}><CropRecommendationPage /></Suspense>} />
+        <Route path="/crop-guidance"       element={<Suspense fallback={<PageLoader />}><CropGuidancePage /></Suspense>} />
+        <Route path="/wx"                  element={<Suspense fallback={<PageLoader />}><WeatherPage /></Suspense>} />
+        <Route path="/yield-price"         element={<Suspense fallback={<PageLoader />}><YieldPricePage /></Suspense>} />
+        <Route path="/about"               element={<Suspense fallback={<PageLoader />}><AboutPage /></Suspense>} />
+        <Route path="/contact"             element={<Suspense fallback={<PageLoader />}><ContactPage /></Suspense>} />
         <Route path="/dashboard/admin"  element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="/dashboard/trader" element={<Navigate to="/trader/dashboard" replace />} />
         <Route path="*" element={<NotFound />} />
@@ -174,7 +174,7 @@ function AppRoutes() {
       {/* Admin section */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="dashboard"   element={<AdminDashboard />} />
+        <Route path="dashboard"        element={<AdminDashboard />} />
         <Route path="users"            element={<AdminUsers />} />
         <Route path="users/create"     element={<AdminUserCreate />} />
         <Route path="users/import"     element={<AdminUserImport />} />
@@ -194,7 +194,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppProvider>
-        <AppRoutes />
+        <Suspense fallback={<PageLoader />}>
+          <AppRoutes />
+        </Suspense>
       </AppProvider>
     </BrowserRouter>
   );

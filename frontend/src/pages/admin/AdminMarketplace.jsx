@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react';
 import { adminRequest } from '../../services/api';
 import { useApp } from '../../context/AppContext';
+import { SkeletonTable } from '../../components/Skeleton';
+import Pagination from '../../components/Pagination';
+
+const PAGE_SIZE = 10;
 
 const T = {
   en: {
     title: 'Marketplace Oversight', loading: 'Loading…',
     tabListings: 'listings', tabOrders: 'orders',
+    searchListings: 'Search crop name or type…', searchOrders: 'Search order ID, buyer #, or seller #…',
     colCrop: 'Crop Name', colType: 'Type', colQty: 'Quantity', colPrice: 'Price/Unit',
     colStatus: 'Status', colCreated: 'Created', colAction: 'Action',
     archive: 'Archive', noListings: 'No listings',
@@ -17,6 +22,7 @@ const T = {
   si: {
     title: 'වෙළඳසල අධීක්ෂණය', loading: 'පූරණය වෙමින්...',
     tabListings: 'ලැයිස්තු', tabOrders: 'ඇණවුම්',
+    searchListings: 'බෝග නම හෝ වර්ගය සොයන්න...', searchOrders: 'ඇණවුම් ID, ගනුදෙනුකරු #, හෝ විකුණන්නා # සොයන්න...',
     colCrop: 'බෝග නම', colType: 'වර්ගය', colQty: 'ප්‍රමාණය', colPrice: 'මිල / ඒකය',
     colStatus: 'තත්ත්වය', colCreated: 'සාදන ලද', colAction: 'ක්‍රියාව',
     archive: 'සංරක්ෂණය', noListings: 'ලැයිස්තු නොමැත',
@@ -28,6 +34,7 @@ const T = {
   ta: {
     title: 'சந்தை கண்காணிப்பு', loading: 'ஏற்றுகிறது...',
     tabListings: 'பட்டியல்கள்', tabOrders: 'ஆர்டர்கள்',
+    searchListings: 'பயிர் பெயர் அல்லது வகையைத் தேடவும்…', searchOrders: 'ஆர்டர் ஐடி, வாங்குபவர் #, அல்லது விற்பவர் # தேடவும்…',
     colCrop: 'பயிர் பெயர்', colType: 'வகை', colQty: 'அளவு', colPrice: 'விலை/யூனிட்',
     colStatus: 'நிலை', colCreated: 'உருவாக்கப்பட்டது', colAction: 'நடவடிக்கை',
     archive: 'காப்பகப்படுத்து', noListings: 'பட்டியல்கள் இல்லை',
@@ -54,6 +61,8 @@ export default function AdminMarketplace() {
   const [orders, setOrders]     = useState([]);
   const [loading, setLoading]   = useState(true);
   const [toast, setToast]       = useState('');
+  const [search, setSearch]     = useState('');
+  const [page, setPage]         = useState(1);
 
   useEffect(() => {
     setLoading(true);
@@ -63,7 +72,24 @@ export default function AdminMarketplace() {
     ]).then(([l, o]) => { setListings(l); setOrders(o); setLoading(false); });
   }, []);
 
+  useEffect(() => { setPage(1); }, [search, tab]);
+
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 2500); };
+
+  const filteredListings = listings.filter(l => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return l.crop_name?.toLowerCase().includes(q) || l.crop_type?.toLowerCase().includes(q);
+  });
+  const filteredOrders = orders.filter(o => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return o.id?.toLowerCase().includes(q) || String(o.buyer_id).includes(q) || String(o.seller_id).includes(q);
+  });
+  const activeFiltered = tab === 'listings' ? filteredListings : filteredOrders;
+  const totalPages = Math.max(1, Math.ceil(activeFiltered.length / PAGE_SIZE));
+  const pageListings = filteredListings.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const pageOrders = filteredOrders.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleArchive = async (id) => {
     if (!window.confirm(t.confirmArchive)) return;
@@ -72,7 +98,7 @@ export default function AdminMarketplace() {
     showToast(t.toastArchived);
   };
 
-  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>{t.loading}</div>;
+  if (loading) return <SkeletonTable rows={6} cols={4} />;
 
   const listingHeaders = [t.colCrop, t.colType, t.colQty, t.colPrice, t.colStatus, t.colCreated, t.colAction];
   const orderHeaders   = [t.colOrderId, t.colBuyer, t.colSeller, t.colQtyReq, t.colAgreedPrice, t.colStatus, t.colDate];
@@ -94,6 +120,9 @@ export default function AdminMarketplace() {
         ))}
       </div>
 
+      <input value={search} onChange={e => setSearch(e.target.value)} placeholder={tab === 'listings' ? t.searchListings : t.searchOrders}
+        style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '14px', width: '100%', maxWidth: '360px', marginBottom: '20px' }} />
+
       {tab === 'listings' && (
         <div style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -105,7 +134,7 @@ export default function AdminMarketplace() {
               </tr>
             </thead>
             <tbody>
-              {listings.map(l => (
+              {pageListings.map(l => (
                 <tr key={l.id} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: '11px 14px', fontWeight: 600, fontSize: '13px', color: 'var(--text)' }}>{l.crop_name}</td>
                   <td style={{ padding: '11px 14px', fontSize: '13px', color: 'var(--muted)' }}>{l.crop_type}</td>
@@ -123,7 +152,7 @@ export default function AdminMarketplace() {
                   </td>
                 </tr>
               ))}
-              {listings.length === 0 && <tr><td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: 'var(--muted)' }}>{t.noListings}</td></tr>}
+              {filteredListings.length === 0 && <tr><td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: 'var(--muted)' }}>{t.noListings}</td></tr>}
             </tbody>
           </table>
         </div>
@@ -140,7 +169,7 @@ export default function AdminMarketplace() {
               </tr>
             </thead>
             <tbody>
-              {orders.map(o => (
+              {pageOrders.map(o => (
                 <tr key={o.id} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: '11px 14px', fontFamily: 'monospace', fontSize: '12px', color: 'var(--muted)' }}>{o.id.slice(0, 8)}…</td>
                   <td style={{ padding: '11px 14px', fontSize: '13px' }}>#{o.buyer_id}</td>
@@ -153,11 +182,12 @@ export default function AdminMarketplace() {
                   <td style={{ padding: '11px 14px', fontSize: '12px', color: 'var(--muted)' }}>{o.created_at ? new Date(o.created_at).toLocaleDateString() : '—'}</td>
                 </tr>
               ))}
-              {orders.length === 0 && <tr><td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: 'var(--muted)' }}>{t.noOrders}</td></tr>}
+              {filteredOrders.length === 0 && <tr><td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: 'var(--muted)' }}>{t.noOrders}</td></tr>}
             </tbody>
           </table>
         </div>
       )}
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
     </div>
   );
 }

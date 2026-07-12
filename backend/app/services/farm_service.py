@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.models.farm import Farm
 from app.schemas.farm import FarmCreate, FarmUpdate
+from app.utils.image_storage import store_image
 
 
 def create_farm(db: Session, farm_in: FarmCreate, owner_id: int) -> Farm:
@@ -18,7 +19,7 @@ def create_farm(db: Session, farm_in: FarmCreate, owner_id: int) -> Farm:
         irrigation_type=farm_in.irrigation_type,
         cultivated_crops=farm_in.cultivated_crops,
         season=farm_in.season,
-        image_data=farm_in.image_data,
+        image_data=store_image(farm_in.image_data),
         owner_id=owner_id,
     )
     db.add(farm)
@@ -42,7 +43,10 @@ def get_farm_by_owner(db: Session, farm_id: UUID, owner_id: int) -> Farm | None:
 def update_farm(db: Session, farm: Farm, farm_in: FarmUpdate) -> Farm:
     # Only update fields that were explicitly included in the request payload
     for field in farm_in.model_fields_set:
-        setattr(farm, field, getattr(farm_in, field))
+        value = getattr(farm_in, field)
+        if field == "image_data":
+            value = store_image(value)
+        setattr(farm, field, value)
 
     db.add(farm)
     db.commit()

@@ -17,11 +17,11 @@ const CONTACT_T = {
     successSub: "Thank you for reaching out. We'll get back to you as soon as possible.",
     successBack: '← Send another message',
     infoTitle: 'Get In Touch',
-    infoSub: "We're happy to hear from farmers, researchers, and anyone interested in SmartAgri.",
-    emailLabel: 'Email', emailVal: 'induwara.ihalavithana@gmail.com',
+    infoSub: "We're happy to hear from farmers, traders, and anyone interested in SmartAgri.",
+    emailLabel: 'Email', emailVal: 'hello@smartagri.lk',
     locationLabel: 'Location', locationVal: 'Sri Lanka',
-    projectLabel: 'Project', projectVal: 'Final Year Academic Project',
-    githubLabel: 'GitHub', githubVal: 'SmartAgri — Open Source',
+    projectLabel: 'Response Time', projectVal: 'Within 24 hours',
+    githubLabel: 'GitHub', githubVal: 'SmartAgri',
     socialTitle: 'Follow Us',
   },
   si: {
@@ -38,11 +38,11 @@ const CONTACT_T = {
     successSub: 'සම්බන්ධ වීමට ස්තූතියි. හැකි ඉක්මනින් ඔබට ප්‍රතිචාර දක්වන්නෙමු.',
     successBack: '← තවත් පණිවිඩයක් යවන්න',
     infoTitle: 'සම්බන්ධ වන්න',
-    infoSub: 'ගොවීන්, පර්යේෂකයන්, සහ SmartAgri ගැන ඕනෑ කෙනෙකු ඉදිරියෙන් ඇසීමට සතුටු වෙමු.',
-    emailLabel: 'ඊ-තැපෑල', emailVal: 'induwara.ihalavithana@gmail.com',
+    infoSub: 'ගොවීන්, වෙළෙන්දන්, සහ SmartAgri ගැන ඕනෑ කෙනෙකු ඉදිරියෙන් ඇසීමට සතුටු වෙමු.',
+    emailLabel: 'ඊ-තැපෑල', emailVal: 'hello@smartagri.lk',
     locationLabel: 'ස්ථානය', locationVal: 'ශ්‍රී ලංකාව',
-    projectLabel: 'ව්‍යාපෘතිය', projectVal: 'අවසාන වසර අධ්‍යයනික ව්‍යාපෘතිය',
-    githubLabel: 'GitHub', githubVal: 'SmartAgri — විවෘත මූලාශ්‍ර',
+    projectLabel: 'ප්‍රතිචාර කාලය', projectVal: 'පැය 24ක් තුළ',
+    githubLabel: 'GitHub', githubVal: 'SmartAgri',
     socialTitle: 'අනුගමනය කරන්න',
   },
   ta: {
@@ -59,11 +59,11 @@ const CONTACT_T = {
     successSub: 'தொடர்பு கொண்டதற்கு நன்றி. முடிந்தவரை விரைவாக திரும்பி வருவோம்.',
     successBack: '← மற்றொரு செய்தி அனுப்பு',
     infoTitle: 'தொடர்பு கொள்ளுங்கள்',
-    infoSub: 'விவசாயிகள், ஆராய்ச்சியாளர்கள் மற்றும் SmartAgri இல் ஆர்வமுள்ள எவரிடமிருந்தும் கேட்க மகிழ்ச்சியாக இருக்கிறோம்.',
-    emailLabel: 'மின்னஞ்சல்', emailVal: 'induwara.ihalavithana@gmail.com',
+    infoSub: 'விவசாயிகள், வர்த்தகர்கள் மற்றும் SmartAgri இல் ஆர்வமுள்ள எவரிடமிருந்தும் கேட்க மகிழ்ச்சியாக இருக்கிறோம்.',
+    emailLabel: 'மின்னஞ்சல்', emailVal: 'hello@smartagri.lk',
     locationLabel: 'இடம்', locationVal: 'இலங்கை',
-    projectLabel: 'திட்டம்', projectVal: 'இறுதி ஆண்டு கல்வி திட்டம்',
-    githubLabel: 'GitHub', githubVal: 'SmartAgri — திறந்த மூலம்',
+    projectLabel: 'பதில் நேரம்', projectVal: '24 மணி நேரத்திற்குள்',
+    githubLabel: 'GitHub', githubVal: 'SmartAgri',
     socialTitle: 'எங்களைப் பின்தொடருங்கள்',
   },
 };
@@ -82,13 +82,14 @@ export default function ContactPage() {
     setSending(true);
     const subject = encodeURIComponent(form.subject || 'SmartAgri Contact');
     const body = encodeURIComponent(`Name: ${form.name}\nEmail: ${form.email}\n\n${form.message}`);
-    window.location.href = `mailto:induwara.ihalavithana@gmail.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:hello@smartagri.lk?subject=${subject}&body=${body}`;
     setTimeout(() => { setSending(false); setSent(true); }, 1000);
   };
 
   const handleReset = () => { setForm({ name: '', email: '', subject: '', message: '' }); setSent(false); };
 
   return (
+    <div className="page-wrapper">
     <div className="contact-page">
       <div className="contact-hero">
         <div className="contact-hero-inner">
@@ -142,7 +143,7 @@ export default function ContactPage() {
             <p className="contact-info-sub">{t.infoSub}</p>
 
             <div className="contact-info-cards">
-              <a href="mailto:induwara.ihalavithana@gmail.com" className="contact-info-card">
+              <a href="mailto:hello@smartagri.lk" className="contact-info-card">
                 <div className="contact-info-icon">📧</div>
                 <div>
                   <div className="contact-info-label">{t.emailLabel}</div>
@@ -157,7 +158,7 @@ export default function ContactPage() {
                 </div>
               </div>
               <div className="contact-info-card">
-                <div className="contact-info-icon">🎓</div>
+                <div className="contact-info-icon">⏱️</div>
                 <div>
                   <div className="contact-info-label">{t.projectLabel}</div>
                   <div className="contact-info-val">{t.projectVal}</div>
@@ -187,6 +188,7 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

@@ -10,9 +10,7 @@
 
 /* ── Page wrapper with nav offset ── */
 .yp-page-wrapper {
-  padding-top: var(--nav-h);
   padding-bottom: 72px;
-  min-height: 100vh;
 }
 
 /* ── Hero ── */
@@ -91,7 +89,7 @@
 
 /* ── Body container ── */
 .yp-body {
-  max-width: 1060px;
+  max-width: 1320px;
   margin: 0 auto;
   padding: 28px 28px 72px;
 }

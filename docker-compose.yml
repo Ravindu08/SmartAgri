@@ -1,0 +1,57 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: smartagri
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-smartagri_pass}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d smartagri"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    env_file: ./backend/.env.docker
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-smartagri_pass}@db:5432/smartagri
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+
+  ml:
+    build: ./backend
+    env_file: ./backend/.env.docker
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-smartagri_pass}@db:5432/smartagri
+    ports:
+      - "8001:8001"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: uvicorn ml_service.app:app --host 0.0.0.0 --port 8001
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ""
+        VITE_ML_URL: ""
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - ml
+    restart: unless-stopped
+
+volumes:
+  pgdata:

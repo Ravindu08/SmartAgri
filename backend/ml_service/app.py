@@ -48,6 +48,8 @@ except Exception as _db_err:
     _DB_AVAILABLE = False
     logger.warning("[WARN] Cultivation DB unavailable: %s — sessions will be in-memory only", _db_err)
 
+from app.utils.image_storage import ImageTooLargeError, InvalidImageError, store_image as _store_task_photo
+
 app = FastAPI(
     title="SMARTAGRI ML Service",
     description="Explainable dual-mode crop recommendation for Sri Lanka",
@@ -956,6 +958,7 @@ class StartCultivationRequest(BaseModel):
 
 class TaskStatusUpdate(BaseModel):
     status: str  # done | skipped | pending | overdue
+    photo: Optional[str] = None  # data URI (image/*) captured when marking the task done
 
 
 def _gen_cultivation_tasks(crop_data: dict, planting_date_str: str) -> list:
@@ -1045,6 +1048,7 @@ def _session_to_dict(session: "_CultivationSession") -> dict:
             "stage_id":       task.stage_id,
             "stage_name":     task.stage_name,
             "status":         task.status,
+            "photo":          task.photo,
         }
     return {
         "id":            str(session.id),
@@ -1179,6 +1183,8 @@ def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: T
                 if task_obj is None:
                     raise HTTPException(404, "Task not found")
                 task_obj.status = body.status
+                if body.photo is not None:
+                    task_obj.photo = _store_task_photo(body.photo)
                 db.commit()
                 return {
                     "id":             task_obj.id,
@@ -1191,11 +1197,16 @@ def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: T
                     "stage_id":       task_obj.stage_id,
                     "stage_name":     task_obj.stage_name,
                     "status":         task_obj.status,
+                    "photo":          task_obj.photo,
                 }
             finally:
                 db.close()
         except HTTPException:
             raise
+        except ImageTooLargeError as exc:
+            raise HTTPException(413, str(exc))
+        except InvalidImageError as exc:
+            raise HTTPException(400, str(exc))
         except Exception as exc:
             logger.exception("DB task update failed: %s", exc)
 
@@ -1207,6 +1218,13 @@ def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: T
     if not task:
         raise HTTPException(404, "Task not found")
     task["status"] = body.status
+    if body.photo is not None:
+        try:
+            task["photo"] = _store_task_photo(body.photo)
+        except ImageTooLargeError as exc:
+            raise HTTPException(413, str(exc))
+        except InvalidImageError as exc:
+            raise HTTPException(400, str(exc))
     return task
 
 

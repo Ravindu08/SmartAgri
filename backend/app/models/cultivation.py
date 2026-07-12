@@ -64,6 +64,7 @@ class CultivationTask(Base):
     stage_id: Mapped[str] = mapped_column(String(64), nullable=False)
     stage_name: Mapped[str] = mapped_column(String(128), nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending")
+    photo: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     session: Mapped["CultivationSession"] = relationship(
         "CultivationSession", back_populates="tasks"

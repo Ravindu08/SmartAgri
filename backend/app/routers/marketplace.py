@@ -2,10 +2,12 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db
 from app.models.marketplace import MarketplaceListing, MarketplaceListingStatus, MarketplaceOrderStatus
+from app.models.rating import Rating
 from app.schemas.marketplace import (
     MarketplaceListingCreate,
     MarketplaceListingRead,
@@ -14,8 +16,10 @@ from app.schemas.marketplace import (
     MarketplaceOrderCreate,
     MarketplaceOrderRead,
     MarketplaceOrderStatusUpdate,
+    NegotiationMessageRead,
 )
 from app.services.email import send_order_event_email
+from app.utils.image_storage import ImageTooLargeError, InvalidImageError
 from app.services.marketplace_service import (
     add_negotiation,
     create_listing,
@@ -25,6 +29,7 @@ from app.services.marketplace_service import (
     get_listing_for_owner,
     get_order,
     list_active_listings,
+    list_negotiation_messages,
     list_orders_for_user,
     list_owner_listings,
     update_listing,
@@ -36,6 +41,24 @@ from app.services.notification_service import create_notification
 router = APIRouter(prefix="/api/marketplace", tags=["marketplace"])
 
 
+def _attach_seller_ratings(db: Session, listings: list[MarketplaceListing]) -> list[MarketplaceListing]:
+    """Annotate each listing with the seller's average rating (one grouped query)."""
+    owner_ids = {l.owner_id for l in listings}
+    stats: dict[int, tuple[float, int]] = {}
+    if owner_ids:
+        rows = db.execute(
+            select(Rating.ratee_id, func.avg(Rating.score), func.count(Rating.id))
+            .where(Rating.ratee_id.in_(owner_ids))
+            .group_by(Rating.ratee_id)
+        ).all()
+        stats = {row[0]: (round(float(row[1]), 1), row[2]) for row in rows}
+    for listing in listings:
+        rating = stats.get(listing.owner_id)
+        listing.seller_rating = rating[0] if rating else None
+        listing.seller_rating_count = rating[1] if rating else 0
+    return listings
+
+
 @router.get("/listings", response_model=list[MarketplaceListingRead])
 def read_listings(
     search: Optional[str] = Query(default=None, max_length=100),
@@ -45,7 +68,8 @@ def read_listings(
     district: Optional[str] = Query(default=None, max_length=128),
     db: Session = Depends(get_db),
 ) -> list[MarketplaceListingRead]:
-    return list_active_listings(db, search=search, crop_type=crop_type, min_price=min_price, max_price=max_price, district=district)
+    listings = list_active_listings(db, search=search, crop_type=crop_type, min_price=min_price, max_price=max_price, district=district)
+    return _attach_seller_ratings(db, listings)
 
 
 @router.get("/listings/me", response_model=list[MarketplaceListingRead])
@@ -62,7 +86,12 @@ def create_listing_endpoint(
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> MarketplaceListingRead:
-    return create_listing(db, payload, owner_id=current_user.id)
+    try:
+        return create_listing(db, payload, owner_id=current_user.id)
+    except ImageTooLargeError as exc:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=str(exc)) from exc
+    except InvalidImageError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
 @router.get("/listings/{listing_id}", response_model=MarketplaceListingRead)
@@ -83,7 +112,12 @@ def update_listing_endpoint(
     listing = get_listing_for_owner(db, listing_id, current_user.id)
     if listing is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Listing not found")
-    return update_listing(db, listing, payload)
+    try:
+        return update_listing(db, listing, payload)
+    except ImageTooLargeError as exc:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=str(exc)) from exc
+    except InvalidImageError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
 @router.delete("/listings/{listing_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -203,7 +237,21 @@ def add_negotiation_endpoint(
     if current_user.id not in {order.buyer_id, order.seller_id}:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You cannot negotiate this order")
     sender_role = "Trader" if current_user.id == order.buyer_id else "Land Owner"
-    return add_negotiation(db, order, payload, sender_role)
+    return add_negotiation(db, order, payload, sender_role, sender_id=current_user.id)
+
+
+@router.get("/orders/{order_id}/negotiation", response_model=list[NegotiationMessageRead])
+def list_negotiation_endpoint(
+    order_id: UUID,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[NegotiationMessageRead]:
+    order = get_order(db, order_id)
+    if order is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+    if current_user.id not in {order.buyer_id, order.seller_id}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You cannot view this negotiation")
+    return list_negotiation_messages(db, order_id)
 
 
 @router.get("/history", response_model=list[MarketplaceOrderRead])
