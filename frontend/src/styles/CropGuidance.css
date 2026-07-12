@@ -115,6 +115,7 @@
 ══════════════════════════════════════════════════════ */
 .guidance-mode-tabs {
   display: inline-flex;
+  max-width: 100%;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -146,6 +147,12 @@
 .guidance-mode-tab:not(.active):hover {
   background: var(--green-light);
   color: var(--green-primary);
+}
+/* Must come after the base rules above to win the same-specificity
+   cascade tie (being inside @media grants no extra weight). */
+@media (max-width: 400px) {
+  .guidance-mode-tabs { width: 100%; }
+  .guidance-mode-tab { flex: 1 1 0; padding: 9px 12px; font-size: 14px; white-space: nowrap; }
 }
 
 /* ══════════════════════════════════════════════════════
