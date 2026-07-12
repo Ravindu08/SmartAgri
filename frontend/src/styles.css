@@ -283,7 +283,7 @@
   transition: background var(--tr);
 }
 
-@media (max-width: 1480px) {
+@media (max-width: 1600px) {
   .navbar { padding: 0 20px; }
   .navbar__links { display: none; }
   .nav-hamburger { display: flex; }
@@ -337,7 +337,7 @@
 }
 
 .navbar__mobile-extra { display: none; }
-@media (max-width: 1480px) {
+@media (max-width: 1600px) {
   .navbar__links.open .navbar__mobile-extra {
     display: flex;
     flex-direction: column;
@@ -3144,6 +3144,7 @@
   .g3 { grid-template-columns: repeat(2, 1fr) !important; }
   .home-tools-grid { grid-template-columns: repeat(2, 1fr) !important; }
   .lo-sidebar { width: 200px; }
+  .lo-main { margin-left: 200px; }
   .lo-sidebar__link { font-size: 0.92rem; padding: 10px 12px; }
 }
 
