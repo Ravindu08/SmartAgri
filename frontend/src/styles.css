@@ -368,6 +368,13 @@
     font-size: 15px;
     font-weight: 600;
   }
+  /* .navbar__theme-toggle:hover rotates 15deg — fine for the small 34px
+     circle it was designed for, but this bar is now full-width (up to
+     ~335px), so the same rotation swings its corners wildly across the
+     screen instead of a subtle spin. Neutralize it here. */
+  .navbar__links.open .navbar__mobile-extra .navbar__theme-toggle:hover {
+    transform: none;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
