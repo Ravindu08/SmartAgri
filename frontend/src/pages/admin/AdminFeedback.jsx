@@ -74,7 +74,7 @@ export default function AdminFeedback() {
       <div style={{ display: 'flex', gap: '4px', marginBottom: '20px' }}>
         {tabs.map(({ value, label }) => (
           <button key={value} onClick={() => setFilter(value)}
-            style={{ padding: '7px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px',
+            style={{ padding: '7px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '15px',
               background: filter === value ? '#7c3aed' : 'var(--card)', color: filter === value ? '#fff' : 'var(--muted)',
             }}>{label}</button>
         ))}
@@ -92,24 +92,24 @@ export default function AdminFeedback() {
                 <span style={{ fontSize: '24px' }}>{TYPE_ICON[item.type] || '💬'}</span>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '4px' }}>
-                    <span style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text)' }}>{item.subject}</span>
-                    <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '99px', fontWeight: 600, background: (TYPE_COLOR[item.type] || '#888') + '18', color: TYPE_COLOR[item.type] || '#888' }}>{item.type}</span>
-                    <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '99px', fontWeight: 600, background: item.status === 'open' ? '#e5393518' : '#2d6a4f18', color: item.status === 'open' ? '#e53935' : '#2d6a4f' }}>{item.status}</span>
+                    <span style={{ fontWeight: 700, fontSize: '17px', color: 'var(--text)' }}>{item.subject}</span>
+                    <span style={{ fontSize: '12.5px', padding: '2px 8px', borderRadius: '99px', fontWeight: 600, background: (TYPE_COLOR[item.type] || '#888') + '18', color: TYPE_COLOR[item.type] || '#888' }}>{item.type}</span>
+                    <span style={{ fontSize: '12.5px', padding: '2px 8px', borderRadius: '99px', fontWeight: 600, background: item.status === 'open' ? '#e5393518' : '#2d6a4f18', color: item.status === 'open' ? '#e53935' : '#2d6a4f' }}>{item.status}</span>
                   </div>
-                  <p style={{ margin: '0 0 8px', color: 'var(--muted)', fontSize: '14px', lineHeight: '1.5' }}>{item.message}</p>
-                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                  <p style={{ margin: '0 0 8px', color: 'var(--muted)', fontSize: '16px', lineHeight: '1.5' }}>{item.message}</p>
+                  <div style={{ fontSize: '14px', color: 'var(--muted)' }}>
                     User #{item.user_id} · {new Date(item.created_at).toLocaleString()}
                     {item.resolved_at && ` · ${t.resolvedOn(new Date(item.resolved_at).toLocaleDateString())}`}
                   </div>
                   {item.admin_reply && (
                     <div style={{ marginTop: '10px', padding: '10px', background: '#7c3aed18', borderRadius: '8px', borderLeft: '3px solid #7c3aed' }}>
-                      <div style={{ fontSize: '12px', fontWeight: 600, color: '#7c3aed', marginBottom: '4px' }}>{t.adminReply}</div>
-                      <div style={{ fontSize: '13px', color: 'var(--text)' }}>{item.admin_reply}</div>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#7c3aed', marginBottom: '4px' }}>{t.adminReply}</div>
+                      <div style={{ fontSize: '15px', color: 'var(--text)' }}>{item.admin_reply}</div>
                     </div>
                   )}
                   {item.status === 'open' && (
                     <button onClick={() => { setSelected(item); setReply(''); }}
-                      style={{ marginTop: '10px', padding: '6px 14px', borderRadius: '7px', border: '1px solid #7c3aed', background: 'none', cursor: 'pointer', color: '#7c3aed', fontSize: '13px', fontWeight: 600 }}>
+                      style={{ marginTop: '10px', padding: '6px 14px', borderRadius: '7px', border: '1px solid #7c3aed', background: 'none', cursor: 'pointer', color: '#7c3aed', fontSize: '15px', fontWeight: 600 }}>
                       {t.replyResolve}
                     </button>
                   )}
@@ -125,11 +125,11 @@ export default function AdminFeedback() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setSelected(null)}>
           <div style={{ background: 'var(--card)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
             <h3 style={{ margin: '0 0 8px', color: 'var(--text)' }}>{t.replyTo} {selected.subject}</h3>
-            <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 16px' }}>{selected.message}</p>
+            <p style={{ fontSize: '15px', color: 'var(--muted)', margin: '0 0 16px' }}>{selected.message}</p>
             <form onSubmit={handleReply} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <textarea required rows={4} value={reply} onChange={e => setReply(e.target.value)}
                 placeholder={t.replyPlaceholder}
-                style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '14px', resize: 'vertical' }} />
+                style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '16px', resize: 'vertical' }} />
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button type="button" onClick={() => setSelected(null)}
                   style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--text)' }}>{t.cancel}</button>

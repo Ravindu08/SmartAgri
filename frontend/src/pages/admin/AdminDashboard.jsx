@@ -45,8 +45,8 @@ function StatCard({ icon, label, value, color = '#7c3aed', sub }) {
       <div style={{ fontSize: '32px', width: '52px', height: '52px', borderRadius: '12px', background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
       <div>
         <div className="count-up" style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text)' }}>{value == null ? '—' : displayValue}</div>
-        <div style={{ fontSize: '13px', color: 'var(--muted)' }}>{label}</div>
-        {sub && <div style={{ fontSize: '12px', color: color, marginTop: '2px' }}>{sub}</div>}
+        <div style={{ fontSize: '15px', color: 'var(--muted)' }}>{label}</div>
+        {sub && <div style={{ fontSize: '14px', color: color, marginTop: '2px' }}>{sub}</div>}
       </div>
     </div>
   );
@@ -101,7 +101,7 @@ export default function AdminDashboard() {
         {quickLinks.map(({ to, label, color }) => (
           <Link key={to} to={to} style={{
             padding: '8px 18px', borderRadius: '8px', border: `1px solid ${color}`,
-            color, fontWeight: 600, fontSize: '13px', textDecoration: 'none',
+            color, fontWeight: 600, fontSize: '15px', textDecoration: 'none',
           }}>{label}</Link>
         ))}
       </div>
@@ -110,19 +110,19 @@ export default function AdminDashboard() {
       <div style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontWeight: 600, color: 'var(--text)' }}>{t.recentActivity}</span>
-          <Link to="/admin/activity" style={{ fontSize: '13px', color: '#7c3aed' }}>{t.viewAll}</Link>
+          <Link to="/admin/activity" style={{ fontSize: '15px', color: '#7c3aed' }}>{t.viewAll}</Link>
         </div>
         {activity.length === 0 ? (
           <div style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)' }}>{t.noActivity}</div>
         ) : (
           activity.map(a => (
             <div key={a.id} style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-              <span style={{ fontSize: '20px' }}>📋</span>
+              <span style={{ fontSize: '21px' }}>📋</span>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text)' }}>{a.action.replace(/_/g, ' ')}</div>
-                {a.details && <div style={{ fontSize: '13px', color: 'var(--muted)' }}>{a.details}</div>}
+                <div style={{ fontWeight: 600, fontSize: '16px', color: 'var(--text)' }}>{a.action.replace(/_/g, ' ')}</div>
+                {a.details && <div style={{ fontSize: '15px', color: 'var(--muted)' }}>{a.details}</div>}
               </div>
-              <div style={{ fontSize: '12px', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+              <div style={{ fontSize: '14px', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
                 {new Date(a.created_at).toLocaleString()}
               </div>
             </div>
