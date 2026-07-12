@@ -87,7 +87,7 @@
   --radius:    20px;
   --radius-md: 14px;
   --radius-sm: 10px;
-  --nav-h:     68px;
+  --nav-h:     72px;
   --tr:        0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -210,21 +210,53 @@ select option {
   min-height: calc(100vh - var(--nav-h));
   padding-top: var(--nav-h);
   position: relative;
+  overflow: hidden;
 }
 .page-wrapper::before {
   content: '';
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 28% 65% at -5% 42%, rgba(46,125,50,0.10) 0%, transparent 65%),
-    radial-gradient(ellipse 26% 60% at 105% 58%, rgba(46,125,50,0.09) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 42% at 3%  2%,  rgba(46,125,50,0.07) 0%, transparent 55%),
-    radial-gradient(ellipse 42% 36% at 97% 7%,  rgba(251,192,45,0.08) 0%, transparent 52%),
-    radial-gradient(ellipse 55% 45% at 50% 100%, rgba(46,125,50,0.06) 0%, transparent 55%);
+    /* tall side columns — stay visible regardless of scroll position or page height */
+    linear-gradient(90deg, rgba(46,125,50,0.22) 0%, rgba(46,125,50,0.10) 10%, transparent 26%),
+    linear-gradient(270deg, rgba(251,192,45,0.16) 0%, rgba(251,192,45,0.07) 10%, transparent 26%),
+    radial-gradient(ellipse 34% 55% at -4% 12%, rgba(46,125,50,0.24) 0%, transparent 60%),
+    radial-gradient(ellipse 32% 50% at 104% 30%, rgba(251,192,45,0.20) 0%, transparent 60%),
+    radial-gradient(ellipse 30% 48% at -2% 88%, rgba(251,192,45,0.16) 0%, transparent 60%),
+    radial-gradient(ellipse 32% 52% at 102% 92%, rgba(46,125,50,0.20) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(46,125,50,0.12) 0%, transparent 55%);
+  animation: page-bg-drift 26s ease-in-out infinite alternate;
   pointer-events: none;
   z-index: 0;
 }
+.page-wrapper::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(124,197,118,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,197,118,0.07) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 60% 90% at 0% 50%, #000 0%, transparent 70%),
+              radial-gradient(ellipse 60% 90% at 100% 50%, #000 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 60% 90% at 0% 50%, #000 0%, transparent 70%),
+                       radial-gradient(ellipse 60% 90% at 100% 50%, #000 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme="light"] .page-wrapper::after,
+:root:not([data-theme]) .page-wrapper::after {
+  opacity: 0.6;
+}
 .page-wrapper > * { position: relative; z-index: 1; }
+
+@keyframes page-bg-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-1.5%, 1.5%, 0) scale(1.03); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-wrapper::before { animation: none; }
+}
 
 /* ── Container ── */
 .container {

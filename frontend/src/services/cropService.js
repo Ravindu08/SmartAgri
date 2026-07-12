@@ -19,13 +19,6 @@ export function createCrop(payload) {
   });
 }
 
-export function updateCrop(cropId, payload) {
-  return request(`/api/crops/${cropId}`, {
-    method: 'PUT',
-    body: JSON.stringify(payload),
-  });
-}
-
 export function deleteCrop(cropId) {
   return request(`/api/crops/${cropId}`, {
     method: 'DELETE',

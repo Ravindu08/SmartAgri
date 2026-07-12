@@ -2,7 +2,7 @@ import "../styles/About.css";
 
 const ABOUT_T = {
   en: {
-    heroBadge:      "About This Project",
+    heroBadge:      "About Us",
     heroTitle:      "About SmartAgri",
     heroSub:        "A smart agriculture platform connecting Sri Lankan farmers, land owners, and traders — with AI-powered crop planning, a live marketplace, and full administrative oversight.",
     problemTitle:   "The Problem",
@@ -11,8 +11,8 @@ const ABOUT_T = {
     solutionText:   "SmartAgri supports users with AI-powered crop recommendation, explainable results, step-by-step crop guidance, yield and price estimation, weather-based farming advice, and a full peer-to-peer crop marketplace — all tailored for Sri Lankan agro-ecological conditions.",
     modulesTitle:   "System Modules",
     modulesSub:     "Five active modules covering the full farming journey",
-    teamTitle:      "Project Team",
-    teamSub:        "Developed as an academic project for Sri Lankan agriculture",
+    teamTitle:      "Our Team",
+    teamSub:        "The people building smarter farming tools for Sri Lanka",
     techTitle:      "Technology Stack",
     techSub:        "Built with modern, production-grade tools",
     sysLabel:       "System",
@@ -38,12 +38,12 @@ const ABOUT_T = {
     contactTitle:   "Contact Us",
     contactSub:     "Have questions or feedback? Reach out to the SmartAgri team.",
     contactEmail:   "Email",
-    contactProject: "Project",
-    contactProjectVal: "Academic Final Year Project — University of Sri Lanka",
-    contactNote:    "SmartAgri is an open-source academic project. Contributions and feedback are welcome.",
+    contactProject: "Location",
+    contactProjectVal: "Sri Lanka",
+    contactNote:    "SmartAgri is built and maintained by a small team focused on Sri Lankan agriculture. We'd love to hear from you.",
   },
   si: {
-    heroBadge:      "ව්‍යාපෘතිය ගැන",
+    heroBadge:      "අප ගැන",
     heroTitle:      "SmartAgri ගැන",
     heroSub:        "ශ්‍රී ලාංකික ගොවීන්, ඉඩම් හිමියන් සහ වෙළෙඳුන් සම්බන්ධ කරන AI-ශක්‍ය ගොවිතැන් වේදිකාව.",
     problemTitle:   "ගැටළුව",
@@ -52,8 +52,8 @@ const ABOUT_T = {
     solutionText:   "SmartAgri, AI-පදනම් බෝග නිර්දේශය, ක්‍රමානුකූල බෝග මාර්ගෝපදේශය, අස්වැන්න ගණනය, කාලගුණ උපදෙස් සහ සම්පූර්ණ වෙළඳ වේදිකාව ලබා දෙයි.",
     modulesTitle:   "පද්ධති මොඩියුල",
     modulesSub:     "සම්පූර්ණ ගොවිතැන් ගමනාන්තය ආවරණය කරන ක්‍රියාකාරී මොඩියුල පහක්",
-    teamTitle:      "ව්‍යාපෘති කණ්ඩායම",
-    teamSub:        "ශ්‍රී ලාංකික කෘෂිකාර්මය සඳහා අධ්‍යයනික ව්‍යාපෘතියක් ලෙස සකස් කරන ලදී",
+    teamTitle:      "අපගේ කණ්ඩායම",
+    teamSub:        "ශ්‍රී ලංකාව සඳහා වඩාත් ස්මාර්ට් ගොවිතැන් මෙවලම් ගොඩනඟන පිරිස",
     techTitle:      "තාක්ෂණ ස්ටැක්",
     techSub:        "නවීන, නිෂ්පාදන-ශ්‍රේණි මෙවලම් සමඟ ගොඩ නගන ලදී",
     sysLabel:       "පද්ධතිය",
@@ -79,12 +79,12 @@ const ABOUT_T = {
     contactTitle:   "සම්බන්ධ කරගන්න",
     contactSub:     "ප්‍රශ්න හෝ ප්‍රතිපෝෂණ ඇතිද? SmartAgri කණ්ඩායමට සම්බන්ධ වන්න.",
     contactEmail:   "ඊ-තැපෑල",
-    contactProject: "ව්‍යාපෘතිය",
-    contactProjectVal: "ශ්‍රී ලාංකා විශ්ව විද්‍යාලයේ අධ්‍යයනික අවසාන වසර ව්‍යාපෘතිය",
-    contactNote:    "SmartAgri යනු විවෘත-මූලාශ්‍ර අධ්‍යයනික ව්‍යාපෘතියකි. දායකත්ව සහ ප්‍රතිපෝෂණ සාදරයෙන් පිළිගනිමු.",
+    contactProject: "ස්ථානය",
+    contactProjectVal: "ශ්‍රී ලංකාව",
+    contactNote:    "SmartAgri, ශ්‍රී ලාංකික කෘෂිකර්මය කෙරෙහි අවධානය යොමු කළ කුඩා කණ්ඩායමක් විසින් ගොඩනඟා නඩත්තු කරයි.",
   },
   ta: {
-    heroBadge:      "இந்த திட்டத்தைப் பற்றி",
+    heroBadge:      "எங்களைப் பற்றி",
     heroTitle:      "SmartAgri பற்றி",
     heroSub:        "இலங்கை விவசாயிகள், நில உரிமையாளர்கள் மற்றும் வர்த்தகர்களை இணைக்கும் AI-இயக்கப்படும் விவசாய தளம்.",
     problemTitle:   "பிரச்சனை",
@@ -93,8 +93,8 @@ const ABOUT_T = {
     solutionText:   "SmartAgri, AI பயிர் பரிந்துரை, படிப்படியான வழிகாட்டுதல், மகசூல் மதிப்பீடு, வானிலை ஆலோசனை மற்றும் முழுமையான வர்த்தக தளம் வழங்குகிறது.",
     modulesTitle:   "அமைப்பு தொகுதிகள்",
     modulesSub:     "முழு விவசாய பயணத்தை உள்ளடக்கிய ஐந்து செயலில் உள்ள தொகுதிகள்",
-    teamTitle:      "திட்ட குழு",
-    teamSub:        "இலங்கை வேளாண்மைக்காக ஒரு கல்வி திட்டமாக உருவாக்கப்பட்டது",
+    teamTitle:      "எங்கள் குழு",
+    teamSub:        "இலங்கைக்காக சிறந்த விவசாய கருவிகளை உருவாக்கும் குழு",
     techTitle:      "தொழில்நுட்ப அடுக்கு",
     techSub:        "நவீன, தரமான கருவிகளுடன் கட்டப்பட்டது",
     sysLabel:       "அமைப்பு",
@@ -120,9 +120,9 @@ const ABOUT_T = {
     contactTitle:   "தொடர்பு கொள்ளுங்கள்",
     contactSub:     "கேள்விகள் அல்லது கருத்துக்கள் உள்ளதா? SmartAgri குழுவை தொடர்பு கொள்ளுங்கள்.",
     contactEmail:   "மின்னஞ்சல்",
-    contactProject: "திட்டம்",
-    contactProjectVal: "இலங்கை பல்கலைக்கழக கல்வி இறுதி ஆண்டு திட்டம்",
-    contactNote:    "SmartAgri ஒரு திறந்த மூல கல்வி திட்டம். பங்களிப்புகளும் கருத்துக்களும் வரவேற்கப்படுகின்றன.",
+    contactProject: "இடம்",
+    contactProjectVal: "இலங்கை",
+    contactNote:    "SmartAgri இலங்கை வேளாண்மையில் கவனம் செலுத்தும் ஒரு சிறிய குழுவால் உருவாக்கப்பட்டு பராமரிக்கப்படுகிறது.",
   },
 };
 
@@ -211,6 +211,7 @@ export default function About({ lang }) {
   const t = ABOUT_T[lang] || ABOUT_T.en;
 
   return (
+    <div className="page-wrapper">
     <div className="about-page">
 
       {/* ── Hero ── */}
@@ -349,25 +350,26 @@ export default function About({ lang }) {
             <div className="about-contact-card">
               <div className="about-contact-icon">📧</div>
               <div className="about-contact-label">{t.contactEmail}</div>
-              <a className="about-contact-value" href="mailto:induwara.ihalavithana@gmail.com">
-                induwara.ihalavithana@<wbr />gmail.com
+              <a className="about-contact-value" href="mailto:hello@smartagri.lk">
+                hello@<wbr />smartagri.lk
               </a>
             </div>
             <div className="about-contact-card">
-              <div className="about-contact-icon">🎓</div>
+              <div className="about-contact-icon">📍</div>
               <div className="about-contact-label">{t.contactProject}</div>
               <div className="about-contact-value">{t.contactProjectVal}</div>
             </div>
             <div className="about-contact-card">
               <div className="about-contact-icon">💬</div>
               <div className="about-contact-label">GitHub</div>
-              <div className="about-contact-value">SmartAgri — Open Source</div>
+              <div className="about-contact-value">SmartAgri</div>
             </div>
           </div>
           <p className="about-contact-note">{t.contactNote}</p>
         </section>
 
       </div>
+    </div>
     </div>
   );
 }

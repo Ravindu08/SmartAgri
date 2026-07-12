@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import useSWR from 'swr';
+import useSWR, { mutate } from 'swr';
+import { SkeletonRows } from '../../components/Skeleton';
 import { useApp } from '../../context/AppContext';
 import { getAuthSession, request } from '../../services/api';
 
@@ -15,6 +16,7 @@ const T = {
     filterAll: 'All Active', filterPending: 'Pending', filterConfirmed: 'Confirmed', filterDelivered: 'Delivered',
     statusTrackerTitle: 'Order Progress',
     stepPending: 'Order Placed', stepConfirmed: 'Confirmed', stepDelivered: 'Delivered', stepCompleted: 'Completed',
+    confirmReceipt: 'Confirm Receipt', confirming: 'Confirming…',
   },
   si: {
     title: 'මගේ ක්‍රියාත්මක ඇණවුම්', subtitle: 'ක්‍රියාත්මකව ඇති ඇණවුම් නිරීක්ෂණය කරන්න',
@@ -26,6 +28,7 @@ const T = {
     filterAll: 'සියල්ල', filterPending: 'අපේක්ෂිත', filterConfirmed: 'තහවුරු', filterDelivered: 'බෙදාදුන්',
     statusTrackerTitle: 'ඇණවුම් ප්‍රගතිය',
     stepPending: 'ඇණවුම ලැබිණ', stepConfirmed: 'තහවුරු', stepDelivered: 'බෙදාදුන්', stepCompleted: 'සම්පූර්ණ',
+    confirmReceipt: 'ලැබීම තහවුරු කරන්න', confirming: 'තහවුරු කරමින්…',
   },
   ta: {
     title: 'என் செயலில் உள்ள ஆர்டர்கள்', subtitle: 'நடந்துகொண்டிருக்கும் ஆர்டர்களை கண்காணிக்கவும்',
@@ -37,6 +40,7 @@ const T = {
     filterAll: 'அனைத்தும்', filterPending: 'நிலுவை', filterConfirmed: 'உறுதி', filterDelivered: 'வழங்கல்',
     statusTrackerTitle: 'ஆர்டர் முன்னேற்றம்',
     stepPending: 'ஆர்டர் வைக்கப்பட்டது', stepConfirmed: 'உறுதி', stepDelivered: 'வழங்கல்', stepCompleted: 'முடிந்தது',
+    confirmReceipt: 'பெறுதலை உறுதிப்படுத்து', confirming: 'உறுதிப்படுத்துகிறது…',
   },
 };
 
@@ -97,6 +101,19 @@ export default function TraderOrders() {
   const { user } = getAuthSession();
 
   const [filter, setFilter] = useState('all');
+  const [confirmingId, setConfirmingId] = useState(null);
+
+  async function confirmReceipt(orderId) {
+    setConfirmingId(orderId);
+    try {
+      await request(`/api/marketplace/orders/${orderId}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: 'Completed' }),
+      });
+      mutate('/api/marketplace/orders');
+    } catch { /* order list refreshes on next poll */ }
+    finally { setConfirmingId(null); }
+  }
 
   const { data: rawOrders, isLoading } = useSWR('/api/marketplace/orders', authFetcher, { refreshInterval: 8000 });
   const allOrders = Array.isArray(rawOrders) ? rawOrders : [];
@@ -164,7 +181,7 @@ export default function TraderOrders() {
 
       {/* List */}
       {isLoading ? (
-        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>Loading…</div>
+        <SkeletonRows count={3} />
       ) : filtered.length === 0 ? (
         <div style={{
           background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px',
@@ -225,6 +242,22 @@ export default function TraderOrders() {
                 </div>
 
                 <StatusTracker status={order.status} t={t} />
+
+                {order.status === 'Delivered' && (
+                  <button
+                    type="button"
+                    onClick={() => confirmReceipt(order.id)}
+                    disabled={confirmingId === order.id}
+                    style={{
+                      marginTop: '12px', padding: '9px 18px', borderRadius: '8px', border: 'none',
+                      background: 'var(--accent)', color: 'var(--accent-text)',
+                      fontWeight: 600, fontSize: '14px', cursor: 'pointer',
+                      opacity: confirmingId === order.id ? 0.6 : 1,
+                    }}
+                  >
+                    ✓ {confirmingId === order.id ? t.confirming : t.confirmReceipt}
+                  </button>
+                )}
 
                 <div style={{ marginTop: '12px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '12px', color: 'var(--muted)' }}>

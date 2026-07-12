@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { adminRequest } from '../../services/api';
 import { useApp } from '../../context/AppContext';
+import { SkeletonStatCards } from '../../components/Skeleton';
+import { useCountUp } from '../../hooks/useCountUp';
 
 const T = {
   en: {
@@ -34,14 +36,15 @@ const T = {
 };
 
 function StatCard({ icon, label, value, color = '#7c3aed', sub }) {
+  const displayValue = useCountUp(value ?? 0);
   return (
-    <div style={{
+    <div className="stat-card-hover" style={{
       background: 'var(--card)', borderRadius: '14px', padding: '20px 24px',
       border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px',
     }}>
       <div style={{ fontSize: '32px', width: '52px', height: '52px', borderRadius: '12px', background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
       <div>
-        <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text)' }}>{value ?? '—'}</div>
+        <div className="count-up" style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text)' }}>{value == null ? '—' : displayValue}</div>
         <div style={{ fontSize: '13px', color: 'var(--muted)' }}>{label}</div>
         {sub && <div style={{ fontSize: '12px', color: color, marginTop: '2px' }}>{sub}</div>}
       </div>
@@ -68,7 +71,7 @@ export default function AdminDashboard() {
     });
   }, []);
 
-  if (loading) return <div style={{ padding: '40px', color: 'var(--muted)', textAlign: 'center' }}>{t.loading}</div>;
+  if (loading) return <SkeletonStatCards count={8} />;
 
   const quickLinks = [
     { to: '/admin/users/create', label: t.addUser,       color: '#7c3aed' },

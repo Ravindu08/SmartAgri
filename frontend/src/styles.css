@@ -24,6 +24,15 @@
   transition: background 0.3s ease, border-color 0.3s ease;
   overflow: hidden;
 }
+.navbar::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--green-primary) 20%, var(--yellow-accent, #FBC02D) 50%, var(--green-primary) 80%, transparent);
+  opacity: 0.55;
+  pointer-events: none;
+}
 
 .navbar__brand {
   display: flex;
@@ -41,16 +50,18 @@
 .navbar__brand span { color: var(--text); font-weight: 500; }
 
 .navbar__logo {
-  width: 36px; height: 36px;
+  width: 40px; height: 40px;
   background: var(--grad-primary);
-  border-radius: 10px;
+  border-radius: 11px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 17px;
-  box-shadow: var(--shadow-green);
-  transition: transform var(--tr);
+  font-size: 19px;
+  box-shadow: var(--shadow-green), 0 0 0 3px rgba(46,125,50,0.10);
+  transition: transform var(--tr), box-shadow var(--tr);
   flex-shrink: 0;
 }
-.navbar__brand:hover .navbar__logo { transform: scale(1.08) rotate(-4deg); }
+.navbar__brand:hover .navbar__logo { transform: scale(1.08) rotate(-4deg); box-shadow: var(--shadow-green), 0 0 0 5px rgba(46,125,50,0.16); }
+[data-theme="dark"] .navbar__logo { box-shadow: var(--shadow-green), 0 0 0 3px rgba(124,197,118,0.12); }
+[data-theme="dark"] .navbar__brand:hover .navbar__logo { box-shadow: var(--shadow-green), 0 0 0 5px rgba(124,197,118,0.20); }
 
 .navbar__links {
   display: flex;
@@ -1455,6 +1466,18 @@
 }
 .auth-submit-btn:hover { background: var(--accent-dark); transform: translateY(-1px); }
 .auth-submit-btn:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+.pw-strength { display: flex; flex-direction: column; gap: 5px; margin-top: -2px; }
+.pw-strength__bars { display: flex; gap: 4px; }
+.pw-strength__bar { height: 4px; flex: 1; border-radius: 99px; background: var(--border); transition: background var(--tr); }
+.pw-strength__bar--filled.pw-strength__bar--weak   { background: #e53935; }
+.pw-strength__bar--filled.pw-strength__bar--fair   { background: #f57c00; }
+.pw-strength__bar--filled.pw-strength__bar--good   { background: #fbc02d; }
+.pw-strength__bar--filled.pw-strength__bar--strong { background: var(--green-primary); }
+.pw-strength__label { font-size: 12px; font-weight: 600; }
+.pw-strength__label--weak   { color: #e53935; }
+.pw-strength__label--fair   { color: #f57c00; }
+.pw-strength__label--good   { color: #cda200; }
+.pw-strength__label--strong { color: var(--green-primary); }
 .auth-links-row {
   display: flex; align-items: center; gap: 8px;
   font-size: 13px; color: var(--muted); flex-wrap: wrap;
@@ -1533,6 +1556,7 @@
   display: flex; flex-direction: column;
   position: fixed; top: var(--nav-h); left: 0;
   height: calc(100vh - var(--nav-h)); z-index: 100; overflow-y: auto;
+  transition: transform 0.25s ease;
 }
 .lo-sidebar__brand {
   display: flex; align-items: center; gap: 10px;
@@ -1588,6 +1612,16 @@
 @media (max-width: 860px) {
   .lo-sidebar { transform: translateX(-100%); }
   .lo-main { margin-left: 0; }
+}
+.lo-sidebar--open { transform: translateX(0) !important; box-shadow: 4px 0 24px rgba(0,0,0,0.3); }
+.lo-hamburger {
+  display: none; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 8px; border: none;
+  background: transparent; color: var(--text); cursor: pointer;
+  font-size: 20px; padding: 0; flex-shrink: 0;
+}
+.lo-sidebar-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 199;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2159,7 +2193,9 @@
   background: var(--card); border: 1px solid var(--border);
   border-radius: var(--radius-md); padding: 18px 12px;
   box-shadow: var(--shadow-sm); text-align: center;
+  transition: transform var(--tr), box-shadow var(--tr);
 }
+.lo-dash-stat:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .lo-dash-stat--warn  { border-color: #d97706; }
 .lo-dash-stat--danger { border-color: var(--danger); }
 .lo-dash-stat__icon  { font-size: 22px; }
@@ -2511,12 +2547,28 @@
 .dash-notif-body strong { display: block; font-size: 13px; margin-bottom: 2px; }
 .dash-notif-body p { font-size: 12px; color: #555; margin: 0; line-height: 1.4; }
 [data-theme="dark"] .dash-notif-body p { color: #aaa; }
+.dash-notif-time { display: block; font-size: 10.5px; color: var(--muted); margin-top: 3px; }
 .dash-notif-dismiss {
   background: none; border: none; cursor: pointer;
   color: #aaa; font-size: 14px; flex-shrink: 0;
   padding: 0 2px; line-height: 1;
 }
 .dash-notif-dismiss:hover { color: #555; }
+
+/* Seen notifications: kept in the list, visually de-emphasised */
+.dash-notif-card--seen { opacity: 0.55; filter: saturate(0.6); }
+.dash-notif-seen-tag {
+  flex-shrink: 0; font-size: 11px; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 1px 8px; line-height: 1.6; align-self: flex-start;
+}
+.lo-notif-mark-all {
+  background: none; border: none; cursor: pointer;
+  color: var(--green-primary); font-size: 12px; font-weight: 600;
+  padding: 0; line-height: 1;
+}
+.lo-notif-mark-all:hover { text-decoration: underline; }
+
 .dash-notif-empty {
   display: flex; align-items: center; gap: 8px;
   font-size: 13px; color: var(--muted); padding: 12px 0;
@@ -2620,6 +2672,16 @@
   color: var(--accent) !important;
   font-weight: 700 !important;
   background: var(--accent-light) !important;
+  position: relative;
+}
+.nav-link--active::after {
+  content: '';
+  position: absolute;
+  left: 50%; bottom: 1px;
+  transform: translateX(-50%);
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
 }
 [data-theme="dark"] .nav-link--active {
   background: rgba(124,197,118,0.12) !important;
@@ -2921,23 +2983,11 @@
   .navbar__actions { gap: 6px; }
   .navbar { padding: 0 16px; }
 
-  /* LandOwner layout — collapse sidebar */
-  .lo-shell { flex-direction: column; }
-  .lo-sidebar {
-    width: 100%; position: static; height: auto;
-    flex-direction: row; padding: 8px 12px; gap: 4px;
-    overflow-x: auto; overflow-y: hidden;
-    border-right: none; border-bottom: 1px solid var(--border);
-    transform: none !important;
-  }
-  .lo-sidebar__brand { display: none; }
-  .lo-sidebar__nav { flex: 1; display: flex; flex-direction: row; flex-wrap: nowrap; gap: 2px; overflow-x: auto; padding-bottom: 0; padding: 0; }
-  .lo-sidebar__link { padding: 8px 10px; flex-direction: column; gap: 2px; min-width: 60px; font-size: 0.62rem; text-align: center; border-radius: 8px; border-left: none !important; }
-  .lo-sidebar__link-icon { font-size: 1.2rem; }
-  .lo-sidebar__user { display: none; }
+  /* LandOwner layout — mobile drawer */
   .lo-main { min-height: unset; margin-left: 0 !important; }
   .lo-topbar { padding: 0 12px; }
   .lo-topbar__profile-name, .lo-topbar__profile-role { display: none; }
+  .lo-hamburger { display: flex; }
 
   /* Hero */
   .hero { padding: 32px 16px 24px; min-height: unset; }
@@ -3014,4 +3064,102 @@
   .lo-sidebar { width: 200px; }
   .lo-sidebar__link { font-size: 0.82rem; padding: 10px 12px; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   SKELETON LOADERS
+═══════════════════════════════════════════════════════════ */
+@keyframes skel-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+.skel {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-hover) 37%, var(--surface-2) 63%);
+  background-size: 400px 100%;
+  animation: skel-shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+.skel-line { height: 12px; width: 100%; }
+.skel-line--sm { width: 40%; }
+.skel-line--md { width: 65%; }
+.skel-line--lg { width: 90%; }
+
+.skel-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.skel-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: 14px; display: flex; flex-direction: column; gap: 10px;
+}
+.skel-card__img { height: 140px; border-radius: var(--radius-sm); }
+
+.skel-rows { display: flex; flex-direction: column; gap: 10px; }
+.skel-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+.skel-avatar { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; }
+.skel-row__body { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+
+.skel-table { display: flex; flex-direction: column; gap: 8px; }
+.skel-table__row {
+  display: flex; gap: 24px; align-items: center;
+  padding: 12px 16px; border-radius: var(--radius-sm); background: var(--card); border: 1px solid var(--border);
+}
+
+.skel-stat-row { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+.skel-stat-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: 16px; display: flex; flex-direction: column; gap: 10px; align-items: center;
+}
+.skel-stat-icon { width: 32px; height: 32px; border-radius: var(--radius-sm); }
+
+/* ═══════════════════════════════════════════════════════════
+   MICRO-ANIMATIONS
+═══════════════════════════════════════════════════════════ */
+
+/* Page transition — replays because the wrapping div is keyed by route path */
+@keyframes page-fade-slide {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-transition { animation: page-fade-slide 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .page-transition { animation: none; }
+}
+
+/* Notification bell shake — toggled briefly when unread count increases */
+@keyframes bell-shake {
+  0%, 100% { transform: rotate(0); }
+  15%, 45%, 75% { transform: rotate(-14deg); }
+  30%, 60%, 90% { transform: rotate(14deg); }
+}
+.lo-topbar__notif-btn .bell-shake {
+  display: inline-block; transform-origin: top center;
+  animation: bell-shake 0.55s ease;
+}
+
+/* Count-up target number (no animation of its own — JS drives the digits,
+   this just keeps a stable tabular-nums width so cards don't jitter) */
+.count-up { font-variant-numeric: tabular-nums; }
+
+/* Generic hover lift for clickable cards that don't already have one */
+.hover-lift { transition: transform var(--tr), box-shadow var(--tr); }
+.hover-lift:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+
+/* Status badge flash — toggled briefly when an order/task status changes */
+@keyframes status-flash {
+  0%   { box-shadow: 0 0 0 0 rgba(15, 90, 42, 0.45); }
+  70%  { box-shadow: 0 0 0 8px rgba(15, 90, 42, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(15, 90, 42, 0); }
+}
+[data-theme="dark"] .status-flash { animation-name: status-flash-dark; }
+@keyframes status-flash-dark {
+  0%   { box-shadow: 0 0 0 0 rgba(124, 197, 118, 0.5); }
+  70%  { box-shadow: 0 0 0 8px rgba(124, 197, 118, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(124, 197, 118, 0); }
+}
+.status-flash { animation: status-flash 1s ease; border-radius: 99px; }
+
+/* Dashboard stat card hover (used by admin/LO/trader stat grids) */
+.stat-card-hover { transition: transform var(--tr), box-shadow var(--tr); }
+.stat-card-hover:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 
