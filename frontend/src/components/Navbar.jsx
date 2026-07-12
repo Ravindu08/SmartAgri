@@ -100,6 +100,39 @@ export default function Navbar() {
         {isSignedIn && activeRole === 'Trader' && (
           <Link className="navbar__farm-link" to="/trader/orders" onClick={close}>{t.myOrders}</Link>
         )}
+
+        {/* Language, theme, and auth controls live in .navbar__controls for desktop
+            (fits comfortably beside the links). Below the collapse breakpoint that
+            row has no room for them, so this duplicate copy renders inside the
+            mobile dropdown instead — otherwise Login/Register/language become
+            completely unreachable on a phone (clipped by .navbar's overflow:hidden). */}
+        <div className="navbar__mobile-extra">
+          <div className="navbar__lang">
+            {['en', 'si', 'ta'].map((code) => (
+              <button key={code} className={`lang-btn${lang === code ? ' on' : ''}`} type="button" onClick={() => { setLang(code); close(); }}>
+                {code === 'en' ? 'EN' : code === 'si' ? 'සිං' : 'தமி'}
+              </button>
+            ))}
+          </div>
+          <button className="navbar__theme-toggle" type="button" onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+            {theme === 'dark' ? '☀️ Light mode' : '🌙 Dark mode'}
+          </button>
+          {isSignedIn ? (
+            <>
+              <span className="navbar__session">
+                <span className="navbar__role">{activeRole}</span>
+                <span className="navbar__user">{user.full_name}</span>
+              </span>
+              <button className="navbar__logout" type="button" onClick={handleLogout}>{t.logout}</button>
+            </>
+          ) : (
+            <>
+              <Link className="navbar__login" to="/login" onClick={close}>{t.login}</Link>
+              <Link className="navbar__register" to="/register" onClick={close}>{t.register}</Link>
+            </>
+          )}
+        </div>
       </nav>
 
       <div className="navbar__controls">
