@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import useSWR from 'swr';
 import { useApp } from '../../context/AppContext';
 import { getAuthSession, request } from '../../services/api';
+import CountUp from '../../components/CountUp';
+import { relativeTime } from '../../utils/relativeTime';
 
 const T = {
   en: {
@@ -119,14 +121,14 @@ export default function TraderDashboard() {
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
         {stats.map(s => (
-          <div key={s.label} style={{
+          <div key={s.label} className="stat-card-hover" style={{
             background: 'var(--card)', borderRadius: '12px',
             padding: '20px', border: '1px solid var(--border)',
             display: 'flex', flexDirection: 'column', gap: '8px',
           }}>
             <div style={{ fontSize: '28px' }}>{s.icon}</div>
             <div style={{ fontSize: '28px', fontWeight: 700, color: s.color, lineHeight: 1 }}>
-              {s.value}
+              <CountUp value={s.value} />
             </div>
             <div style={{ fontSize: '13px', color: 'var(--muted)', fontWeight: 500 }}>{s.label}</div>
           </div>
@@ -186,12 +188,16 @@ export default function TraderDashboard() {
             recentItems.map((item, i) => {
               const color = STATUS_COLORS[item.status] || 'var(--muted)';
               const label = t[item.status] || item.status;
+              const dest = ['Completed', 'Rejected', 'Cancelled'].includes(item.status) ? '/trader/history' : '/trader/orders';
               return (
-                <div key={item.id} style={{
-                  padding: '14px 20px',
+                <Link key={item.id} to={dest} style={{
+                  padding: '14px 20px', textDecoration: 'none',
                   borderBottom: i < recentItems.length - 1 ? '1px solid var(--border)' : 'none',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
-                }}>
+                  transition: 'background var(--tr)',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-hover)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <span style={{ fontSize: '18px' }}>📦</span>
                     <div>
@@ -209,14 +215,19 @@ export default function TraderDashboard() {
                       </div>
                     </div>
                   </div>
-                  <span style={{
-                    padding: '3px 10px', borderRadius: '20px', fontSize: '12px',
-                    fontWeight: 600, background: `color-mix(in srgb, ${color} 15%, transparent)`,
-                    color, whiteSpace: 'nowrap',
-                  }}>
-                    {label}
-                  </span>
-                </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                    <span style={{
+                      padding: '3px 10px', borderRadius: '20px', fontSize: '12px',
+                      fontWeight: 600, background: `color-mix(in srgb, ${color} 15%, transparent)`,
+                      color, whiteSpace: 'nowrap',
+                    }}>
+                      {label}
+                    </span>
+                    {item.updated_at && (
+                      <span style={{ fontSize: '10.5px', color: 'var(--muted)' }}>{relativeTime(item.updated_at)}</span>
+                    )}
+                  </div>
+                </Link>
               );
             })
           )}

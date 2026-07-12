@@ -57,6 +57,9 @@ class MarketplaceListingRead(BaseModel):
     status: MarketplaceListingStatus
     created_at: datetime
     updated_at: datetime
+    # Aggregated from the ratings table in the listings endpoints
+    seller_rating: Optional[float] = None
+    seller_rating_count: int = 0
 
 
 class MarketplaceOrderCreate(BaseModel):
@@ -75,6 +78,17 @@ class MarketplaceOrderStatusUpdate(BaseModel):
 class MarketplaceNegotiationCreate(BaseModel):
     message: str = Field(min_length=1, max_length=2000)
     proposed_price: Optional[float] = Field(default=None, gt=0)
+
+
+class NegotiationMessageRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    sender_id: int
+    sender_name: str
+    message: str
+    proposed_price: Optional[float] = None
+    created_at: datetime
 
 
 class MarketplaceOrderRead(BaseModel):

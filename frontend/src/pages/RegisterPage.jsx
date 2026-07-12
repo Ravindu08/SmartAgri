@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { registerUser } from '../services/api';
 import { useApp } from '../context/AppContext';
+import { getPasswordStrength } from '../utils/passwordStrength';
 
 const REG_T = {
   en: {
@@ -18,6 +19,7 @@ const REG_T = {
     roleHint: 'Select at least one role.',
     btnRegister: 'Register →', btnLoading: 'Creating account...',
     hasAccount: 'Already have an account?', login: 'Login', backHome: 'Back to Home',
+    pwWeak: 'Weak', pwFair: 'Fair', pwGood: 'Good', pwStrong: 'Strong',
   },
   si: {
     panelTitle: 'අද SmartAgri හා සම්බන්ධ වන්න!',
@@ -33,6 +35,7 @@ const REG_T = {
     roleHint: 'අවම වශයෙන් භූමිකාවක් තෝරන්න.',
     btnRegister: 'ලියාපදිංචිය →', btnLoading: 'ගිණුම සාදමින්...',
     hasAccount: 'දැනටමත් ගිණුමක් ඇතිද?', login: 'ලොගින්', backHome: 'ආරම්භ පිටුවට',
+    pwWeak: 'දුර්වල', pwFair: 'මධ්‍යම', pwGood: 'හොඳයි', pwStrong: 'ශක්තිමත්',
   },
   ta: {
     panelTitle: 'இன்றே SmartAgri இல் சேருங்கள்!',
@@ -48,6 +51,7 @@ const REG_T = {
     roleHint: 'குறைந்தது ஒரு பாத்திரத்தை தேர்ந்தெடுக்கவும்.',
     btnRegister: 'பதிவு செய் →', btnLoading: 'கணக்கை உருவாக்குகிறது...',
     hasAccount: 'ஏற்கனவே கணக்கு உள்ளதா?', login: 'உள்நுழை', backHome: 'முகப்பு பக்கத்திற்கு',
+    pwWeak: 'பலவீனம்', pwFair: 'சராசரி', pwGood: 'நல்லது', pwStrong: 'வலிமையானது',
   },
 };
 
@@ -57,6 +61,7 @@ export default function RegisterPage() {
   const t = REG_T[lang] || REG_T.en;
 
   const [formData, setFormData] = useState({ full_name: '', email: '', password: '' });
+  const [showPw, setShowPw] = useState(false);
   const [selectedRoles, setSelectedRoles] = useState(['Land Owner']);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -149,8 +154,28 @@ export default function RegisterPage() {
               <span>{t.passLabel}</span>
               <div className="auth-field__input-wrap">
                 <span className="auth-field__icon">🔒</span>
-                <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder={t.passPlaceholder} minLength={8} required />
+                <input type={showPw ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} placeholder={t.passPlaceholder} minLength={8} required style={{ paddingRight: '42px' }} />
+                <button type="button" onClick={() => setShowPw(p => !p)} tabIndex={-1} aria-label={showPw ? 'Hide password' : 'Show password'} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: 'var(--muted)', display: 'flex', alignItems: 'center' }}>
+                  {showPw
+                    ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  }
+                </button>
               </div>
+              {formData.password && (() => {
+                const { score, label } = getPasswordStrength(formData.password);
+                const labelText = { weak: t.pwWeak, fair: t.pwFair, good: t.pwGood, strong: t.pwStrong }[label];
+                return (
+                  <div className="pw-strength">
+                    <div className="pw-strength__bars">
+                      {[1, 2, 3, 4].map(i => (
+                        <div key={i} className={`pw-strength__bar${i <= score ? ` pw-strength__bar--filled pw-strength__bar--${label}` : ''}`} />
+                      ))}
+                    </div>
+                    <span className={`pw-strength__label pw-strength__label--${label}`}>{labelText}</span>
+                  </div>
+                );
+              })()}
             </label>
 
             {/* Dual-role checkboxes */}

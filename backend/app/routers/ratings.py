@@ -39,6 +39,14 @@ class AvgRating(BaseModel):
     total_ratings: int
 
 
+class ReviewRead(BaseModel):
+    id: int
+    score: int
+    comment: Optional[str] = None
+    created_at: datetime
+    rater_name: str
+
+
 @router.post("/orders/{order_id}", response_model=RatingRead, status_code=status.HTTP_201_CREATED)
 def submit_rating(
     order_id: UUID,
@@ -114,3 +122,28 @@ def get_user_avg_rating(
         average_score=round(float(avg), 1) if avg is not None else None,
         total_ratings=total or 0,
     )
+
+
+@router.get("/users/{user_id}/reviews", response_model=list[ReviewRead])
+def list_user_reviews(
+    user_id: int,
+    limit: int = 20,
+    db: Session = Depends(get_db),
+):
+    """Public review list (with comments) for a seller/trader — shown in the
+    marketplace so buyers can see what past customers actually said, not just
+    the average star count."""
+    rows = db.execute(
+        select(Rating, User.full_name)
+        .join(User, User.id == Rating.rater_id)
+        .where(Rating.ratee_id == user_id)
+        .order_by(Rating.created_at.desc())
+        .limit(min(limit, 50))
+    ).all()
+    return [
+        ReviewRead(
+            id=rating.id, score=rating.score, comment=rating.comment,
+            created_at=rating.created_at, rater_name=rater_name,
+        )
+        for rating, rater_name in rows
+    ]

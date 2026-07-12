@@ -3,14 +3,16 @@
  * Reads lang/weather from AppContext and passes them as props to Part 1 ML pages
  * via the Outlet context.
  */
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import ErrorBoundary from './ErrorBoundary';
 import { useApp } from '../context/AppContext';
 
 export default function AppLayout() {
   const { lang, setLang, weather, setWeather } = useApp();
   const navigate = useNavigate();
+  const location = useLocation();
 
   /** Maps legacy setPage('key') calls from Part 1 pages to react-router navigation */
   const setPage = (key) => {
@@ -29,7 +31,11 @@ export default function AppLayout() {
     <>
       <Navbar />
       <main>
-        <Outlet context={{ lang, setLang, weather, setWeather, setPage }} />
+        <div key={location.pathname} className="page-transition">
+          <ErrorBoundary resetKey={location.pathname}>
+            <Outlet context={{ lang, setLang, weather, setWeather, setPage }} />
+          </ErrorBoundary>
+        </div>
       </main>
       <Footer />
     </>

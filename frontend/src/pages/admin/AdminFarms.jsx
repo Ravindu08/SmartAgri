@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminRequest } from '../../services/api';
 import { useApp } from '../../context/AppContext';
+import { SkeletonTable } from '../../components/Skeleton';
+import Pagination from '../../components/Pagination';
+
+const PAGE_SIZE = 10;
 
 const T = {
   en: {
@@ -32,6 +36,7 @@ export default function AdminFarms() {
   const [farms, setFarms]     = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch]   = useState('');
+  const [page, setPage]       = useState(1);
 
   useEffect(() => {
     adminRequest('/farms').then(data => { setFarms(Array.isArray(data) ? data : []); setLoading(false); }).catch(() => setLoading(false));
@@ -41,7 +46,12 @@ export default function AdminFarms() {
     !search || f.name?.toLowerCase().includes(search.toLowerCase()) || f.district?.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>{t.loading}</div>;
+  useEffect(() => { setPage(1); }, [search]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pageFarms = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  if (loading) return <SkeletonTable rows={6} cols={4} />;
 
   const headers = [t.colFarmName, t.colDistrict, t.colSize, t.colOwner, t.colCreated];
 
@@ -69,7 +79,7 @@ export default function AdminFarms() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map(f => (
+            {pageFarms.map(f => (
               <tr key={f.id} style={{ borderBottom: '1px solid var(--border)' }}>
                 <td style={{ padding: '12px 16px', fontWeight: 600, fontSize: '14px', color: 'var(--text)' }}>🌾 {f.name}</td>
                 <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--muted)' }}>{f.district}</td>
@@ -82,6 +92,7 @@ export default function AdminFarms() {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
     </div>
   );
 }
