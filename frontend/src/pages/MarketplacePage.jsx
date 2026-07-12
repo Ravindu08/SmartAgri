@@ -1196,7 +1196,7 @@ export default function MarketplacePage() {
 
       {/* Header bar */}
       <header className="border-b bg-card">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-[1320px] flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Leaf size={22} />
@@ -1244,7 +1244,7 @@ export default function MarketplacePage() {
       </header>
 
       {/* Content */}
-      <div className="mx-auto max-w-6xl px-4 py-6">
+      <div className="mx-auto max-w-[1320px] px-4 py-6">
 
         {/* Role context banner */}
         {!isAuthenticated ? (
