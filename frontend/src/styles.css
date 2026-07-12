@@ -315,8 +315,42 @@
     padding: 10px 14px;
     border-radius: var(--radius-sm);
   }
-  .navbar__lang { width: 100%; justify-content: flex-start; }
-  .navbar__session { width: 100%; }
+  .navbar__links.open .navbar__lang { width: 100%; justify-content: flex-start; }
+  .navbar__links.open .navbar__session { display: flex; width: 100%; }
+
+  /* .navbar__controls (desktop lang/theme/auth row) has no room once the
+     links collapse — hide it and show the mobile-only copy inside the
+     dropdown instead so these controls stay reachable on a phone. */
+  .navbar__controls > .navbar__lang,
+  .navbar__controls > .navbar__login,
+  .navbar__controls > .navbar__register,
+  .navbar__controls > .navbar__session,
+  .navbar__controls > .navbar__logout {
+    display: none;
+  }
+}
+
+.navbar__mobile-extra { display: none; }
+@media (max-width: 1480px) {
+  .navbar__links.open .navbar__mobile-extra {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    margin-top: 10px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .navbar__links.open .navbar__mobile-extra .navbar__theme-toggle {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 10px 14px;
+    font-size: 15px;
+    font-weight: 600;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
