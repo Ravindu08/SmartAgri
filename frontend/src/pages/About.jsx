@@ -211,6 +211,7 @@ export default function About({ lang }) {
   const t = ABOUT_T[lang] || ABOUT_T.en;
 
   return (
+    <div className="page-wrapper">
     <div className="about-page">
 
       {/* ── Hero ── */}
@@ -368,6 +369,7 @@ export default function About({ lang }) {
         </section>
 
       </div>
+    </div>
     </div>
   );
 }

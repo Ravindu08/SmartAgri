@@ -1,9 +1,7 @@
 /* SmartAgri — About Page */
 
 .about-page {
-  padding-top: var(--nav-h);
   padding-bottom: 72px;
-  min-height: 100vh;
 }
 
 /* ── Hero ── */
@@ -81,7 +79,7 @@
 
 /* ── Body container ── */
 .about-body {
-  max-width: 1060px;
+  max-width: 1320px;
   margin: 0 auto;
   padding: 36px 28px 0;
 }
@@ -237,9 +235,9 @@
    TEAM
 ══════════════════════════════════════════════════════ */
 .about-team-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 18px;
-  flex-wrap: wrap;
 }
 
 .about-team-card {
