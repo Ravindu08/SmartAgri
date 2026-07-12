@@ -7,12 +7,12 @@ const FOOTER_T = {
     tagline: 'AI-powered crop planning for Sri Lankan farmers.',
     quickLinks: 'Quick Links',
     contact: 'Contact',
-    emailVal: 'induwara.ihalavithana@gmail.com',
+    emailVal: 'hello@smartagri.lk',
     locationVal: 'Sri Lanka',
-    projectVal: 'Final Year Academic Project',
-    copyright: '© 2025 SmartAgri. All rights reserved.',
+    projectVal: 'Serving farmers island-wide',
+    copyright: '© 2026 SmartAgri. All rights reserved.',
     madeWith: 'Made with ❤️ for Sri Lankan agriculture',
-    openSource: 'SmartAgri — Open Source',
+    openSource: 'SmartAgri Platform',
     home: 'Home', cropRec: 'Crop Recommendation', cropGuide: 'Crop Guidance',
     yieldPrice: 'Yield & Price', weather: 'Weather', aboutUs: 'About Us', contactUs: 'Contact Us',
   },
@@ -20,12 +20,12 @@ const FOOTER_T = {
     tagline: 'ශ්‍රී ලාංකික ගොවීන් සඳහා AI-ශක්‍ය බෝග සැලසුම.',
     quickLinks: 'ඉක්මන් සබැඳි',
     contact: 'සම්බන්ධතා',
-    emailVal: 'induwara.ihalavithana@gmail.com',
+    emailVal: 'hello@smartagri.lk',
     locationVal: 'ශ්‍රී ලංකාව',
-    projectVal: 'අවසාන වසර අධ්‍යයනික ව්‍යාපෘතිය',
-    copyright: '© 2025 SmartAgri. සියලු හිමිකම් ඇවිරිණි.',
+    projectVal: 'දිවයින පුරා ගොවීන්ට සේවය කරයි',
+    copyright: '© 2026 SmartAgri. සියලු හිමිකම් ඇවිරිණි.',
     madeWith: 'ශ්‍රී ලාංකික කෘෂිකාර්මය සඳහා ❤️ සමඟ',
-    openSource: 'SmartAgri — විවෘත මූලාශ්‍ර',
+    openSource: 'SmartAgri වේදිකාව',
     home: 'මුල් පිටුව', cropRec: 'බෝග නිර්දේශ', cropGuide: 'බෝග මාර්ගෝපදේශ',
     yieldPrice: 'අස්වැන්න සහ මිල', weather: 'කාලගුණය', aboutUs: 'අප ගැන', contactUs: 'සම්බන්ධ කරගන්න',
   },
@@ -33,12 +33,12 @@ const FOOTER_T = {
     tagline: 'இலங்கை விவசாயிகளுக்கான AI-இயக்கப்படும் பயிர் திட்டமிடல்.',
     quickLinks: 'விரைவு இணைப்புகள்',
     contact: 'தொடர்பு',
-    emailVal: 'induwara.ihalavithana@gmail.com',
+    emailVal: 'hello@smartagri.lk',
     locationVal: 'இலங்கை',
-    projectVal: 'இறுதி ஆண்டு கல்வி திட்டம்',
-    copyright: '© 2025 SmartAgri. அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை.',
+    projectVal: 'நாடு முழுவதும் விவசாயிகளுக்கு சேவை',
+    copyright: '© 2026 SmartAgri. அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை.',
     madeWith: 'இலங்கை வேளாண்மைக்காக ❤️ உடன்',
-    openSource: 'SmartAgri — திறந்த மூலம்',
+    openSource: 'SmartAgri தளம்',
     home: 'முகப்பு', cropRec: 'பயிர் பரிந்துரை', cropGuide: 'பயிர் வழிகாட்டி',
     yieldPrice: 'மகசூல் & விலை', weather: 'வானிலை', aboutUs: 'எங்களை பற்றி', contactUs: 'தொடர்பு',
   },
@@ -84,7 +84,7 @@ export default function Footer() {
           <ul className="footer-contact-list">
             <li>
               <span className="footer-contact-icon">📧</span>
-              <a href="mailto:induwara.ihalavithana@gmail.com">
+              <a href="mailto:hello@smartagri.lk">
                 {t.emailVal.split('@').map((part, i, arr) =>
                   i < arr.length - 1 ? <span key={i}>{part}@<wbr /></span> : <span key={i}>{part}</span>
                 )}
@@ -95,7 +95,7 @@ export default function Footer() {
               <span>{t.locationVal}</span>
             </li>
             <li>
-              <span className="footer-contact-icon">🎓</span>
+              <span className="footer-contact-icon">🌾</span>
               <span>{t.projectVal}</span>
             </li>
             <li>
