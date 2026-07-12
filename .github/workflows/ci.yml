@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [Induwara]
+    branches: ["**"]
   pull_request:
     branches: [main]
 
