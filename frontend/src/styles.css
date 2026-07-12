@@ -1672,7 +1672,12 @@
   background: var(--card); border: 1px solid var(--border);
   border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-md);
   transition: transform var(--tr), box-shadow var(--tr);
+  /* the card is display:grid (rule above) — pin its single track to the card's
+     own width so wide content (long soil names) wraps instead of blowing the
+     track out past the border */
+  grid-template-columns: minmax(0, 1fr);
 }
+.farm-card__details strong { overflow-wrap: break-word; }
 .farm-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
 .farm-card__image {
   position: relative; height: 160px;
@@ -1696,7 +1701,9 @@
 .farm-card__name { font-size: 18px; font-weight: 700; color: var(--text); margin: 0 0 4px; }
 .farm-card__meta { font-size: 14px; color: var(--muted); margin: 0 0 14px; }
 .farm-card__details {
-  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px;
+  /* minmax(0,1fr) lets columns shrink below the nowrap text's width so the
+     ellipsis on long values (soil names) can actually truncate */
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px;
   padding: 12px; background: var(--surface-1); border-radius: var(--radius-sm); border: 1px solid var(--border);
 }
 .farm-card__details > div { display: flex; flex-direction: column; gap: 2px; }
