@@ -629,7 +629,7 @@ function SellerReviewsButton({ userId, rating, count }) {
             <div key={r.id} style={{ borderBottom: '1px solid var(--border)', paddingBottom: '10px' }}>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-medium text-foreground">{r.rater_name}</span>
-                <span style={{ color: 'var(--amber, #f59e0b)', fontSize: '13px', fontWeight: 600 }}>{'⭐'.repeat(r.score)}</span>
+                <span style={{ color: 'var(--amber, #f59e0b)', fontSize: '15px', fontWeight: 600 }}>{'⭐'.repeat(r.score)}</span>
               </div>
               {r.comment && <p className="text-sm text-muted-foreground mt-1">{r.comment}</p>}
               <p className="text-xs text-muted-foreground mt-1">{new Date(r.created_at).toLocaleDateString()}</p>
@@ -743,28 +743,28 @@ function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDele
           placeholder="Search by name…"
           value={filters.search}
           onChange={e => setFilters(f => ({ ...f, search: e.target.value }))}
-          style={{ flex: '1 1 160px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '13px' }}
+          style={{ flex: '1 1 160px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '15px' }}
         />
         <input
           type="number"
           placeholder="Min price (Rs.)"
           value={filters.min_price}
           onChange={e => setFilters(f => ({ ...f, min_price: e.target.value }))}
-          style={{ flex: '1 1 120px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '13px' }}
+          style={{ flex: '1 1 120px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '15px' }}
         />
         <input
           type="number"
           placeholder="Max price (Rs.)"
           value={filters.max_price}
           onChange={e => setFilters(f => ({ ...f, max_price: e.target.value }))}
-          style={{ flex: '1 1 120px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '13px' }}
+          style={{ flex: '1 1 120px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '15px' }}
         />
         <input
           type="text"
           placeholder="District…"
           value={filters.district}
           onChange={e => setFilters(f => ({ ...f, district: e.target.value }))}
-          style={{ flex: '1 1 120px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '13px' }}
+          style={{ flex: '1 1 120px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '15px' }}
         />
         <Select
           style={{ flex: '1 1 150px' }}
@@ -782,7 +782,7 @@ function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDele
           <button
             type="button"
             onClick={() => setFilters({ search: '', min_price: '', max_price: '', district: '', category: '' })}
-            style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--muted)', cursor: 'pointer', fontSize: '13px' }}
+            style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--muted)', cursor: 'pointer', fontSize: '15px' }}
           >
             ✕ Clear
           </button>
@@ -954,8 +954,8 @@ function RatingModal({ order, onClose }) {
           <div style={{ textAlign: 'center', fontSize: '32px' }}>⭐ Thanks for rating!</div>
         ) : (
           <>
-            <h3 style={{ margin: '0 0 8px', color: 'var(--text)', fontSize: '16px' }}>Rate your experience</h3>
-            <p style={{ margin: '0 0 16px', color: 'var(--muted)', fontSize: '13px' }}>{order.listing_name} · Seller: {order.seller_name}</p>
+            <h3 style={{ margin: '0 0 8px', color: 'var(--text)', fontSize: '18px' }}>Rate your experience</h3>
+            <p style={{ margin: '0 0 16px', color: 'var(--muted)', fontSize: '15px' }}>{order.listing_name} · Seller: {order.seller_name}</p>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', justifyContent: 'center' }}>
               {[1, 2, 3, 4, 5].map(s => (
                 <button key={s} type="button" onClick={() => setScore(s)} onMouseEnter={() => setHover(s)} onMouseLeave={() => setHover(0)}
@@ -969,11 +969,11 @@ function RatingModal({ order, onClose }) {
               placeholder="Leave a comment (optional)…"
               value={comment}
               onChange={e => setComment(e.target.value)}
-              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '13px', resize: 'vertical', marginBottom: '12px', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '15px', resize: 'vertical', marginBottom: '12px', boxSizing: 'border-box' }}
             />
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-              <button type="button" onClick={onClose} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '13px' }}>Cancel</button>
-              <button type="button" onClick={submit} disabled={busy || !score} style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: 'var(--green-primary)', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600, opacity: (!score || busy) ? 0.6 : 1 }}>
+              <button type="button" onClick={onClose} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '15px' }}>Cancel</button>
+              <button type="button" onClick={submit} disabled={busy || !score} style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: 'var(--green-primary)', color: '#fff', cursor: 'pointer', fontSize: '15px', fontWeight: 600, opacity: (!score || busy) ? 0.6 : 1 }}>
                 {busy ? 'Submitting…' : 'Submit Rating'}
               </button>
             </div>
