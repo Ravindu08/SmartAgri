@@ -1,9 +1,7 @@
 /* SmartAgri — Weather Page */
 
 .wx-page {
-  padding-top: var(--nav-h);
   padding-bottom: 72px;
-  min-height: 100vh;
 }
 
 /* ── Hero ── */
@@ -68,9 +66,9 @@
 
 /* ── Body ── */
 .wx-body {
-  max-width: 1060px;
+  max-width: 1320px;
   margin: 0 auto;
-  padding: 32px 24px;
+  padding: 32px 28px;
   display: flex;
   flex-direction: column;
   gap: 28px;
