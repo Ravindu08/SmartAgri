@@ -210,7 +210,7 @@ export default function FarmDetails() {
             )}
 
             {crops.length === 0 ? (
-              <p style={{ color: 'var(--muted)', fontSize: '14px' }}>{t.noActiveCult}</p>
+              <p style={{ color: 'var(--muted)', fontSize: '16px' }}>{t.noActiveCult}</p>
             ) : (
               <>
                 <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 8 }}>{t.activeCultLabel}</p>
