@@ -86,15 +86,15 @@ export default function TraderHistory() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: 'var(--text)' }}>{t.title}</h1>
-          <p style={{ margin: '4px 0 0', color: 'var(--muted)', fontSize: '14px' }}>{t.subtitle}</p>
+          <h1 style={{ margin: 0, fontSize: '21px', fontWeight: 700, color: 'var(--text)' }}>{t.title}</h1>
+          <p style={{ margin: '4px 0 0', color: 'var(--muted)', fontSize: '16px' }}>{t.subtitle}</p>
         </div>
         <Link
           to="/marketplace"
           style={{
             padding: '10px 18px', borderRadius: '8px',
             background: 'var(--accent)', color: 'var(--accent-text)',
-            textDecoration: 'none', fontWeight: 600, fontSize: '14px', whiteSpace: 'nowrap',
+            textDecoration: 'none', fontWeight: 600, fontSize: '16px', whiteSpace: 'nowrap',
           }}
         >
           🏪 {t.goToMarket}
@@ -109,7 +109,7 @@ export default function TraderHistory() {
             borderRadius: '10px', padding: '16px',
           }}>
             <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--accent)' }}>{historyOrders.length}</div>
-            <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>{t.totalOrders}</div>
+            <div style={{ fontSize: '15px', color: 'var(--muted)', marginTop: '4px' }}>{t.totalOrders}</div>
           </div>
           <div style={{
             background: 'var(--card)', border: '1px solid var(--border)',
@@ -118,14 +118,14 @@ export default function TraderHistory() {
             <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--green)' }}>
               Rs. {totalValue.toFixed(2)}
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>{t.totalValue}</div>
+            <div style={{ fontSize: '15px', color: 'var(--muted)', marginTop: '4px' }}>{t.totalValue}</div>
           </div>
           <div style={{
             background: 'var(--card)', border: '1px solid var(--border)',
             borderRadius: '10px', padding: '16px',
           }}>
             <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--green)' }}>{completedOrders.length}</div>
-            <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>{t.completed}</div>
+            <div style={{ fontSize: '15px', color: 'var(--muted)', marginTop: '4px' }}>{t.completed}</div>
           </div>
         </div>
       )}
@@ -138,7 +138,7 @@ export default function TraderHistory() {
             type="button"
             onClick={() => setFilter(f.key)}
             style={{
-              padding: '6px 16px', borderRadius: '20px', fontSize: '13px',
+              padding: '6px 16px', borderRadius: '20px', fontSize: '15px',
               border: filter === f.key ? '2px solid var(--accent)' : '1.5px solid var(--border)',
               background: filter === f.key ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'var(--card)',
               color: filter === f.key ? 'var(--accent)' : 'var(--muted)',
@@ -164,13 +164,13 @@ export default function TraderHistory() {
         }}>
           <div style={{ fontSize: '40px', marginBottom: '12px' }}>📜</div>
           <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '6px' }}>{t.noHistory}</div>
-          <div style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '20px' }}>{t.noHistorySub}</div>
+          <div style={{ color: 'var(--muted)', fontSize: '16px', marginBottom: '20px' }}>{t.noHistorySub}</div>
           <Link
             to="/marketplace"
             style={{
               padding: '10px 20px', borderRadius: '8px',
               background: 'var(--accent)', color: 'var(--accent-text)',
-              textDecoration: 'none', fontWeight: 600, fontSize: '14px',
+              textDecoration: 'none', fontWeight: 600, fontSize: '16px',
             }}
           >
             🏪 {t.goToMarket}
@@ -187,7 +187,7 @@ export default function TraderHistory() {
             gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr',
             gap: '8px', padding: '12px 20px',
             background: 'var(--surface-1)',
-            fontSize: '11px', color: 'var(--muted)',
+            fontSize: '12.5px', color: 'var(--muted)',
             fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
           }}>
             <div>{t.crop}</div>
@@ -211,10 +211,10 @@ export default function TraderHistory() {
                 alignItems: 'center',
               }}>
                 <div>
-                  <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: '14px' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: '16px' }}>
                     {order.listing_name || '—'}
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
+                  <div style={{ fontSize: '14px', color: 'var(--muted)', marginTop: '2px' }}>
                     {order.seller_name} ·{' '}
                     {order.updated_at
                       ? new Date(order.updated_at).toLocaleDateString()
@@ -223,16 +223,16 @@ export default function TraderHistory() {
                       : '—'}
                   </div>
                 </div>
-                <div style={{ fontSize: '14px', color: 'var(--text)' }}>{order.requested_quantity} kg</div>
-                <div style={{ fontSize: '14px', color: 'var(--text)' }}>
+                <div style={{ fontSize: '16px', color: 'var(--text)' }}>{order.requested_quantity} kg</div>
+                <div style={{ fontSize: '16px', color: 'var(--text)' }}>
                   {price ? `Rs. ${price}${t.perKg}` : '—'}
                 </div>
-                <div style={{ fontSize: '14px', fontWeight: 600, color: order.status === 'Completed' ? 'var(--green)' : 'var(--muted)' }}>
+                <div style={{ fontSize: '16px', fontWeight: 600, color: order.status === 'Completed' ? 'var(--green)' : 'var(--muted)' }}>
                   {order.status === 'Completed' ? `Rs. ${total}` : '—'}
                 </div>
                 <div>
                   <span style={{
-                    padding: '3px 10px', borderRadius: '20px', fontSize: '12px',
+                    padding: '3px 10px', borderRadius: '20px', fontSize: '14px',
                     fontWeight: 600, background: stStyle.bg, color: stStyle.color,
                   }}>
                     {t[order.status] || order.status}

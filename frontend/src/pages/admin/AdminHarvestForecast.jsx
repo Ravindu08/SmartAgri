@@ -59,11 +59,11 @@ function daysFrom(dateStr) {
 function HarvestBadge({ dateStr, t }) {
   const days = daysFrom(dateStr);
   if (days === null) return null;
-  if (days < 0)  return <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '99px', background: '#e5393518', color: '#e53935', fontWeight: 600 }}>{t.overdue}</span>;
-  if (days === 0) return <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '99px', background: '#2d6a4f18', color: '#2d6a4f', fontWeight: 600 }}>{t.today}</span>;
-  if (days <= 30) return <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '99px', background: '#2d6a4f18', color: '#2d6a4f', fontWeight: 600 }}>{t.daysUntil(days)}</span>;
-  if (days <= 60) return <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '99px', background: '#f57c0018', color: '#f57c00', fontWeight: 600 }}>{t.daysUntil(days)}</span>;
-  return <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '99px', background: 'var(--border)', color: 'var(--muted)', fontWeight: 600 }}>{t.daysUntil(days)}</span>;
+  if (days < 0)  return <span style={{ fontSize: '12.5px', padding: '2px 8px', borderRadius: '99px', background: '#e5393518', color: '#e53935', fontWeight: 600 }}>{t.overdue}</span>;
+  if (days === 0) return <span style={{ fontSize: '12.5px', padding: '2px 8px', borderRadius: '99px', background: '#2d6a4f18', color: '#2d6a4f', fontWeight: 600 }}>{t.today}</span>;
+  if (days <= 30) return <span style={{ fontSize: '12.5px', padding: '2px 8px', borderRadius: '99px', background: '#2d6a4f18', color: '#2d6a4f', fontWeight: 600 }}>{t.daysUntil(days)}</span>;
+  if (days <= 60) return <span style={{ fontSize: '12.5px', padding: '2px 8px', borderRadius: '99px', background: '#f57c0018', color: '#f57c00', fontWeight: 600 }}>{t.daysUntil(days)}</span>;
+  return <span style={{ fontSize: '12.5px', padding: '2px 8px', borderRadius: '99px', background: 'var(--border)', color: 'var(--muted)', fontWeight: 600 }}>{t.daysUntil(days)}</span>;
 }
 
 function rowBg(dateStr) {
@@ -98,7 +98,7 @@ export default function AdminHarvestForecast() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <h2 style={{ margin: 0, color: 'var(--text)' }}>
           {t.title}
-          {!loading && <span style={{ fontSize: '16px', color: 'var(--muted)', fontWeight: 400, marginLeft: '8px' }}>({data.length})</span>}
+          {!loading && <span style={{ fontSize: '18px', color: 'var(--muted)', fontWeight: 400, marginLeft: '8px' }}>({data.length})</span>}
         </h2>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           <CustomSelect
@@ -112,7 +112,7 @@ export default function AdminHarvestForecast() {
           <button
             type="button"
             onClick={() => downloadAdminCSV('harvest').catch(e => alert(e.message))}
-            style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--text)', fontWeight: 600, fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--text)', fontWeight: 600, fontSize: '14px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
             {t.exportCsv}
           </button>
         </div>
@@ -131,27 +131,27 @@ export default function AdminHarvestForecast() {
               <thead>
                 <tr style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
                   {headers.map(h => (
-                    <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
+                    <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12.5px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {data.map((r, i) => (
                   <tr key={r.session_id || i} style={{ borderBottom: '1px solid var(--border)', background: rowBg(r.estimated_harvest_date) }}>
-                    <td style={{ padding: '12px 16px', fontWeight: 600, fontSize: '14px', color: 'var(--text)', whiteSpace: 'nowrap' }}>🌾 {r.farm_name}</td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--muted)' }}>{r.farmer_name}</td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px' }}>{r.district}</td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: 'var(--green-primary)' }}>{r.crop}</td>
-                    <td style={{ padding: '12px 16px', fontSize: '12px', color: 'var(--muted)' }}>{r.planting_date || '—'}</td>
+                    <td style={{ padding: '12px 16px', fontWeight: 600, fontSize: '16px', color: 'var(--text)', whiteSpace: 'nowrap' }}>🌾 {r.farm_name}</td>
+                    <td style={{ padding: '12px 16px', fontSize: '15px', color: 'var(--muted)' }}>{r.farmer_name}</td>
+                    <td style={{ padding: '12px 16px', fontSize: '15px' }}>{r.district}</td>
+                    <td style={{ padding: '12px 16px', fontSize: '15px', fontWeight: 600, color: 'var(--green-primary)' }}>{r.crop}</td>
+                    <td style={{ padding: '12px 16px', fontSize: '14px', color: 'var(--muted)' }}>{r.planting_date || '—'}</td>
                     <td style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap' }}>
                           {r.estimated_harvest_date || '—'}
                         </span>
                         <HarvestBadge dateStr={r.estimated_harvest_date} t={t} />
                       </div>
                     </td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 16px', fontSize: '15px', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
                       {r.farm_size ? `${r.farm_size} ${r.size_unit}` : '—'}
                     </td>
                   </tr>

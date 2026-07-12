@@ -10,8 +10,8 @@ const NAV_T = {
     cropGuide: 'Crop Guidance',
     yieldPrice: 'Yield & Price',
     weather: 'Weather',
-    aboutUs: 'About Us',
-    contactUs: 'Contact Us',
+    aboutUs: 'About',
+    contactUs: 'Contact',
     marketplace: '🏪 Marketplace',
     myFarms: '🌱 My Farms',
     myOrders: '📦 My Orders',
@@ -84,13 +84,14 @@ export default function Navbar() {
       </Link>
 
       <nav className={`navbar__links${menuOpen ? ' open' : ''}`}>
-        <Link to="/" className={`nav-link${isActive('/') ? ' nav-link--active' : ''}`} onClick={close}>{t.home}</Link>
-        <Link to="/crop-recommendation" className={`nav-link${isActive('/crop-recommendation') ? ' nav-link--active' : ''}`} onClick={close}>{t.cropRec}</Link>
-        <Link to="/crop-guidance" className={`nav-link${isActive('/crop-guidance') ? ' nav-link--active' : ''}`} onClick={close}>{t.cropGuide}</Link>
-        <Link to="/yield-price" className={`nav-link${isActive('/yield-price') ? ' nav-link--active' : ''}`} onClick={close}>{t.yieldPrice}</Link>
-        <Link to="/wx" className={`nav-link${isActive('/wx') ? ' nav-link--active' : ''}`} onClick={close}>{t.weather}</Link>
-        <Link to="/about" className={`nav-link${isActive('/about') ? ' nav-link--active' : ''}`} onClick={close}>{t.aboutUs}</Link>
-        <Link to="/contact" className={`nav-link${isActive('/contact') ? ' nav-link--active' : ''}`} onClick={close}>{t.contactUs}</Link>
+        {/* Home lives on the brand logo; a separate Home link only appears in the mobile menu */}
+        <Link to="/" className={`nav-link nav-link--menu-only${isActive('/') ? ' nav-link--active' : ''}`} onClick={close}><span className="nav-link__icon">🏠</span>{t.home}</Link>
+        <Link to="/crop-recommendation" className={`nav-link${isActive('/crop-recommendation') ? ' nav-link--active' : ''}`} onClick={close}><span className="nav-link__icon">🌱</span>{t.cropRec}</Link>
+        <Link to="/crop-guidance" className={`nav-link${isActive('/crop-guidance') ? ' nav-link--active' : ''}`} onClick={close}><span className="nav-link__icon">📖</span>{t.cropGuide}</Link>
+        <Link to="/yield-price" className={`nav-link${isActive('/yield-price') ? ' nav-link--active' : ''}`} onClick={close}><span className="nav-link__icon">📊</span>{t.yieldPrice}</Link>
+        <Link to="/wx" className={`nav-link${isActive('/wx') ? ' nav-link--active' : ''}`} onClick={close}><span className="nav-link__icon">🌤️</span>{t.weather}</Link>
+        <Link to="/about" className={`nav-link${isActive('/about') ? ' nav-link--active' : ''}`} onClick={close}><span className="nav-link__icon">🌿</span>{t.aboutUs}</Link>
+        <Link to="/contact" className={`nav-link${isActive('/contact') ? ' nav-link--active' : ''}`} onClick={close}><span className="nav-link__icon">✉️</span>{t.contactUs}</Link>
         <Link to="/marketplace" className={`nav-link${isActive('/marketplace') ? ' nav-link--active' : ''}`} onClick={close}>{t.marketplace}</Link>
 
         {isSignedIn && activeRole === 'Land Owner' && (
@@ -119,7 +120,7 @@ export default function Navbar() {
               <>
                 <span className="navbar__session">
                   <span className="navbar__role">{activeRole}</span>
-                  <span className="navbar__user">{user.full_name}</span>
+                  <span className="navbar__user">{user.full_name.split(' ')[0]}</span>
                 </span>
                 <button className="navbar__logout" type="button" onClick={handleLogout}>{t.logout}</button>
               </>

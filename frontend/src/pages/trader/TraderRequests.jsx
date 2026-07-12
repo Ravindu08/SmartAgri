@@ -55,8 +55,8 @@ export default function TraderRequests() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: 'var(--text)' }}>{t.title}</h1>
-          <p style={{ margin: '4px 0 0', color: 'var(--muted)', fontSize: '14px' }}>
+          <h1 style={{ margin: 0, fontSize: '21px', fontWeight: 700, color: 'var(--text)' }}>{t.title}</h1>
+          <p style={{ margin: '4px 0 0', color: 'var(--muted)', fontSize: '16px' }}>
             {t.subtitle} ({pendingOrders.length})
           </p>
         </div>
@@ -65,7 +65,7 @@ export default function TraderRequests() {
           style={{
             padding: '10px 18px', borderRadius: '8px',
             background: 'var(--accent)', color: 'var(--accent-text)',
-            textDecoration: 'none', fontWeight: 600, fontSize: '14px', whiteSpace: 'nowrap',
+            textDecoration: 'none', fontWeight: 600, fontSize: '16px', whiteSpace: 'nowrap',
           }}
         >
           🏪 {t.goToMarket}
@@ -82,13 +82,13 @@ export default function TraderRequests() {
         }}>
           <div style={{ fontSize: '40px', marginBottom: '12px' }}>📋</div>
           <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '6px' }}>{t.noRequests}</div>
-          <div style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '20px' }}>{t.noRequestsSub}</div>
+          <div style={{ color: 'var(--muted)', fontSize: '16px', marginBottom: '20px' }}>{t.noRequestsSub}</div>
           <Link
             to="/marketplace"
             style={{
               padding: '10px 20px', borderRadius: '8px',
               background: 'var(--accent)', color: 'var(--accent-text)',
-              textDecoration: 'none', fontWeight: 600, fontSize: '14px',
+              textDecoration: 'none', fontWeight: 600, fontSize: '16px',
             }}
           >
             🏪 {t.goToMarket}
@@ -104,26 +104,26 @@ export default function TraderRequests() {
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                   <div>
-                    <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.crop}</div>
-                    <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--text)' }}>{order.listing_name || '—'}</div>
+                    <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.crop}</div>
+                    <div style={{ fontWeight: 700, fontSize: '18px', color: 'var(--text)' }}>{order.listing_name || '—'}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.qty}</div>
+                    <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.qty}</div>
                     <div style={{ fontWeight: 600, color: 'var(--text)' }}>{order.requested_quantity} kg</div>
                   </div>
                   {order.proposed_price && (
                     <div>
-                      <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.offeredPrice}</div>
+                      <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.offeredPrice}</div>
                       <div style={{ fontWeight: 600, color: 'var(--text)' }}>Rs. {order.proposed_price}/kg</div>
                     </div>
                   )}
                   <div>
-                    <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.seller}</div>
+                    <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.seller}</div>
                     <div style={{ fontWeight: 600, color: 'var(--text)' }}>{order.seller_name}</div>
                   </div>
                 </div>
                 <span style={{
-                  padding: '4px 12px', borderRadius: '20px', fontSize: '13px',
+                  padding: '4px 12px', borderRadius: '20px', fontSize: '15px',
                   fontWeight: 600,
                   background: 'color-mix(in srgb, var(--amber) 15%, transparent)',
                   color: 'var(--amber)', alignSelf: 'flex-start', whiteSpace: 'nowrap',
@@ -135,14 +135,14 @@ export default function TraderRequests() {
               {order.buyer_note && (
                 <div style={{
                   marginTop: '12px', padding: '10px 14px', borderRadius: '8px',
-                  background: 'var(--surface-1)', fontSize: '14px', color: 'var(--text)',
+                  background: 'var(--surface-1)', fontSize: '16px', color: 'var(--text)',
                   fontStyle: 'italic',
                 }}>
                   {t.yourNote}: "{order.buyer_note}"
                 </div>
               )}
 
-              <div style={{ marginTop: '12px', fontSize: '12px', color: 'var(--muted)' }}>
+              <div style={{ marginTop: '12px', fontSize: '14px', color: 'var(--muted)' }}>
                 {t.placedOn}: {order.created_at ? new Date(order.created_at).toLocaleDateString() : '—'}
               </div>
             </div>

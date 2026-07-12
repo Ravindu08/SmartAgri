@@ -75,14 +75,14 @@ function StatusTracker({ status, t }) {
               background: done ? 'var(--accent)' : 'var(--border)',
               border: active ? '3px solid var(--accent-text)' : 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '11px', color: done ? 'var(--accent-text)' : 'var(--muted)',
+              fontSize: '12.5px', color: done ? 'var(--accent-text)' : 'var(--muted)',
               boxShadow: active ? '0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent)' : 'none',
               transition: 'all 0.2s',
             }}>
               {done ? '✓' : i + 1}
             </div>
             <div style={{
-              fontSize: '10px', marginTop: '4px', textAlign: 'center',
+              fontSize: '11.5px', marginTop: '4px', textAlign: 'center',
               color: done ? 'var(--accent)' : 'var(--muted)',
               fontWeight: active ? 700 : 400,
             }}>
@@ -140,15 +140,15 @@ export default function TraderOrders() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: 'var(--text)' }}>{t.title}</h1>
-          <p style={{ margin: '4px 0 0', color: 'var(--muted)', fontSize: '14px' }}>{t.subtitle}</p>
+          <h1 style={{ margin: 0, fontSize: '21px', fontWeight: 700, color: 'var(--text)' }}>{t.title}</h1>
+          <p style={{ margin: '4px 0 0', color: 'var(--muted)', fontSize: '16px' }}>{t.subtitle}</p>
         </div>
         <Link
           to="/marketplace"
           style={{
             padding: '10px 18px', borderRadius: '8px',
             background: 'var(--accent)', color: 'var(--accent-text)',
-            textDecoration: 'none', fontWeight: 600, fontSize: '14px', whiteSpace: 'nowrap',
+            textDecoration: 'none', fontWeight: 600, fontSize: '16px', whiteSpace: 'nowrap',
           }}
         >
           🏪 {t.goToMarket}
@@ -163,7 +163,7 @@ export default function TraderOrders() {
             type="button"
             onClick={() => setFilter(f.key)}
             style={{
-              padding: '6px 16px', borderRadius: '20px', fontSize: '13px',
+              padding: '6px 16px', borderRadius: '20px', fontSize: '15px',
               border: filter === f.key ? '2px solid var(--accent)' : '1.5px solid var(--border)',
               background: filter === f.key ? 'color-mix(in srgb, var(--accent) 12%, transparent)' : 'var(--card)',
               color: filter === f.key ? 'var(--accent)' : 'var(--muted)',
@@ -189,13 +189,13 @@ export default function TraderOrders() {
         }}>
           <div style={{ fontSize: '40px', marginBottom: '12px' }}>📦</div>
           <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '6px' }}>{t.noOrders}</div>
-          <div style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '20px' }}>{t.noOrdersSub}</div>
+          <div style={{ color: 'var(--muted)', fontSize: '16px', marginBottom: '20px' }}>{t.noOrdersSub}</div>
           <Link
             to="/marketplace"
             style={{
               padding: '10px 20px', borderRadius: '8px',
               background: 'var(--accent)', color: 'var(--accent-text)',
-              textDecoration: 'none', fontWeight: 600, fontSize: '14px',
+              textDecoration: 'none', fontWeight: 600, fontSize: '16px',
             }}
           >
             🏪 {t.goToMarket}
@@ -214,26 +214,26 @@ export default function TraderOrders() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
                   <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                     <div>
-                      <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.crop}</div>
-                      <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--text)' }}>{order.listing_name || '—'}</div>
+                      <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.crop}</div>
+                      <div style={{ fontWeight: 700, fontSize: '18px', color: 'var(--text)' }}>{order.listing_name || '—'}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.qty}</div>
+                      <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.qty}</div>
                       <div style={{ fontWeight: 600, color: 'var(--text)' }}>{order.requested_quantity} kg</div>
                     </div>
                     {(order.agreed_price || order.proposed_price) && (
                       <div>
-                        <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.price}</div>
+                        <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.price}</div>
                         <div style={{ fontWeight: 600, color: 'var(--text)' }}>Rs. {order.agreed_price || order.proposed_price}/kg</div>
                       </div>
                     )}
                     <div>
-                      <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Seller</div>
+                      <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Seller</div>
                       <div style={{ fontWeight: 600, color: 'var(--text)' }}>{order.seller_name}</div>
                     </div>
                   </div>
                   <span style={{
-                    padding: '4px 12px', borderRadius: '20px', fontSize: '13px',
+                    padding: '4px 12px', borderRadius: '20px', fontSize: '15px',
                     fontWeight: 600, background: stStyle.bg, color: stStyle.color,
                     alignSelf: 'flex-start',
                   }}>
@@ -251,7 +251,7 @@ export default function TraderOrders() {
                     style={{
                       marginTop: '12px', padding: '9px 18px', borderRadius: '8px', border: 'none',
                       background: 'var(--accent)', color: 'var(--accent-text)',
-                      fontWeight: 600, fontSize: '14px', cursor: 'pointer',
+                      fontWeight: 600, fontSize: '16px', cursor: 'pointer',
                       opacity: confirmingId === order.id ? 0.6 : 1,
                     }}
                   >
@@ -260,16 +260,16 @@ export default function TraderOrders() {
                 )}
 
                 <div style={{ marginTop: '12px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                  <span style={{ fontSize: '14px', color: 'var(--muted)' }}>
                     {t.orderedOn}: {order.created_at ? new Date(order.created_at).toLocaleDateString() : '—'}
                   </span>
                   {order.updated_at && order.updated_at !== order.created_at && (
-                    <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                    <span style={{ fontSize: '14px', color: 'var(--muted)' }}>
                       {t.updatedOn}: {new Date(order.updated_at).toLocaleDateString()}
                     </span>
                   )}
                   {order.seller_note && (
-                    <span style={{ fontSize: '12px', color: 'var(--muted)', fontStyle: 'italic' }}>
+                    <span style={{ fontSize: '14px', color: 'var(--muted)', fontStyle: 'italic' }}>
                       Note: {order.seller_note}
                     </span>
                   )}

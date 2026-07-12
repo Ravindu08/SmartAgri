@@ -169,7 +169,7 @@ export default function LoginPage() {
             <label className="auth-field">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>{t.passLabel}</span>
-                <Link to="/forgot-password" style={{ fontSize: '12px', color: 'var(--green-primary)', fontWeight: 500 }}>
+                <Link to="/forgot-password" style={{ fontSize: '14px', color: 'var(--green-primary)', fontWeight: 500 }}>
                   {t.forgotPassword}
                 </Link>
               </div>
@@ -191,11 +191,11 @@ export default function LoginPage() {
               <div className="auth-error" style={{ background: 'rgba(234,179,8,0.12)', borderColor: '#ca8a04', color: '#92400e' }}>
                 <p style={{ margin: '0 0 8px' }}>⚠️ {t.errNotVerified}</p>
                 {resendStatus === 'ok' ? (
-                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--green-primary)' }}>✓ {t.resendOk}</p>
+                  <p style={{ margin: 0, fontSize: '15px', color: 'var(--green-primary)' }}>✓ {t.resendOk}</p>
                 ) : (
                   <button type="button" onClick={handleResend} disabled={resendStatus === 'sending'}
                     style={{ background: 'none', border: 'none', color: '#92400e', cursor: 'pointer',
-                      fontSize: '13px', fontWeight: 600, textDecoration: 'underline', padding: 0 }}>
+                      fontSize: '15px', fontWeight: 600, textDecoration: 'underline', padding: 0 }}>
                     {resendStatus === 'sending' ? '...' : t.resendVerification}
                   </button>
                 )}

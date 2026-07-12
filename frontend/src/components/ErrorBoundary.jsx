@@ -32,7 +32,7 @@ export default class ErrorBoundary extends Component {
       }}>
         <div style={{ fontSize: "40px" }}>⚠️</div>
         <h3 style={{ margin: 0 }}>Something went wrong on this page</h3>
-        <p style={{ margin: 0, color: "var(--muted)", fontSize: "14px", maxWidth: "420px" }}>
+        <p style={{ margin: 0, color: "var(--muted)", fontSize: "16px", maxWidth: "420px" }}>
           Try reloading — if the problem continues, please let us know what you were doing.
         </p>
         <button

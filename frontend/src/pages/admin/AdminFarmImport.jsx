@@ -148,28 +148,28 @@ export default function AdminFarmImport() {
   return (
     <div style={{ padding: '28px', maxWidth: '900px' }}>
       <button onClick={() => navigate('/admin/farms')} type="button"
-        style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '13px', marginBottom: '16px', padding: 0 }}>
+        style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '15px', marginBottom: '16px', padding: 0 }}>
         {t.back}
       </button>
       <h2 style={{ margin: '0 0 24px', color: 'var(--text)' }}>{t.title}</h2>
 
       <div style={card}>
-        <p style={{ margin: '0 0 6px', fontSize: '14px', color: 'var(--text)' }}>{t.instructions}</p>
-        <p style={{ margin: 0, fontSize: '12px', color: 'var(--muted)', fontFamily: 'monospace', wordBreak: 'break-all' }}>{t.sampleRow}</p>
+        <p style={{ margin: '0 0 6px', fontSize: '16px', color: 'var(--text)' }}>{t.instructions}</p>
+        <p style={{ margin: 0, fontSize: '14px', color: 'var(--muted)', fontFamily: 'monospace', wordBreak: 'break-all' }}>{t.sampleRow}</p>
       </div>
 
       <div style={card}>
         <input ref={fileRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={handleFile} />
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
           <button type="button" onClick={() => fileRef.current.click()}
-            style={{ padding: '9px 18px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+            style={{ padding: '9px 18px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}>
             📂 {t.chooseFile}
           </button>
-          <span style={{ fontSize: '13px', color: fileName ? 'var(--text)' : 'var(--muted)' }}>
+          <span style={{ fontSize: '15px', color: fileName ? 'var(--text)' : 'var(--muted)' }}>
             {fileName || t.noFile}
           </span>
           {rows.length > 0 && (
-            <span style={{ fontSize: '12px', color: '#2d6a4f', fontWeight: 600, marginLeft: 'auto' }}>
+            <span style={{ fontSize: '14px', color: '#2d6a4f', fontWeight: 600, marginLeft: 'auto' }}>
               ✓ {rows.length} {t.rows}
             </span>
           )}
@@ -178,7 +178,7 @@ export default function AdminFarmImport() {
 
       {rows.length > 0 && (
         <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', fontWeight: 600, fontSize: '13px', color: 'var(--text)' }}>
+          <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', fontWeight: 600, fontSize: '15px', color: 'var(--text)' }}>
             {t.preview} ({rows.length} {t.rows})
           </div>
           <div style={{ maxHeight: '240px', overflowY: 'auto', overflowX: 'auto' }}>
@@ -186,23 +186,23 @@ export default function AdminFarmImport() {
               <thead>
                 <tr style={{ background: 'var(--bg)' }}>
                   {previewCols.map(h => (
-                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
+                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: '12.5px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {rows.slice(0, 50).map((r, i) => (
                   <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
-                    <td style={{ padding: '10px 14px', fontSize: '13px', color: 'var(--text)', whiteSpace: 'nowrap' }}>{r.farmer_name}</td>
-                    <td style={{ padding: '10px 14px', fontSize: '12px', color: 'var(--muted)' }}>{r.email}</td>
-                    <td style={{ padding: '10px 14px', fontSize: '13px' }}>{r.district}</td>
-                    <td style={{ padding: '10px 14px', fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>{r.farm_name}</td>
-                    <td style={{ padding: '10px 14px', fontSize: '12px', color: 'var(--muted)' }}>{r.soil_type}</td>
-                    <td style={{ padding: '10px 14px', fontSize: '12px' }}>{r.size} {r.size_unit}</td>
+                    <td style={{ padding: '10px 14px', fontSize: '15px', color: 'var(--text)', whiteSpace: 'nowrap' }}>{r.farmer_name}</td>
+                    <td style={{ padding: '10px 14px', fontSize: '14px', color: 'var(--muted)' }}>{r.email}</td>
+                    <td style={{ padding: '10px 14px', fontSize: '15px' }}>{r.district}</td>
+                    <td style={{ padding: '10px 14px', fontSize: '15px', fontWeight: 600, color: 'var(--text)' }}>{r.farm_name}</td>
+                    <td style={{ padding: '10px 14px', fontSize: '14px', color: 'var(--muted)' }}>{r.soil_type}</td>
+                    <td style={{ padding: '10px 14px', fontSize: '14px' }}>{r.size} {r.size_unit}</td>
                   </tr>
                 ))}
                 {rows.length > 50 && (
-                  <tr><td colSpan={6} style={{ padding: '10px 14px', fontSize: '12px', color: 'var(--muted)', textAlign: 'center' }}>…and {rows.length - 50} more</td></tr>
+                  <tr><td colSpan={6} style={{ padding: '10px 14px', fontSize: '14px', color: 'var(--muted)', textAlign: 'center' }}>…and {rows.length - 50} more</td></tr>
                 )}
               </tbody>
             </table>
@@ -212,18 +212,18 @@ export default function AdminFarmImport() {
 
       <div style={card}>
         <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
-          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--muted)' }}>{t.defaultPassword}</span>
+          <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--muted)' }}>{t.defaultPassword}</span>
           <input type="password" value={password} onChange={e => setPassword(e.target.value)} minLength={8}
-            style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '14px' }} />
-          <span style={{ fontSize: '12px', color: 'var(--muted)' }}>{t.passwordHint}</span>
+            style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '16px' }} />
+          <span style={{ fontSize: '14px', color: 'var(--muted)' }}>{t.passwordHint}</span>
         </label>
 
         {error && (
-          <div style={{ color: '#e53935', fontSize: '13px', padding: '8px 12px', background: '#e5393512', borderRadius: '8px', marginBottom: '12px' }}>⚠️ {error}</div>
+          <div style={{ color: '#e53935', fontSize: '15px', padding: '8px 12px', background: '#e5393512', borderRadius: '8px', marginBottom: '12px' }}>⚠️ {error}</div>
         )}
 
         <button type="button" onClick={handleImport} disabled={importing || rows.length === 0}
-          style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', background: '#7c3aed', color: '#fff', fontWeight: 600, fontSize: '14px', cursor: 'pointer', opacity: (importing || rows.length === 0) ? 0.6 : 1 }}>
+          style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', background: '#7c3aed', color: '#fff', fontWeight: 600, fontSize: '16px', cursor: 'pointer', opacity: (importing || rows.length === 0) ? 0.6 : 1 }}>
           {importing ? t.importing : t.importBtn(rows.length)}
         </button>
       </div>
@@ -231,13 +231,13 @@ export default function AdminFarmImport() {
       {result && (
         <div style={{ ...card, borderColor: '#2d6a4f44', background: '#2d6a4f0a' }}>
           <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-            <div><div style={{ fontSize: '28px', fontWeight: 700, color: '#1565c0' }}>{result.created_users}</div><div style={{ fontSize: '12px', color: 'var(--muted)' }}>{t.resultUsers}</div></div>
-            <div><div style={{ fontSize: '28px', fontWeight: 700, color: '#2d6a4f' }}>{result.created_farms}</div><div style={{ fontSize: '12px', color: 'var(--muted)' }}>{t.resultFarms}</div></div>
-            <div><div style={{ fontSize: '28px', fontWeight: 700, color: '#f57c00' }}>{result.skipped}</div><div style={{ fontSize: '12px', color: 'var(--muted)' }}>{t.resultSkipped}</div></div>
-            <div><div style={{ fontSize: '28px', fontWeight: 700, color: '#e53935' }}>{result.errors?.length || 0}</div><div style={{ fontSize: '12px', color: 'var(--muted)' }}>{t.resultErrors}</div></div>
+            <div><div style={{ fontSize: '28px', fontWeight: 700, color: '#1565c0' }}>{result.created_users}</div><div style={{ fontSize: '14px', color: 'var(--muted)' }}>{t.resultUsers}</div></div>
+            <div><div style={{ fontSize: '28px', fontWeight: 700, color: '#2d6a4f' }}>{result.created_farms}</div><div style={{ fontSize: '14px', color: 'var(--muted)' }}>{t.resultFarms}</div></div>
+            <div><div style={{ fontSize: '28px', fontWeight: 700, color: '#f57c00' }}>{result.skipped}</div><div style={{ fontSize: '14px', color: 'var(--muted)' }}>{t.resultSkipped}</div></div>
+            <div><div style={{ fontSize: '28px', fontWeight: 700, color: '#e53935' }}>{result.errors?.length || 0}</div><div style={{ fontSize: '14px', color: 'var(--muted)' }}>{t.resultErrors}</div></div>
           </div>
           {result.errors?.length > 0 && (
-            <div style={{ marginTop: '12px', fontSize: '12px', color: '#e53935' }}>
+            <div style={{ marginTop: '12px', fontSize: '14px', color: '#e53935' }}>
               {result.errors.map((e, i) => <div key={i}>{e.email}: {e.error}</div>)}
             </div>
           )}
