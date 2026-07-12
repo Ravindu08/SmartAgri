@@ -75,7 +75,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="navbar">
+    <header className={`navbar${menuOpen ? ' navbar--menu-open' : ''}`}>
       <Link className="navbar__brand" to="/" onClick={close}>
         <span className="navbar__logo">🌿</span>
         <div className="navbar__brand-text">
