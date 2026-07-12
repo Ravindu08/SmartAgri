@@ -24,6 +24,17 @@
   transition: background 0.3s ease, border-color 0.3s ease;
   overflow: hidden;
 }
+/* .navbar's own backdrop-filter makes it a CSS "containing block" for any
+   position:fixed descendant (spec behavior for filter/backdrop-filter,
+   same family as transform/perspective/will-change). The mobile dropdown
+   (.navbar__links.open) is position:fixed and lives inside .navbar, so
+   combined with overflow:hidden + .navbar's own ~72px height, the entire
+   open panel was being visually clipped down to that 72px strip —
+   invisible, even though the click/state toggle worked perfectly and
+   every layout-geometry check (getBoundingClientRect etc.) still reported
+   correct numbers, since clipping is a paint-time effect, not a layout
+   one. Relax the clip only while the menu is actually open. */
+.navbar--menu-open { overflow: visible; }
 .navbar::after {
   content: '';
   position: absolute;
