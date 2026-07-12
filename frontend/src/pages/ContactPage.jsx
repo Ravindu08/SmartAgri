@@ -89,6 +89,7 @@ export default function ContactPage() {
   const handleReset = () => { setForm({ name: '', email: '', subject: '', message: '' }); setSent(false); };
 
   return (
+    <div className="page-wrapper">
     <div className="contact-page">
       <div className="contact-hero">
         <div className="contact-hero-inner">
@@ -187,6 +188,7 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

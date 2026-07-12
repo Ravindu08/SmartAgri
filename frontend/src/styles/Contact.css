@@ -1,9 +1,7 @@
 /* SmartAgri — Contact Page */
 
 .contact-page {
-  padding-top: var(--nav-h);
   padding-bottom: 72px;
-  min-height: 100vh;
 }
 
 /* ── Hero ── */
@@ -80,7 +78,7 @@
 
 /* ── Body ── */
 .contact-body {
-  max-width: 1140px;
+  max-width: 1320px;
   margin: 0 auto;
   padding: 40px 28px 16px;
 }
@@ -88,8 +86,8 @@
 
 .contact-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 44px;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 56px;
   align-items: start;
 }
 @media (max-width: 768px) {
