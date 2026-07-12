@@ -3,6 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { adminRequest, downloadAdminCSV } from '../../services/api';
 import { useApp } from '../../context/AppContext';
 import CustomSelect from '../../components/CustomSelect';
+import { SkeletonTable } from '../../components/Skeleton';
+import Pagination from '../../components/Pagination';
+
+const PAGE_SIZE = 10;
 
 const T = {
   en: {
@@ -60,6 +64,7 @@ export default function AdminUsers() {
   const [search, setSearch]   = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [toast, setToast]     = useState('');
+  const [page, setPage]       = useState(1);
 
   const loadUsers = () => {
     setLoading(true);
@@ -70,6 +75,10 @@ export default function AdminUsers() {
   };
 
   useEffect(() => { loadUsers(); }, [search, roleFilter]);
+  useEffect(() => { setPage(1); }, [search, roleFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(users.length / PAGE_SIZE));
+  const pageUsers = users.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 2500); };
 
@@ -139,10 +148,10 @@ export default function AdminUsers() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>{t.loading}</div>
+        <SkeletonTable rows={6} cols={5} />
       ) : (
-        <div style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', overflowX: 'auto' }}>
+          <table style={{ width: '100%', minWidth: '760px', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
                 {headers.map(h => (
@@ -151,7 +160,7 @@ export default function AdminUsers() {
               </tr>
             </thead>
             <tbody>
-              {users.map(u => (
+              {pageUsers.map(u => (
                 <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: '12px 16px' }}>
                     <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text)' }}>{u.full_name}</div>
@@ -213,6 +222,7 @@ export default function AdminUsers() {
           </table>
         </div>
       )}
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
     </div>
   );
 }

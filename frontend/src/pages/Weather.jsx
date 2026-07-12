@@ -275,6 +275,7 @@ export default function Weather({ lang, onWeatherFetched }) {
   };
 
   return (
+    <div className="page-wrapper">
     <div className="wx-page">
       {/* Hero */}
       <div className="wx-hero">
@@ -472,6 +473,7 @@ export default function Weather({ lang, onWeatherFetched }) {
           </>
         )}
       </div>
+    </div>
     </div>
   );
 }

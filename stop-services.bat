@@ -10,9 +10,9 @@ echo.
 
 REM ── Step 1: Kill the cmd windows by title (takes down the whole process tree) ─
 echo  Closing service windows...
-taskkill /F /T /FI "WINDOWTITLE eq SmartAgri | Backend :8000"   >nul 2>&1
-taskkill /F /T /FI "WINDOWTITLE eq SmartAgri | ML Service :8001" >nul 2>&1
-taskkill /F /T /FI "WINDOWTITLE eq SmartAgri | Frontend :5173"  >nul 2>&1
+taskkill /F /T /FI "WINDOWTITLE eq SmartAgri - Backend :8000"   >nul 2>&1
+taskkill /F /T /FI "WINDOWTITLE eq SmartAgri - ML Service :8001" >nul 2>&1
+taskkill /F /T /FI "WINDOWTITLE eq SmartAgri - Frontend :5173"  >nul 2>&1
 
 timeout /t 1 /nobreak >nul
 

@@ -195,7 +195,7 @@
    MODE TOGGLE
 ══════════════════════════════════════════════════════ */
 .mode-bar {
-  max-width: 1140px;
+  max-width: 1320px;
   margin: 32px auto 18px;
   padding: 0 28px;
 }
@@ -240,7 +240,7 @@
    FORM CARD
 ══════════════════════════════════════════════════════ */
 .card {
-  max-width: 1140px;
+  max-width: 1320px;
   margin: 0 auto 22px;
   padding: 0 28px;
 }
@@ -507,7 +507,7 @@
    ALERT BARS
 ══════════════════════════════════════════════════════ */
 .alert-bar {
-  max-width: 1140px;
+  max-width: 1320px;
   margin: 0 auto 18px;
   padding: 0 28px;
 }
@@ -549,7 +549,7 @@
    RESULT CARD — top recommended crop
 ══════════════════════════════════════════════════════ */
 .rw {
-  max-width: 1140px;
+  max-width: 1320px;
   margin: 0 auto 22px;
   padding: 0 28px;
   animation: slideUp .4s ease;
@@ -758,7 +758,7 @@
 /* ══════════════════════════════════════════════════════
    XAI CARD
 ══════════════════════════════════════════════════════ */
-.xai-card { max-width: 1140px; margin: 0 auto 22px; padding: 0 28px; animation: slideUp .48s .06s both; }
+.xai-card { max-width: 1320px; margin: 0 auto 22px; padding: 0 28px; animation: slideUp .48s .06s both; }
 
 .xai-inner {
   background: var(--card);
@@ -877,7 +877,7 @@
 /* ══════════════════════════════════════════════════════
    PLANTING CALENDAR
 ══════════════════════════════════════════════════════ */
-.cal-card  { max-width: 1140px; margin: 0 auto 22px; padding: 0 28px; animation: slideUp .48s .12s both; }
+.cal-card  { max-width: 1320px; margin: 0 auto 22px; padding: 0 28px; animation: slideUp .48s .12s both; }
 .cal-inner { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-md); overflow: hidden; }
 .cal-hdr   { padding: 18px 28px 14px; border-bottom: 1px solid var(--border-soft); background: var(--green-subtle); }
 .cal-title { font-size: 15.5px; font-weight: 700; color: var(--text); letter-spacing: -0.2px; }
@@ -894,7 +894,7 @@
 /* ══════════════════════════════════════════════════════
    CROP INFO CARD
 ══════════════════════════════════════════════════════ */
-.ci-card  { max-width: 1140px; margin: 0 auto 22px; padding: 0 28px; animation: slideUp .48s .18s both; }
+.ci-card  { max-width: 1320px; margin: 0 auto 22px; padding: 0 28px; animation: slideUp .48s .18s both; }
 .ci-inner { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-md); overflow: hidden; }
 .ci-hdr   { padding: 18px 28px 14px; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; gap: 10px; background: var(--green-subtle); }
 .ci-title { font-size: 15.5px; font-weight: 700; color: var(--text); letter-spacing: -0.2px; }
@@ -942,7 +942,7 @@
 /* ══════════════════════════════════════════════════════
    COMPARE CARD
 ══════════════════════════════════════════════════════ */
-.cmp-card  { max-width: 1140px; margin: 0 auto 22px; padding: 0 28px; animation: slideUp .48s .24s both; }
+.cmp-card  { max-width: 1320px; margin: 0 auto 22px; padding: 0 28px; animation: slideUp .48s .24s both; }
 .cmp-inner { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-md); overflow: hidden; }
 .cmp-hdr   { padding: 18px 28px 14px; border-bottom: 1px solid var(--border-soft); background: var(--green-subtle); }
 .cmp-title { font-size: 15.5px; font-weight: 700; color: var(--text); letter-spacing: -0.2px; }
@@ -971,7 +971,7 @@
    HISTORY PANEL
 ══════════════════════════════════════════════════════ */
 .hist-card {
-  max-width: 1140px;
+  max-width: 1320px;
   margin: 24px auto 0;
   padding: 0 28px;
   animation: fadeInUp 0.4s ease;

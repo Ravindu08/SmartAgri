@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { adminRequest } from '../../services/api';
 import { useApp } from '../../context/AppContext';
+import { SkeletonTable } from '../../components/Skeleton';
 
 const T = {
   en: {
@@ -80,7 +81,7 @@ export default function AdminFeedback() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>{t.loading}</div>
+        <SkeletonTable rows={5} cols={3} />
       ) : items.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px', color: 'var(--muted)' }}>{t.noFeedback}</div>
       ) : (

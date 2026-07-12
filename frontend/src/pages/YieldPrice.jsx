@@ -119,6 +119,7 @@ export default function YieldPrice({ lang }) {
   const priceValid = parseFloat(priceEstYield) > 0;
 
   return (
+    <div className="page-wrapper">
     <div className="yp-page-wrapper">
       {/* ── Hero ── */}
       <div className="yp-hero">
@@ -379,6 +380,7 @@ export default function YieldPrice({ lang }) {
         </div>
       </div>
       </div>
+    </div>
     </div>
   );
 }
