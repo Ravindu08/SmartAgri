@@ -2,8 +2,6 @@
 SmartAgri payment tests — run with: pytest backend/tests/test_payments.py -v
 Requires the conftest.py in this directory to run first (sets env + patches dotenv).
 """
-import os
-
 import pytest
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import sessionmaker
@@ -12,15 +10,11 @@ from sqlalchemy.pool import StaticPool
 from app.db.database import Base
 from app.core.security import hash_password
 from app.models.marketplace import MarketplaceListing, MarketplaceOrder, MarketplaceOrderStatus, OrderPaymentStatus
-from app.models.payment import Payment
+from app.models.payment import Payment, PaymentStatus
 from app.models.user import User, UserRole
 from app.schemas.marketplace import MarketplaceOrderStatusUpdate
 from app.services.marketplace_service import update_order_status
-from app.services.payment_service import build_notify_signature, build_payhere_hash, init_payment, verify_notify_signature
-
-os.environ.setdefault("PAYHERE_MERCHANT_ID", "1211149")
-os.environ.setdefault("PAYHERE_MERCHANT_SECRET", "test-secret")
-os.environ.setdefault("PAYHERE_NOTIFY_URL", "https://example.test/api/payments/payhere/notify")
+from app.services.payment_service import simulate_payment
 
 _engine = create_engine(
     "sqlite:///:memory:",
@@ -71,43 +65,6 @@ def _make_order(db, *, payment_status: OrderPaymentStatus) -> MarketplaceOrder:
     return order
 
 
-# ── Hash / signature ─────────────────────────────────────────────────────────
-
-def test_build_payhere_hash_is_deterministic_uppercase_hex():
-    h1 = build_payhere_hash("1211149", "order-1", "1000.00", "LKR", "secret123")
-    h2 = build_payhere_hash("1211149", "order-1", "1000.00", "LKR", "secret123")
-    assert h1 == h2
-    assert h1 == h1.upper()
-    assert len(h1) == 32
-    int(h1, 16)  # valid hex
-
-
-def test_build_payhere_hash_changes_with_amount():
-    h1 = build_payhere_hash("1211149", "order-1", "1000.00", "LKR", "secret123")
-    h2 = build_payhere_hash("1211149", "order-1", "2000.00", "LKR", "secret123")
-    assert h1 != h2
-
-
-def test_verify_notify_signature_valid():
-    sig = build_notify_signature("1211149", "order-1", "1000.00", "LKR", "2", "secret123")
-    payload = {
-        "merchant_id": "1211149", "order_id": "order-1",
-        "payhere_amount": "1000.00", "payhere_currency": "LKR",
-        "status_code": "2", "md5sig": sig,
-    }
-    assert verify_notify_signature(payload, "secret123") is True
-
-
-def test_verify_notify_signature_tampered_rejected():
-    sig = build_notify_signature("1211149", "order-1", "1000.00", "LKR", "2", "secret123")
-    payload = {
-        "merchant_id": "1211149", "order_id": "order-1",
-        "payhere_amount": "9999.00",  # attacker changes the amount, keeps old sig
-        "payhere_currency": "LKR", "status_code": "2", "md5sig": sig,
-    }
-    assert verify_notify_signature(payload, "secret123") is False
-
-
 # ── State-machine gate ────────────────────────────────────────────────────────
 
 def test_delivered_blocked_when_unpaid():
@@ -127,19 +84,29 @@ def test_delivered_allowed_when_paid():
     db.close()
 
 
-def test_init_payment_is_idempotent_while_unsettled():
-    """Regression test: repeated calls (double-clicks, retries, or React
-    effects re-firing under StrictMode in dev) must not spawn a new Payment
-    row each time — they should reuse the same in-flight (Initiated) one."""
+# ── Simulated payment ──────────────────────────────────────────────────────────
+
+def test_simulate_payment_marks_order_paid():
     db = TestingSessionLocal()
     order = _make_order(db, payment_status=OrderPaymentStatus.UNPAID)
 
-    payment1, payload1 = init_payment(db, order)
-    payment2, payload2 = init_payment(db, order)
+    payment = simulate_payment(db, order)
 
-    assert payment1.id == payment2.id
-    assert payload1["order_id"] == payload2["order_id"]
+    assert payment.status == PaymentStatus.PAID
+    assert payment.amount == order.agreed_price * order.requested_quantity
+    assert order.payment_status == OrderPaymentStatus.PAID
+    assert order.paid_at is not None
 
     count = db.execute(select(func.count()).select_from(Payment).where(Payment.order_id == order.id)).scalar()
     assert count == 1
+    db.close()
+
+
+def test_simulate_payment_rejects_if_already_paid():
+    db = TestingSessionLocal()
+    order = _make_order(db, payment_status=OrderPaymentStatus.UNPAID)
+    simulate_payment(db, order)
+
+    with pytest.raises(ValueError, match="already paid"):
+        simulate_payment(db, order)
     db.close()

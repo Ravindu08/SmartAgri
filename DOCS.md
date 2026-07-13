@@ -145,7 +145,7 @@ SmartAgri/
 │   │   │   ├── marketplace.py          # /api/marketplace/* endpoints (listings, orders, negotiation)
 │   │   │   ├── notifications.py        # /api/notifications/* endpoints
 │   │   │   ├── ratings.py              # /api/ratings/* endpoints
-│   │   │   ├── payments.py             # PayHere checkout init/webhook/status endpoints
+│   │   │   ├── payments.py             # Simulated checkout endpoint (no real gateway)
 │   │   │   └── admin.py                # /api/admin/* endpoints (23 endpoints)
 │   │   ├── models/
 │   │   │   ├── user.py                 # User (roles JSON, is_suspended, is_verified, email tokens)
@@ -155,7 +155,7 @@ SmartAgri/
 │   │   │   ├── marketplace.py          # MarketplaceListing, MarketplaceOrder, MarketplaceNegotiationMessage
 │   │   │   ├── notification.py         # Notification
 │   │   │   ├── rating.py               # Rating
-│   │   │   ├── payment.py              # Payment (PayHere checkout attempts)
+│   │   │   ├── payment.py              # Payment (simulated checkout attempts)
 │   │   │   └── activity.py             # UserActivity, Feedback
 │   │   ├── schemas/
 │   │   │   ├── auth.py                 # UserRegister, UserLogin, AuthResponse
@@ -171,18 +171,17 @@ SmartAgri/
 │   │   │   ├── marketplace_service.py  # Listing/order CRUD, order status state machine
 │   │   │   ├── notification_service.py # create_notification
 │   │   │   ├── email.py                # SMTP sending (console fallback in dev)
-│   │   │   └── payment_service.py      # PayHere hash/signature, init/apply payment
+│   │   │   └── payment_service.py      # simulate_payment() — no real gateway wired up
 │   │   ├── core/
 │   │   │   ├── security.py             # JWT creation/verification, password hashing
 │   │   │   ├── deps.py                 # get_db, get_current_user, get_current_land_owner, get_current_trader
-│   │   │   ├── limiter.py              # slowapi rate limiter instance
-│   │   │   └── payment_config.py       # PAYHERE_* env var readers
+│   │   │   └── limiter.py              # slowapi rate limiter instance
 │   │   └── db/
 │   │       └── database.py             # SQLAlchemy engine, SessionLocal, Base
 │   │
 │   └── tests/
 │       ├── test_main_api.py            # Main API tests (pytest) — run in CI
-│       ├── test_payments.py            # PayHere hash/signature + payment-gate tests — run in CI
+│       ├── test_payments.py            # Payment-gate + simulated-checkout tests — run in CI
 │       └── test_api.py                 # ML API tests (pytest) — requires loaded ML models, not run in CI
 │
 └── frontend/
@@ -223,7 +222,7 @@ SmartAgri/
         │   ├── WeatherLocationPicker.jsx  # District picker + live weather banner
         │   ├── WeatherLocationPicker.css
         │   ├── CultivationTracker.jsx  # Cultivation task tracking UI component
-        │   └── PayDialog.jsx           # Shared PayHere checkout modal (Marketplace + Trader Orders)
+        │   └── PayDialog.jsx           # Shared simulated-checkout modal (Marketplace + Trader Orders)
         │
         ├── pages/
         │   ├── HomePage.jsx            # Landing page (public)
@@ -522,15 +521,14 @@ Full-featured FastAPI app with PostgreSQL persistence. At startup it runs Alembi
 | `routers/marketplace.py` | `/api/marketplace/*` — listings, orders, order lifecycle, negotiation |
 | `routers/notifications.py` | `/api/notifications/*` — list, unread count, mark read |
 | `routers/ratings.py` | `/api/ratings/*` — submit/read order ratings, seller aggregate |
-| `routers/payments.py` | PayHere checkout init, signature-verified webhook, payment status polling |
+| `routers/payments.py` | Simulated checkout — one endpoint, no real gateway |
 | `routers/admin.py` | `/api/admin/*` — 23 admin endpoints (users, farms, activity, feedback, reports, marketplace, bulk import, harvest forecast, CSV exports) |
 | `models/` | SQLAlchemy ORM models: User, Farm, Crop, CultivationSession, CultivationTask, MarketplaceListing, MarketplaceOrder, MarketplaceNegotiationMessage, Notification, Rating, Payment, UserActivity, Feedback |
 | `schemas/` | Pydantic request/response models |
-| `services/` | Business logic layer (auth, farm, crop, marketplace CRUD; notifications; email; PayHere payment logic) |
+| `services/` | Business logic layer (auth, farm, crop, marketplace CRUD; notifications; email; simulated payment logic) |
 | `core/security.py` | JWT creation/verification, password hashing (pbkdf2_sha256) |
 | `core/deps.py` | FastAPI dependencies: `get_db`, `get_current_user`, `get_current_land_owner`, `get_current_trader` |
 | `core/limiter.py` | slowapi rate limiter, applied per-route via `@limiter.limit(...)` |
-| `core/payment_config.py` | Reads `PAYHERE_MERCHANT_ID`/`SECRET`/`MODE`/`NOTIFY_URL` from env; raises only when a payment endpoint is actually called, so the app still boots without them configured |
 | `db/database.py` | SQLAlchemy engine, `SessionLocal`, declarative `Base` |
 
 **Database schema:**
@@ -547,7 +545,7 @@ Full-featured FastAPI app with PostgreSQL persistence. At startup it runs Alembi
 | `marketplace_negotiation_messages` | `id` (int) | `order_id` → orders.id (CASCADE); `sender_id` → users.id; `message`, `proposed_price`, `created_at` — append-only thread; the "current offer" is snapshotted onto the order's own `buyer_note`/`seller_note`/`counter_offer_price` |
 | `notifications` | `id` (int) | `user_id` → users.id; `type`, `title`, `message`, `is_read` (bool), `created_at` |
 | `ratings` | `id` (int) | `order_id` → orders.id (unique); `reviewer_id` / `seller_id` → users.id; `score` (1–5), `comment`, `created_at` |
-| `payments` | `id` (UUID) | `order_id` → orders.id (CASCADE); `amount` (Numeric), `currency` (default `LKR`); `status`: Initiated/Paid/Failed/Cancelled/Chargedback; `payhere_payment_id`, `raw_notify_payload`, `created_at`, `updated_at`. One row per checkout attempt — `init_payment()` reuses an existing `Initiated` row for the same order instead of creating a new one on every call |
+| `payments` | `id` (UUID) | `order_id` → orders.id (CASCADE); `amount` (Numeric), `currency` (default `LKR`); `status`: Initiated/Paid/Failed/Cancelled/Chargedback (only `Paid` is actually used — the enum was sized for a real gateway's states); `payhere_payment_id`, `raw_notify_payload` (both unused, vestigial from the removed PayHere integration, left nullable rather than migrating them away); `created_at`, `updated_at`. One row per simulated payment |
 | `user_activity` | `id` (int) | `actor_id` (int, not name), `action`, `target`, `timestamp` |
 | `feedback` | `id` (int) | `user_id` → users.id; `type`, `subject`, `message`; `status`: open/resolved; `reply` text |
 
@@ -908,7 +906,7 @@ Deletes the authenticated user's account. Returns `204`.
 | `POST` | `/api/marketplace/orders` | Trader / Land Owner | Place a purchase request |
 | `PUT` | `/api/marketplace/orders/{id}/status` | Seller / Buyer | Update order status |
 
-Order status lifecycle: `Pending → Confirmed` (seller) `→ Delivered` (seller) `→ Completed` (buyer), or `Rejected` / `Cancelled`. The `Confirmed → Delivered` transition is blocked server-side until the buyer pays (see Payments below) — `payment_status` must be `Paid`.
+Order status lifecycle: `Pending → Confirmed` (seller) `→ Delivered` (seller) `→ Completed` (buyer), or `Rejected` / `Cancelled`. The `Confirmed → Delivered` transition is blocked server-side until the buyer pays (see Payments below, currently a simulated checkout) — `payment_status` must be `Paid`.
 Seller phone number is included in the order response (`seller_phone`).
 
 ---
@@ -950,15 +948,15 @@ Ratings can only be submitted once per order, and only after the order reaches `
 
 ---
 
-#### Payments — PayHere checkout
+#### Payments — simulated checkout
+
+No real payment gateway is integrated. PayHere was the original plan, but its sandbox signup requires business/ownership verification a student project can't provide, so checkout is a self-contained simulator instead — a fake card-entry form (`PayDialog.jsx`) that, after a short delay, calls this endpoint to mark the order paid directly.
 
 | Method | Path | Who | Description |
 |---|---|---|---|
-| `POST` | `/api/marketplace/orders/{order_id}/payment/init` | Buyer | Order must be `Confirmed` and not already paid. Computes the total server-side from `agreed_price × requested_quantity` (never trusts a client amount), returns the full PayHere checkout payload (merchant id, hash, buyer details, sandbox flag). Idempotent — repeated calls before payment settles reuse the same `Initiated` `Payment` row rather than creating a new one. Returns `503` if `PAYHERE_MERCHANT_ID`/`SECRET` aren't configured in `.env`. |
-| `GET` | `/api/marketplace/orders/{order_id}/payment` | Buyer or seller | Latest payment attempt's status for this order — the frontend polls this after PayHere's client-side checkout completes, since the DB only flips to `Paid` once the webhook below has landed. |
-| `POST` | `/api/payments/payhere/notify` | PayHere (server-to-server, no auth) | Webhook. Verifies `md5sig` against `PAYHERE_MERCHANT_SECRET` before trusting anything in the payload; on `status_code=2` (success) marks the `Payment` and the order `Paid`, notifies the seller in-app and by email. |
+| `POST` | `/api/marketplace/orders/{order_id}/payment/simulate` | Buyer | Order must be `Confirmed` and not already paid. Computes the total server-side from `agreed_price × requested_quantity` (never trusts a client amount), creates a `Payment` row already in `Paid` status, and sets the order's `payment_status=Paid` + `paid_at` — synchronously, in the same request. Notifies the seller in-app and by email. Returns `400` if the order isn't `Confirmed` or is already paid. |
 
-Once `payment_status=Paid`, the order's `Confirmed → Delivered` transition (blocked otherwise — see `update_order_status` in `marketplace_service.py`) becomes available to the seller. Requires `PAYHERE_MERCHANT_ID`, `PAYHERE_MERCHANT_SECRET`, `PAYHERE_MODE` (`sandbox`/`live`), and `PAYHERE_NOTIFY_URL` (must be a publicly reachable HTTPS URL — PayHere cannot call `localhost`) in `backend/.env`.
+Once `payment_status=Paid`, the order's `Confirmed → Delivered` transition (blocked otherwise — see `update_order_status` in `marketplace_service.py`) becomes available to the seller.
 
 ---
 
@@ -1081,14 +1079,13 @@ Once `payment_status=Paid`, the order's `Confirmed → Delivered` transition (bl
 - **Admin bulk import:** `AdminUserImport.jsx` / `AdminFarmImport.jsx` + `POST /api/admin/users/bulk` / `/api/admin/farms/bulk` — create many users or farms from an uploaded CSV in one action.
 - **Admin harvest forecast:** `AdminHarvestForecast.jsx` + `GET /api/admin/harvest-forecast` — upcoming harvest dates derived from active cultivation sessions across all farms, filterable by district, exportable as CSV.
 
-### v8.0 — PayHere payment gateway (2026-07-13)
+### v8.0 — Payment step added to the order lifecycle (2026-07-13)
 
-- **Payment step added to the order lifecycle:** after the seller confirms an order, the buyer must pay via PayHere (sandbox) before the seller can mark it `Delivered` — enforced server-side in `update_order_status()`, not just in the UI.
-- **New `payments` table and `Payment` model:** one row per checkout attempt (`Initiated`/`Paid`/`Failed`/`Cancelled`/`Chargedback`); `marketplace_orders` gained `payment_status` (`Unpaid`/`Paid`) and `paid_at`.
-- **New `routers/payments.py`:** checkout init (`POST .../payment/init`, idempotent), a signature-verified webhook (`POST /api/payments/payhere/notify`), and a status-polling endpoint (`GET .../payment`).
-- **New shared `PayDialog.jsx` component:** loads PayHere's JS SDK on demand, used from both `MarketplacePage.jsx` and `TraderOrders.jsx`.
+- **Payment step added to the order lifecycle:** after the seller confirms an order, the buyer must pay before the seller can mark it `Delivered` — enforced server-side in `update_order_status()`, not just in the UI.
+- **New `payments` table and `Payment` model:** `marketplace_orders` gained `payment_status` (`Unpaid`/`Paid`) and `paid_at`.
+- **New shared `PayDialog.jsx` component:** a checkout modal, used from both `MarketplacePage.jsx` and `TraderOrders.jsx`.
 - **Receipt PDF:** `exportReceiptPDF()` in `MarketplacePage.jsx`, modeled on the existing `exportSessionPDF()` pattern — downloadable once an order is paid.
-- Requires `PAYHERE_MERCHANT_ID`, `PAYHERE_MERCHANT_SECRET`, `PAYHERE_MODE`, `PAYHERE_NOTIFY_URL` in `backend/.env` (see `.env.example`) — not yet configured as of this writing, so the checkout flow currently stops at a clear "not configured" error rather than completing.
+- **Initially built against PayHere** (Sri Lanka's local gateway) with a signature-verified webhook and hosted checkout redirect. **Replaced the same day** — PayHere's sandbox signup turned out to require business/ownership/integration details a student project can't provide. `routers/payments.py` and `services/payment_service.py` now implement a self-contained simulated checkout instead (`POST .../payment/simulate` — one endpoint, no external config, no webhook): `PayDialog.jsx` shows a clearly-labeled "Demo Mode" fake card form that, after a short delay, marks the order paid directly. Everything downstream (the `payment_status` gate, the `payments` table, the receipt PDF) is unaffected by which mechanism reaches `Paid`.
 
 ---
 
