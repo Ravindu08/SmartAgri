@@ -1,6 +1,6 @@
 # SmartAgri — Complete Project Documentation
 
-**ML Service v5.3 · Main API v1.0** | AI-Powered Agribusiness Platform for Sri Lanka
+**ML Service v5.3 · Main API v8.0** | AI-Powered Agribusiness Platform for Sri Lanka
 
 ---
 
@@ -111,7 +111,7 @@ SmartAgri/
 │   ├── alembic.ini                     # Alembic configuration
 │   │
 │   ├── alembic/
-│   │   └── versions/                   # 13 migration files (applied automatically on startup)
+│   │   └── versions/                   # 19 migration files (applied automatically on startup)
 │   │
 │   ├── datasets/
 │   │   ├── merged_all_crops_clean.csv  # Training dataset: 17,768 rows, 34 crops
@@ -138,36 +138,52 @@ SmartAgri/
 │   ├── app/                            # Main FastAPI app (port 8000)
 │   │   ├── main.py                     # App factory, CORS, lifespan, router registration
 │   │   ├── api/
-│   │   │   └── auth.py                 # /auth/* endpoints (register, login, me, password, delete)
+│   │   │   └── auth.py                 # /auth/* endpoints (register, verify, login, refresh, me, password, delete)
 │   │   ├── routers/
 │   │   │   ├── farm.py                 # /api/farms/* endpoints
 │   │   │   ├── crop.py                 # /api/* crop endpoints
-│   │   │   ├── marketplace.py          # /api/marketplace/* endpoints
-│   │   │   └── admin.py                # /api/admin/* endpoints (11 endpoints)
+│   │   │   ├── marketplace.py          # /api/marketplace/* endpoints (listings, orders, negotiation)
+│   │   │   ├── notifications.py        # /api/notifications/* endpoints
+│   │   │   ├── ratings.py              # /api/ratings/* endpoints
+│   │   │   ├── payments.py             # PayHere checkout init/webhook/status endpoints
+│   │   │   └── admin.py                # /api/admin/* endpoints (23 endpoints)
 │   │   ├── models/
 │   │   │   ├── user.py                 # User (roles JSON, is_suspended, is_verified, email tokens)
 │   │   │   ├── farm.py                 # Farm
 │   │   │   ├── crop.py                 # Crop (with relationship to Farm)
 │   │   │   ├── cultivation.py          # CultivationSession, CultivationTask
-│   │   │   ├── marketplace.py          # MarketplaceListing, MarketplaceOrder
+│   │   │   ├── marketplace.py          # MarketplaceListing, MarketplaceOrder, MarketplaceNegotiationMessage
+│   │   │   ├── notification.py         # Notification
+│   │   │   ├── rating.py               # Rating
+│   │   │   ├── payment.py              # Payment (PayHere checkout attempts)
 │   │   │   └── activity.py             # UserActivity, Feedback
 │   │   ├── schemas/
 │   │   │   ├── auth.py                 # UserRegister, UserLogin, AuthResponse
 │   │   │   ├── user.py                 # UserRead, UserUpdate, PasswordChange
 │   │   │   ├── farm.py                 # FarmCreate, FarmRead, FarmUpdate
-│   │   │   └── crop.py                 # CropCreate, CropRead, CropUpdate
+│   │   │   ├── crop.py                 # CropCreate, CropRead, CropUpdate
+│   │   │   ├── marketplace.py          # MarketplaceListingRead, MarketplaceOrderRead, etc.
+│   │   │   └── payment.py              # PaymentInitResponse, PaymentStatusRead
 │   │   ├── services/
 │   │   │   ├── auth.py                 # User CRUD, ensure_admin_user, role→redirect map
 │   │   │   ├── farm_service.py         # Farm CRUD
-│   │   │   └── crop_service.py         # Crop CRUD
+│   │   │   ├── crop_service.py         # Crop CRUD
+│   │   │   ├── marketplace_service.py  # Listing/order CRUD, order status state machine
+│   │   │   ├── notification_service.py # create_notification
+│   │   │   ├── email.py                # SMTP sending (console fallback in dev)
+│   │   │   └── payment_service.py      # PayHere hash/signature, init/apply payment
 │   │   ├── core/
 │   │   │   ├── security.py             # JWT creation/verification, password hashing
-│   │   │   └── deps.py                 # get_db, get_current_user, get_current_land_owner, get_current_trader
+│   │   │   ├── deps.py                 # get_db, get_current_user, get_current_land_owner, get_current_trader
+│   │   │   ├── limiter.py              # slowapi rate limiter instance
+│   │   │   └── payment_config.py       # PAYHERE_* env var readers
 │   │   └── db/
 │   │       └── database.py             # SQLAlchemy engine, SessionLocal, Base
 │   │
 │   └── tests/
-│       └── test_api.py                 # ML API tests (pytest)
+│       ├── test_main_api.py            # Main API tests (pytest) — run in CI
+│       ├── test_payments.py            # PayHere hash/signature + payment-gate tests — run in CI
+│       └── test_api.py                 # ML API tests (pytest) — requires loaded ML models, not run in CI
 │
 └── frontend/
     ├── index.html
@@ -206,7 +222,8 @@ SmartAgri/
         │   ├── HistoryPanel.jsx        # Prediction history (localStorage)
         │   ├── WeatherLocationPicker.jsx  # District picker + live weather banner
         │   ├── WeatherLocationPicker.css
-        │   └── CultivationTracker.jsx  # Cultivation task tracking UI component
+        │   ├── CultivationTracker.jsx  # Cultivation task tracking UI component
+        │   └── PayDialog.jsx           # Shared PayHere checkout modal (Marketplace + Trader Orders)
         │
         ├── pages/
         │   ├── HomePage.jsx            # Landing page (public)
@@ -246,11 +263,14 @@ SmartAgri/
         │       ├── AdminDashboard.jsx
         │       ├── AdminUsers.jsx      # User list, suspend/unsuspend/delete
         │       ├── AdminUserCreate.jsx
+        │       ├── AdminUserImport.jsx # Bulk-create users from CSV
         │       ├── AdminFarms.jsx
+        │       ├── AdminFarmImport.jsx # Bulk-create farms from CSV
         │       ├── AdminMarketplace.jsx
         │       ├── AdminActivity.jsx
         │       ├── AdminFeedback.jsx   # View, reply, resolve feedback tickets
-        │       └── AdminReports.jsx    # Stats charts + Export CSV
+        │       ├── AdminReports.jsx    # Stats charts + Export CSV
+        │       └── AdminHarvestForecast.jsx  # Upcoming harvests across all farms, by district
         │
         ├── services/
         │   └── api.js                  # fetch wrapper, auth session helpers, getActiveRole(), request()
@@ -322,13 +342,13 @@ cd backend
 python -m alembic upgrade head
 ```
 
-Migrations run automatically on startup via `_run_migrations()` in `main.py`. Running them manually on first setup ensures the database is ready before the ML service tries to access it. All tables are created: `users`, `farms`, `crops`, `cultivation_sessions`, `cultivation_tasks`, `marketplace_listings`, `marketplace_orders`, `user_activity`, `feedback`.
+Migrations run automatically on startup via `_run_migrations()` in `main.py`. Running them manually on first setup ensures the database is ready before the ML service tries to access it. All tables are created: `users`, `farms`, `crops`, `cultivation_sessions`, `cultivation_tasks`, `marketplace_listings`, `marketplace_orders`, `marketplace_negotiation_messages`, `notifications`, `ratings`, `payments`, `user_activity`, `feedback`.
 
 ### Start all services
 
 **Option A — One command:**
 ```
-start.bat
+start-services.bat
 ```
 Opens three terminal windows (kills old processes on 8000/8001/5173 first).
 
@@ -496,16 +516,21 @@ Full-featured FastAPI app with PostgreSQL persistence. At startup it runs Alembi
 
 | Module | Responsibility |
 |---|---|
-| `api/auth.py` | `/auth/*` — register, login, `/me` (read/update/password/delete) |
+| `api/auth.py` | `/auth/*` — register, login, refresh, `/me` (read/update/password/delete) |
 | `routers/farm.py` | `/api/farms/*` — CRUD, land-owner-only |
 | `routers/crop.py` | `/api/*` crop endpoints — CRUD, land-owner-only |
-| `routers/marketplace.py` | `/api/marketplace/*` — listings, orders, order lifecycle |
-| `routers/admin.py` | `/api/admin/*` — 11 admin endpoints (users, farms, activity, feedback, reports, marketplace) |
-| `models/` | SQLAlchemy ORM models: User, Farm, Crop, CultivationSession, CultivationTask, MarketplaceListing, MarketplaceOrder, UserActivity, Feedback |
+| `routers/marketplace.py` | `/api/marketplace/*` — listings, orders, order lifecycle, negotiation |
+| `routers/notifications.py` | `/api/notifications/*` — list, unread count, mark read |
+| `routers/ratings.py` | `/api/ratings/*` — submit/read order ratings, seller aggregate |
+| `routers/payments.py` | PayHere checkout init, signature-verified webhook, payment status polling |
+| `routers/admin.py` | `/api/admin/*` — 23 admin endpoints (users, farms, activity, feedback, reports, marketplace, bulk import, harvest forecast, CSV exports) |
+| `models/` | SQLAlchemy ORM models: User, Farm, Crop, CultivationSession, CultivationTask, MarketplaceListing, MarketplaceOrder, MarketplaceNegotiationMessage, Notification, Rating, Payment, UserActivity, Feedback |
 | `schemas/` | Pydantic request/response models |
-| `services/` | Business logic layer (auth, farm, crop CRUD) |
+| `services/` | Business logic layer (auth, farm, crop, marketplace CRUD; notifications; email; PayHere payment logic) |
 | `core/security.py` | JWT creation/verification, password hashing (pbkdf2_sha256) |
 | `core/deps.py` | FastAPI dependencies: `get_db`, `get_current_user`, `get_current_land_owner`, `get_current_trader` |
+| `core/limiter.py` | slowapi rate limiter, applied per-route via `@limiter.limit(...)` |
+| `core/payment_config.py` | Reads `PAYHERE_MERCHANT_ID`/`SECRET`/`MODE`/`NOTIFY_URL` from env; raises only when a payment endpoint is actually called, so the app still boots without them configured |
 | `db/database.py` | SQLAlchemy engine, `SessionLocal`, declarative `Base` |
 
 **Database schema:**
@@ -518,18 +543,19 @@ Full-featured FastAPI app with PostgreSQL persistence. At startup it runs Alembi
 | `cultivation_sessions` | `id` (UUID) | `crop_id` → crops.id (SET NULL), `farm_id` → farms.id (SET NULL) |
 | `cultivation_tasks` | `id` (varchar) | `session_id` → cultivation_sessions.id (CASCADE) |
 | `marketplace_listings` | `id` (int) | `seller_id` → users.id; `listing_type`, `location`, `image` columns |
-| `marketplace_orders` | `id` (UUID) | `listing_id` → listings.id, `buyer_id` / `seller_id` → users.id; status: Pending/Confirmed/Delivered/Completed/Rejected/Cancelled; `proposed_price`, `agreed_price`, `counter_offer_price`, `buyer_note`, `seller_note`, `accepted_at`, `delivered_at`, `completed_at` |
-| `marketplace_negotiations` | `id` (int) | `order_id` → orders.id; `sender_id` → users.id; `message`, `proposed_price`, `created_at` |
+| `marketplace_orders` | `id` (UUID) | `listing_id` → listings.id, `buyer_id` / `seller_id` → users.id; status: Pending/Confirmed/Delivered/Completed/Rejected/Cancelled; `proposed_price`, `agreed_price`, `counter_offer_price`, `buyer_note`, `seller_note`, `accepted_at`, `delivered_at`, `completed_at`; `payment_status`: Unpaid/Paid, `paid_at` |
+| `marketplace_negotiation_messages` | `id` (int) | `order_id` → orders.id (CASCADE); `sender_id` → users.id; `message`, `proposed_price`, `created_at` — append-only thread; the "current offer" is snapshotted onto the order's own `buyer_note`/`seller_note`/`counter_offer_price` |
 | `notifications` | `id` (int) | `user_id` → users.id; `type`, `title`, `message`, `is_read` (bool), `created_at` |
 | `ratings` | `id` (int) | `order_id` → orders.id (unique); `reviewer_id` / `seller_id` → users.id; `score` (1–5), `comment`, `created_at` |
+| `payments` | `id` (UUID) | `order_id` → orders.id (CASCADE); `amount` (Numeric), `currency` (default `LKR`); `status`: Initiated/Paid/Failed/Cancelled/Chargedback; `payhere_payment_id`, `raw_notify_payload`, `created_at`, `updated_at`. One row per checkout attempt — `init_payment()` reuses an existing `Initiated` row for the same order instead of creating a new one on every call |
 | `user_activity` | `id` (int) | `actor_id` (int, not name), `action`, `target`, `timestamp` |
 | `feedback` | `id` (int) | `user_id` → users.id; `type`, `subject`, `message`; `status`: open/resolved; `reply` text |
 
 **Authentication flow:**
-1. Client `POST /auth/register` → server creates account (`is_verified=false`), sends verification email
-2. User clicks link → `GET /auth/verify-email?token=…` → account activated
-3. Client `POST /auth/login` → server checks `is_verified` and `is_suspended`, then returns JWT
-4. Client stores token in localStorage; attaches it as `Authorization: Bearer <token>` on subsequent requests
+1. Client `POST /auth/register` with `roles: [...]` (array — a user can register as Land Owner, Trader, or both at once) → server creates account (`is_verified=false`), emails a 6-digit verification code
+2. User enters the code → `POST /auth/verify-email {email, code}` → account activated (code expires; `resend-verification` can issue a new one)
+3. Client `POST /auth/login` → server checks `is_verified` and `is_suspended`, then returns `{access_token, refresh_token, redirect_to, user}`
+4. Client stores both tokens in localStorage; attaches the access token as `Authorization: Bearer <token>` on subsequent requests; `POST /auth/refresh` exchanges the refresh token for a new access token when the access token expires (the frontend's `request()` wrapper does this automatically on a 401, then retries once)
 5. `get_current_user` dependency decodes the token on every protected route
 
 **Forgot password flow:**
@@ -587,11 +613,14 @@ All routes are defined in `App.jsx` using React Router v6:
 | `/admin/dashboard` | `AdminDashboard` | Admin JWT |
 | `/admin/users` | `AdminUsers` | Admin JWT |
 | `/admin/users/create` | `AdminUserCreate` | Admin JWT |
+| `/admin/users/import` | `AdminUserImport` | Admin JWT — bulk-create users from CSV |
 | `/admin/marketplace` | `AdminMarketplace` | Admin JWT |
 | `/admin/farms` | `AdminFarms` | Admin JWT |
+| `/admin/farms/import` | `AdminFarmImport` | Admin JWT — bulk-create farms from CSV |
 | `/admin/activity` | `AdminActivity` | Admin JWT |
 | `/admin/feedback` | `AdminFeedback` | Admin JWT |
 | `/admin/reports` | `AdminReports` | Admin JWT |
+| `/admin/harvest-forecast` | `AdminHarvestForecast` | Admin JWT — upcoming harvests across all farms |
 
 ### Layouts
 
@@ -758,23 +787,27 @@ Live conditions + 7-day forecast (Open-Meteo) + season-to-date rainfall + farm a
 
 #### Auth — `POST /auth/register`
 
-Registers a new **Land Owner** or **Trader** account (Admin cannot self-register).
+Registers a new account as **Land Owner**, **Trader**, or both at once (Admin cannot self-register). Rate-limited to 5/minute.
 
 ```json
-{ "full_name": "Sunil Perera", "email": "sunil@example.com", "password": "Secret@123", "role": "Land Owner" }
+{ "full_name": "Sunil Perera", "email": "sunil@example.com", "password": "Secret@123", "roles": ["Land Owner"] }
 ```
 
-Returns `201` with `{ message, email }`. The account is created but **not yet active** — the user must click the verification link emailed to them before logging in.
+Returns `201` with `{ message, email }`. The account is created but **not yet active** — the user must enter the 6-digit code emailed to them (`POST /auth/verify-email`) before logging in. If `EMAIL_ENABLED=false`, the account is auto-verified so local dev doesn't need a real mailbox.
 
-If the email already exists and the role is new, returns `200` with `{ message: "Role added …", redirect_to }`.
+If the email already exists and verified with a *different* role than requested, this call adds the new role to the existing account instead of erroring, returning `200` with `{ message: "Role added successfully...", email }`.
 
 #### Auth — `POST /auth/resend-verification?email=<email>`
 
-Resends the verification email. Always returns `200 { message }` regardless of whether the email exists (prevents enumeration).
+Issues a new verification code. Always returns `200 { message }` regardless of whether the email exists or is already verified (prevents enumeration). Rate-limited to 5/minute.
 
-#### Auth — `GET /auth/verify-email?token=<token>`
+#### Auth — `POST /auth/verify-email`
 
-Marks the account `is_verified=true` and clears the token. Returns `200 { message }` on success, `400` if the token is invalid or already used.
+```json
+{ "email": "sunil@example.com", "code": "482913" }
+```
+
+Marks the account `is_verified=true` and clears the code. Returns `200 { message }` on success, `400` if the code is wrong, expired, or the account is already verified.
 
 #### Auth — `POST /auth/login`
 
@@ -782,10 +815,19 @@ Marks the account `is_verified=true` and clears the token. Returns `200 { messag
 { "email": "sunil@example.com", "password": "Secret@123" }
 ```
 
-Returns `AuthResponse { access_token, token_type, redirect_to, user }`.
+Returns `AuthResponse { access_token, refresh_token, token_type, redirect_to, user }`.
 - `403 { detail: "EMAIL_NOT_VERIFIED" }` — account not yet verified
 - `403 { detail: "ACCOUNT_SUSPENDED" }` — account suspended by admin
 - `401` — wrong credentials
+- Rate-limited; repeated failed attempts from the same client eventually get `429`
+
+#### Auth — `POST /auth/refresh`
+
+```json
+{ "refresh_token": "<refresh_token>" }
+```
+
+Exchanges a valid refresh token for a new `{access_token, refresh_token}` pair. The frontend's `request()` wrapper calls this automatically on a `401` and retries the original request once.
 
 #### Auth — `POST /auth/forgot-password`
 
@@ -866,7 +908,7 @@ Deletes the authenticated user's account. Returns `204`.
 | `POST` | `/api/marketplace/orders` | Trader / Land Owner | Place a purchase request |
 | `PUT` | `/api/marketplace/orders/{id}/status` | Seller / Buyer | Update order status |
 
-Order status lifecycle: `Pending → Confirmed` (seller) `→ Delivered` (seller) `→ Completed` (buyer), or `Rejected` / `Cancelled`.
+Order status lifecycle: `Pending → Confirmed` (seller) `→ Delivered` (seller) `→ Completed` (buyer), or `Rejected` / `Cancelled`. The `Confirmed → Delivered` transition is blocked server-side until the buyer pays (see Payments below) — `payment_status` must be `Paid`.
 Seller phone number is included in the order response (`seller_phone`).
 
 ---
@@ -908,6 +950,18 @@ Ratings can only be submitted once per order, and only after the order reaches `
 
 ---
 
+#### Payments — PayHere checkout
+
+| Method | Path | Who | Description |
+|---|---|---|---|
+| `POST` | `/api/marketplace/orders/{order_id}/payment/init` | Buyer | Order must be `Confirmed` and not already paid. Computes the total server-side from `agreed_price × requested_quantity` (never trusts a client amount), returns the full PayHere checkout payload (merchant id, hash, buyer details, sandbox flag). Idempotent — repeated calls before payment settles reuse the same `Initiated` `Payment` row rather than creating a new one. Returns `503` if `PAYHERE_MERCHANT_ID`/`SECRET` aren't configured in `.env`. |
+| `GET` | `/api/marketplace/orders/{order_id}/payment` | Buyer or seller | Latest payment attempt's status for this order — the frontend polls this after PayHere's client-side checkout completes, since the DB only flips to `Paid` once the webhook below has landed. |
+| `POST` | `/api/payments/payhere/notify` | PayHere (server-to-server, no auth) | Webhook. Verifies `md5sig` against `PAYHERE_MERCHANT_SECRET` before trusting anything in the payload; on `status_code=2` (success) marks the `Payment` and the order `Paid`, notifies the seller in-app and by email. |
+
+Once `payment_status=Paid`, the order's `Confirmed → Delivered` transition (blocked otherwise — see `update_order_status` in `marketplace_service.py`) becomes available to the seller. Requires `PAYHERE_MERCHANT_ID`, `PAYHERE_MERCHANT_SECRET`, `PAYHERE_MODE` (`sandbox`/`live`), and `PAYHERE_NOTIFY_URL` (must be a publicly reachable HTTPS URL — PayHere cannot call `localhost`) in `backend/.env`.
+
+---
+
 #### Admin — Admin JWT required for all endpoints (`/api/admin/*`)
 
 | Method | Path | Description |
@@ -916,18 +970,25 @@ Ratings can only be submitted once per order, and only after the order reaches `
 | `POST` | `/api/admin/users` | Create a user account |
 | `PATCH` | `/api/admin/users/{id}` | Suspend or unsuspend a user (`{"is_suspended": true/false}`) |
 | `DELETE` | `/api/admin/users/{id}` | Delete a user |
-| `POST` | `/api/admin/users/{id}/resend-verification` | Resend verification email for an unverified user |
+| `POST` | `/api/admin/users/{id}/resend-verification` | Resend verification code for an unverified user |
+| `POST` | `/api/admin/users/bulk` | Bulk-create users from an uploaded CSV |
 | `GET` | `/api/admin/farms` | List all farms across all users |
+| `POST` | `/api/admin/farms/bulk` | Bulk-create farms from an uploaded CSV |
 | `GET` | `/api/admin/marketplace/listings` | All listings (any status) |
 | `PATCH` | `/api/admin/marketplace/listings/{id}/archive` | Archive a listing |
 | `GET` | `/api/admin/marketplace/orders` | All orders platform-wide |
 | `GET` | `/api/admin/activity` | User activity log |
 | `GET` | `/api/admin/feedback` | All feedback submissions |
-| `POST` | `/api/admin/feedback/{id}/reply` | Reply to or resolve a feedback ticket |
+| `DELETE` | `/api/admin/feedback/{id}` | Delete a feedback submission |
+| `POST` | `/api/admin/feedback/{id}/reply` | Reply to and resolve a feedback ticket |
+| `POST` | `/api/admin/submit-feedback` | Submit feedback (any authenticated user — this is what the "Send Feedback" sidebar button calls) |
 | `GET` | `/api/admin/reports` | Platform stats: `{users:{total,land_owners,traders,suspended}, farms:{total}, marketplace:{total_listings,total_orders}, feedback:{open}}` |
+| `GET` | `/api/admin/harvest-forecast?district=` | Upcoming harvest dates derived from active cultivation sessions, optionally filtered by district |
 | `GET` | `/api/admin/export/users.csv` | Download all users as CSV |
 | `GET` | `/api/admin/export/orders.csv` | Download all orders as CSV |
 | `GET` | `/api/admin/export/activity.csv` | Download activity log as CSV |
+| `GET` | `/api/admin/export/farms.csv` | Download all farms as CSV |
+| `GET` | `/api/admin/export/harvest.csv` | Download the harvest forecast as CSV |
 
 ---
 
@@ -999,7 +1060,7 @@ Ratings can only be submitted once per order, and only after the order reaches `
 - **Marketplace page** added.
 - **React Router v6** routing with `AppLayout` and `LandOwnerLayout` shell components.
 - **Dark mode / light mode** with `data-theme` CSS variable, persisted to localStorage.
-- **Axios** added for platform API calls; `services/` layer added for farm and crop API functions.
+- `services/api.js` added — a `fetch()`-based `request()` wrapper (no axios or other HTTP library) for farm, crop, and platform API calls.
 - Cultivation tracker sessions migrated from in-memory ML service storage to PostgreSQL (`cultivation_sessions` + `cultivation_tasks` tables, 2 Alembic migrations).
 - Frontend i18n expanded; `AppContext` updated to include theme state.
 
@@ -1015,6 +1076,19 @@ Ratings can only be submitted once per order, and only after the order reaches `
 - **Admin resend verification:** `POST /api/admin/users/{id}/resend-verification`; `is_verified` field now force-included in `/api/admin/users` response (was being silently dropped by FastAPI's `response_model` filter).
 - **Cultivation task status:** ML service task update uses `{"status": "done"|"skipped"|"pending"|"overdue"}` (not `{"completed": bool}`).
 - **Multi-role accounts:** dual Land Owner + Trader users select active role at login; `Switch Role` button in sidebars for instant switching without re-login.
+- **Email-based registration with a code, not a link:** `POST /auth/verify-email` takes `{email, code}` — a 6-digit code emailed on registration, entered on `VerifyCodePage` — replacing the earlier link/token design.
+- **Marketplace negotiation:** buyers and sellers exchange counter-offers via `POST /api/marketplace/orders/{id}/negotiation`, persisted as an append-only `marketplace_negotiation_messages` thread (separate from the "current offer" snapshot on the order itself).
+- **Admin bulk import:** `AdminUserImport.jsx` / `AdminFarmImport.jsx` + `POST /api/admin/users/bulk` / `/api/admin/farms/bulk` — create many users or farms from an uploaded CSV in one action.
+- **Admin harvest forecast:** `AdminHarvestForecast.jsx` + `GET /api/admin/harvest-forecast` — upcoming harvest dates derived from active cultivation sessions across all farms, filterable by district, exportable as CSV.
+
+### v8.0 — PayHere payment gateway (2026-07-13)
+
+- **Payment step added to the order lifecycle:** after the seller confirms an order, the buyer must pay via PayHere (sandbox) before the seller can mark it `Delivered` — enforced server-side in `update_order_status()`, not just in the UI.
+- **New `payments` table and `Payment` model:** one row per checkout attempt (`Initiated`/`Paid`/`Failed`/`Cancelled`/`Chargedback`); `marketplace_orders` gained `payment_status` (`Unpaid`/`Paid`) and `paid_at`.
+- **New `routers/payments.py`:** checkout init (`POST .../payment/init`, idempotent), a signature-verified webhook (`POST /api/payments/payhere/notify`), and a status-polling endpoint (`GET .../payment`).
+- **New shared `PayDialog.jsx` component:** loads PayHere's JS SDK on demand, used from both `MarketplacePage.jsx` and `TraderOrders.jsx`.
+- **Receipt PDF:** `exportReceiptPDF()` in `MarketplacePage.jsx`, modeled on the existing `exportSessionPDF()` pattern — downloadable once an order is paid.
+- Requires `PAYHERE_MERCHANT_ID`, `PAYHERE_MERCHANT_SECRET`, `PAYHERE_MODE`, `PAYHERE_NOTIFY_URL` in `backend/.env` (see `.env.example`) — not yet configured as of this writing, so the checkout flow currently stops at a clear "not configured" error rather than completing.
 
 ---
 
