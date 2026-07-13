@@ -1,6 +1,6 @@
 # SmartAgri — AI-Powered Agribusiness Platform for Sri Lanka
 
-**ML Service v5.3 · Main API v1.0** | Multi-role platform | AI Crop Recommendation | Farm Management | Marketplace | Trilingual
+**ML Service v5.3 · Main API v8.0** | Multi-role platform | AI Crop Recommendation | Farm Management | Marketplace | Trilingual
 
 Full-stack web application for Sri Lankan agribusiness. Farmers get AI-driven crop recommendations and lifecycle guidance; land owners manage farms, crops, and cultivation sessions; traders access their own dashboard and marketplace; admins have full platform oversight.
 
@@ -60,8 +60,10 @@ The admin account (`admin@smartagri.lk`) is created automatically on first start
 ### Tests
 
 ```bash
-python -m pytest backend/tests/ -v
+python -m pytest backend/tests/test_main_api.py backend/tests/test_payments.py -v
 ```
+
+(`backend/tests/test_api.py` is the ML service's own suite — it requires trained model `.pkl` files to be present and is not run in CI; running the whole `backend/tests/` directory without them will error, not just skip.)
 
 ---
 
@@ -127,10 +129,11 @@ To run the whole stack locally via Docker instead of the manual/one-command dev 
 **Marketplace**
 - Crop listings and agricultural product listings with images
 - Purchase request negotiation with counter-offer messaging
-- Order lifecycle: pending → confirmed → delivered → completed
+- Order lifecycle: pending → confirmed → **payment (PayHere)** → delivered → completed
 - Transaction history panel
 - Seller phone number shown on listings and orders
 - 5-star rating and review system after completed orders
+- Receipt PDF download once an order is paid
 
 **Notifications**
 - In-app notification bell with unread badge (auto-polls every 30 seconds)
@@ -171,10 +174,14 @@ To run the whole stack locally via Docker instead of the manual/one-command dev 
 
 ---
 
-## Dev Logins (local only)
+## Dev Accounts (local only)
 
-| Role | Email | Password |
-|---|---|---|
-| Land Owner + Trader | induwara.ihalavithana@gmail.com | 12345678 |
-| Trader | testtrader@smartagri.com | NewPass@2026 |
-| Admin | admin@smartagri.lk | Admin@12345 |
+| Role | Email |
+|---|---|
+| Land Owner + Trader | induwara.ihalavithana@gmail.com |
+| Land Owner + Trader | ravindutharusha08@gmail.com |
+| Land Owner + Trader | nuhafarook21@gmail.com |
+| Land Owner + Trader | thathsaradinidu9@gmail.com |
+| Admin | admin@smartagri.lk |
+
+(Verified against the live dev DB 2026-07-13 — these 5 accounts are the only ones that exist; older test accounts like `testtrader@smartagri.com` have since been deleted. Ask a teammate for passwords — not listed here since this repo is public.)
