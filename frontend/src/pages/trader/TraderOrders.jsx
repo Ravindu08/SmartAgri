@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import useSWR, { mutate } from 'swr';
+import PayDialog from '../../components/PayDialog';
 import { SkeletonRows } from '../../components/Skeleton';
 import { useApp } from '../../context/AppContext';
 import { getAuthSession, request } from '../../services/api';
@@ -17,6 +18,7 @@ const T = {
     statusTrackerTitle: 'Order Progress',
     stepPending: 'Order Placed', stepConfirmed: 'Confirmed', stepDelivered: 'Delivered', stepCompleted: 'Completed',
     confirmReceipt: 'Confirm Receipt', confirming: 'Confirming…',
+    payNow: 'Pay Now', paymentPaid: '✓ Paid', awaitingPayment: 'Awaiting Payment',
   },
   si: {
     title: 'මගේ ක්‍රියාත්මක ඇණවුම්', subtitle: 'ක්‍රියාත්මකව ඇති ඇණවුම් නිරීක්ෂණය කරන්න',
@@ -29,6 +31,7 @@ const T = {
     statusTrackerTitle: 'ඇණවුම් ප්‍රගතිය',
     stepPending: 'ඇණවුම ලැබිණ', stepConfirmed: 'තහවුරු', stepDelivered: 'බෙදාදුන්', stepCompleted: 'සම්පූර්ණ',
     confirmReceipt: 'ලැබීම තහවුරු කරන්න', confirming: 'තහවුරු කරමින්…',
+    payNow: 'දැන් ගෙවන්න', paymentPaid: '✓ ගෙවා ඇත', awaitingPayment: 'ගෙවීම බලාපොරොත්තුවෙන්',
   },
   ta: {
     title: 'என் செயலில் உள்ள ஆர்டர்கள்', subtitle: 'நடந்துகொண்டிருக்கும் ஆர்டர்களை கண்காணிக்கவும்',
@@ -41,6 +44,7 @@ const T = {
     statusTrackerTitle: 'ஆர்டர் முன்னேற்றம்',
     stepPending: 'ஆர்டர் வைக்கப்பட்டது', stepConfirmed: 'உறுதி', stepDelivered: 'வழங்கல்', stepCompleted: 'முடிந்தது',
     confirmReceipt: 'பெறுதலை உறுதிப்படுத்து', confirming: 'உறுதிப்படுத்துகிறது…',
+    payNow: 'இப்போது செலுத்து', paymentPaid: '✓ செலுத்தப்பட்டது', awaitingPayment: 'கட்டணத்திற்காக காத்திருக்கிறது',
   },
 };
 
@@ -102,6 +106,7 @@ export default function TraderOrders() {
 
   const [filter, setFilter] = useState('all');
   const [confirmingId, setConfirmingId] = useState(null);
+  const [payingOrder, setPayingOrder] = useState(null);
 
   async function confirmReceipt(orderId) {
     setConfirmingId(orderId);
@@ -243,6 +248,20 @@ export default function TraderOrders() {
 
                 <StatusTracker status={order.status} t={t} />
 
+                {order.status === 'Confirmed' && order.payment_status !== 'Paid' && (
+                  <button
+                    type="button"
+                    onClick={() => setPayingOrder(order)}
+                    style={{
+                      marginTop: '12px', padding: '9px 18px', borderRadius: '8px', border: 'none',
+                      background: 'var(--accent)', color: 'var(--accent-text)',
+                      fontWeight: 600, fontSize: '16px', cursor: 'pointer',
+                    }}
+                  >
+                    💳 {t.payNow}
+                  </button>
+                )}
+
                 {order.status === 'Delivered' && (
                   <button
                     type="button"
@@ -278,6 +297,14 @@ export default function TraderOrders() {
             );
           })}
         </div>
+      )}
+
+      {payingOrder && (
+        <PayDialog
+          order={payingOrder}
+          onClose={() => setPayingOrder(null)}
+          onSuccess={() => { setPayingOrder(null); mutate('/api/marketplace/orders'); }}
+        />
       )}
     </div>
   );
