@@ -38,8 +38,8 @@ function Bar({ label, value, max, color }) {
   return (
     <div style={{ marginBottom: '14px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-        <span style={{ fontSize: '13px', color: 'var(--muted)' }}>{label}</span>
-        <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>{value}</span>
+        <span style={{ fontSize: '15px', color: 'var(--muted)' }}>{label}</span>
+        <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>{value}</span>
       </div>
       <div style={{ height: '8px', borderRadius: '4px', background: 'var(--border)', overflow: 'hidden' }}>
         <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: '4px', transition: 'width 0.6s ease' }} />
@@ -51,7 +51,7 @@ function Bar({ label, value, max, color }) {
 function Section({ title, children }) {
   return (
     <div style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', padding: '24px', marginBottom: '20px' }}>
-      <h3 style={{ margin: '0 0 20px', fontSize: '16px', fontWeight: 700, color: 'var(--text)' }}>{title}</h3>
+      <h3 style={{ margin: '0 0 20px', fontSize: '18px', fontWeight: 700, color: 'var(--text)' }}>{title}</h3>
       {children}
     </div>
   );
@@ -98,23 +98,23 @@ export default function AdminReports() {
         <h2 style={{ margin: 0, color: 'var(--text)' }}>{t.title}</h2>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button onClick={handleExportCSV}
-            style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid #7c3aed', background: 'none', color: '#7c3aed', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}>
+            style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid #7c3aed', background: 'none', color: '#7c3aed', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>
             ⬇ Stats CSV
           </button>
           <button onClick={() => downloadAdminCSV('orders').catch(e => alert(e.message))}
-            style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--text)', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}>
+            style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--text)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>
             ⬇ Orders CSV
           </button>
           <button onClick={() => downloadAdminCSV('activity').catch(e => alert(e.message))}
-            style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--text)', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}>
+            style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--text)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>
             ⬇ Activity CSV
           </button>
           <button onClick={() => downloadAdminCSV('farms').catch(e => alert(e.message))}
-            style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--text)', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}>
+            style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--text)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>
             {t.exportFarms}
           </button>
           <button onClick={() => downloadAdminCSV('harvest').catch(e => alert(e.message))}
-            style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--text)', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}>
+            style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--text)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>
             {t.exportHarvest}
           </button>
         </div>
@@ -124,7 +124,7 @@ export default function AdminReports() {
         <Bar label={t.landOwners} value={data.users.land_owners} max={data.users.total} color="#2d6a4f" />
         <Bar label={t.traders}    value={data.users.traders}     max={data.users.total} color="#1565c0" />
         <Bar label={t.suspended}  value={data.users.suspended}   max={data.users.total} color="#e53935" />
-        <div style={{ marginTop: '12px', padding: '12px 16px', background: 'var(--bg)', borderRadius: '8px', fontSize: '13px', color: 'var(--muted)' }}>
+        <div style={{ marginTop: '12px', padding: '12px 16px', background: 'var(--bg)', borderRadius: '8px', fontSize: '15px', color: 'var(--muted)' }}>
           {t.totalUsers} <strong style={{ color: 'var(--text)' }}>{data.users.total}</strong>
         </div>
       </Section>
@@ -132,21 +132,21 @@ export default function AdminReports() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
         <Section title={t.farms}>
           <div style={{ fontSize: '36px', fontWeight: 700, color: '#f57c00', marginBottom: '4px' }}>{data.farms.total}</div>
-          <div style={{ fontSize: '13px', color: 'var(--muted)' }}>{t.totalFarmsReg}</div>
+          <div style={{ fontSize: '15px', color: 'var(--muted)' }}>{t.totalFarmsReg}</div>
         </Section>
         <Section title={t.marketplace}>
           <div style={{ marginBottom: '12px' }}>
             <div style={{ fontSize: '28px', fontWeight: 700, color: '#0097a7' }}>{data.marketplace.total_listings}</div>
-            <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{t.listings}</div>
+            <div style={{ fontSize: '14px', color: 'var(--muted)' }}>{t.listings}</div>
           </div>
           <div>
             <div style={{ fontSize: '28px', fontWeight: 700, color: '#00897b' }}>{data.marketplace.total_orders}</div>
-            <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{t.orders}</div>
+            <div style={{ fontSize: '14px', color: 'var(--muted)' }}>{t.orders}</div>
           </div>
         </Section>
         <Section title={t.feedback}>
           <div style={{ fontSize: '36px', fontWeight: 700, color: data.feedback.open > 0 ? '#e53935' : '#2d6a4f', marginBottom: '4px' }}>{data.feedback.open}</div>
-          <div style={{ fontSize: '13px', color: 'var(--muted)' }}>{data.feedback.open === 0 ? t.allResolved : t.openNeedAttention}</div>
+          <div style={{ fontSize: '15px', color: 'var(--muted)' }}>{data.feedback.open === 0 ? t.allResolved : t.openNeedAttention}</div>
         </Section>
       </div>
     </div>

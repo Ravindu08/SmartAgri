@@ -102,7 +102,7 @@ export default function TraderDashboard() {
           <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: 'var(--text)' }}>
             {t.welcome}, {user?.full_name?.split(' ')[0] || t.trader} 👋
           </h1>
-          <p style={{ margin: '4px 0 0', color: 'var(--muted)', fontSize: '14px' }}>
+          <p style={{ margin: '4px 0 0', color: 'var(--muted)', fontSize: '16px' }}>
             {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
         </div>
@@ -111,7 +111,7 @@ export default function TraderDashboard() {
           style={{
             padding: '10px 20px', borderRadius: '8px',
             background: 'var(--accent)', color: 'var(--accent-text)',
-            textDecoration: 'none', fontWeight: 600, fontSize: '14px',
+            textDecoration: 'none', fontWeight: 600, fontSize: '16px',
           }}
         >
           🏪 {t.browseMarket}
@@ -130,14 +130,14 @@ export default function TraderDashboard() {
             <div style={{ fontSize: '28px', fontWeight: 700, color: s.color, lineHeight: 1 }}>
               <CountUp value={s.value} />
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--muted)', fontWeight: 500 }}>{s.label}</div>
+            <div style={{ fontSize: '15px', color: 'var(--muted)', fontWeight: 500 }}>{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* Quick Actions */}
       <div>
-        <h2 style={{ margin: '0 0 12px', fontSize: '16px', fontWeight: 600, color: 'var(--text)' }}>
+        <h2 style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 600, color: 'var(--text)' }}>
           {t.quickActions}
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
@@ -163,8 +163,8 @@ export default function TraderDashboard() {
                 {qa.icon}
               </div>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text)' }}>{qa.label}</div>
-                <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>{qa.desc}</div>
+                <div style={{ fontWeight: 600, fontSize: '16px', color: 'var(--text)' }}>{qa.label}</div>
+                <div style={{ fontSize: '14px', color: 'var(--muted)', marginTop: '2px' }}>{qa.desc}</div>
               </div>
             </Link>
           ))}
@@ -173,7 +173,7 @@ export default function TraderDashboard() {
 
       {/* Recent Activity */}
       <div>
-        <h2 style={{ margin: '0 0 12px', fontSize: '16px', fontWeight: 600, color: 'var(--text)' }}>
+        <h2 style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 600, color: 'var(--text)' }}>
           {t.recentActivity}
         </h2>
         <div style={{
@@ -199,12 +199,12 @@ export default function TraderDashboard() {
                 onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-hover)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '18px' }}>📦</span>
+                    <span style={{ fontSize: '19px' }}>📦</span>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text)' }}>
+                      <div style={{ fontWeight: 600, fontSize: '16px', color: 'var(--text)' }}>
                         {item.listing_name || '—'}
                       </div>
-                      <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                      <div style={{ fontSize: '14px', color: 'var(--muted)' }}>
                         {item.requested_quantity} kg
                         {item.agreed_price
                           ? ` · Rs. ${item.agreed_price}/kg`
@@ -217,14 +217,14 @@ export default function TraderDashboard() {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                     <span style={{
-                      padding: '3px 10px', borderRadius: '20px', fontSize: '12px',
+                      padding: '3px 10px', borderRadius: '20px', fontSize: '14px',
                       fontWeight: 600, background: `color-mix(in srgb, ${color} 15%, transparent)`,
                       color, whiteSpace: 'nowrap',
                     }}>
                       {label}
                     </span>
                     {item.updated_at && (
-                      <span style={{ fontSize: '10.5px', color: 'var(--muted)' }}>{relativeTime(item.updated_at)}</span>
+                      <span style={{ fontSize: '12px', color: 'var(--muted)' }}>{relativeTime(item.updated_at)}</span>
                     )}
                   </div>
                 </Link>

@@ -72,7 +72,7 @@ export default function RoleSelectPage() {
       <div style={{ textAlign: 'center', marginBottom: '32px' }}>
         <div style={{ fontSize: '48px', marginBottom: '12px' }}>🌿</div>
         <h1 style={{ fontSize: '26px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t.title}</h1>
-        <p style={{ color: 'var(--muted)', marginTop: '8px', fontSize: '15px' }}>{t.sub}</p>
+        <p style={{ color: 'var(--muted)', marginTop: '8px', fontSize: '17px' }}>{t.sub}</p>
       </div>
 
       <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '640px', width: '100%' }}>
@@ -93,11 +93,11 @@ export default function RoleSelectPage() {
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
             >
               <div style={{ fontSize: '48px' }}>{cfg.icon}</div>
-              <div style={{ fontWeight: 700, fontSize: '18px', color: 'var(--text)' }}>{t[cfg.labelKey]}</div>
-              <div style={{ color: 'var(--muted)', fontSize: '14px', textAlign: 'center', lineHeight: '1.5' }}>{t[cfg.descKey]}</div>
+              <div style={{ fontWeight: 700, fontSize: '19px', color: 'var(--text)' }}>{t[cfg.labelKey]}</div>
+              <div style={{ color: 'var(--muted)', fontSize: '16px', textAlign: 'center', lineHeight: '1.5' }}>{t[cfg.descKey]}</div>
               <div style={{
                 marginTop: '8px', padding: '8px 24px', borderRadius: '8px',
-                background: cfg.color, color: '#fff', fontSize: '14px', fontWeight: 600,
+                background: cfg.color, color: '#fff', fontSize: '16px', fontWeight: 600,
               }}>
                 {t.continue}
               </div>
@@ -110,7 +110,7 @@ export default function RoleSelectPage() {
         onClick={handleLogout}
         style={{
           marginTop: '32px', background: 'none', border: 'none',
-          color: 'var(--muted)', cursor: 'pointer', fontSize: '14px',
+          color: 'var(--muted)', cursor: 'pointer', fontSize: '16px',
         }}
       >
         {t.logout}

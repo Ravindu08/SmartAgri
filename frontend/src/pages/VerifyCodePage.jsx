@@ -176,13 +176,13 @@ export default function VerifyCodePage() {
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
                 <h2 className="auth-form-title" style={{ marginBottom: '8px' }}>{t.title}</h2>
-                <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '4px' }}>
+                <p style={{ color: 'var(--muted)', fontSize: '16px', marginBottom: '4px' }}>
                   {t.sent}
                 </p>
-                <p style={{ color: 'var(--text)', fontWeight: 600, fontSize: '14px', wordBreak: 'break-all' }}>
+                <p style={{ color: 'var(--text)', fontWeight: 600, fontSize: '16px', wordBreak: 'break-all' }}>
                   {email}
                 </p>
-                <p style={{ color: 'var(--muted)', fontSize: '13px', marginTop: '6px' }}>{t.expires}</p>
+                <p style={{ color: 'var(--muted)', fontSize: '15px', marginTop: '6px' }}>{t.expires}</p>
               </div>
 
               {/* ── OTP digit boxes ── */}
@@ -228,11 +228,11 @@ export default function VerifyCodePage() {
 
               {/* ── Resend ── */}
               <div style={{ textAlign: 'center', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-                <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '10px' }}>{t.resendLabel}</p>
+                <p style={{ color: 'var(--muted)', fontSize: '15px', marginBottom: '10px' }}>{t.resendLabel}</p>
                 {resendStatus === 'ok' ? (
-                  <p style={{ color: 'var(--green-primary)', fontWeight: 500, fontSize: '14px' }}>✓ {t.resendOk}</p>
+                  <p style={{ color: 'var(--green-primary)', fontWeight: 500, fontSize: '16px' }}>✓ {t.resendOk}</p>
                 ) : resendStatus === 'err' ? (
-                  <p style={{ color: '#e53e3e', fontSize: '14px' }}>⚠️ {t.resendErr}</p>
+                  <p style={{ color: '#e53e3e', fontSize: '16px' }}>⚠️ {t.resendErr}</p>
                 ) : (
                   <button
                     type="button"
@@ -242,7 +242,7 @@ export default function VerifyCodePage() {
                       background: 'none', border: '1.5px solid var(--green-primary)',
                       color: 'var(--green-primary)', borderRadius: '8px',
                       padding: '8px 20px', cursor: 'pointer', fontWeight: 600,
-                      fontSize: '13px', opacity: resendStatus === 'sending' ? 0.6 : 1,
+                      fontSize: '15px', opacity: resendStatus === 'sending' ? 0.6 : 1,
                     }}
                   >
                     {resendStatus === 'sending' ? '…' : t.resendBtn}
@@ -251,7 +251,7 @@ export default function VerifyCodePage() {
               </div>
 
               <div style={{ textAlign: 'center' }}>
-                <Link to="/login" style={{ color: 'var(--muted)', fontSize: '13px' }}>
+                <Link to="/login" style={{ color: 'var(--muted)', fontSize: '15px' }}>
                   ← {t.backLogin}
                 </Link>
               </div>

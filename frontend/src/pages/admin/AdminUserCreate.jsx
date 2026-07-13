@@ -59,9 +59,9 @@ export default function AdminUserCreate() {
 
   const field = (label, name, type = 'text', extra = {}) => (
     <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-      <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--muted)' }}>{label}</span>
+      <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--muted)' }}>{label}</span>
       <input type={type} value={form[name]} onChange={e => setForm(f => ({ ...f, [name]: e.target.value }))}
-        required style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '14px' }}
+        required style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '16px' }}
         {...extra} />
     </label>
   );
@@ -75,7 +75,7 @@ export default function AdminUserCreate() {
         {field(t.labelPassword, 'password', 'password', { minLength: 8 })}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--muted)' }}>{t.labelRoles}</span>
+          <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--muted)' }}>{t.labelRoles}</span>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {['Land Owner', 'Trader', 'Admin'].map(role => {
               const active = form.roles.includes(role);
@@ -84,7 +84,7 @@ export default function AdminUserCreate() {
               return (
                 <button key={role} type="button" onClick={() => toggleRole(role)}
                   style={{
-                    padding: '6px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                    padding: '6px 16px', borderRadius: '8px', fontSize: '15px', fontWeight: 600, cursor: 'pointer',
                     border: `1px solid ${active ? c : 'var(--border)'}`,
                     background: active ? c + '18' : 'none', color: active ? c : 'var(--muted)',
                   }}>{role}</button>
@@ -93,15 +93,15 @@ export default function AdminUserCreate() {
           </div>
         </div>
 
-        {error && <div style={{ color: '#e53935', fontSize: '13px', padding: '8px 12px', background: '#e5393518', borderRadius: '8px' }}>⚠️ {error}</div>}
+        {error && <div style={{ color: '#e53935', fontSize: '15px', padding: '8px 12px', background: '#e5393518', borderRadius: '8px' }}>⚠️ {error}</div>}
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
           <button type="button" onClick={() => navigate('/admin/users')}
-            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--text)', fontSize: '14px' }}>
+            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--text)', fontSize: '16px' }}>
             {t.cancel}
           </button>
           <button type="submit" disabled={saving}
-            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: '#7c3aed', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '14px' }}>
+            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: '#7c3aed', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '16px' }}>
             {saving ? t.creating : t.createUser}
           </button>
         </div>

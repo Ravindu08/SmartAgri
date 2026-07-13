@@ -59,7 +59,7 @@ export default function AdminActivity() {
       <h2 style={{ margin: '0 0 20px', color: 'var(--text)' }}>{t.title}</h2>
 
       <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t.searchPlaceholder}
-        style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '14px', width: '100%', maxWidth: '360px', marginBottom: '20px' }} />
+        style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '16px', width: '100%', maxWidth: '360px', marginBottom: '20px' }} />
 
       {filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px', color: 'var(--muted)' }}>{t.noActivity}</div>
@@ -73,22 +73,22 @@ export default function AdminActivity() {
             }}>
               <div style={{
                 width: '36px', height: '36px', borderRadius: '10px', background: '#7c3aed18',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0,
               }}>
                 {ACTION_ICON[a.action] || '📋'}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
                   <div>
-                    <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text)' }}>
+                    <span style={{ fontWeight: 600, fontSize: '16px', color: 'var(--text)' }}>
                       {a.action.replace(/_/g, ' ')}
                     </span>
-                    {a.entity_type && <span style={{ fontSize: '12px', color: '#7c3aed', marginLeft: '8px', padding: '1px 6px', background: '#7c3aed18', borderRadius: '4px' }}>{a.entity_type}</span>}
+                    {a.entity_type && <span style={{ fontSize: '14px', color: '#7c3aed', marginLeft: '8px', padding: '1px 6px', background: '#7c3aed18', borderRadius: '4px' }}>{a.entity_type}</span>}
                   </div>
-                  <span style={{ fontSize: '12px', color: 'var(--muted)', whiteSpace: 'nowrap' }}>{new Date(a.created_at).toLocaleString()}</span>
+                  <span style={{ fontSize: '14px', color: 'var(--muted)', whiteSpace: 'nowrap' }}>{new Date(a.created_at).toLocaleString()}</span>
                 </div>
-                {a.details && <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '2px' }}>{a.details}</div>}
-                <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>
+                {a.details && <div style={{ fontSize: '15px', color: 'var(--muted)', marginTop: '2px' }}>{a.details}</div>}
+                <div style={{ fontSize: '14px', color: 'var(--muted)', marginTop: '4px' }}>
                   {a.user_id && <span>{t.user}{a.user_id}</span>}
                   {a.actor_id && <span style={{ marginLeft: '8px' }}>{t.byAdmin}{a.actor_id}</span>}
                 </div>

@@ -97,6 +97,13 @@
   .wlp-strip { flex-direction: column; align-items: flex-start; gap: 10px; }
   .wlp-select { min-width: 0; width: 100%; }
   .wlp-select--season { min-width: 0; width: 100%; }
+  /* District/season now render as <CustomSelect> (.csel), not the native
+     .wlp-select this block originally targeted — .wlp-left never got a
+     matching mobile rule, so its two selects sat at their natural
+     min-content width (~300px each) instead of stacking, overflowing the
+     screen by ~300px on any phone. */
+  .wlp-left { flex-direction: column; align-items: stretch; width: 100%; gap: 10px; }
+  .wlp-left .csel { width: 100%; }
 }
 
 /* ══════════════════════════════════════════════════════

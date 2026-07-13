@@ -19,20 +19,20 @@ export default function Pagination({ page, totalPages, onChange }) {
         disabled={page <= 1}
         style={{
           padding: '7px 14px', borderRadius: '8px', border: '1px solid var(--border)',
-          background: 'var(--card)', color: 'var(--text)', fontSize: '13px', fontWeight: 600,
+          background: 'var(--card)', color: 'var(--text)', fontSize: '15px', fontWeight: 600,
           cursor: page <= 1 ? 'not-allowed' : 'pointer', opacity: page <= 1 ? 0.5 : 1,
         }}
       >
         {t.prev}
       </button>
-      <span style={{ fontSize: '13px', color: 'var(--muted)' }}>{t.pageOf(page, totalPages)}</span>
+      <span style={{ fontSize: '15px', color: 'var(--muted)' }}>{t.pageOf(page, totalPages)}</span>
       <button
         type="button"
         onClick={() => onChange(page + 1)}
         disabled={page >= totalPages}
         style={{
           padding: '7px 14px', borderRadius: '8px', border: '1px solid var(--border)',
-          background: 'var(--card)', color: 'var(--text)', fontSize: '13px', fontWeight: 600,
+          background: 'var(--card)', color: 'var(--text)', fontSize: '15px', fontWeight: 600,
           cursor: page >= totalPages ? 'not-allowed' : 'pointer', opacity: page >= totalPages ? 0.5 : 1,
         }}
       >
