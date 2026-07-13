@@ -45,7 +45,7 @@
   border: 1px solid rgba(251,192,45,0.35);
   border-radius: 99px;
   padding: 6px 18px;
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
   color: #FDE68A;
   letter-spacing: 0.6px;
@@ -62,7 +62,7 @@
   text-shadow: 0 2px 20px rgba(0,0,0,0.15);
 }
 .about-hero-sub {
-  font-size: 15px;
+  font-size: 17px;
   color: rgba(255,255,255,0.76);
   line-height: 1.75;
   max-width: 520px;
@@ -115,7 +115,7 @@
 .about-ps-icon { font-size: 26px; margin-bottom: 12px; }
 
 .about-ps-title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.2px;
@@ -125,7 +125,7 @@
 .about-ps-card--solution .about-ps-title { color: var(--green-dark); }
 
 .about-ps-text {
-  font-size: 13.5px;
+  font-size: 15.5px;
   line-height: 1.75;
   margin: 0;
 }
@@ -138,7 +138,7 @@
 .about-section { margin-bottom: 52px; }
 
 .about-section-label {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.2px;
@@ -153,7 +153,7 @@
   margin-bottom: 8px;
 }
 .about-section-sub {
-  font-size: 13.5px;
+  font-size: 15.5px;
   color: var(--muted);
   line-height: 1.65;
   margin-bottom: 28px;
@@ -207,14 +207,14 @@
   box-shadow: 0 2px 8px rgba(15,90,42,0.12);
 }
 .about-module-title {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.2px;
   flex: 1;
 }
 .about-module-soon {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 700;
   color: #8B6914;
   background: var(--yellow-light);
@@ -224,7 +224,7 @@
   white-space: nowrap;
 }
 .about-module-desc {
-  font-size: 13px;
+  font-size: 15px;
   color: var(--muted);
   line-height: 1.7;
   margin: 0;
@@ -268,13 +268,13 @@
   box-shadow: var(--shadow-green);
 }
 .about-team-name {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--text);
   margin-bottom: 4px;
 }
 .about-team-role {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--muted);
   line-height: 1.5;
 }
@@ -304,13 +304,13 @@
 }
 .about-tech-icon { font-size: 26px; margin-bottom: 8px; }
 .about-tech-name {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text);
   margin-bottom: 3px;
 }
 .about-tech-desc {
-  font-size: 11px;
+  font-size: 12.5px;
   color: var(--muted);
 }
 
@@ -347,7 +347,7 @@
   margin-bottom: 10px;
 }
 .about-contact-label {
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.8px;
@@ -355,7 +355,7 @@
   margin-bottom: 6px;
 }
 .about-contact-value {
-  font-size: 13.5px;
+  font-size: 15.5px;
   font-weight: 600;
   color: var(--text);
   overflow-wrap: break-word;
@@ -365,7 +365,7 @@
 a.about-contact-value:hover { text-decoration: underline; color: var(--accent); }
 
 .about-contact-note {
-  font-size: 12.5px;
+  font-size: 14.5px;
   color: var(--muted);
   line-height: 1.7;
   padding: 14px 18px;
@@ -415,7 +415,7 @@ a.about-contact-value:hover { text-decoration: underline; color: var(--accent); 
 
 .about-mv-icon { font-size: 30px; margin-bottom: 12px; }
 .about-mv-title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 800;
   color: var(--text);
   letter-spacing: -0.2px;
@@ -424,7 +424,7 @@ a.about-contact-value:hover { text-decoration: underline; color: var(--accent); 
 .about-mv-card--mission .about-mv-title { color: var(--green-dark); }
 .about-mv-card--vision  .about-mv-title { color: #7C5A00; }
 .about-mv-text {
-  font-size: 13.5px;
+  font-size: 15.5px;
   line-height: 1.75;
   margin: 0;
 }
@@ -467,7 +467,7 @@ a.about-contact-value:hover { text-decoration: underline; color: var(--accent); 
   letter-spacing: -1px;
 }
 .about-impact-suffix { font-size: 0.65em; color: var(--yellow-accent); }
-.about-impact-label { font-size: 12.5px; color: var(--muted); font-weight: 600; line-height: 1.4; }
+.about-impact-label { font-size: 14.5px; color: var(--muted); font-weight: 600; line-height: 1.4; }
 
 /* ── Team contribution chips ── */
 .about-team-chips {
@@ -478,7 +478,7 @@ a.about-contact-value:hover { text-decoration: underline; color: var(--accent); 
   margin-top: 12px;
 }
 .about-team-chip {
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--green-primary);
   background: var(--green-light);

@@ -45,7 +45,7 @@
   border: 1px solid rgba(255,255,255,0.25);
   backdrop-filter: blur(4px);
   color: #fff;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.5px;
   padding: 5px 14px;
@@ -60,7 +60,7 @@
   line-height: 1.2;
 }
 .wx-hero-sub {
-  font-size: 0.95rem;
+  font-size: 1.06rem;
   color: rgba(255,255,255,0.82);
 }
 
@@ -84,7 +84,7 @@
 }
 .wx-selector-label {
   display: block;
-  font-size: 0.9rem;
+  font-size: 1.01rem;
   font-weight: 600;
   color: var(--text-mid);
   margin-bottom: 12px;
@@ -101,7 +101,7 @@
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   font-family: var(--ff);
-  font-size: 0.95rem;
+  font-size: 1.06rem;
   color: var(--text);
   background: var(--bg);
   cursor: pointer;
@@ -119,7 +119,7 @@
   border: none;
   border-radius: var(--radius-sm);
   font-family: var(--ff);
-  font-size: 0.9rem;
+  font-size: 1.01rem;
   font-weight: 600;
   cursor: pointer;
   transition: opacity var(--tr), transform var(--tr);
@@ -136,7 +136,7 @@
   gap: 14px;
   padding: 48px;
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: 1.06rem;
 }
 .wx-spinner {
   width: 36px; height: 36px;
@@ -159,7 +159,7 @@
 }
 .wx-error-icon { font-size: 1.8rem; }
 .wx-error-title { font-weight: 700; color: var(--red); margin-bottom: 4px; }
-.wx-error-detail { font-size: 0.88rem; color: #7F1D1D; }
+.wx-error-detail { font-size: 0.99rem; color: #7F1D1D; }
 .wx-retry-btn {
   margin-left: auto;
   padding: 9px 20px;
@@ -168,7 +168,7 @@
   border: none;
   border-radius: var(--radius-sm);
   font-family: var(--ff);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -219,7 +219,7 @@
 }
 .wx-stat-icon { font-size: 1.6rem; flex-shrink: 0; }
 .wx-stat-label {
-  font-size: 0.75rem;
+  font-size: 0.84rem;
   font-weight: 500;
   color: var(--muted);
   text-transform: uppercase;
@@ -231,7 +231,7 @@
   font-weight: 700;
   color: var(--text);
 }
-.wx-stat-unit { font-size: 0.8rem; font-weight: 500; color: var(--muted); margin-left: 2px; }
+.wx-stat-unit { font-size: 0.9rem; font-weight: 500; color: var(--muted); margin-left: 2px; }
 
 /* ── Advice cards ── */
 .wx-advice-list { display: flex; flex-direction: column; gap: 12px; }
@@ -244,8 +244,8 @@
   border-left: 4px solid transparent;
 }
 .wx-advice-icon { font-size: 1.5rem; flex-shrink: 0; margin-top: 1px; }
-.wx-advice-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
-.wx-advice-detail { font-size: 0.875rem; line-height: 1.5; }
+.wx-advice-title { font-weight: 700; font-size: 1.06rem; margin-bottom: 4px; }
+.wx-advice-detail { font-size: 0.98rem; line-height: 1.5; }
 
 .wx-advice-warning { background: rgba(245, 158, 11, 0.12); border-color: #F59E0B; }
 .wx-advice-warning .wx-advice-title { color: #92400E; }
@@ -278,7 +278,7 @@
   border-radius: var(--radius-sm);
 }
 .wx-forecast-header {
-  font-size: 0.75rem;
+  font-size: 0.84rem;
   font-weight: 600;
   color: var(--muted);
   text-transform: uppercase;
@@ -288,7 +288,7 @@
 .wx-forecast-row {
   background: var(--bg);
   border: 1px solid var(--border);
-  font-size: 0.875rem;
+  font-size: 0.98rem;
   transition: background var(--tr);
 }
 .wx-forecast-row:hover { background: var(--green-subtle); }
@@ -299,12 +299,12 @@
 .wx-fc-max { color: #DC2626; }
 .wx-fc-sep { color: var(--muted); margin: 0 2px; }
 .wx-fc-min { color: #2563EB; }
-.wx-fc-rain { color: #0369a1; font-size: 0.83rem; }
-.wx-fc-prob { color: #6b7280; font-size: 0.78rem; }
+.wx-fc-rain { color: #0369a1; font-size: 0.93rem; }
+.wx-fc-prob { color: #6b7280; font-size: 0.87rem; }
 
 /* ── Source ── */
 .wx-source {
-  font-size: 0.78rem;
+  font-size: 0.87rem;
   color: var(--muted);
   text-align: right;
   padding: 0 4px;
@@ -324,7 +324,7 @@
 
 .wx-info-header { text-align: center; }
 .wx-info-label {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.2px;
@@ -339,7 +339,7 @@
   margin-bottom: 8px;
 }
 .wx-info-sub {
-  font-size: 13.5px;
+  font-size: 15.5px;
   color: var(--muted);
   line-height: 1.65;
   max-width: 500px;
@@ -370,14 +370,14 @@
   margin-bottom: 12px;
 }
 .wx-preview-title {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--text);
   margin-bottom: 8px;
   letter-spacing: -0.2px;
 }
 .wx-preview-desc {
-  font-size: 13px;
+  font-size: 15px;
   color: var(--muted);
   line-height: 1.65;
   margin-bottom: 12px;
@@ -388,7 +388,7 @@
   gap: 6px;
 }
 .wx-preview-tags span {
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--green-primary);
   background: var(--green-light);
@@ -421,19 +421,19 @@
 
 .wx-zone-icon { font-size: 22px; margin-bottom: 8px; }
 .wx-zone-name {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text);
   margin-bottom: 6px;
 }
 .wx-zone-desc {
-  font-size: 12.5px;
+  font-size: 14.5px;
   color: var(--text-mid);
   line-height: 1.65;
   margin-bottom: 10px;
 }
 .wx-zone-districts {
-  font-size: 11px;
+  font-size: 12.5px;
   color: var(--muted);
   font-weight: 600;
   letter-spacing: 0.1px;
@@ -466,13 +466,13 @@
 }
 .wx-season-icon { font-size: 22px; margin-bottom: 8px; }
 .wx-season-name {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text);
   margin-bottom: 2px;
 }
 .wx-season-months {
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--green-primary);
   background: var(--green-light);
@@ -482,7 +482,7 @@
   margin-bottom: 8px;
 }
 .wx-season-desc {
-  font-size: 12.5px;
+  font-size: 14.5px;
   color: var(--muted);
   line-height: 1.65;
 }
@@ -501,8 +501,8 @@
   }
   .wx-fc-date { grid-column: 1; grid-row: 1; }
   .wx-fc-icon { grid-column: 2; grid-row: 1; text-align: right; }
-  .wx-fc-cond { grid-column: 1; grid-row: 2; font-size: 0.8rem; color: var(--muted); }
-  .wx-fc-temps { grid-column: 2; grid-row: 2; text-align: right; font-size: 0.8rem; }
+  .wx-fc-cond { grid-column: 1; grid-row: 2; font-size: 0.9rem; color: var(--muted); }
+  .wx-fc-temps { grid-column: 2; grid-row: 2; text-align: right; font-size: 0.9rem; }
   .wx-fc-rain { display: none; }
 }
 

@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [Induwara]
+    branches: ["**"]
   pull_request:
     branches: [main]
 
@@ -25,7 +25,7 @@ jobs:
         working-directory: backend
 
       - name: Run backend tests
-        run: python -m pytest tests/test_main_api.py -v
+        run: python -m pytest tests/test_main_api.py tests/test_payments.py -v
         working-directory: backend
         env:
           DATABASE_URL: sqlite:///./test_smartagri.db
