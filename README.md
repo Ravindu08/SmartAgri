@@ -129,7 +129,7 @@ To run the whole stack locally via Docker instead of the manual/one-command dev 
 **Marketplace**
 - Crop listings and agricultural product listings with images
 - Purchase request negotiation with counter-offer messaging
-- Order lifecycle: pending → confirmed → **payment (PayHere)** → delivered → completed
+- Order lifecycle: pending → confirmed → **payment (simulated checkout, demo mode)** → delivered → completed
 - Transaction history panel
 - Seller phone number shown on listings and orders
 - 5-star rating and review system after completed orders
