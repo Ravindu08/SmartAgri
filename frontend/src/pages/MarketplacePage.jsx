@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'reac
 import { Link, useOutletContext } from 'react-router-dom';
 import useSWR, { mutate } from 'swr';
 import CustomSelect from '../components/CustomSelect';
+import PayDialog from '../components/PayDialog';
 import { SkeletonListingGrid, SkeletonRows } from '../components/Skeleton';
 import { relativeTime } from '../utils/relativeTime';
 import { request, getAuthSession, getActiveRole, setActiveRole, getUserRoles } from '../services/api';
@@ -70,6 +71,8 @@ const M = {
     deliveredStatus: 'Delivered', completedStatus: 'Completed',
     rejectedStatus: 'Rejected', cancelledStatus: 'Cancelled',
     phoneAfterConfirm: 'Contact number visible once the order is confirmed',
+    payNow: 'Pay Now', paymentPaid: '✓ Paid', awaitingPayment: 'Awaiting Payment',
+    downloadReceipt: 'Download Receipt',
   },
   si: {
     badge: '🛒 කෘෂි වෙළඳසැල', title: 'කෘෂි නිෂ්පාදන මිලදී ගැනීම සහ විකිණීම',
@@ -118,6 +121,8 @@ const M = {
     deliveredStatus: 'බෙදාදුන්', completedStatus: 'සම්පූර්ණ',
     rejectedStatus: 'ප්‍රතික්ෂේප', cancelledStatus: 'අවලංගු',
     phoneAfterConfirm: 'ඇණවුම තහවුරු වූ පසු ඇමතුම් අංකය පෙන්වයි',
+    payNow: 'දැන් ගෙවන්න', paymentPaid: '✓ ගෙවා ඇත', awaitingPayment: 'ගෙවීම බලාපොරොත්තුවෙන්',
+    downloadReceipt: 'රිසිට්පත බාගන්න',
   },
   ta: {
     badge: '🛒 விவசாய சந்தை', title: 'விவசாய பொருட்களை வாங்கவும் விற்கவும்',
@@ -166,6 +171,8 @@ const M = {
     deliveredStatus: 'வழங்கல்', completedStatus: 'முடிந்தது',
     rejectedStatus: 'நிராகரிக்கப்பட்டது', cancelledStatus: 'ரத்தானது',
     phoneAfterConfirm: 'ஆர்டர் உறுதிசெய்யப்பட்டதும் தொடர்பு எண் தெரியும்',
+    payNow: 'இப்போது செலுத்து', paymentPaid: '✓ செலுத்தப்பட்டது', awaitingPayment: 'கட்டணத்திற்காக காத்திருக்கிறது',
+    downloadReceipt: 'ரசீதைப் பதிவிறக்கு',
   },
 };
 
@@ -178,6 +185,41 @@ const publicFetcher = url => fetch(`${import.meta.env.VITE_API_URL || ''}${url}`
 
 async function apiPost(path, body, method = 'POST') {
   return request(path, { method, body: JSON.stringify(body) });
+}
+
+async function exportReceiptPDF(order) {
+  const { jsPDF } = await import('jspdf');
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const price = order.agreed_price ?? order.counter_offer_price ?? order.proposed_price ?? 0;
+  const total = order.requested_quantity * price;
+
+  doc.setFontSize(20); doc.setTextColor(26, 122, 74);
+  doc.text('SmartAgri — Payment Receipt', 14, 18);
+  doc.setFontSize(12); doc.setTextColor(60, 60, 60);
+  doc.text(`Order: ${order.listing_name}`, 14, 28);
+  doc.text(`Seller: ${order.seller_name}`, 14, 35);
+  doc.text(`Buyer: ${order.buyer_name}`, 14, 42);
+  doc.text(`Paid on: ${order.paid_at ? new Date(order.paid_at).toLocaleDateString() : '—'}`, 14, 49);
+
+  doc.setDrawColor(200); doc.line(14, 55, pageW - 14, 55);
+
+  let y = 65;
+  doc.setFontSize(10); doc.setTextColor(100);
+  doc.text('Item', 14, y); doc.text('Qty', 110, y); doc.text('Unit Price', 140, y); doc.text('Total', 175, y);
+  y += 4; doc.line(14, y, pageW - 14, y); y += 8;
+
+  doc.setTextColor(40); doc.setFontSize(11);
+  doc.text(order.listing_name || '—', 14, y);
+  doc.text(String(order.requested_quantity), 110, y);
+  doc.text(`Rs. ${Number(price).toLocaleString()}`, 140, y);
+  doc.text(`Rs. ${Number(total).toLocaleString()}`, 175, y);
+
+  y += 14; doc.line(14, y, pageW - 14, y); y += 8;
+  doc.setFontSize(13); doc.setTextColor(26, 122, 74);
+  doc.text(`Total Paid: Rs. ${Number(total).toLocaleString()}`, 14, y);
+
+  doc.save(`receipt-${(order.listing_name || 'order').replace(/\s+/g, '_')}-${order.id?.slice(-6) || ''}.pdf`);
 }
 
 function refreshListings() {
@@ -987,9 +1029,11 @@ function RatingModal({ order, onClose }) {
 function OrderCard({ order, currentUserId, m, showHistory = false }) {
   const isSeller = order.seller_id === currentUserId;
   const isBuyer  = order.buyer_id  === currentUserId;
+  const isPaid   = order.payment_status === 'Paid';
   const [busy, setBusy] = useState(false);
   const [ratingOpen, setRatingOpen] = useState(false);
   const [rated, setRated] = useState(false);
+  const [payOpen, setPayOpen] = useState(false);
 
   // Briefly ring-flash the status badge when the status actually changes
   const [statusFlash, setStatusFlash] = useState(false);
@@ -1034,6 +1078,11 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
               {order.requested_quantity} units · Rs. {Number(effectivePrice).toLocaleString()} ea. ={' '}
               <span className="font-medium text-foreground">Rs. {totalVal.toLocaleString()}</span>
             </p>
+            {(order.status === 'Confirmed' || order.status === 'Delivered' || order.status === 'Completed') && (
+              <p className="text-xs mt-0.5" style={{ color: isPaid ? 'var(--green-primary)' : 'var(--amber, #b45309)' }}>
+                {isPaid ? m.paymentPaid : `⏳ ${m.awaitingPayment}`}
+              </p>
+            )}
             <p className="text-xs text-muted-foreground mt-0.5">
               {isSeller ? `${m.buyer}: ${order.buyer_name}` : `${m.seller}: ${order.seller_name}`}
               {' · '}{new Date(order.created_at).toLocaleDateString()}
@@ -1068,8 +1117,15 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
             </>
           )}
           {isSeller && order.status === 'Confirmed' && (
-            <Btn size="sm" onClick={() => updateStatus('Delivered')} disabled={busy}>
+            <Btn size="sm" onClick={() => updateStatus('Delivered')} disabled={busy || !isPaid} title={!isPaid ? m.awaitingPayment : undefined}>
               <ArrowRight size={14} />{m.markAs} Delivered
+            </Btn>
+          )}
+
+          {/* Buyer pays after the seller confirms — required before the seller can mark it Delivered */}
+          {isBuyer && order.status === 'Confirmed' && !isPaid && (
+            <Btn size="sm" onClick={() => setPayOpen(true)} disabled={busy}>
+              💳 {m.payNow}
             </Btn>
           )}
 
@@ -1093,9 +1149,23 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
               ⭐ Rate Seller
             </Btn>
           )}
+
+          {/* Either party can download a receipt once paid */}
+          {isPaid && (
+            <Btn size="sm" variant="outline" onClick={() => exportReceiptPDF(order)}>
+              🧾 {m.downloadReceipt}
+            </Btn>
+          )}
         </div>
       </div>
       {ratingOpen && <RatingModal order={order} onClose={(wasSuccess) => { setRatingOpen(false); if (wasSuccess) setRated(true); }} />}
+      {payOpen && (
+        <PayDialog
+          order={order}
+          onClose={() => setPayOpen(false)}
+          onSuccess={() => { setPayOpen(false); toast.success(m.paymentPaid); refreshOrders(); }}
+        />
+      )}
     </Card>
   );
 }
