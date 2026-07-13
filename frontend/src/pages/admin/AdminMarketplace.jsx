@@ -112,7 +112,7 @@ export default function AdminMarketplace() {
       <div style={{ display: 'flex', gap: '4px', marginBottom: '20px' }}>
         {(['listings', 'orders']).map(key => (
           <button key={key} onClick={() => setTab(key)}
-            style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', textTransform: 'capitalize',
+            style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '15px', textTransform: 'capitalize',
               background: tab === key ? '#7c3aed' : 'var(--card)', color: tab === key ? '#fff' : 'var(--muted)',
             }}>
             {key === 'listings' ? t.tabListings : t.tabOrders} ({key === 'listings' ? listings.length : orders.length})
@@ -121,7 +121,7 @@ export default function AdminMarketplace() {
       </div>
 
       <input value={search} onChange={e => setSearch(e.target.value)} placeholder={tab === 'listings' ? t.searchListings : t.searchOrders}
-        style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '14px', width: '100%', maxWidth: '360px', marginBottom: '20px' }} />
+        style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '16px', width: '100%', maxWidth: '360px', marginBottom: '20px' }} />
 
       {tab === 'listings' && (
         <div style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', overflow: 'hidden' }}>
@@ -129,25 +129,25 @@ export default function AdminMarketplace() {
             <thead>
               <tr style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
                 {listingHeaders.map(h => (
-                  <th key={h} style={{ padding: '11px 14px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase' }}>{h}</th>
+                  <th key={h} style={{ padding: '11px 14px', textAlign: 'left', fontSize: '12.5px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {pageListings.map(l => (
                 <tr key={l.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '11px 14px', fontWeight: 600, fontSize: '13px', color: 'var(--text)' }}>{l.crop_name}</td>
-                  <td style={{ padding: '11px 14px', fontSize: '13px', color: 'var(--muted)' }}>{l.crop_type}</td>
-                  <td style={{ padding: '11px 14px', fontSize: '13px' }}>{l.quantity} {l.unit}</td>
-                  <td style={{ padding: '11px 14px', fontSize: '13px' }}>Rs {l.price_per_unit}</td>
+                  <td style={{ padding: '11px 14px', fontWeight: 600, fontSize: '15px', color: 'var(--text)' }}>{l.crop_name}</td>
+                  <td style={{ padding: '11px 14px', fontSize: '15px', color: 'var(--muted)' }}>{l.crop_type}</td>
+                  <td style={{ padding: '11px 14px', fontSize: '15px' }}>{l.quantity} {l.unit}</td>
+                  <td style={{ padding: '11px 14px', fontSize: '15px' }}>Rs {l.price_per_unit}</td>
                   <td style={{ padding: '11px 14px' }}>
-                    <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '99px', fontWeight: 600, background: (STATUS_COLOR[l.status] || '#888') + '18', color: STATUS_COLOR[l.status] || '#888' }}>{l.status}</span>
+                    <span style={{ fontSize: '12.5px', padding: '2px 8px', borderRadius: '99px', fontWeight: 600, background: (STATUS_COLOR[l.status] || '#888') + '18', color: STATUS_COLOR[l.status] || '#888' }}>{l.status}</span>
                   </td>
-                  <td style={{ padding: '11px 14px', fontSize: '12px', color: 'var(--muted)' }}>{l.created_at ? new Date(l.created_at).toLocaleDateString() : '—'}</td>
+                  <td style={{ padding: '11px 14px', fontSize: '14px', color: 'var(--muted)' }}>{l.created_at ? new Date(l.created_at).toLocaleDateString() : '—'}</td>
                   <td style={{ padding: '11px 14px' }}>
                     {l.status !== 'Archived' && l.status !== 'archived' && (
                       <button onClick={() => handleArchive(l.id)}
-                        style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '6px', border: '1px solid #f57c00', background: 'none', cursor: 'pointer', color: '#f57c00' }}>{t.archive}</button>
+                        style={{ fontSize: '14px', padding: '4px 10px', borderRadius: '6px', border: '1px solid #f57c00', background: 'none', cursor: 'pointer', color: '#f57c00' }}>{t.archive}</button>
                     )}
                   </td>
                 </tr>
@@ -164,22 +164,22 @@ export default function AdminMarketplace() {
             <thead>
               <tr style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
                 {orderHeaders.map(h => (
-                  <th key={h} style={{ padding: '11px 14px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase' }}>{h}</th>
+                  <th key={h} style={{ padding: '11px 14px', textAlign: 'left', fontSize: '12.5px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {pageOrders.map(o => (
                 <tr key={o.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '11px 14px', fontFamily: 'monospace', fontSize: '12px', color: 'var(--muted)' }}>{o.id.slice(0, 8)}…</td>
-                  <td style={{ padding: '11px 14px', fontSize: '13px' }}>#{o.buyer_id}</td>
-                  <td style={{ padding: '11px 14px', fontSize: '13px' }}>#{o.seller_id}</td>
-                  <td style={{ padding: '11px 14px', fontSize: '13px' }}>{o.requested_quantity}</td>
-                  <td style={{ padding: '11px 14px', fontSize: '13px' }}>{o.agreed_price != null ? `Rs ${o.agreed_price}` : o.proposed_price != null ? `Rs ${o.proposed_price} ${t.proposed}` : '—'}</td>
+                  <td style={{ padding: '11px 14px', fontFamily: 'monospace', fontSize: '14px', color: 'var(--muted)' }}>{o.id.slice(0, 8)}…</td>
+                  <td style={{ padding: '11px 14px', fontSize: '15px' }}>#{o.buyer_id}</td>
+                  <td style={{ padding: '11px 14px', fontSize: '15px' }}>#{o.seller_id}</td>
+                  <td style={{ padding: '11px 14px', fontSize: '15px' }}>{o.requested_quantity}</td>
+                  <td style={{ padding: '11px 14px', fontSize: '15px' }}>{o.agreed_price != null ? `Rs ${o.agreed_price}` : o.proposed_price != null ? `Rs ${o.proposed_price} ${t.proposed}` : '—'}</td>
                   <td style={{ padding: '11px 14px' }}>
-                    <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '99px', fontWeight: 600, background: (STATUS_COLOR[o.status] || '#888') + '18', color: STATUS_COLOR[o.status] || '#888' }}>{o.status}</span>
+                    <span style={{ fontSize: '12.5px', padding: '2px 8px', borderRadius: '99px', fontWeight: 600, background: (STATUS_COLOR[o.status] || '#888') + '18', color: STATUS_COLOR[o.status] || '#888' }}>{o.status}</span>
                   </td>
-                  <td style={{ padding: '11px 14px', fontSize: '12px', color: 'var(--muted)' }}>{o.created_at ? new Date(o.created_at).toLocaleDateString() : '—'}</td>
+                  <td style={{ padding: '11px 14px', fontSize: '14px', color: 'var(--muted)' }}>{o.created_at ? new Date(o.created_at).toLocaleDateString() : '—'}</td>
                 </tr>
               ))}
               {filteredOrders.length === 0 && <tr><td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: 'var(--muted)' }}>{t.noOrders}</td></tr>}

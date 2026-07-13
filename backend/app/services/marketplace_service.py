@@ -11,6 +11,7 @@ from app.models.marketplace import (
     MarketplaceNegotiationMessage,
     MarketplaceOrder,
     MarketplaceOrderStatus,
+    OrderPaymentStatus,
 )
 from app.schemas.marketplace import (
     MarketplaceListingCreate,
@@ -188,6 +189,9 @@ def update_order_status(
 
     if new_status != current_status and new_status not in allowed_transitions.get(current_status, set()):
         raise ValueError("Invalid status transition")
+
+    if new_status == MarketplaceOrderStatus.DELIVERED and order.payment_status != OrderPaymentStatus.PAID:
+        raise ValueError("Payment required before order can be marked as delivered")
 
     order.status = new_status
     if payload.seller_note is not None:

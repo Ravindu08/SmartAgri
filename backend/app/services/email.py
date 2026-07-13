@@ -91,6 +91,7 @@ def send_order_event_email(to_email: str, full_name: str, event: str, crop_name:
         "order_delivered": ("Order Marked Delivered",  "The seller has marked your order as delivered."),
         "order_completed": ("Order Completed",         "The buyer has confirmed receipt. The order is now complete."),
         "counter_offer":   ("Counter-Offer Received",  "You have received a counter-offer on your order."),
+        "payment_received": ("Payment Received",       "The buyer has completed payment for this order."),
     }
     label, body_text = event_labels.get(event, ("Order Update", "Your order status has been updated."))
     subject = f"SmartAgri — {label}: {crop_name}"

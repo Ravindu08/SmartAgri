@@ -26,6 +26,11 @@ class MarketplaceOrderStatus(str, Enum):
     CANCELLED = "Cancelled"
 
 
+class OrderPaymentStatus(str, Enum):
+    UNPAID = "Unpaid"
+    PAID = "Paid"
+
+
 class MarketplaceListing(Base):
     __tablename__ = "marketplace_listings"
 
@@ -123,6 +128,16 @@ class MarketplaceOrder(Base):
     accepted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     delivered_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    payment_status: Mapped[OrderPaymentStatus] = mapped_column(
+        SAEnum(
+            OrderPaymentStatus,
+            name="order_payment_status",
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+        ),
+        nullable=False,
+        default=OrderPaymentStatus.UNPAID,
+    )
+    paid_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     listing = relationship("MarketplaceListing", lazy="joined")
     buyer = relationship("User", foreign_keys=[buyer_id], lazy="joined")

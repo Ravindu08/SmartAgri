@@ -198,7 +198,7 @@ export default function RegisterPage() {
                       {active && (
                         <span style={{
                           position: 'absolute', top: '6px', right: '8px',
-                          fontSize: '11px', background: 'var(--green-primary)',
+                          fontSize: '12.5px', background: 'var(--green-primary)',
                           color: '#fff', borderRadius: '50%', width: '16px', height: '16px',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}>✓</span>
@@ -209,7 +209,7 @@ export default function RegisterPage() {
                 })}
               </div>
               {selectedRoles.length === 2 && (
-                <p style={{ fontSize: '12px', color: 'var(--green-primary)', marginTop: '6px' }}>
+                <p style={{ fontSize: '14px', color: 'var(--green-primary)', marginTop: '6px' }}>
                   ✓ Dual-role account — you can switch between both after login.
                 </p>
               )}

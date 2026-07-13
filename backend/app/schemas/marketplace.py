@@ -5,7 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.marketplace import MarketplaceListingStatus, MarketplaceOrderStatus
+from app.models.marketplace import MarketplaceListingStatus, MarketplaceOrderStatus, OrderPaymentStatus
 
 
 class MarketplaceListingBase(BaseModel):
@@ -115,3 +115,5 @@ class MarketplaceOrderRead(BaseModel):
     accepted_at: Optional[datetime] = None
     delivered_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
+    payment_status: OrderPaymentStatus
+    paid_at: Optional[datetime] = None

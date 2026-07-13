@@ -113,20 +113,20 @@ export default function AdminUsers() {
           <button
             type="button"
             onClick={() => downloadAdminCSV('users').catch(err => alert(err.message))}
-            style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--text)', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}
+            style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--text)', fontWeight: 600, fontSize: '15px', cursor: 'pointer' }}
           >
             ⬇ Export CSV
           </button>
           <button
             type="button"
             onClick={() => navigate('/admin/users/import')}
-            style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--text)', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}
+            style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--text)', fontWeight: 600, fontSize: '15px', cursor: 'pointer' }}
           >
             📥 {t.importCsv}
           </button>
           <Link to="/admin/users/create" style={{
             padding: '8px 18px', borderRadius: '8px', background: '#7c3aed', color: '#fff',
-            fontWeight: 600, fontSize: '13px', textDecoration: 'none',
+            fontWeight: 600, fontSize: '15px', textDecoration: 'none',
           }}>{t.addUser}</Link>
         </div>
       </div>
@@ -136,10 +136,10 @@ export default function AdminUsers() {
         <input
           value={search} onChange={e => setSearch(e.target.value)}
           placeholder={t.searchPlaceholder}
-          style={{ flex: '1 1 200px', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '14px' }}
+          style={{ flex: '1 1 200px', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '16px' }}
         />
         <CustomSelect name="roleFilter" value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
-          style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '14px' }}>
+          style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '16px' }}>
           <option value="">{t.allRoles}</option>
           <option value="Land Owner">Land Owner</option>
           <option value="Trader">Trader</option>
@@ -155,7 +155,7 @@ export default function AdminUsers() {
             <thead>
               <tr style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
                 {headers.map(h => (
-                  <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
+                  <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -163,25 +163,25 @@ export default function AdminUsers() {
               {pageUsers.map(u => (
                 <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: '12px 16px' }}>
-                    <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text)' }}>{u.full_name}</div>
+                    <div style={{ fontWeight: 600, fontSize: '16px', color: 'var(--text)' }}>{u.full_name}</div>
                   </td>
-                  <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--muted)' }}>{u.email}</td>
+                  <td style={{ padding: '12px 16px', fontSize: '15px', color: 'var(--muted)' }}>{u.email}</td>
                   <td style={{ padding: '12px 16px' }}>
                     <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                       {(u.roles || [u.role]).map(r => (
                         <span key={r} style={{
-                          fontSize: '11px', padding: '2px 8px', borderRadius: '99px',
+                          fontSize: '12.5px', padding: '2px 8px', borderRadius: '99px',
                           background: (ROLE_COLOR[r] || '#888') + '18', color: ROLE_COLOR[r] || '#888', fontWeight: 600,
                         }}>{r}</span>
                       ))}
                     </div>
                   </td>
-                  <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--muted)' }}>
+                  <td style={{ padding: '12px 16px', fontSize: '15px', color: 'var(--muted)' }}>
                     {new Date(u.created_at).toLocaleDateString()}
                   </td>
                   <td style={{ padding: '12px 16px' }}>
                     <span style={{
-                      fontSize: '12px', padding: '3px 10px', borderRadius: '99px', fontWeight: 600,
+                      fontSize: '14px', padding: '3px 10px', borderRadius: '99px', fontWeight: 600,
                       background: u.is_suspended ? '#e5393518' : '#2d6a4f18',
                       color: u.is_suspended ? '#e53935' : '#2d6a4f',
                     }}>{u.is_suspended ? t.statusSuspended : t.statusActive}</span>
@@ -189,7 +189,7 @@ export default function AdminUsers() {
                   <td style={{ padding: '12px 16px' }}>
                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                       <button onClick={() => handleSuspend(u)}
-                        style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: u.is_suspended ? '#2d6a4f' : '#f57c00' }}>
+                        style={{ fontSize: '14px', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: u.is_suspended ? '#2d6a4f' : '#f57c00' }}>
                         {u.is_suspended ? t.unsuspend : t.suspend}
                       </button>
                       {!u.is_verified && u.role !== 'Admin' && (
@@ -199,7 +199,7 @@ export default function AdminUsers() {
                             setToast('Verification email resent ✓');
                           } catch (err) { setToast(err.message); }
                         }}
-                          style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '6px', border: '1px solid #1a7a4a', background: 'none', cursor: 'pointer', color: '#1a7a4a' }}
+                          style={{ fontSize: '14px', padding: '4px 10px', borderRadius: '6px', border: '1px solid #1a7a4a', background: 'none', cursor: 'pointer', color: '#1a7a4a' }}
                           title="Resend verification email"
                         >
                           ✉ Resend
@@ -207,7 +207,7 @@ export default function AdminUsers() {
                       )}
                       {u.role !== 'Admin' && (
                         <button onClick={() => handleDelete(u)}
-                          style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '6px', border: '1px solid #e53935', background: 'none', cursor: 'pointer', color: '#e53935' }}>
+                          style={{ fontSize: '14px', padding: '4px 10px', borderRadius: '6px', border: '1px solid #e53935', background: 'none', cursor: 'pointer', color: '#e53935' }}>
                           {t.delete}
                         </button>
                       )}

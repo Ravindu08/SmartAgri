@@ -69,11 +69,11 @@ export default function AdminLayout() {
         <div style={{ padding: '20px 20px 8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
             width: '36px', height: '36px', borderRadius: '10px', background: '#7c3aed',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '19px',
           }}>🛡️</div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '14px', color: '#fff' }}>SmartAgri</div>
-            <div style={{ fontSize: '11px', color: 'rgba(200,170,255,0.9)', fontWeight: 600 }}>Admin Panel</div>
+            <div style={{ fontWeight: 700, fontSize: '16px', color: '#fff' }}>SmartAgri</div>
+            <div style={{ fontSize: '12.5px', color: 'rgba(200,170,255,0.9)', fontWeight: 600 }}>Admin Panel</div>
           </div>
         </div>
 
