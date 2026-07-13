@@ -65,6 +65,22 @@ python -m pytest backend/tests/ -v
 
 ---
 
+## CI/CD
+
+- **CI** (`.github/workflows/ci.yml`) runs on every push to any branch and on every pull request into `main`: backend pytest suite, frontend vitest suite, and a production `vite build`.
+- **CD** (`.github/workflows/cd.yml`) runs on every push to `main` (i.e. after a PR merges): builds `backend/Dockerfile` and `frontend/Dockerfile` and publishes them to GitHub Container Registry, tagged `latest` and `sha-<commit>`. No hosting target is wired up yet — this stops at "image published."
+
+Pull an image manually:
+```bash
+docker pull ghcr.io/ravindu08/smartagri-backend:latest
+docker pull ghcr.io/ravindu08/smartagri-frontend:latest
+```
+(GHCR packages are private by default — the repo owner needs to make them public in the package settings, or you'll need `docker login ghcr.io` with a PAT that has `read:packages`.)
+
+To run the whole stack locally via Docker instead of the manual/one-command dev flow above, see `docker-compose.yml`.
+
+---
+
 ## Architecture
 
 | Layer | Port | Technologies |

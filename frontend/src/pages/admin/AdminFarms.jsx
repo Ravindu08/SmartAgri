@@ -58,14 +58,14 @@ export default function AdminFarms() {
   return (
     <div style={{ padding: '28px', maxWidth: '1100px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-        <h2 style={{ margin: 0, color: 'var(--text)' }}>{t.title} <span style={{ fontSize: '16px', color: 'var(--muted)', fontWeight: 400 }}>({farms.length})</span></h2>
+        <h2 style={{ margin: 0, color: 'var(--text)' }}>{t.title} <span style={{ fontSize: '18px', color: 'var(--muted)', fontWeight: 400 }}>({farms.length})</span></h2>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
           <button type="button" onClick={() => navigate('/admin/farms/import')}
-            style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--text)', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}>
+            style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--text)', fontWeight: 600, fontSize: '15px', cursor: 'pointer' }}>
             📥 {t.importCsv}
           </button>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t.searchPlaceholder}
-            style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '14px', width: '220px' }} />
+            style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '16px', width: '220px' }} />
         </div>
       </div>
 
@@ -74,18 +74,18 @@ export default function AdminFarms() {
           <thead>
             <tr style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
               {headers.map(h => (
-                <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase' }}>{h}</th>
+                <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12.5px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase' }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {pageFarms.map(f => (
               <tr key={f.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                <td style={{ padding: '12px 16px', fontWeight: 600, fontSize: '14px', color: 'var(--text)' }}>🌾 {f.name}</td>
-                <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--muted)' }}>{f.district}</td>
-                <td style={{ padding: '12px 16px', fontSize: '13px' }}>{f.size} {f.size_unit}</td>
-                <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--muted)' }}>#{f.owner_id}</td>
-                <td style={{ padding: '12px 16px', fontSize: '12px', color: 'var(--muted)' }}>{f.created_at ? new Date(f.created_at).toLocaleDateString() : '—'}</td>
+                <td style={{ padding: '12px 16px', fontWeight: 600, fontSize: '16px', color: 'var(--text)' }}>🌾 {f.name}</td>
+                <td style={{ padding: '12px 16px', fontSize: '15px', color: 'var(--muted)' }}>{f.district}</td>
+                <td style={{ padding: '12px 16px', fontSize: '15px' }}>{f.size} {f.size_unit}</td>
+                <td style={{ padding: '12px 16px', fontSize: '15px', color: 'var(--muted)' }}>#{f.owner_id}</td>
+                <td style={{ padding: '12px 16px', fontSize: '14px', color: 'var(--muted)' }}>{f.created_at ? new Date(f.created_at).toLocaleDateString() : '—'}</td>
               </tr>
             ))}
             {filtered.length === 0 && <tr><td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: 'var(--muted)' }}>{t.noFarms}</td></tr>}
