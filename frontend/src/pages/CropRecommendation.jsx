@@ -142,7 +142,6 @@ function SoilGuideModal({ lang, t, onClose }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function CropRecommendation({ lang, setLang, setPage, weather, setWeather }) {
-  const [mode,       setMode]       = useState("full");
   const [loading,    setLoading]    = useState(false);
   const [result,     setResult]     = useState(null);
   const [error,      setError]      = useState(null);
@@ -241,9 +240,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
   }, [district, weather, season]);
 
   const baseOk   = district && agroZone && soilType && irrigation && season;
-  const fullOk   = baseOk && N && P && K && temp && rain && ph && hum;
-  // Simple mode is always submittable once base fields are filled; weather fields are optional bonuses
-  const canSubmit = mode === "simple" ? baseOk : fullOk;
+  const canSubmit = baseOk && N && P && K && temp && rain && ph && hum;
 
   // Suitability classes for numeric inputs
   const ci = result?.crop_info;
@@ -273,17 +270,8 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
   const submit = async () => {
     setLoading(true); setError(null); setResult(null); setIsMock(false);
     try {
-      const endpoint = mode === "simple" ? "/predict/simple" : "/predict/full";
-      const body = mode === "simple"
-        ? {
-            Soil_Type: soilType, Agro_Zone: agroZone, Irrigation: irrigation,
-            Season: season, District: district || undefined,
-            // Include weather values when available — boosts accuracy from ~47% to ~67%
-            ...(temp ? { Temperature: +temp } : {}),
-            ...(rain ? { Rainfall:    +rain } : {}),
-            ...(hum  ? { Humidity:    +hum  } : {}),
-          }
-        : { N: +N, P: +P, K: +K, Temperature: +temp, Rainfall: +rain, pH: +ph, Humidity: +hum,
+      const endpoint = "/predict/full";
+      const body = { N: +N, P: +P, K: +K, Temperature: +temp, Rainfall: +rain, pH: +ph, Humidity: +hum,
             Soil_Type: soilType, Agro_Zone: agroZone, Irrigation: irrigation, Season: season };
 
       const res = await fetch(`${API_BASE}${endpoint}`, {
@@ -304,7 +292,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
       saveToHistory({
         crop:       json.data.recommended_crop,
         confidence: json.data.confidence,
-        mode,
+        mode:   "full",
         zone:   agroZone,
         season,
         soil:   soilType,
@@ -366,18 +354,14 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
           t={t}
         />
 
-        {/* Mode is fixed to "full" — toggle hidden */}
-
         {/* ── Form card ───────────────────────────────────────────────────── */}
         <div className="card">
           <div className="ci">
             <div className="ch">
-              <div className={`cico ${mode === "simple" ? "cig" : "cia"}`}>
-                {mode === "simple" ? "🌱" : "🔬"}
-              </div>
+              <div className="cico cia">🔬</div>
               <div>
-                <div className="ct">{mode === "simple" ? t.titleSimple : t.titleFull}</div>
-                <div className="cs">{mode === "simple" ? t.subSimple : t.subFull}</div>
+                <div className="ct">{t.titleFull}</div>
+                <div className="cs">{t.subFull}</div>
               </div>
             </div>
 
@@ -454,76 +438,26 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
                 </div>
               </div>
 
-              {/* Weather auto-fill section (simple mode) */}
-              {mode === "simple" && (
-                <div className="fsec">
-                  <div className="sec">{t.secWeatherSimple}</div>
-                  {wxFilled ? (
-                    <div className="wx-autofill-badge">
-                      🌦️ {t.wxAutoFillBadge} <strong>{district}</strong>. {t.wxAutoFillAdjust}
-                    </div>
-                  ) : wxLoading ? (
-                    <div className="wx-autofill-hint">
-                      ⏳ {t.wxFetchingHint || "Fetching live weather for"} <strong>{district}</strong>…
-                    </div>
-                  ) : (
-                    <div className="wx-autofill-hint">
-                      💡 {district ? (t.wxSelectDistrictDone || "Weather data will appear here automatically.") : (t.wxSelectDistrictHint || "Select your district above to auto-fill live weather data.")}
-                    </div>
-                  )}
-                  <div className="g3">
-                    {[
-                      { key:"temp", label:t.temperature, val:temp, set:setTemp, unit:"°C",  ph:"27",   min:5,   max:45  },
-                      { key:"rain", label:t.rainfall,    val:rain, set:setRain, unit:"mm",  ph:"1050", min:0,   max:5000 },
-                      { key:"hum",  label:t.humidity,    val:hum,  set:setHum,  unit:"%",   ph:"72",   min:0,   max:100 },
-                    ].map(({ key, label, val, set, unit, ph: ph_, min, max }) => (
-                      <div className="fl" key={key}>
-                        <label className="flb">
-                          {label}
-                          {wxFilled && <span className="wx-live-tag">🌦 {t.wxLiveTag}</span>}
-                        </label>
-                        <div className="iw">
-                          <input
-                            className={`fi${wxFilled && val ? " wx-filled" : ""}`}
-                            type="number"
-                            step="0.1"
-                            placeholder={ph_}
-                            value={val}
-                            onChange={e => set(e.target.value)}
-                            min={min}
-                            max={max}
-                            aria-label={label}
-                          />
-                          <span className="iunit">{unit}</span>
-                        </div>
-                        <span className="fhint">{t.wxOptional} · {t.rangeHint}: {min}–{max} {unit}</span>
-                      </div>
-                    ))}
+              {/* Numeric inputs */}
+              <div className="fsec">
+                <div className="sec">{t.secNutrients}</div>
+                {wxFilled && (
+                  <div className="wx-autofill-badge">
+                    🌦️ {t.wxAutoFillBadge} <strong>{district}</strong>. {t.wxAutoFillAdjust}
                   </div>
-                </div>
-              )}
-
-              {/* Numeric inputs (full mode only) */}
-              {mode === "full" && (
-                <div className="fsec">
-                  <div className="sec">{t.secNutrients}</div>
-                  {wxFilled && (
-                    <div className="wx-autofill-badge">
-                      🌦️ {t.wxAutoFillBadge} <strong>{district}</strong>. {t.wxAutoFillAdjust}
-                    </div>
-                  )}
-                  {!wxFilled && district && mode === "full" && (
-                    <div className="wx-autofill-hint">
-                      {wxLoading
-                        ? <>⏳ {t.wxFetchingHint || "Fetching live weather for"} <strong>{district}</strong>…</>
-                        : <>💡 {t.wxSelectDistrictHint || "Select your district to auto-fill live weather data."}</>}
-                    </div>
-                  )}
-                  <div className="g3">
-                    {numFields.map(({ key, label, val, set, unit, ph: ph_, min, max, step }) => {
-                      const sc = ci ? sClass(suit[key]) : "";
-                      const sv = ci ? suit[key] : null;
-                      return (
+                )}
+                {!wxFilled && district && (
+                  <div className="wx-autofill-hint">
+                    {wxLoading
+                      ? <>⏳ {t.wxFetchingHint || "Fetching live weather for"} <strong>{district}</strong>…</>
+                      : <>💡 {t.wxSelectDistrictHint || "Select your district to auto-fill live weather data."}</>}
+                  </div>
+                )}
+                <div className="g3">
+                  {numFields.map(({ key, label, val, set, unit, ph: ph_, min, max, step }) => {
+                    const sc = ci ? sClass(suit[key]) : "";
+                    const sv = ci ? suit[key] : null;
+                    return (
                         <div className="fl" key={key}>
                           <label className="flb">{label}</label>
                           <div className="iw">
@@ -547,8 +481,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
                       );
                     })}
                   </div>
-                </div>
-              )}
+              </div>
 
               <button className="btn" onClick={submit} disabled={!canSubmit || loading}>
                 {loading ? <><div className="spin" />{t.btnAnalyse}</> : t.btnSubmit}
@@ -713,20 +646,18 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
                   ))}
                 </div>
 
-                {mode === "full" && (
-                  <div className="suit-section">
-                    <div className="suit-title">{t.suitabilityTitle}</div>
-                    <div className="suit-rows">
-                      <SuitBar label={t.nitrogen}    value={N}    min={ci.n_min}        max={ci.n_max}        t={t} />
-                      <SuitBar label={t.phosphorus}  value={P}    min={ci.p_min}        max={ci.p_max}        t={t} />
-                      <SuitBar label={t.potassium}   value={K}    min={ci.k_min}        max={ci.k_max}        t={t} />
-                      <SuitBar label={t.temperature} value={temp} min={ci.temp_min}     max={ci.temp_max}     t={t} />
-                      <SuitBar label={t.rainfall}    value={rain} min={ci.rainfall_min} max={ci.rainfall_max} t={t} />
-                      <SuitBar label={t.soilPh}      value={ph}   min={ci.ph_min}       max={ci.ph_max}       t={t} />
-                      <SuitBar label={t.humidity}    value={hum}  min={ci.humidity_min} max={ci.humidity_max} t={t} />
-                    </div>
+                <div className="suit-section">
+                  <div className="suit-title">{t.suitabilityTitle}</div>
+                  <div className="suit-rows">
+                    <SuitBar label={t.nitrogen}    value={N}    min={ci.n_min}        max={ci.n_max}        t={t} />
+                    <SuitBar label={t.phosphorus}  value={P}    min={ci.p_min}        max={ci.p_max}        t={t} />
+                    <SuitBar label={t.potassium}   value={K}    min={ci.k_min}        max={ci.k_max}        t={t} />
+                    <SuitBar label={t.temperature} value={temp} min={ci.temp_min}     max={ci.temp_max}     t={t} />
+                    <SuitBar label={t.rainfall}    value={rain} min={ci.rainfall_min} max={ci.rainfall_max} t={t} />
+                    <SuitBar label={t.soilPh}      value={ph}   min={ci.ph_min}       max={ci.ph_max}       t={t} />
+                    <SuitBar label={t.humidity}    value={hum}  min={ci.humidity_min} max={ci.humidity_max} t={t} />
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </div>

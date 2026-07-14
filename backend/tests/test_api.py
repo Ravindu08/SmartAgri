@@ -15,8 +15,8 @@ try:
 except Exception:
     MODELS_LOADED = False
 
-VALID_SIMPLE = {"Soil_Type":"Sandy Loam","Agro_Zone":"Dry Zone","Irrigation":"Rainfed","Season":"Yala","District":"Ampara"}
-VALID_FULL   = {**VALID_SIMPLE,"N":100,"P":60,"K":91,"Temperature":27.0,"Rainfall":1050.0,"pH":6.3,"Humidity":72.0}
+BASE_FIELDS = {"Soil_Type":"Sandy Loam","Agro_Zone":"Dry Zone","Irrigation":"Rainfed","Season":"Yala","District":"Ampara"}
+VALID_FULL  = {**BASE_FIELDS,"N":100,"P":60,"K":91,"Temperature":27.0,"Rainfall":1050.0,"pH":6.3,"Humidity":72.0}
 
 def test_health():
     r = client.get("/health")
@@ -34,31 +34,6 @@ def test_meta():
     assert len(d["agro_zones"]) == 15
     assert len(d["crops"]) == 41  # 34 original + 7 new crops
     assert len(d["districts"]) == 25
-
-@pytest.mark.skipif(not MODELS_LOADED, reason="Models not trained yet")
-def test_predict_simple_valid():
-    r = client.post("/predict/simple", json=VALID_SIMPLE)
-    assert r.status_code == 200
-    d = r.json()["data"]
-    assert d["mode"] == "simple"
-    assert d["recommended_crop"]
-    assert 0 <= d["confidence"] <= 1
-    assert len(d["top_3"]) == 3
-    assert d["planting_calendar"] is not None
-    assert d["crop_info"] is not None
-
-@pytest.mark.skipif(not MODELS_LOADED, reason="Models not trained yet")
-def test_predict_simple_no_district():
-    payload = {k:v for k,v in VALID_SIMPLE.items() if k != "District"}
-    assert client.post("/predict/simple", json=payload).status_code == 200
-
-@pytest.mark.skipif(not MODELS_LOADED, reason="Models not trained yet")
-def test_predict_simple_bad_zone():
-    assert client.post("/predict/simple", json={**VALID_SIMPLE,"Agro_Zone":"Moon Zone"}).status_code == 422
-
-@pytest.mark.skipif(not MODELS_LOADED, reason="Models not trained yet")
-def test_predict_simple_bad_irrigation():
-    assert client.post("/predict/simple", json={**VALID_SIMPLE,"Irrigation":"Magic Drip"}).status_code == 422
 
 @pytest.mark.skipif(not MODELS_LOADED, reason="Models not trained yet")
 def test_predict_full_valid():
