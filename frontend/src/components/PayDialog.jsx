@@ -1,110 +1,102 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { request } from '../services/api';
-
-const PAYHERE_SCRIPT_URL = 'https://www.payhere.lk/lib/payhere.js';
-let payhereLoadPromise = null;
-
-function loadPayHereScript() {
-  if (window.payhere) return Promise.resolve();
-  if (!payhereLoadPromise) {
-    payhereLoadPromise = new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = PAYHERE_SCRIPT_URL;
-      script.onload = resolve;
-      script.onerror = () => { payhereLoadPromise = null; reject(new Error('Failed to load PayHere checkout')); };
-      document.body.appendChild(script);
-    });
-  }
-  return payhereLoadPromise;
-}
-
-// Poll a couple of times for the notify_url webhook to land — the buyer's
-// browser only knows checkout finished (onCompleted); the DB only flips to
-// Paid once PayHere's server-to-server callback has been processed.
-async function pollUntilPaid(orderId, { attempts = 5, delayMs = 1500 } = {}) {
-  for (let i = 0; i < attempts; i++) {
-    await new Promise(r => setTimeout(r, delayMs));
-    try {
-      const payment = await request(`/api/marketplace/orders/${orderId}/payment`);
-      if (payment.status === 'Paid') return true;
-    } catch { /* keep polling */ }
-  }
-  return false;
-}
 
 const T = {
   en: {
-    title: 'Complete Payment', desc: 'Pay securely via PayHere to confirm this order.',
-    preparing: 'Preparing checkout…', cancel: 'Cancel',
-    processing: 'Confirming your payment…',
-    slowNotice: "Payment is processing — this can take a moment. You can close this and check back shortly.",
-    dismissed: 'Payment window closed.',
+    title: 'Complete Payment',
+    demoBadge: '🔒 Simulated Payment — Demo Mode',
+    demoNote: 'No real payment gateway is connected. This form is a stand-in — submitting it marks the order as paid.',
+    cardNumber: 'Card Number', expiry: 'Expiry (MM/YY)', cvv: 'CVV', cardholder: 'Cardholder Name',
+    pay: 'Pay', processing: 'Processing payment…', cancel: 'Cancel',
+    fillAllFields: 'Fill in all fields to continue.',
   },
 };
 
+function totalFor(order) {
+  const price = order.agreed_price ?? order.counter_offer_price ?? order.proposed_price ?? 0;
+  return order.requested_quantity * price;
+}
+
 export default function PayDialog({ order, onClose, onSuccess }) {
-  const [status, setStatus] = useState('loading'); // loading | ready | processing | slow | error
+  const [form, setForm] = useState({ cardholder: '', number: '', expiry: '', cvv: '' });
+  const [status, setStatus] = useState('form'); // form | processing | error
   const [error, setError] = useState('');
-  const startedRef = useRef(false);
   const t = T.en;
+  const total = totalFor(order);
 
-  useEffect(() => {
-    let cancelled = false;
+  const allFilled = Object.values(form).every(v => v.trim().length > 0);
 
-    async function start() {
-      try {
-        await loadPayHereScript();
-        const payload = await request(`/api/marketplace/orders/${order.id}/payment/init`, { method: 'POST', body: JSON.stringify({}) });
-        if (cancelled || startedRef.current) return;
-        startedRef.current = true;
+  function update(field, value) {
+    setForm(f => ({ ...f, [field]: value }));
+  }
 
-        window.payhere.onCompleted = async () => {
-          if (cancelled) return;
-          setStatus('processing');
-          const paid = await pollUntilPaid(order.id);
-          if (cancelled) return;
-          if (paid) onSuccess();
-          else setStatus('slow');
-        };
-        window.payhere.onDismissed = () => { if (!cancelled) onClose(); };
-        window.payhere.onError = (msg) => { if (!cancelled) { setError(msg); setStatus('error'); } };
-
-        setStatus('ready');
-        window.payhere.startPayment(payload);
-      } catch (err) {
-        if (!cancelled) { setError(err.message); setStatus('error'); }
-      }
+  async function submit(e) {
+    e.preventDefault();
+    if (!allFilled) { setError(t.fillAllFields); return; }
+    setError('');
+    setStatus('processing');
+    try {
+      await new Promise(r => setTimeout(r, 1500)); // simulated processing delay
+      await request(`/api/marketplace/orders/${order.id}/payment/simulate`, { method: 'POST', body: JSON.stringify({}) });
+      onSuccess();
+    } catch (err) {
+      setError(err.message);
+      setStatus('form');
     }
-    start();
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [order.id]);
+  }
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-      <div style={{ background: 'var(--card)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '400px', boxShadow: '0 8px 32px rgba(0,0,0,0.2)', textAlign: 'center' }}>
-        <h3 style={{ margin: '0 0 8px', color: 'var(--text)', fontSize: '18px' }}>{t.title}</h3>
-        <p style={{ margin: '0 0 16px', color: 'var(--muted)', fontSize: '15px' }}>{order.listing_name}</p>
+      <div style={{ background: 'var(--card)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '400px', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+        <h3 style={{ margin: '0 0 4px', color: 'var(--text)', fontSize: '18px' }}>{t.title}</h3>
+        <p style={{ margin: '0 0 12px', color: 'var(--muted)', fontSize: '15px' }}>{order.listing_name} · Rs. {total.toLocaleString()}</p>
 
-        {(status === 'loading' || status === 'ready') && (
-          <p style={{ color: 'var(--muted)', fontSize: '15px' }}>{t.preparing}</p>
-        )}
-        {status === 'processing' && (
-          <p style={{ color: 'var(--muted)', fontSize: '15px' }}>{t.processing}</p>
-        )}
-        {status === 'slow' && (
-          <p style={{ color: 'var(--muted)', fontSize: '15px' }}>{t.slowNotice}</p>
-        )}
-        {status === 'error' && (
-          <p style={{ color: 'var(--destructive, #d33)', fontSize: '15px' }}>{error}</p>
-        )}
-
-        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '20px' }}>
-          <button type="button" onClick={onClose} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '15px' }}>
-            {t.cancel}
-          </button>
+        <div style={{ background: 'color-mix(in srgb, var(--amber, #f59e0b) 15%, transparent)', border: '1px solid var(--amber, #f59e0b)', borderRadius: '8px', padding: '10px 12px', marginBottom: '16px' }}>
+          <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--amber, #f59e0b)' }}>{t.demoBadge}</div>
+          <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginTop: '2px' }}>{t.demoNote}</div>
         </div>
+
+        {status === 'processing' ? (
+          <p style={{ textAlign: 'center', color: 'var(--muted)', fontSize: '15px', padding: '20px 0' }}>{t.processing}</p>
+        ) : (
+          <form onSubmit={submit} style={{ display: 'grid', gap: '10px' }}>
+            <input
+              placeholder={t.cardholder} value={form.cardholder} onChange={e => update('cardholder', e.target.value)}
+              style={inputStyle}
+            />
+            <input
+              placeholder={t.cardNumber} value={form.number} onChange={e => update('number', e.target.value)}
+              maxLength={19} style={inputStyle}
+            />
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <input
+                placeholder={t.expiry} value={form.expiry} onChange={e => update('expiry', e.target.value)}
+                maxLength={5} style={{ ...inputStyle, flex: 1 }}
+              />
+              <input
+                placeholder={t.cvv} value={form.cvv} onChange={e => update('cvv', e.target.value)}
+                maxLength={4} style={{ ...inputStyle, flex: 1 }}
+              />
+            </div>
+
+            {error && <p style={{ color: 'var(--destructive, #d33)', fontSize: '14px', margin: 0 }}>{error}</p>}
+
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '6px' }}>
+              <button type="button" onClick={onClose} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '15px' }}>
+                {t.cancel}
+              </button>
+              <button type="submit" style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: 'var(--green-primary)', color: '#fff', cursor: 'pointer', fontSize: '15px', fontWeight: 600 }}>
+                {t.pay} Rs. {total.toLocaleString()}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
 }
+
+const inputStyle = {
+  width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid var(--border)',
+  background: 'var(--input-bg)', color: 'var(--text)', fontSize: '15px', boxSizing: 'border-box',
+};
