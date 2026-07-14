@@ -110,16 +110,19 @@ HARVEST_FALLBACK = {
 
 
 # ── Pydantic models ───────────────────────────────────────────────────────────
-class SimplifiedModeRequest(BaseModel):
+class FullModeRequest(BaseModel):
     Soil_Type:   str
     Agro_Zone:   str
     Irrigation:  str
     Season:      str
-    District:    Optional[str]   = None
-    # Weather-sourced parameters — auto-filled from live weather API
-    Temperature: Optional[float] = None
-    Rainfall:    Optional[float] = None
-    Humidity:    Optional[float] = None
+    District:    Optional[str] = None
+    N:           float
+    P:           float
+    K:           float
+    Temperature: float
+    Rainfall:    float
+    pH:          float
+    Humidity:    float
 
     @field_validator("Soil_Type")
     @classmethod
@@ -148,37 +151,6 @@ class SimplifiedModeRequest(BaseModel):
         if v not in VALID_SEASONS:
             raise ValueError(f"Invalid Season '{v}'. Must be: Maha, Yala, or Year-round.")
         return v
-
-    @field_validator("Temperature")
-    @classmethod
-    def validate_temp(cls, v):
-        if v is not None and not (5 <= v <= 45):
-            raise ValueError("Temperature must be 5-45 °C.")
-        return v
-
-    @field_validator("Rainfall")
-    @classmethod
-    def validate_rainfall(cls, v):
-        if v is not None and not (0 <= v <= 5000):
-            raise ValueError("Rainfall must be 0-5000 mm.")
-        return v
-
-    @field_validator("Humidity")
-    @classmethod
-    def validate_humidity(cls, v):
-        if v is not None and not (0 <= v <= 100):
-            raise ValueError("Humidity must be 0-100 %.")
-        return v
-
-
-class FullModeRequest(SimplifiedModeRequest):
-    N:           float
-    P:           float
-    K:           float
-    Temperature: float
-    Rainfall:    float
-    pH:          float
-    Humidity:    float
 
     @field_validator("N")
     @classmethod
@@ -315,10 +287,6 @@ full_model      = _load(MODELS_DIR / "crop_model_full.pkl",    "Full model")
 full_label_enc  = _load(MODELS_DIR / "label_encoder_full.pkl", "Full label encoder")
 full_model_info = _load(MODELS_DIR / "model_info_full.pkl",    "Full model info")
 
-simple_model      = _load(MODELS_DIR / "crop_model_simple.pkl",    "Simple model")
-simple_label_enc  = _load(MODELS_DIR / "label_encoder_simple.pkl", "Simple label encoder")
-simple_model_info = _load(MODELS_DIR / "model_info_simple.pkl",    "Simple model info")
-
 try:
     with open(CROP_INFO_PATH) as f:
         crop_info_db = json.load(f)
@@ -337,8 +305,7 @@ except Exception as e:
     logger.warning("[WARN] Crop guidance: %s", e)
 
 # Pre-compute feature sets for O(1) column lookup during inference
-_full_feature_set   = set(full_model_info["feature_columns"])   if full_model_info   else set()
-_simple_feature_set = set(simple_model_info["feature_columns"]) if simple_model_info else set()
+_full_feature_set = set(full_model_info["feature_columns"]) if full_model_info else set()
 
 # Extract RF from ensemble for XAI (RF trees support decision-path traversal)
 _xai_rf_model = None
@@ -407,32 +374,6 @@ def _build_full_input(data: dict, feature_columns: list) -> np.ndarray:
         ohe_col = f"{col}_{data[col]}"
         if ohe_col in _full_feature_set:
             row[ohe_col] = 1
-    return np.array([[row.get(col, 0.0) for col in feature_columns]], dtype=np.float64)
-
-
-def _build_simple_input(data: dict, cat_feats: list, feature_columns: list) -> np.ndarray:
-    """Build simple-mode input array (OHE categoricals + optional weather numerics)."""
-    row = {}
-    # One-hot encode categorical features
-    for col in cat_feats:
-        val = data.get(col) or "Unknown"
-        ohe_col = f"{col}_{val}"
-        if ohe_col in _simple_feature_set:
-            row[ohe_col] = 1
-    # Weather numeric features (present in v2 model; fall back to dataset mean if missing)
-    _WEATHER_DEFAULTS = {
-        "Temperature": 26.5,
-        "Rainfall":    1139.7,
-        "Humidity":    71.9,
-    }
-    for col in ("Temperature", "Rainfall", "Humidity"):
-        if col in _simple_feature_set:
-            val = data.get(col)
-            row[col] = float(val) if val is not None else _WEATHER_DEFAULTS[col]
-    # Engineered: Rainfall / (Temperature + 1)
-    if "Rainfall_Temp_Ratio" in _simple_feature_set:
-        row["Rainfall_Temp_Ratio"] = row.get("Rainfall", _WEATHER_DEFAULTS["Rainfall"]) / \
-                                     (row.get("Temperature", _WEATHER_DEFAULTS["Temperature"]) + 1)
     return np.array([[row.get(col, 0.0) for col in feature_columns]], dtype=np.float64)
 
 
@@ -668,12 +609,6 @@ async def health():
             "calibration_T":   _cal_T,
             "train_stats_src": "model_info" if (full_model_info and "train_stats" in full_model_info) else "hardcoded_defaults",
         },
-        "simple_model": {
-            "loaded":           simple_model is not None,
-            "accuracy":         simple_model_info.get("accuracy")         if simple_model_info else None,
-            "mode":             simple_model_info.get("mode", "simple")   if simple_model_info else None,
-            "weather_enhanced": simple_model_info.get("weather_auto_fill") is not None if simple_model_info else False,
-        },
         "crop_info_crops": len(crop_info_db),
         "cache_entries":   len(_prediction_cache),
         "features": [
@@ -778,133 +713,6 @@ async def predict_full(request: FullModeRequest):
         raise
     except Exception as e:
         logger.exception("predict_full error")
-        raise HTTPException(500, f"Prediction error: {e}")
-
-
-@app.post("/predict/simple", response_model=SuccessResponse)
-async def predict_simple(request: SimplifiedModeRequest):
-    if simple_model is None:
-        raise HTTPException(503, "Simple model not loaded. Run train_simplified_model.py.")
-    try:
-        data = request.model_dump()
-        cache_key = _cache_key(data)
-        if cached := _get_cached(cache_key):
-            logger.info("simple cache hit | crop=%s", cached.data.recommended_crop)
-            return cached
-
-        weather_provided = any(data.get(f) is not None for f in ("Temperature", "Rainfall", "Humidity"))
-        logger.info("simple predict | zone=%s season=%s weather=%s",
-                    data.get("Agro_Zone"), data.get("Season"), weather_provided)
-
-        cat_feats = simple_model_info["categorical_features"]
-        input_arr = _build_simple_input(data, cat_feats, simple_model_info["feature_columns"])
-
-        proba          = simple_model.predict_proba(input_arr)[0]
-        pred_idx       = simple_model.predict(input_arr)[0]
-        predicted_crop = simple_label_enc.inverse_transform([pred_idx])[0]
-        top3_crops, top3_conf = _build_top3(proba, simple_label_enc)
-        low_conf = bool(float(top3_conf[0]) < 0.60)
-
-        ci = crop_info_db.get(predicted_crop)
-
-        # Feature importance-based XAI (global for simple mode)
-        fi   = simple_model.feature_importances_
-        fn   = simple_model_info["feature_columns"]
-        top6 = np.argsort(fi)[-6:][::-1]
-        raw_contribs = []
-        for i in top6:
-            feat_name = fn[i]
-            base = next((k for k in FEATURE_LABELS if feat_name.startswith(k)), feat_name)
-            lmap = FEATURE_LABELS.get(base, {"en": feat_name, "si": feat_name, "ta": feat_name})
-            raw_contribs.append({
-                "feature":  base if base in FEATURE_LABELS else feat_name,
-                "label":    lmap["en"],
-                "label_si": lmap["si"],
-                "label_ta": lmap["ta"],
-                "score":    float(fi[i]),
-            })
-
-        # For weather features that were provided, attach value + ideal range (direction)
-        xai_features_list = build_xai_features(raw_contribs, data, ci) if weather_provided \
-                            else [
-                                XAIFeature(
-                                    feature=c["feature"], label=c["label"],
-                                    label_si=c.get("label_si", c["label"]),
-                                    label_ta=c.get("label_ta", c["label"]),
-                                    score=c["score"], direction="neutral",
-                                )
-                                for c in raw_contribs
-                            ]
-
-        district_en = f" in {data.get('District')}"            if data.get("District") else ""
-        district_si = f" {data.get('District')} දිස්ත්‍රික්කයේ" if data.get("District") else ""
-        district_ta = f" {data.get('District')} மாவட்டத்தில்"   if data.get("District") else ""
-
-        if weather_provided:
-            wx_parts = []
-            if data.get("Temperature") is not None:
-                wx_parts.append(f"{data['Temperature']}°C")
-            if data.get("Rainfall") is not None:
-                wx_parts.append(f"{data['Rainfall']} mm rainfall")
-            if data.get("Humidity") is not None:
-                wx_parts.append(f"{data['Humidity']}% humidity")
-            wx_str = ", ".join(wx_parts)
-            xai_summary = {
-                "en": f"{predicted_crop} best matches your conditions{district_en} — soil, zone, irrigation, season, and live weather ({wx_str}).",
-                "si": f"{predicted_crop}{district_si} ඔබේ පාංශු, කලාපය, වාරිමාර්ග, කාලය සහ කාලගුණ ({wx_str}) සඳහා ගැළපේ.",
-                "ta": f"{predicted_crop}{district_ta} உங்கள் மண், மண்டலம், பாசனம், பருவம் மற்றும் வானிலை ({wx_str}) நிலைகளுக்கு பொருந்துகிறது.",
-            }
-        else:
-            xai_summary = {
-                "en": f"{predicted_crop} best matches your soil, zone, irrigation and season{district_en}.",
-                "si": f"{predicted_crop}{district_si} ඔබේ පාංශු වර්ගය, කලාපය, වාරිමාර්ග සහ කාලය සඳහා ගැළපේ.",
-                "ta": f"{predicted_crop}{district_ta} உங்கள் மண் வகை, மண்டலம், பாசனம் மற்றும் பருவத்திற்கு பொருந்துகிறது.",
-            }
-
-        top3_out = [
-            CropPrediction(crop=c, confidence=float(v), crop_info=_get_crop_info(c))
-            for c, v in zip(top3_crops, top3_conf)
-        ]
-        expl = [
-            f"Soil: {data['Soil_Type']}",
-            f"Zone: {data['Agro_Zone']}",
-            f"Water: {data['Irrigation']}",
-            f"Season: {data['Season']}",
-        ]
-        if weather_provided:
-            if data.get("Temperature") is not None:
-                expl.append(f"Temperature: {data['Temperature']}°C (live)")
-            if data.get("Rainfall") is not None:
-                expl.append(f"Rainfall: {data['Rainfall']} mm (live)")
-            if data.get("Humidity") is not None:
-                expl.append(f"Humidity: {data['Humidity']}% (live)")
-
-        warnings_list = check_warnings(data) if weather_provided else []
-
-        mode_str = "simple_weather" if weather_provided else "simple"
-
-        result = SuccessResponse(success=True, data=PredictionResponse(
-            mode=mode_str,
-            recommended_crop=predicted_crop,
-            confidence=float(top3_conf[0]),
-            low_confidence=low_conf,
-            top_3=top3_out,
-            explanations=expl,
-            xai_features=xai_features_list,
-            xai_is_global=not weather_provided,
-            xai_summary=xai_summary,
-            warnings=warnings_list,
-            planting_calendar=_get_calendar(data["Season"], predicted_crop),
-            crop_info=_get_crop_info(predicted_crop),
-        ))
-        _set_cached(cache_key, result)
-        logger.info("simple result | crop=%s conf=%.2f", predicted_crop, float(top3_conf[0]))
-        return result
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.exception("predict_simple error")
         raise HTTPException(500, f"Prediction error: {e}")
 
 
