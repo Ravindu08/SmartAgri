@@ -52,7 +52,7 @@ from app.utils.image_storage import ImageTooLargeError, InvalidImageError, store
 
 app = FastAPI(
     title="SMARTAGRI ML Service",
-    description="Explainable dual-mode crop recommendation for Sri Lanka",
+    description="Explainable crop recommendation for Sri Lanka",
     version="5.3.0",
 )
 
