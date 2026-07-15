@@ -431,10 +431,10 @@ export default function Weather({ lang, onWeatherFetched }) {
                 <StatCard icon="💨" label={t.wind}     value={data.current.wind_kph?.toFixed(1)}   unit=" km/h" highlight={data.current.wind_kph > 30} />
                 <StatCard icon="🌧️" label={t.rainfall} value={data.current.rainfall_mm?.toFixed(1)} unit=" mm" />
                 <div className="wx-stat-card wx-stat-wide">
-                  <div className="wx-stat-icon">🌤️</div>
+                  <div className="wx-stat-icon">{data.current.condition_icon}</div>
                   <div className="wx-stat-body">
                     <div className="wx-stat-label">{t.condition}</div>
-                    <div className="wx-stat-value">{data.current.condition_icon} {data.current.condition}</div>
+                    <div className="wx-stat-value">{data.current.condition}</div>
                   </div>
                 </div>
               </div>
