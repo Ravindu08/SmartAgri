@@ -81,6 +81,8 @@ docker pull ghcr.io/ravindu08/smartagri-frontend:latest
 
 To run the whole stack locally via Docker instead of the manual/one-command dev flow above, see `docker-compose.yml`.
 
+**Live deployment:** the CD pipeline above only publishes images — it doesn't deploy them anywhere automatically. For the actual manual deployment process (a single Google Cloud Compute Engine VM running `docker-compose.yml`), see [`DEPLOY_GCP.md`](DEPLOY_GCP.md).
+
 ---
 
 ## Architecture

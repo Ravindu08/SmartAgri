@@ -27,7 +27,7 @@ SmartAgri is an AI-powered agribusiness platform built for Sri Lanka. It has two
 
 **Platform (port 8000):** A multi-role web platform where land owners manage their farms, registered crops, and cultivation sessions in a persistent database. Traders and admins get role-specific dashboards. JWT authentication controls access; all platform data lives in PostgreSQL.
 
-**The problem it solves:** Sri Lanka has 34 commonly grown crops, 15 agro-climatic zones, 25 districts, and 33 soil types. Smallholder farmers without access to agricultural extension services need decision support — both for choosing what to grow and for managing an active growing season.
+**The problem it solves:** Sri Lanka has 34 commonly grown crops, 15 agro-climatic zones, 25 districts, and 34 soil types. Smallholder farmers without access to agricultural extension services need decision support — both for choosing what to grow and for managing an active growing season.
 
 ---
 
@@ -372,11 +372,11 @@ npm run dev
 cd backend
 pip install -r requirements-dev.txt
 python ai_models/training/train_full_model.py
-python ai_models/training/train_simplified_model.py
 python ai_models/training/generate_guidance.py   # optional — regenerates crop_guidance.json
 ```
 
-Training takes 3–5 minutes and writes `.pkl` files to `backend/ml_service/models/`.
+Training takes 3–5 minutes and writes `.pkl` files to `backend/ai_models/training/models/`.
+(`train_simplified_model.py` no longer exists — the "Quick Predict" mode it trained was removed 2026-07-14; see §5a.)
 
 ### Run tests
 
