@@ -182,7 +182,7 @@ export default function AccountSettings() {
             ? <img className="settings-avatar-img" src={user.profile_image} alt="avatar" />
             : <div className="settings-avatar">{initial}</div>
           }
-          <label className="settings-avatar-edit" title="Change photo">
+          <label className="settings-avatar-edit" title="Change photo (max 2MB)">
             📷
             <input type="file" accept="image/*" className="settings-avatar-input" onChange={handleAvatarChange} disabled={avatarSaving} />
           </label>

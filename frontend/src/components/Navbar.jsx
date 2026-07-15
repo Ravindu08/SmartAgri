@@ -13,8 +13,7 @@ const NAV_T = {
     aboutUs: 'About',
     contactUs: 'Contact',
     marketplace: '🏪 Marketplace',
-    myFarms: '🌱 My Farms',
-    myOrders: '📦 My Orders',
+    myDashboard: '📊 My Dashboard',
     logout: 'Logout',
     login: 'Login',
     register: 'Register',
@@ -28,8 +27,7 @@ const NAV_T = {
     aboutUs: 'අප ගැන',
     contactUs: 'සම්බන්ධ කරගන්න',
     marketplace: '🏪 වෙළඳසැල',
-    myFarms: '🌱 මගේ ගොවිපළ',
-    myOrders: '📦 මගේ ඇණවුම්',
+    myDashboard: '📊 මගේ උපකරණ පුවරුව',
     logout: 'ලොග් අවුට්',
     login: 'ලොගින්',
     register: 'ලියාපදිංචිය',
@@ -43,8 +41,7 @@ const NAV_T = {
     aboutUs: 'எங்களை பற்றி',
     contactUs: 'தொடர்பு',
     marketplace: '🏪 சந்தை',
-    myFarms: '🌱 என் பண்ணைகள்',
-    myOrders: '📦 என் ஆர்டர்கள்',
+    myDashboard: '📊 என் டாஷ்போர்டு',
     logout: 'வெளியேறு',
     login: 'உள்நுழை',
     register: 'பதிவு செய்',
@@ -95,10 +92,10 @@ export default function Navbar() {
         <Link to="/marketplace" className={`nav-link${isActive('/marketplace') ? ' nav-link--active' : ''}`} onClick={close}>{t.marketplace}</Link>
 
         {isSignedIn && activeRole === 'Land Owner' && (
-          <Link className="navbar__farm-link" to="/landowner/farms" onClick={close}>{t.myFarms}</Link>
+          <Link className="navbar__farm-link" to="/landowner/dashboard" onClick={close}>{t.myDashboard}</Link>
         )}
         {isSignedIn && activeRole === 'Trader' && (
-          <Link className="navbar__farm-link" to="/trader/orders" onClick={close}>{t.myOrders}</Link>
+          <Link className="navbar__farm-link" to="/trader/dashboard" onClick={close}>{t.myDashboard}</Link>
         )}
 
         {/* Language, theme, and auth controls live in .navbar__controls for desktop
