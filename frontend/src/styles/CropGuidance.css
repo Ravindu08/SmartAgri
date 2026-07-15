@@ -527,7 +527,7 @@
   cursor: pointer;
   padding: 13px 16px;
   background: var(--border-soft);
-  transition: background var(--tr);
+  transition: background-color var(--tr);
   user-select: none;
 }
 .guidance-stage-header:hover { background: var(--green-subtle); }
@@ -1379,6 +1379,9 @@
   cursor: pointer; transition: var(--tr);
 }
 .cult-modal-photo-add:hover { border-color: var(--green-primary); color: var(--green-primary); }
+.cult-modal-photo-hint {
+  display: block; margin-top: 6px; font-size: 12px; color: var(--muted); text-align: center;
+}
 
 .cult-modal-actions {
   display: flex;
@@ -1548,7 +1551,7 @@
   font-weight: 600;
   color: var(--green-dark);
   cursor: default;
-  transition: background var(--tr), transform var(--tr);
+  transition: background-color var(--tr), transform var(--tr);
 }
 
 .guidance-popular-chip:hover {

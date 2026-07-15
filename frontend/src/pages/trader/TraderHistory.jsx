@@ -210,7 +210,7 @@ export default function TraderHistory() {
                 borderTop: i > 0 ? '1px solid var(--border)' : 'none',
                 alignItems: 'center',
               }}>
-                <div>
+                <div style={{ overflowWrap: 'break-word', minWidth: 0 }}>
                   <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: '16px' }}>
                     {order.listing_name || '—'}
                   </div>

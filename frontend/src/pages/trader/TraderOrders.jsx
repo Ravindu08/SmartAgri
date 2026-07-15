@@ -218,9 +218,9 @@ export default function TraderOrders() {
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
                   <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                    <div>
+                    <div style={{ minWidth: 0, maxWidth: '100%' }}>
                       <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.crop}</div>
-                      <div style={{ fontWeight: 700, fontSize: '18px', color: 'var(--text)' }}>{order.listing_name || '—'}</div>
+                      <div style={{ fontWeight: 700, fontSize: '18px', color: 'var(--text)', overflowWrap: 'break-word' }}>{order.listing_name || '—'}</div>
                     </div>
                     <div>
                       <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.qty}</div>
@@ -232,9 +232,9 @@ export default function TraderOrders() {
                         <div style={{ fontWeight: 600, color: 'var(--text)' }}>Rs. {order.agreed_price || order.proposed_price}/kg</div>
                       </div>
                     )}
-                    <div>
+                    <div style={{ minWidth: 0, maxWidth: '100%' }}>
                       <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Seller</div>
-                      <div style={{ fontWeight: 600, color: 'var(--text)' }}>{order.seller_name}</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text)', overflowWrap: 'break-word' }}>{order.seller_name}</div>
                     </div>
                   </div>
                   <span style={{

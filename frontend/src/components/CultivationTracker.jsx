@@ -137,6 +137,7 @@ function TaskModal({ task, t, onClose, onUpdate }) {
           ) : (
             <button type="button" className="cult-modal-photo-add" onClick={() => fileRef.current?.click()}>
               📷 {t.addPhoto || "Add a photo"}
+              <span className="cult-modal-photo-hint">{t.addPhotoHint || "JPG, PNG or WEBP · max 2MB"}</span>
             </button>
           )}
           <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={handlePhotoPick} />

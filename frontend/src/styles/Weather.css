@@ -290,7 +290,7 @@
   background: var(--bg);
   border: 1px solid var(--border);
   font-size: 0.98rem;
-  transition: background var(--tr);
+  transition: background-color var(--tr);
 }
 .wx-forecast-row:hover { background: var(--green-subtle); }
 .wx-fc-date { font-weight: 600; color: var(--text); }
