@@ -36,7 +36,7 @@ const M = {
     cropName: 'Crop name', productName: 'Product name', cropType: 'Crop type', productCategory: 'Category',
     quantity: 'Quantity', unit: 'Unit', pricePerUnit: 'Price / unit (Rs.)',
     location: 'Location', description: 'Description',
-    imageLabel: 'Product Image (optional)', imageHint: 'Upload photo',
+    imageLabel: 'Product Image (optional)', imageHint: 'Upload photo (max 2MB)',
     publishListing: 'Publish Listing', listingInProgress: 'Publishing…',
     requiredFields: 'Name, quantity and price are required.',
     listed: 'listed on the marketplace.',
@@ -86,7 +86,7 @@ const M = {
     cropName: 'බෝග නම', productName: 'නිෂ්පාදන නම', cropType: 'බෝග වර්ගය', productCategory: 'කාණ්ඩය',
     quantity: 'ප්‍රමාණය', unit: 'ඒකකය', pricePerUnit: 'මිල / ඒකකය (රු.)',
     location: 'ස්ථානය', description: 'විස්තරය',
-    imageLabel: 'රූපය (අවශ්‍ය නොවේ)', imageHint: 'ඡායාරූපය',
+    imageLabel: 'රූපය (අවශ්‍ය නොවේ)', imageHint: 'ඡායාරූපය (උපරිම 2MB)',
     publishListing: 'ලැයිස්තු ප්‍රකාශ කරන්න', listingInProgress: 'ප්‍රකාශ කිරීම…',
     requiredFields: 'නම, ප්‍රමාණය සහ මිල අවශ්‍යයි.',
     listed: 'වෙළඳසැලේ ලැයිස්තු ගොනු කිරීය.',
@@ -136,7 +136,7 @@ const M = {
     cropName: 'பயிர் பெயர்', productName: 'தயாரிப்பு பெயர்', cropType: 'பயிர் வகை', productCategory: 'வகை',
     quantity: 'அளவு', unit: 'அலகு', pricePerUnit: 'விலை / அலகு (ரூ.)',
     location: 'இடம்', description: 'விவரம்',
-    imageLabel: 'படம் (விருப்பமான)', imageHint: 'படம் பதிவேற்று',
+    imageLabel: 'படம் (விருப்பமான)', imageHint: 'படம் பதிவேற்று (அதிகபட்சம் 2MB)',
     publishListing: 'பட்டியலை வெளியிடு', listingInProgress: 'வெளியிடுகிறது…',
     requiredFields: 'பெயர், அளவு மற்றும் விலை அவசியம்.',
     listed: 'சந்தையில் பட்டியலிடப்பட்டது.',
@@ -695,7 +695,7 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
       )}
       <div className="p-5 pb-3 flex flex-col flex-1">
         <div className="flex items-start justify-between gap-2 mb-1">
-          <h3 className="font-semibold text-foreground text-balance">{listing.crop_name}</h3>
+          <h3 className="font-semibold text-foreground text-balance break-words">{listing.crop_name}</h3>
           <Badge color={listingStatusColor(listing.status)}>{listing.status}</Badge>
         </div>
         {listing.crop_type && (
@@ -1069,7 +1069,7 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-foreground">{order.listing_name}</span>
+              <span className="font-semibold text-foreground break-words">{order.listing_name}</span>
               <span className={statusFlash ? 'status-flash' : undefined}>
                 <Badge color={statusColor(order.status)}>{statusLabel(order.status, m)}</Badge>
               </span>
