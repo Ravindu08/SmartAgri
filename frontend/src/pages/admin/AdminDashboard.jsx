@@ -45,7 +45,7 @@ function StatCard({ icon, label, value, color = '#7c3aed', sub }) {
       <div style={{ fontSize: '32px', width: '52px', height: '52px', borderRadius: '12px', background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
       <div>
         <div className="count-up" style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text)' }}>{value == null ? '—' : displayValue}</div>
-        <div style={{ fontSize: '15px', color: 'var(--muted)' }}>{label}</div>
+        <div style={{ fontSize: '15px', color: 'var(--muted)', whiteSpace: 'nowrap' }}>{label}</div>
         {sub && <div style={{ fontSize: '14px', color: color, marginTop: '2px' }}>{sub}</div>}
       </div>
     </div>
