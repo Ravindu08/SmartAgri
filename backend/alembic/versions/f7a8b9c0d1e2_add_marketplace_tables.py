@@ -19,9 +19,6 @@ def upgrade() -> None:
     marketplace_listing_status = sa.Enum('Active', 'Reserved', 'Sold', 'Archived', name='marketplace_listing_status')
     marketplace_order_status = sa.Enum('Pending', 'Confirmed', 'Delivered', 'Completed', 'Rejected', 'Cancelled', name='marketplace_order_status')
 
-    marketplace_listing_status.create(op.get_bind(), checkfirst=True)
-    marketplace_order_status.create(op.get_bind(), checkfirst=True)
-
     op.create_table(
         'marketplace_listings',
         sa.Column('id', sa.UUID(), nullable=False),
@@ -75,5 +72,3 @@ def downgrade() -> None:
     op.drop_table('marketplace_orders')
     op.drop_index(op.f('ix_marketplace_listings_owner_id'), table_name='marketplace_listings')
     op.drop_table('marketplace_listings')
-    sa.Enum(name='marketplace_order_status').drop(op.get_bind(), checkfirst=True)
-    sa.Enum(name='marketplace_listing_status').drop(op.get_bind(), checkfirst=True)
