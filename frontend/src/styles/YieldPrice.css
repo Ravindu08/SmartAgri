@@ -450,7 +450,7 @@
   font-size: 14.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: background var(--tr);
+  transition: background-color var(--tr);
   box-shadow: var(--shadow-green);
 }
 .yp-use-yield-btn:hover { background: var(--green-dark); }

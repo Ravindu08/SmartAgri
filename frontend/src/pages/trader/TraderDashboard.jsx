@@ -5,6 +5,46 @@ import { useApp } from '../../context/AppContext';
 import { getAuthSession, request } from '../../services/api';
 import CountUp from '../../components/CountUp';
 import { relativeTime } from '../../utils/relativeTime';
+import SpotlightTour from '../../components/tour/SpotlightTour';
+import useAutoOpenOnce from '../../components/tour/useAutoOpenOnce';
+import HelpButton from '../../components/tour/HelpButton';
+import GettingStartedChecklist from '../../components/checklist/GettingStartedChecklist';
+
+const TR_TOUR_T = {
+  en: {
+    steps: [
+      { target: 'tr-checklist', title: 'Getting started', body: 'Your path from first order to first completed purchase.' },
+      { target: 'tr-quick-actions', title: 'Quick actions', body: 'Jump straight to requests, orders or transaction history.' },
+      { target: 'tr-recent-activity', title: 'Recent activity', body: 'Your latest orders appear here — tap one to jump straight to its details in Orders or History.' },
+      { target: 'tr-notif-bell', title: 'Stay notified', body: 'Order confirmations and delivery updates land here.' },
+    ],
+    next: 'Next →', back: '← Back', skip: 'Skip tour', done: 'Got it', helpAria: 'Replay the guided tour', needHelp: 'Need Help',
+  },
+  si: {
+    steps: [
+      { target: 'tr-checklist', title: 'ආරම්භ කිරීම', body: 'ඔබේ පළමු ඇණවුමේ සිට පළමු සම්පූර්ණ මිලදී ගැනීම දක්වා මාර්ගය.' },
+      { target: 'tr-quick-actions', title: 'ඉක්මන් ක්‍රියා', body: 'ඉල්ලීම්, ඇණවුම් හෝ ගනුදෙනු ඉතිහාසය වෙත සෘජුවම යන්න.' },
+      { target: 'tr-recent-activity', title: 'මෑත ක්‍රියාකාරකම්', body: 'ඔබේ නවතම ඇණවුම් මෙහි දිස්වේ — විස්තර සඳහා ඇණවුම් හෝ ඉතිහාසය වෙත කෙලින්ම යාමට එකක් තට්ටු කරන්න.' },
+      { target: 'tr-notif-bell', title: 'දැනුම්දීම් ලබාගන්න', body: 'ඇණවුම් තහවුරු කිරීම් සහ බෙදාහැරීමේ යාවත්කාලීන කිරීම් මෙහි එයි.' },
+    ],
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+  },
+  ta: {
+    steps: [
+      { target: 'tr-checklist', title: 'தொடங்குதல்', body: 'உங்கள் முதல் ஆர்டரிலிருந்து முதல் முழுமையான வாங்குதல் வரையிலான பாதை.' },
+      { target: 'tr-quick-actions', title: 'விரைவு செயல்கள்', body: 'கோரிக்கைகள், ஆர்டர்கள் அல்லது பரிவர்த்தனை வரலாற்றுக்கு நேரடியாக செல்லுங்கள்.' },
+      { target: 'tr-recent-activity', title: 'சமீபத்திய செயல்பாடு', body: 'உங்கள் சமீபத்திய ஆர்டர்கள் இங்கே தோன்றும் — விவரங்களுக்கு ஆர்டர்கள் அல்லது வரலாற்றுக்கு நேரடியாக செல்ல ஒன்றைத் தட்டவும்.' },
+      { target: 'tr-notif-bell', title: 'அறிவிப்புகள்', body: 'ஆர்டர் உறுதிப்படுத்தல்கள் மற்றும் டெலிவரி புதுப்பிப்புகள் இங்கே வரும்.' },
+    ],
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
+  },
+};
+
+const TR_CHECKLIST_T = {
+  en: { title: 'Getting started', placeOrder: 'Place your first order', getConfirmed: 'Get an order confirmed', trackDelivery: 'Track a delivery', completeTxn: 'Complete a transaction', dismissAria: 'Dismiss checklist' },
+  si: { title: 'ආරම්භ කිරීම', placeOrder: 'ඔබේ පළමු ඇණවුම දෙන්න', getConfirmed: 'ඇණවුමක් තහවුරු කරගන්න', trackDelivery: 'බෙදාහැරීමක් නිරීක්ෂණය කරන්න', completeTxn: 'ගනුදෙනුවක් සම්පූර්ණ කරන්න', dismissAria: 'විස්තර ලැයිස්තුව ඉවත් කරන්න' },
+  ta: { title: 'தொடங்குதல்', placeOrder: 'உங்கள் முதல் ஆர்டரை வையுங்கள்', getConfirmed: 'ஆர்டரை உறுதிப்படுத்துங்கள்', trackDelivery: 'டெலிவரியை கண்காணிக்கவும்', completeTxn: 'பரிவர்த்தனையை முடிக்கவும்', dismissAria: 'பட்டியலை நிராகரிக்கவும்' },
+};
 
 const T = {
   en: {
@@ -72,6 +112,16 @@ export default function TraderDashboard() {
   const activeOrders    = myOrders.filter(o => ['Confirmed', 'Delivered'].includes(o.status));
   const completedOrders = myOrders.filter(o => o.status === 'Completed');
 
+  const tourT = TR_TOUR_T[lang] || TR_TOUR_T.en;
+  const checklistT = TR_CHECKLIST_T[lang] || TR_CHECKLIST_T.en;
+  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_trader_seen_v1', rawOrders !== undefined);
+  const checklistItems = [
+    { id: 'firstOrder', label: checklistT.placeOrder, done: myOrders.length > 0, href: '/marketplace' },
+    { id: 'confirmed', label: checklistT.getConfirmed, done: myOrders.some(o => o.status !== 'Pending'), href: '/trader/orders' },
+    { id: 'delivered', label: checklistT.trackDelivery, done: myOrders.some(o => ['Delivered', 'Completed'].includes(o.status)), href: '/trader/orders' },
+    { id: 'completed', label: checklistT.completeTxn, done: completedOrders.length > 0, href: '/trader/history' },
+  ];
+
   const recentItems = useMemo(
     () => [...myOrders]
       .sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0))
@@ -118,8 +168,16 @@ export default function TraderDashboard() {
         </Link>
       </div>
 
+      <GettingStartedChecklist
+        title={checklistT.title}
+        items={checklistItems}
+        storageKey="sa_checklist_dismissed_trader"
+        dismissAria={checklistT.dismissAria}
+        dataTour="tr-checklist"
+      />
+
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
+      <div data-tour="tr-dash-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 260px))', gap: '16px' }}>
         {stats.map(s => (
           <div key={s.label} className="stat-card-hover" style={{
             background: 'var(--card)', borderRadius: '12px',
@@ -136,11 +194,11 @@ export default function TraderDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div>
+      <div data-tour="tr-quick-actions">
         <h2 style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 600, color: 'var(--text)' }}>
           {t.quickActions}
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 260px))', gap: '12px' }}>
           {quickActions.map(qa => (
             <Link
               key={qa.label}
@@ -172,7 +230,7 @@ export default function TraderDashboard() {
       </div>
 
       {/* Recent Activity */}
-      <div>
+      <div data-tour="tr-recent-activity">
         <h2 style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 600, color: 'var(--text)' }}>
           {t.recentActivity}
         </h2>
@@ -233,6 +291,15 @@ export default function TraderDashboard() {
           )}
         </div>
       </div>
+
+      <HelpButton label={tourT.needHelp} ariaLabel={tourT.helpAria} onClick={() => setTourOpen(true)} />
+      <SpotlightTour
+        steps={tourT.steps}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        storageKey="sa_tour_trader_seen_v1"
+        labels={{ next: tourT.next, back: tourT.back, skip: tourT.skip, done: tourT.done }}
+      />
 
     </div>
   );

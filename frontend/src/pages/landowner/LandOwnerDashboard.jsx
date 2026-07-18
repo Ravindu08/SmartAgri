@@ -9,6 +9,40 @@ import { useApp } from '../../context/AppContext';
 import { LAND_T, SEA_LABELS, IRR_LABELS, GROWTH_STAGE_LABELS, CROP_STATUS_LABELS, DISTRICT_LABELS } from '../../data/translations';
 import { getSoilLabel } from '../../data/cropData';
 import CountUp from '../../components/CountUp';
+import SpotlightTour from '../../components/tour/SpotlightTour';
+import useAutoOpenOnce from '../../components/tour/useAutoOpenOnce';
+import HelpButton from '../../components/tour/HelpButton';
+import GettingStartedChecklist from '../../components/checklist/GettingStartedChecklist';
+
+const LO_TOUR_T = {
+  en: {
+    steps: [
+      { target: 'lo-checklist', title: 'Getting started', body: 'Follow this checklist to get your farm set up on SmartAgri.' },
+      { target: 'lo-notif-bell', title: 'Stay notified', body: 'Alerts for overdue tasks and harvests coming up land here.' },
+    ],
+    next: 'Next →', back: '← Back', skip: 'Skip tour', done: 'Got it', helpAria: 'Replay the guided tour', needHelp: 'Need Help',
+  },
+  si: {
+    steps: [
+      { target: 'lo-checklist', title: 'ආරම්භ කිරීම', body: 'ඔබේ ගොවිපළ SmartAgri හි සකසා ගැනීමට මෙම විස්තර ලැයිස්තුව අනුගමනය කරන්න.' },
+      { target: 'lo-notif-bell', title: 'දැනුම්දීම් ලබාගන්න', body: 'කල් ඉකුත් වූ කාර්යයන් සහ එන අස්වනු පිළිබඳ ඇඟවීම් මෙහි එයි.' },
+    ],
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+  },
+  ta: {
+    steps: [
+      { target: 'lo-checklist', title: 'தொடங்குதல்', body: 'உங்கள் பண்ணையை SmartAgri-இல் அமைக்க இந்த சரிபார்ப்புப் பட்டியலைப் பின்பற்றுங்கள்.' },
+      { target: 'lo-notif-bell', title: 'அறிவிப்புகள்', body: 'தாமதமான பணிகள் மற்றும் வரவிருக்கும் அறுவடைகள் பற்றிய எச்சரிக்கைகள் இங்கே வரும்.' },
+    ],
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
+  },
+};
+
+const LO_CHECKLIST_T = {
+  en: { title: 'Getting started', addFarm: 'Add your first farm', addCrop: 'Add your first crop', completeHarvest: 'Complete your first harvest', dismissAria: 'Dismiss checklist' },
+  si: { title: 'ආරම්භ කිරීම', addFarm: 'ඔබේ පළමු ගොවිපළ එකතු කරන්න', addCrop: 'ඔබේ පළමු බෝගය එකතු කරන්න', completeHarvest: 'ඔබේ පළමු අස්වැන්න සම්පූර්ණ කරන්න', dismissAria: 'විස්තර ලැයිස්තුව ඉවත් කරන්න' },
+  ta: { title: 'தொடங்குதல்', addFarm: 'உங்கள் முதல் பண்ணையைச் சேர்க்கவும்', addCrop: 'உங்கள் முதல் பயிரைச் சேர்க்கவும்', completeHarvest: 'உங்கள் முதல் அறுவடையை முடிக்கவும்', dismissAria: 'பட்டியலை நிராகரிக்கவும்' },
+};
 
 function daysBetween(a, b) {
   return Math.floor((new Date(b) - new Date(a)) / 86400000);
@@ -230,11 +264,28 @@ export default function LandOwnerDashboard() {
     return acc;
   }, {});
 
+  const tourT = LO_TOUR_T[lang] || LO_TOUR_T.en;
+  const checklistT = LO_CHECKLIST_T[lang] || LO_CHECKLIST_T.en;
+  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_lo_seen_v1', !loading);
+  const checklistItems = [
+    { id: 'farm', label: checklistT.addFarm, done: farms.length > 0, href: '/landowner/farms/add' },
+    { id: 'crop', label: checklistT.addCrop, done: crops.length > 0, href: '/landowner/crops/add' },
+    { id: 'harvest', label: checklistT.completeHarvest, done: completed.length > 0, href: '/landowner/crops' },
+  ];
+
   return (
     <div className="lo-dash">
 
+      <GettingStartedChecklist
+        title={checklistT.title}
+        items={checklistItems}
+        storageKey="sa_checklist_dismissed_lo"
+        dismissAria={checklistT.dismissAria}
+        dataTour="lo-checklist"
+      />
+
       {/* Stats */}
-      <div className="lo-dash__stats">
+      <div className="lo-dash__stats" data-tour="lo-dash-stats">
         <div className="lo-dash-stat">
           <span className="lo-dash-stat__icon">🌾</span>
           <span className="lo-dash-stat__val">{loading ? '—' : <CountUp value={farms.length} />}</span>
@@ -444,6 +495,15 @@ export default function LandOwnerDashboard() {
           </div>
         )}
       </section>
+
+      <HelpButton label={tourT.needHelp} ariaLabel={tourT.helpAria} onClick={() => setTourOpen(true)} />
+      <SpotlightTour
+        steps={tourT.steps}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        storageKey="sa_tour_lo_seen_v1"
+        labels={{ next: tourT.next, back: tourT.back, skip: tourT.skip, done: tourT.done }}
+      />
     </div>
   );
 }

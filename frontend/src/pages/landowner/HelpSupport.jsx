@@ -1,10 +1,39 @@
 import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { LAND_T, HELP_FAQS, HELP_CONTACT_CHANNELS } from '../../data/translations';
+import SpotlightTour   from '../../components/tour/SpotlightTour';
+import useAutoOpenOnce from '../../components/tour/useAutoOpenOnce';
+import HelpButton      from '../../components/tour/HelpButton';
+
+const HS_TOUR_T = {
+  en: {
+    steps: [
+      { target: 'help-search', title: 'Search for an answer', body: 'Type any keyword to filter the FAQ down to what you need.' },
+      { target: 'help-contact', title: 'Still stuck?', body: 'Reach us directly through any of these contact channels.' },
+    ],
+    next: 'Next →', back: '← Back', skip: 'Skip tour', done: 'Got it', helpAria: 'Replay the guided tour', needHelp: 'Need Help',
+  },
+  si: {
+    steps: [
+      { target: 'help-search', title: 'පිළිතුරක් සොයන්න', body: 'ඔබට අවශ්‍ය දේට FAQ පෙරහන් කිරීමට ඕනෑම මූලපදයක් ටයිප් කරන්න.' },
+      { target: 'help-contact', title: 'තවමත් අතරමං ද?', body: 'මෙම සම්බන්ධතා නාලිකා ඕනෑම එකකින් අප හා සෘජුව සම්බන්ධ වන්න.' },
+    ],
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+  },
+  ta: {
+    steps: [
+      { target: 'help-search', title: 'பதிலைத் தேடுங்கள்', body: 'உங்களுக்குத் தேவையானதற்கு FAQ-ஐ வடிகட்ட எந்த முக்கிய வார்த்தையையும் தட்டச்சு செய்யுங்கள்.' },
+      { target: 'help-contact', title: 'இன்னும் சிக்கலா?', body: 'இந்த தொடர்பு வழிகள் மூலம் நேரடியாக எங்களைத் தொடர்பு கொள்ளுங்கள்.' },
+    ],
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
+  },
+};
 
 export default function HelpSupport() {
   const { lang }               = useApp();
   const t                      = LAND_T[lang] || LAND_T.en;
+  const hsTourT = HS_TOUR_T[lang] || HS_TOUR_T.en;
+  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_lohelp_seen_v1', true);
   const faqs                   = HELP_FAQS[lang] || HELP_FAQS.en;
   const contactChannels        = HELP_CONTACT_CHANNELS[lang] || HELP_CONTACT_CHANNELS.en;
   const [openFaq, setOpenFaq]  = useState(null);
@@ -35,11 +64,12 @@ export default function HelpSupport() {
           placeholder={t.helpSearchPh}
           value={search}
           onChange={e => setSearch(e.target.value)}
+          data-tour="help-search"
         />
       </div>
 
       {/* Quick links */}
-      <div className="help-quicklinks">
+      <div className="help-quicklinks" data-tour="help-quicklinks">
         {faqs.map(cat => (
           <button
             key={cat.id}
@@ -60,8 +90,8 @@ export default function HelpSupport() {
         {filtered.length === 0 ? (
           <div className="help-no-results">{t.helpNoResults(search)}</div>
         ) : (
-          filtered.map(cat => (
-            <div key={cat.id} id={`help-cat-${cat.id}`} className="help-faq-category">
+          filtered.map((cat, ci) => (
+            <div key={cat.id} id={`help-cat-${cat.id}`} className="help-faq-category" data-tour={ci === 0 ? 'help-faq-first' : undefined}>
               <div className="help-faq-cat-header">
                 <span>{cat.icon}</span>
                 <h2>{cat.category}</h2>
@@ -91,7 +121,7 @@ export default function HelpSupport() {
       </div>
 
       {/* Contact channels */}
-      <div className="help-contact-section">
+      <div className="help-contact-section" data-tour="help-contact">
         <h2>{t.helpContactTitle}</h2>
         <p className="help-contact-sub">{t.helpContactSub}</p>
         <div className="help-contact-grid">
@@ -119,6 +149,14 @@ export default function HelpSupport() {
         </div>
       </div>
 
+      <HelpButton label={hsTourT.needHelp} ariaLabel={hsTourT.helpAria} onClick={() => setTourOpen(true)} />
+      <SpotlightTour
+        steps={hsTourT.steps}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        storageKey="sa_tour_lohelp_seen_v1"
+        labels={{ next: hsTourT.next, back: hsTourT.back, skip: hsTourT.skip, done: hsTourT.done }}
+      />
     </section>
   );
 }

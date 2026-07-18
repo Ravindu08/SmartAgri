@@ -4,6 +4,35 @@ import { adminRequest } from '../../services/api';
 import { useApp } from '../../context/AppContext';
 import { SkeletonStatCards } from '../../components/Skeleton';
 import { useCountUp } from '../../hooks/useCountUp';
+import SpotlightTour from '../../components/tour/SpotlightTour';
+import HelpButton from '../../components/tour/HelpButton';
+
+const ADMIN_TOUR_T = {
+  en: {
+    steps: [
+      { target: 'admin-dash-stats', title: 'Platform at a glance', body: 'Users, farms, listings, orders and open feedback — all live.' },
+      { target: 'admin-dash-quicklinks', title: 'Quick actions', body: 'Add a user, jump to feedback, or open the full reports page.' },
+      { target: 'admin-dash-activity', title: 'Recent activity', body: 'A live feed of admin and system actions across the platform.' },
+    ],
+    next: 'Next →', back: '← Back', skip: 'Skip tour', done: 'Got it', helpAria: 'Replay the guided tour', needHelp: 'Need Help',
+  },
+  si: {
+    steps: [
+      { target: 'admin-dash-stats', title: 'වේදිකාව එක් බැල්මකින්', body: 'පරිශීලකයන්, ගොවිපල, ලැයිස්තු, ඇණවුම් සහ විවෘත ප්‍රතිපෝෂණ — සියල්ල සජීවීව.' },
+      { target: 'admin-dash-quicklinks', title: 'ඉක්මන් ක්‍රියා', body: 'පරිශීලකයෙකු එකතු කරන්න, ප්‍රතිපෝෂණ වෙත යන්න, හෝ සම්පූර්ණ වාර්තා පිටුව විවෘත කරන්න.' },
+      { target: 'admin-dash-activity', title: 'මෑත ක්‍රියාකාරකම්', body: 'වේදිකාව පුරා පරිපාලක සහ පද්ධති ක්‍රියා සජීවී සංග්‍රහයක්.' },
+    ],
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+  },
+  ta: {
+    steps: [
+      { target: 'admin-dash-stats', title: 'ஒரே பார்வையில் தளம்', body: 'பயனர்கள், பண்ணைகள், பட்டியல்கள், ஆர்டர்கள் மற்றும் திறந்த கருத்துக்கள் — அனைத்தும் நேரடியாக.' },
+      { target: 'admin-dash-quicklinks', title: 'விரைவு செயல்கள்', body: 'ஒரு பயனரைச் சேர்க்கவும், கருத்துக்களுக்குச் செல்லவும், அல்லது முழு அறிக்கைகள் பக்கத்தைத் திறக்கவும்.' },
+      { target: 'admin-dash-activity', title: 'சமீபத்திய செயல்பாடு', body: 'தளம் முழுவதும் நிர்வாக மற்றும் கணினி செயல்களின் நேரடி ஊட்டம்.' },
+    ],
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
+  },
+};
 
 const T = {
   en: {
@@ -45,7 +74,7 @@ function StatCard({ icon, label, value, color = '#7c3aed', sub }) {
       <div style={{ fontSize: '32px', width: '52px', height: '52px', borderRadius: '12px', background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
       <div>
         <div className="count-up" style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text)' }}>{value == null ? '—' : displayValue}</div>
-        <div style={{ fontSize: '15px', color: 'var(--muted)' }}>{label}</div>
+        <div style={{ fontSize: '15px', color: 'var(--muted)', whiteSpace: 'nowrap' }}>{label}</div>
         {sub && <div style={{ fontSize: '14px', color: color, marginTop: '2px' }}>{sub}</div>}
       </div>
     </div>
@@ -59,6 +88,8 @@ export default function AdminDashboard() {
   const [reports, setReports] = useState(null);
   const [activity, setActivity] = useState([]);
   const [loading, setLoading] = useState(true);
+  const adminTourT = ADMIN_TOUR_T[lang] || ADMIN_TOUR_T.en;
+  const [tourOpen, setTourOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -84,7 +115,7 @@ export default function AdminDashboard() {
       <h2 style={{ margin: '0 0 24px', color: 'var(--text)', fontSize: '22px' }}>{t.title}</h2>
 
       {/* Stats grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px', marginBottom: '32px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 280px))', gap: '16px', marginBottom: '32px' }} data-tour="admin-dash-stats">
         <StatCard icon="👥" label={t.totalUsers}   value={reports?.users?.total}       color="#7c3aed" />
         <StatCard icon="🌾" label={t.landOwners}   value={reports?.users?.land_owners}  color="#2d6a4f" />
         <StatCard icon="🏪" label={t.traders}       value={reports?.users?.traders}      color="#1565c0" />
@@ -97,7 +128,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick links */}
-      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '32px' }}>
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '32px' }} data-tour="admin-dash-quicklinks">
         {quickLinks.map(({ to, label, color }) => (
           <Link key={to} to={to} style={{
             padding: '8px 18px', borderRadius: '8px', border: `1px solid ${color}`,
@@ -107,7 +138,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Recent activity */}
-      <div style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', overflow: 'hidden' }} data-tour="admin-dash-activity">
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontWeight: 600, color: 'var(--text)' }}>{t.recentActivity}</span>
           <Link to="/admin/activity" style={{ fontSize: '15px', color: '#7c3aed' }}>{t.viewAll}</Link>
@@ -129,6 +160,15 @@ export default function AdminDashboard() {
           ))
         )}
       </div>
+
+      <HelpButton label={adminTourT.needHelp} ariaLabel={adminTourT.helpAria} onClick={() => setTourOpen(true)} />
+      <SpotlightTour
+        steps={adminTourT.steps}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        storageKey="sa_tour_admin_seen_v1"
+        labels={{ next: adminTourT.next, back: adminTourT.back, skip: adminTourT.skip, done: adminTourT.done }}
+      />
     </div>
   );
 }
