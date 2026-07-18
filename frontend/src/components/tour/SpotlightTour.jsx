@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 function getVisibleTarget(target) {
   const els = document.querySelectorAll(`[data-tour="${target}"]`);
@@ -43,8 +44,12 @@ export default function SpotlightTour({ steps, open, onClose, storageKey, labels
     const el = getVisibleTarget(step.target);
     if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
     const raf = requestAnimationFrame(recompute);
-    const settled = setTimeout(recompute, 350);
-    return () => { cancelAnimationFrame(raf); clearTimeout(settled); };
+    // Re-measure a few more times as the step settles: catches the page's own
+    // ~280ms entrance transition, smooth-scrolling still in flight, and any
+    // target whose layout shifts once async content (SWR data, a prediction
+    // result) finishes loading in after the step already mounted.
+    const settleTimers = [100, 250, 400, 700, 1100, 1600].map(ms => setTimeout(recompute, ms));
+    return () => { cancelAnimationFrame(raf); settleTimers.forEach(clearTimeout); };
   }, [open, stepIndex, step, recompute]);
 
   useEffect(() => {
@@ -101,7 +106,17 @@ export default function SpotlightTour({ steps, open, onClose, storageKey, labels
   // scrim. There's no backdrop-click-to-close: Escape/Skip/Done are the
   // only ways out, since a scrim built to frame a moving/scrolling target
   // is an easy accidental-dismiss trap otherwise.
-  return (
+  //
+  // Portaled straight to <body> rather than rendered in place: every page
+  // wraps its content in a `.page-transition` div that runs a ~280ms
+  // transform-based entrance animation, and a CSS animation touching
+  // `transform` makes that element a containing block for any
+  // `position: fixed` descendant for as long as it's active (same mechanism
+  // documented on `.navbar`'s backdrop-filter in styles.css). Without the
+  // portal, the tour's "fixed" hole/tooltip would briefly anchor to that
+  // animating wrapper instead of the viewport on every auto-open — exactly
+  // the flash-in-the-wrong-place bug this fixes.
+  return createPortal(
     <div className="tour-layer">
       {holeStyle && <div className="tour-hole" style={holeStyle} />}
       <div className="tour-tooltip" style={tooltipStyle}>
@@ -124,6 +139,7 @@ export default function SpotlightTour({ steps, open, onClose, storageKey, labels
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
