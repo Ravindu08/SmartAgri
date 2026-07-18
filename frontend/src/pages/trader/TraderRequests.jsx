@@ -1,11 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import useSWR from 'swr';
 import { useApp } from '../../context/AppContext';
 import { getAuthSession, request } from '../../services/api';
 import { SkeletonRows } from '../../components/Skeleton';
 import SpotlightTour   from '../../components/tour/SpotlightTour';
-import useAutoOpenOnce from '../../components/tour/useAutoOpenOnce';
 import HelpButton      from '../../components/tour/HelpButton';
 
 const TRQ_TOUR_T = {
@@ -69,7 +68,7 @@ export default function TraderRequests() {
   const { data: rawOrders, isLoading } = useSWR('/api/marketplace/orders', authFetcher, { refreshInterval: 8000 });
   const allOrders = Array.isArray(rawOrders) ? rawOrders : [];
   const trqTourT = TRQ_TOUR_T[lang] || TRQ_TOUR_T.en;
-  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_trrequests_seen_v1', !isLoading);
+  const [tourOpen, setTourOpen] = useState(false);
 
   const pendingOrders = useMemo(
     () => allOrders
@@ -185,7 +184,6 @@ export default function TraderRequests() {
         steps={trqTourT.steps}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
-        storageKey="sa_tour_trrequests_seen_v1"
         labels={{ next: trqTourT.next, back: trqTourT.back, skip: trqTourT.skip, done: trqTourT.done }}
       />
     </div>

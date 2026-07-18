@@ -9,7 +9,6 @@ import "../styles/CropGuidance.css";
 import { getCropLabel } from "../data/cropData";
 import { ZONE_LABELS, FERT_TIMING_LABELS, STAGE_NAME_LABELS, PROPAGATION_LABELS } from "../data/translations";
 import SpotlightTour   from "../components/tour/SpotlightTour";
-import useAutoOpenOnce from "../components/tour/useAutoOpenOnce";
 import HelpButton      from "../components/tour/HelpButton";
 
 const API_BASE = ML_BASE_URL;
@@ -790,7 +789,7 @@ export default function CropGuidance({ lang, t, weather, setWeather }) {
   }, []);
 
   const cgTourT = CG_TOUR_T[lang] || CG_TOUR_T.en;
-  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_cropguide_seen_v1', true);
+  const [tourOpen, setTourOpen] = useState(false);
 
   return (
     <div className="page-wrapper">
@@ -851,7 +850,6 @@ export default function CropGuidance({ lang, t, weather, setWeather }) {
       steps={cgTourT.steps}
       open={tourOpen}
       onClose={() => setTourOpen(false)}
-      storageKey="sa_tour_cropguide_seen_v1"
       labels={{ next: cgTourT.next, back: cgTourT.back, skip: cgTourT.skip, done: cgTourT.done }}
     />
     </div>

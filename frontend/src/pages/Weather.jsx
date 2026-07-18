@@ -5,7 +5,6 @@ import { DISTRICT_LABELS } from "../data/translations";
 import CustomSelect from "../components/CustomSelect";
 import "../styles/Weather.css";
 import SpotlightTour   from "../components/tour/SpotlightTour";
-import useAutoOpenOnce from "../components/tour/useAutoOpenOnce";
 import HelpButton      from "../components/tour/HelpButton";
 
 const WT = {
@@ -277,7 +276,7 @@ const API_BASE = ML_BASE_URL;
 export default function Weather({ lang, onWeatherFetched }) {
   const t = WT[lang] || WT.en;
   const wxTourT = WX_TOUR_T[lang] || WX_TOUR_T.en;
-  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_weather_seen_v1', true);
+  const [tourOpen, setTourOpen] = useState(false);
   const [district, setDistrict] = useState("");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -517,7 +516,6 @@ export default function Weather({ lang, onWeatherFetched }) {
         steps={wxTourT.steps}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
-        storageKey="sa_tour_weather_seen_v1"
         labels={{ next: wxTourT.next, back: wxTourT.back, skip: wxTourT.skip, done: wxTourT.done }}
       />
     </div>

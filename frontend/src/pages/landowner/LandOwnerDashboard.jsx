@@ -10,7 +10,6 @@ import { LAND_T, SEA_LABELS, IRR_LABELS, GROWTH_STAGE_LABELS, CROP_STATUS_LABELS
 import { getSoilLabel } from '../../data/cropData';
 import CountUp from '../../components/CountUp';
 import SpotlightTour from '../../components/tour/SpotlightTour';
-import useAutoOpenOnce from '../../components/tour/useAutoOpenOnce';
 import HelpButton from '../../components/tour/HelpButton';
 import GettingStartedChecklist from '../../components/checklist/GettingStartedChecklist';
 
@@ -266,7 +265,7 @@ export default function LandOwnerDashboard() {
 
   const tourT = LO_TOUR_T[lang] || LO_TOUR_T.en;
   const checklistT = LO_CHECKLIST_T[lang] || LO_CHECKLIST_T.en;
-  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_lo_seen_v1', !loading);
+  const [tourOpen, setTourOpen] = useState(false);
   const checklistItems = [
     { id: 'farm', label: checklistT.addFarm, done: farms.length > 0, href: '/landowner/farms/add' },
     { id: 'crop', label: checklistT.addCrop, done: crops.length > 0, href: '/landowner/crops/add' },
@@ -501,7 +500,6 @@ export default function LandOwnerDashboard() {
         steps={tourT.steps}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
-        storageKey="sa_tour_lo_seen_v1"
         labels={{ next: tourT.next, back: tourT.back, skip: tourT.skip, done: tourT.done }}
       />
     </div>
