@@ -8,6 +8,42 @@ import { useApp } from '../../context/AppContext';
 import { T, LAND_T } from '../../data/translations';
 import CultivationTracker from '../../components/CultivationTracker';
 import Toast from '../../components/Toast';
+import SpotlightTour   from '../../components/tour/SpotlightTour';
+import useAutoOpenOnce from '../../components/tour/useAutoOpenOnce';
+import HelpButton      from '../../components/tour/HelpButton';
+
+const MCV_TOUR_T = {
+  en: {
+    steps: [
+      { target: 'cult-start-btn', title: 'Start tracking a cultivation', body: 'Follow a crop stage-by-stage — tasks, photos, and progress all in one place.' },
+      { target: 'cult-crop-card', title: 'Your active crops', body: 'Each card shows planting/harvest dates and live tracking progress if you’ve started one.' },
+      { target: 'cult-progress', title: 'Track your progress', body: 'See how many tasks are done, and get an overdue warning if anything’s behind schedule.' },
+      { target: 'cult-export-pdf', title: 'Export a PDF report', body: 'Download the full task list and progress as a PDF — handy for record-keeping or sharing.' },
+      { target: 'cult-open-track-btn', title: 'Open or start tracking', body: 'Click here to open an existing tracker, or start a new one for this crop.' },
+    ],
+    next: 'Next →', back: '← Back', skip: 'Skip tour', done: 'Got it', helpAria: 'Replay the guided tour', needHelp: 'Need Help',
+  },
+  si: {
+    steps: [
+      { target: 'cult-start-btn', title: 'වගාවක් ලුහුබැඳීම ආරම්භ කරන්න', body: 'බෝගයක් අදියරෙන් අදියර අනුගමනය කරන්න — කාර්යයන්, ඡායාරූප සහ ප්‍රගතිය සියල්ල එකම තැනක.' },
+      { target: 'cult-crop-card', title: 'ඔබේ ක්‍රියාකාරී බෝග', body: 'සෑම කාඩ්පතක්ම රෝපණය/අස්වනු දින සහ ඔබ එකක් ආරම්භ කර ඇත්නම් සජීවී ලුහුබැඳීමේ ප්‍රගතිය පෙන්වයි.' },
+      { target: 'cult-progress', title: 'ඔබේ ප්‍රගතිය නිරීක්ෂණය කරන්න', body: 'කී කාර්යයන් අවසන් වී ඇත්දැයි බලන්න, කාලසටහනට පසුබට වී ඇත්නම් ප්‍රමාද ඇඟවීමක් ලැබේ.' },
+      { target: 'cult-export-pdf', title: 'PDF වාර්තාවක් නිර්යාත කරන්න', body: 'සම්පූර්ණ කාර්ය ලැයිස්තුව සහ ප්‍රගතිය PDF ලෙස බාගන්න — වාර්තා තබා ගැනීමට හෝ බෙදාගැනීමට පහසුයි.' },
+      { target: 'cult-open-track-btn', title: 'විවෘත කරන්න හෝ ලුහුබැඳීම ආරම්භ කරන්න', body: 'පවතින ලුහුබැඳීමක් විවෘත කිරීමට, හෝ මෙම බෝගය සඳහා නව එකක් ආරම්භ කිරීමට මෙහි ක්ලික් කරන්න.' },
+    ],
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+  },
+  ta: {
+    steps: [
+      { target: 'cult-start-btn', title: 'ஒரு சாகுபடியைக் கண்காணிக்கத் தொடங்குங்கள்', body: 'ஒரு பயிரை நிலைவாரியாகப் பின்பற்றுங்கள் — பணிகள், புகைப்படங்கள் மற்றும் முன்னேற்றம் அனைத்தும் ஒரே இடத்தில்.' },
+      { target: 'cult-crop-card', title: 'உங்கள் செயலில் உள்ள பயிர்கள்', body: 'ஒவ்வொரு அட்டையும் நடவு/அறுவடை தேதிகள் மற்றும் நீங்கள் தொடங்கியிருந்தால் நேரடி கண்காணிப்பு முன்னேற்றத்தையும் காட்டுகிறது.' },
+      { target: 'cult-progress', title: 'உங்கள் முன்னேற்றத்தைக் கண்காணிக்கவும்', body: 'எத்தனை பணிகள் முடிந்துள்ளன என்பதைப் பாருங்கள், அட்டவணையை விட பின்தங்கியிருந்தால் தாமத எச்சரிக்கை கிடைக்கும்.' },
+      { target: 'cult-export-pdf', title: 'PDF அறிக்கையை ஏற்றுமதி செய்யுங்கள்', body: 'முழு பணிப் பட்டியல் மற்றும் முன்னேற்றத்தை PDF ஆக பதிவிறக்கவும் — பதிவு வைத்திருக்க அல்லது பகிர வசதியானது.' },
+      { target: 'cult-open-track-btn', title: 'திறக்க அல்லது கண்காணிப்பைத் தொடங்குங்கள்', body: 'ஏற்கனவே உள்ள கண்காணிப்பாளரைத் திறக்க, அல்லது இந்த பயிருக்கு புதிதாகத் தொடங்க இங்கே கிளிக் செய்யுங்கள்.' },
+    ],
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
+  },
+};
 
 async function exportSessionPDF(session, cropLabel) {
   const { jsPDF } = await import('jspdf');
@@ -81,6 +117,8 @@ export default function MyCultivations() {
   const [abandonTarget,     setAbandonTarget]     = useState(null);
   const [isAbandoning,      setIsAbandoning]      = useState(false);
   const [toast,             setToast]             = useState({ type: 'success', message: '' });
+  const mcvTourT = MCV_TOUR_T[lang] || MCV_TOUR_T.en;
+  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_mycultivations_seen_v1', view === 'list' && !isLoading);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -173,6 +211,7 @@ export default function MyCultivations() {
             className="button button--primary"
             type="button"
             onClick={() => { setStartCrop(''); setActiveSessionId(null); setView('tracker'); }}
+            data-tour="cult-start-btn"
           >
             {lt.startNewCultBtn}
           </button>
@@ -187,13 +226,13 @@ export default function MyCultivations() {
         </div>
       ) : (
         <div className="cult-crop-list">
-          {crops.map(crop => {
+          {crops.map((crop, i) => {
             const session = getSession(crop);
             const prog    = session ? sessionProgress(session) : null;
             const emoji   = CROP_EMOJI[crop.crop_name] || '🌱';
 
             return (
-              <div key={crop.id} className="cult-crop-card">
+              <div key={crop.id} className="cult-crop-card" data-tour={i === 0 ? 'cult-crop-card' : undefined}>
                 <div className="cult-crop-card__left">
                   <span className="cult-crop-card__emoji">{emoji}</span>
                 </div>
@@ -218,7 +257,7 @@ export default function MyCultivations() {
                   </div>
 
                   {prog && (
-                    <div className="cult-crop-card__progress">
+                    <div className="cult-crop-card__progress" data-tour={i === 0 ? 'cult-progress' : undefined}>
                       <div className="cult-progress-bar">
                         <div className="cult-progress-fill" style={{ width: `${prog.pct}%` }} />
                       </div>
@@ -238,6 +277,7 @@ export default function MyCultivations() {
                           className="cult-btn cult-btn-open"
                           type="button"
                           onClick={() => { setActiveSessionId(session.id); setView('tracker'); }}
+                          data-tour={i === 0 ? 'cult-open-track-btn' : undefined}
                         >
                           {lt.openTrackingBtn}
                         </button>
@@ -247,6 +287,7 @@ export default function MyCultivations() {
                           style={{ background: 'var(--muted-bg, #e5e7eb)', color: 'var(--text)', fontSize: '14px' }}
                           onClick={() => exportSessionPDF(session, getCropLabel(crop.crop_name, lang))}
                           title="Export PDF report"
+                          data-tour={i === 0 ? 'cult-export-pdf' : undefined}
                         >
                           📄 Export PDF
                         </button>
@@ -261,6 +302,7 @@ export default function MyCultivations() {
                           setActiveSessionId(null);
                           setView('tracker');
                         }}
+                        data-tour={i === 0 ? 'cult-open-track-btn' : undefined}
                       >
                         {lt.startTrackingBtn}
                       </button>
@@ -308,6 +350,15 @@ export default function MyCultivations() {
       <Toast type={toast.type} message={toast.message} onClose={() => setToast({ type: '', message: '' })} />
         </>
       )}
+
+      <HelpButton label={mcvTourT.needHelp} ariaLabel={mcvTourT.helpAria} onClick={() => setTourOpen(true)} />
+      <SpotlightTour
+        steps={mcvTourT.steps}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        storageKey="sa_tour_mycultivations_seen_v1"
+        labels={{ next: mcvTourT.next, back: mcvTourT.back, skip: mcvTourT.skip, done: mcvTourT.done }}
+      />
     </section>
   );
 }

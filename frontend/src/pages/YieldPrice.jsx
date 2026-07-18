@@ -8,6 +8,48 @@ import {
 } from "../data/cropData";
 import CustomSelect from "../components/CustomSelect";
 import "../styles/YieldPrice.css";
+import SpotlightTour   from "../components/tour/SpotlightTour";
+import useAutoOpenOnce from "../components/tour/useAutoOpenOnce";
+import HelpButton      from "../components/tour/HelpButton";
+
+const YP_TOUR_T = {
+  en: {
+    steps: [
+      { target: 'yp-crop-select', title: 'Choose your crop', body: 'Pick the crop you’re planning — we’ll use its typical yield-per-acre as a starting point.' },
+      { target: 'yp-land-size', title: 'Enter your land size', body: 'Add the size and unit of the land you’re planting on.' },
+      { target: 'yp-germ-rate', title: 'Germination rate', body: 'Not every seed sprouts — adjust this if you expect a lower or higher germination rate than the default 90%.' },
+      { target: 'yp-calc-yield-btn', title: 'Calculate yield', body: 'This estimates your total expected harvest based on land size and germination rate.' },
+      { target: 'yp-use-yield-btn', title: 'One click to the next step', body: 'Send this yield estimate straight into the price calculator below — no need to retype it.' },
+      { target: 'yp-cost-inputs', title: 'Add your costs', body: 'Fill in your production costs — seeds, fertiliser, labour and more — to estimate profit.' },
+      { target: 'yp-calc-price-btn', title: 'Calculate selling price', body: 'Get a suggested price per kg based on your costs and target profit margin.' },
+    ],
+    next: 'Next →', back: '← Back', skip: 'Skip tour', done: 'Got it', helpAria: 'Replay the guided tour', needHelp: 'Need Help',
+  },
+  si: {
+    steps: [
+      { target: 'yp-crop-select', title: 'ඔබේ බෝගය තෝරන්න', body: 'ඔබ සැලසුම් කරන බෝගය තෝරන්න — ආරම්භක ලක්ෂ්‍යයක් ලෙස එහි සාමාන්‍ය අක්කරයට අස්වැන්න භාවිතා කරන්නෙමු.' },
+      { target: 'yp-land-size', title: 'ඔබේ ඉඩම් ප්‍රමාණය ඇතුළත් කරන්න', body: 'ඔබ වගා කරන ඉඩමේ ප්‍රමාණය සහ ඒකකය එකතු කරන්න.' },
+      { target: 'yp-germ-rate', title: 'පැළවීමේ අනුපාතය', body: 'සෑම බීජයක්ම පැළ නොවේ — පෙරනිමි 90%ට වඩා අඩු හෝ වැඩි පැළවීමේ අනුපාතයක් අපේක්ෂා කරන්නේ නම් මෙය සකසන්න.' },
+      { target: 'yp-calc-yield-btn', title: 'අස්වැන්න ගණනය කරන්න', body: 'ඉඩම් ප්‍රමාණය සහ පැළවීමේ අනුපාතය මත පදනම්ව ඔබේ මුළු අපේක්ෂිත අස්වැන්න ඇස්තමේන්තු කරයි.' },
+      { target: 'yp-use-yield-btn', title: 'ඊළඟ පියවරට එක් ක්ලික්කයකින්', body: 'මෙම අස්වැන්න ඇස්තමේන්තුව යළිත් ටයිප් නොකර පහත මිල ගණකයට කෙලින්ම යවන්න.' },
+      { target: 'yp-cost-inputs', title: 'ඔබේ පිරිවැය එකතු කරන්න', body: 'ලාභය ඇස්තමේන්තු කිරීමට බීජ, පොහොර, කම්කරු සහ තවත් නිෂ්පාදන පිරිවැය පුරවන්න.' },
+      { target: 'yp-calc-price-btn', title: 'විකුණුම් මිල ගණනය කරන්න', body: 'ඔබේ පිරිවැය සහ ඉලක්කගත ලාභ මාර්ජිනය මත පදනම්ව කිලෝග්‍රෑමයකට යෝජිත මිලක් ලබාගන්න.' },
+    ],
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+  },
+  ta: {
+    steps: [
+      { target: 'yp-crop-select', title: 'உங்கள் பயிரைத் தேர்வு செய்யுங்கள்', body: 'நீங்கள் திட்டமிடும் பயிரைத் தேர்ந்தெடுக்கவும் — ஆரம்பப் புள்ளியாக அதன் வழக்கமான ஏக்கருக்கான மகசூலைப் பயன்படுத்துவோம்.' },
+      { target: 'yp-land-size', title: 'உங்கள் நில அளவை உள்ளிடுங்கள்', body: 'நீங்கள் நடவு செய்யும் நிலத்தின் அளவு மற்றும் அலகைச் சேர்க்கவும்.' },
+      { target: 'yp-germ-rate', title: 'முளைப்பு விகிதம்', body: 'ஒவ்வொரு விதையும் முளைக்காது — இயல்புநிலை 90%ஐ விட குறைவான அல்லது அதிகமான முளைப்பு விகிதத்தை எதிர்பார்த்தால் இதை மாற்றவும்.' },
+      { target: 'yp-calc-yield-btn', title: 'மகசூலைக் கணக்கிடுங்கள்', body: 'நில அளவு மற்றும் முளைப்பு விகிதத்தின் அடிப்படையில் உங்கள் மொத்த எதிர்பார்க்கப்படும் அறுவடையை மதிப்பிடுகிறது.' },
+      { target: 'yp-use-yield-btn', title: 'அடுத்த படிக்கு ஒரு கிளிக்', body: 'இந்த மகசூல் மதிப்பீட்டை மீண்டும் தட்டச்சு செய்யாமல் கீழே உள்ள விலை கால்குலேட்டருக்கு நேரடியாக அனுப்புங்கள்.' },
+      { target: 'yp-cost-inputs', title: 'உங்கள் செலவுகளைச் சேர்க்கவும்', body: 'லாபத்தை மதிப்பிட விதைகள், உரம், தொழிலாளர் மற்றும் பலவற்றின் உற்பத்தி செலவுகளை நிரப்பவும்.' },
+      { target: 'yp-calc-price-btn', title: 'விற்பனை விலையைக் கணக்கிடுங்கள்', body: 'உங்கள் செலவுகள் மற்றும் இலக்கு லாப வரம்பின் அடிப்படையில் கிலோ ஒன்றுக்கான பரிந்துரைக்கப்பட்ட விலையைப் பெறுங்கள்.' },
+    ],
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
+  },
+};
 
 const CROPS = Object.keys(CROP_YIELD_PER_ACRE).sort();
 const LAND_UNITS = ["Acre", "Perch", "Hectare"];
@@ -39,6 +81,8 @@ function fmt(n) {
 
 export default function YieldPrice({ lang }) {
   const t = T[lang] || T.en;
+  const ypTourT = YP_TOUR_T[lang] || YP_TOUR_T.en;
+  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_yieldprice_seen_v1', true);
 
   // ── Yield form state ─────────────────────────────────────────────────────
   const [yf, setYf] = useState(DEFAULT_YIELD);
@@ -152,7 +196,7 @@ export default function YieldPrice({ lang }) {
         <div className="yp-grid-3" style={{ marginBottom: "1rem" }}>
           <div className="yp-field">
             <label>{t.cropName}</label>
-            <CustomSelect name="crop" value={yf.crop} onChange={e => handleCropChange(e.target.value)}>
+            <CustomSelect name="crop" value={yf.crop} onChange={e => handleCropChange(e.target.value)} data-tour="yp-crop-select">
               <option value="">{t.selectCropPh2}</option>
               {CROPS.map(c => (
                 <option key={c} value={c}>
@@ -162,7 +206,7 @@ export default function YieldPrice({ lang }) {
             </CustomSelect>
           </div>
 
-          <div className="yp-field">
+          <div className="yp-field" data-tour="yp-land-size">
             <label>{t.landSize}</label>
             <input
               type="number"
@@ -211,7 +255,7 @@ export default function YieldPrice({ lang }) {
         </div>
 
         {/* Row 3: Germination rate */}
-        <div className="yp-field" style={{ marginBottom: "1rem" }}>
+        <div className="yp-field" style={{ marginBottom: "1rem" }} data-tour="yp-germ-rate">
           <label>{t.germRate}</label>
           <div className="yp-pills">
             {GERM_OPTIONS.map(g => (
@@ -228,7 +272,7 @@ export default function YieldPrice({ lang }) {
         </div>
 
         <div className="yp-btn-row">
-          <button className="yp-btn-primary" onClick={calcYield} disabled={!yieldValid}>
+          <button className="yp-btn-primary" onClick={calcYield} disabled={!yieldValid} data-tour="yp-calc-yield-btn">
             {t.calcYield}
           </button>
           <button className="yp-btn-ghost" onClick={resetYield}>{t.resetYield}</button>
@@ -257,7 +301,7 @@ export default function YieldPrice({ lang }) {
               </div>
             </details>
 
-            <button className="yp-use-yield-btn" onClick={useYieldForPrice}>
+            <button className="yp-use-yield-btn" onClick={useYieldForPrice} data-tour="yp-use-yield-btn">
               {t.useForPrice}
             </button>
 
@@ -299,7 +343,7 @@ export default function YieldPrice({ lang }) {
         </div>
 
         {/* Cost inputs */}
-        <div className="yp-grid" style={{ marginBottom: "1rem" }}>
+        <div className="yp-grid" style={{ marginBottom: "1rem" }} data-tour="yp-cost-inputs">
           {[
             ["seedCost",      t.seedCost],
             ["fertCost",      t.fertCost],
@@ -340,7 +384,7 @@ export default function YieldPrice({ lang }) {
         </div>
 
         <div className="yp-btn-row">
-          <button className="yp-btn-primary" onClick={calcPrice} disabled={!priceValid}>
+          <button className="yp-btn-primary" onClick={calcPrice} disabled={!priceValid} data-tour="yp-calc-price-btn">
             {t.calcPrice}
           </button>
           <button className="yp-btn-ghost" onClick={resetPrice}>{t.resetPrice}</button>
@@ -380,6 +424,15 @@ export default function YieldPrice({ lang }) {
         </div>
       </div>
       </div>
+
+      <HelpButton label={ypTourT.needHelp} ariaLabel={ypTourT.helpAria} onClick={() => setTourOpen(true)} />
+      <SpotlightTour
+        steps={ypTourT.steps}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        storageKey="sa_tour_yieldprice_seen_v1"
+        labels={{ next: ypTourT.next, back: ypTourT.back, skip: ypTourT.skip, done: ypTourT.done }}
+      />
     </div>
     </div>
   );

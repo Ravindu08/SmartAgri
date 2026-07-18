@@ -13,6 +13,36 @@ import {
 import { useApp } from '../context/AppContext';
 import { LAND_T } from '../data/translations';
 import Toast from './Toast';
+import SpotlightTour   from './tour/SpotlightTour';
+import useAutoOpenOnce from './tour/useAutoOpenOnce';
+import HelpButton      from './tour/HelpButton';
+
+const AS_TOUR_T = {
+  en: {
+    steps: [
+      { target: 'settings-tabs', title: 'Three sections', body: 'Profile for your details, Security for your password, and Account for danger-zone actions.' },
+      { target: 'settings-avatar', title: 'Update your photo', body: 'Click the camera icon to upload a new profile photo (max 2MB).' },
+      { target: 'settings-save-profile-btn', title: 'Save your changes', body: 'Don’t forget to save after editing your name, email, or phone number.' },
+    ],
+    next: 'Next →', back: '← Back', skip: 'Skip tour', done: 'Got it', helpAria: 'Replay the guided tour', needHelp: 'Need Help',
+  },
+  si: {
+    steps: [
+      { target: 'settings-tabs', title: 'කොටස් තුනක්', body: 'ඔබේ විස්තර සඳහා පැතිකඩ, ඔබේ මුරපදය සඳහා ආරක්ෂාව, සහ අවදානම් කලාප ක්‍රියා සඳහා ගිණුම.' },
+      { target: 'settings-avatar', title: 'ඔබේ ඡායාරූපය යාවත්කාලීන කරන්න', body: 'නව පැතිකඩ ඡායාරූපයක් උඩුගත කිරීමට කැමරා අයිකනය ක්ලික් කරන්න (උපරිම 2MB).' },
+      { target: 'settings-save-profile-btn', title: 'ඔබේ වෙනස්කම් සුරකින්න', body: 'ඔබේ නම, විද්‍යුත් තැපෑල, හෝ දුරකථන අංකය සංස්කරණය කිරීමෙන් පසු සුරැකීමට අමතක නොකරන්න.' },
+    ],
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+  },
+  ta: {
+    steps: [
+      { target: 'settings-tabs', title: 'மூன்று பிரிவுகள்', body: 'உங்கள் விவரங்களுக்கு சுயவிவரம், உங்கள் கடவுச்சொல்லுக்கு பாதுகாப்பு, மற்றும் ஆபத்தான செயல்களுக்கு கணக்கு.' },
+      { target: 'settings-avatar', title: 'உங்கள் புகைப்படத்தைப் புதுப்பிக்கவும்', body: 'புதிய சுயவிவரப் படத்தைப் பதிவேற்ற கேமரா ஐகானைக் கிளிக் செய்யுங்கள் (அதிகபட்சம் 2MB).' },
+      { target: 'settings-save-profile-btn', title: 'உங்கள் மாற்றங்களைச் சேமிக்கவும்', body: 'உங்கள் பெயர், மின்னஞ்சல் அல்லது தொலைபேசி எண்ணைத் திருத்திய பிறகு சேமிக்க மறக்காதீர்கள்.' },
+    ],
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
+  },
+};
 
 /**
  * Shared profile / security / account settings panel.
@@ -33,6 +63,8 @@ export default function AccountSettings() {
 
   const [activeTab, setActiveTab] = useState('Profile');
   const [toast, setToast]         = useState({ type: 'success', message: '' });
+  const asTourT = AS_TOUR_T[lang] || AS_TOUR_T.en;
+  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_settings_seen_v1', true);
 
   // ── Profile form ──────────────────────────────────────────────────────────
   const [profileForm, setProfileForm] = useState({
@@ -177,7 +209,7 @@ export default function AccountSettings() {
 
       {/* User card */}
       <div className="settings-user-card">
-        <div className="settings-avatar-wrap">
+        <div className="settings-avatar-wrap" data-tour="settings-avatar">
           {user?.profile_image
             ? <img className="settings-avatar-img" src={user.profile_image} alt="avatar" />
             : <div className="settings-avatar">{initial}</div>
@@ -207,7 +239,7 @@ export default function AccountSettings() {
       </div>
 
       {/* Tab bar */}
-      <div className="settings-tabs">
+      <div className="settings-tabs" data-tour="settings-tabs">
         {TABS.map(tab => (
           <button
             key={tab.key}
@@ -273,7 +305,7 @@ export default function AccountSettings() {
               <input type="text" value={accountId} readOnly disabled />
             </div>
             <div className="settings-actions">
-              <button className="button button--primary" type="submit" disabled={profileSaving}>
+              <button className="button button--primary" type="submit" disabled={profileSaving} data-tour="settings-save-profile-btn">
                 {profileSaving ? t.settingsSaving : t.settingsSaveChanges}
               </button>
             </div>
@@ -444,6 +476,15 @@ export default function AccountSettings() {
       )}
 
       <Toast type={toast.type} message={toast.message} onClose={() => setToast({ type: '', message: '' })} />
+
+      <HelpButton label={asTourT.needHelp} ariaLabel={asTourT.helpAria} onClick={() => setTourOpen(true)} />
+      <SpotlightTour
+        steps={asTourT.steps}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        storageKey="sa_tour_settings_seen_v1"
+        labels={{ next: asTourT.next, back: asTourT.back, skip: asTourT.skip, done: asTourT.done }}
+      />
     </section>
   );
 }

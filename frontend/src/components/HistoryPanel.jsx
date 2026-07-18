@@ -56,7 +56,7 @@ export default function HistoryPanel({ history, onClear, lang, t }) {
   };
 
   return (
-    <div className="hist-card">
+    <div className="hist-card" data-tour="cr-history">
       <div className="hist-inner">
         <div className="hist-hdr">
           <span className="hist-title">📋 {t.historyTitle}</span>

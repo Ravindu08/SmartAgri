@@ -4,6 +4,9 @@ import { DISTRICTS } from "../data/districtZones";
 import { DISTRICT_LABELS } from "../data/translations";
 import CustomSelect from "../components/CustomSelect";
 import "../styles/Weather.css";
+import SpotlightTour   from "../components/tour/SpotlightTour";
+import useAutoOpenOnce from "../components/tour/useAutoOpenOnce";
+import HelpButton      from "../components/tour/HelpButton";
 
 const WT = {
   en: {
@@ -179,6 +182,39 @@ const WT = {
   },
 };
 
+const WX_TOUR_T = {
+  en: {
+    steps: [
+      { target: 'wx-district-select', title: 'Pick your district', body: 'Choose a district and fetch live weather — you’ll get current conditions, farming advisory and a 7-day forecast.' },
+      { target: 'wx-empty-zones', title: 'Sri Lanka’s climate zones', body: 'Not sure which zone you’re in? This reference shows the Wet, Dry and Intermediate zones and their typical districts.' },
+      { target: 'wx-current', title: 'Current conditions', body: 'Live temperature, humidity, wind and rainfall for your district, updated in real time.' },
+      { target: 'wx-advice', title: 'Farming advice', body: "Alerts and tips generated from today's weather — like when to delay spraying or watch for heat stress." },
+      { target: 'wx-forecast', title: '7-day forecast', body: 'Plan ahead with daily highs, lows, and expected rainfall for the week.' },
+    ],
+    next: 'Next →', back: '← Back', skip: 'Skip tour', done: 'Got it', helpAria: 'Replay the guided tour', needHelp: 'Need Help',
+  },
+  si: {
+    steps: [
+      { target: 'wx-district-select', title: 'ඔබේ දිස්ත්‍රික්කය තෝරන්න', body: 'දිස්ත්‍රික්කයක් තෝරා සජීවී කාලගුණය ලබාගන්න — වත්මන් තත්ත්වයන්, ගොවිතැන් උපදෙස් සහ දින 7ක අනාවැකියක් ලැබෙනු ඇත.' },
+      { target: 'wx-empty-zones', title: 'ශ්‍රී ලංකාවේ දේශගුණ කලාප', body: 'ඔබ සිටින කලාපය කුමක්දැයි විශ්වාස නැද්ද? මෙම යොමුව තෙත්, වියළි සහ අතරමැදි කලාප සහ ඒවායේ සාමාන්‍ය දිස්ත්‍රික්ක පෙන්වයි.' },
+      { target: 'wx-current', title: 'වත්මන් තත්ත්වයන්', body: 'ඔබේ දිස්ත්‍රික්කය සඳහා සජීවී උෂ්ණත්වය, ආර්ද්‍රතාවය, සුළඟ සහ වර්ෂාපතනය තථ්‍ය කාලීනව යාවත්කාලීන වේ.' },
+      { target: 'wx-advice', title: 'ගොවිතැන් උපදෙස්', body: 'අද කාලගුණයෙන් ජනනය කරන ලද ඇඟවීම් සහ ඉඟි — ඉසීම ප්‍රමාද කළ යුතු වේලාව හෝ තාප පීඩනය ගැන අවධානය වැනි.' },
+      { target: 'wx-forecast', title: 'දින 7ක අනාවැකිය', body: 'සතිය සඳහා දෛනික ඉහළ, පහළ උෂ්ණත්වයන් සහ අපේක්ෂිත වර්ෂාපතනය සමඟ කලින් සැලසුම් කරන්න.' },
+    ],
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+  },
+  ta: {
+    steps: [
+      { target: 'wx-district-select', title: 'உங்கள் மாவட்டத்தைத் தேர்வு செய்யுங்கள்', body: 'ஒரு மாவட்டத்தைத் தேர்ந்தெடுத்து நேரடி வானிலையைப் பெறுங்கள் — தற்போதைய நிலைமைகள், விவசாய ஆலோசனை மற்றும் 7 நாள் முன்னறிவிப்பு கிடைக்கும்.' },
+      { target: 'wx-empty-zones', title: 'இலங்கையின் காலநிலை மண்டலங்கள்', body: 'நீங்கள் எந்த மண்டலத்தில் இருக்கிறீர்கள் என்று உறுதியாக தெரியவில்லையா? இந்த குறிப்பு ஈரப்பதம், வறண்ட மற்றும் இடைநிலை மண்டலங்களையும் அவற்றின் வழக்கமான மாவட்டங்களையும் காட்டுகிறது.' },
+      { target: 'wx-current', title: 'தற்போதைய நிலைமைகள்', body: 'உங்கள் மாவட்டத்திற்கான நேரடி வெப்பநிலை, ஈரப்பதம், காற்று மற்றும் மழைப்பொழிவு நிகழ்நேரத்தில் புதுப்பிக்கப்படும்.' },
+      { target: 'wx-advice', title: 'விவசாய ஆலோசனை', body: 'இன்றைய வானிலையிலிருந்து உருவாக்கப்பட்ட எச்சரிக்கைகள் மற்றும் குறிப்புகள் — தெளிப்பதை தாமதப்படுத்த வேண்டிய நேரம் அல்லது வெப்ப அழுத்தத்தை கவனிக்க வேண்டியது போன்றவை.' },
+      { target: 'wx-forecast', title: '7 நாள் முன்னறிவிப்பு', body: 'வாரத்திற்கான தினசரி அதிகபட்ச, குறைந்தபட்ச வெப்பநிலை மற்றும் எதிர்பார்க்கப்படும் மழையுடன் முன்கூட்டியே திட்டமிடுங்கள்.' },
+    ],
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
+  },
+};
+
 function StatCard({ icon, label, value, unit, highlight }) {
   return (
     <div className={`wx-stat-card${highlight ? " wx-stat-highlight" : ""}`}>
@@ -240,6 +276,8 @@ const API_BASE = ML_BASE_URL;
 
 export default function Weather({ lang, onWeatherFetched }) {
   const t = WT[lang] || WT.en;
+  const wxTourT = WX_TOUR_T[lang] || WX_TOUR_T.en;
+  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_weather_seen_v1', true);
   const [district, setDistrict] = useState("");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -291,7 +329,7 @@ export default function Weather({ lang, onWeatherFetched }) {
         <div className="wx-selector-card">
           <label className="wx-selector-label">📍 {t.selectDistrict}</label>
           <div className="wx-selector-row">
-            <CustomSelect name="district" value={district} onChange={handleSelect}>
+            <CustomSelect name="district" value={district} onChange={handleSelect} data-tour="wx-district-select">
               <option value="">{t.selectPrompt}</option>
               {DISTRICTS.map(d => (
                 <option key={d} value={d}>{DISTRICT_LABELS[lang]?.[d] || d}</option>
@@ -366,7 +404,7 @@ export default function Weather({ lang, onWeatherFetched }) {
             </div>
 
             {/* Climate zones info */}
-            <div className="wx-zones-section">
+            <div className="wx-zones-section" data-tour="wx-empty-zones">
               <div className="wx-info-label" style={{marginBottom:"12px"}}>{t.zonesLabel}</div>
               <div className="wx-zones-grid">
                 <div className="wx-zone-card wx-zone-wet">
@@ -421,7 +459,7 @@ export default function Weather({ lang, onWeatherFetched }) {
         {data && (
           <>
             {/* Current conditions */}
-            <section className="wx-section">
+            <section className="wx-section" data-tour="wx-current">
               <h2 className="wx-section-title">
                 {data.current.condition_icon} {t.current} — {data.district}
               </h2>
@@ -441,7 +479,7 @@ export default function Weather({ lang, onWeatherFetched }) {
             </section>
 
             {/* Farming advice */}
-            <section className="wx-section">
+            <section className="wx-section" data-tour="wx-advice">
               <h2 className="wx-section-title">🌾 {t.advice}</h2>
               <div className="wx-advice-list">
                 {data.advice.map((item, i) => (
@@ -451,7 +489,7 @@ export default function Weather({ lang, onWeatherFetched }) {
             </section>
 
             {/* 7-day forecast */}
-            <section className="wx-section">
+            <section className="wx-section" data-tour="wx-forecast">
               <h2 className="wx-section-title">📅 {t.forecast}</h2>
               <div className="wx-forecast-table">
                 <div className="wx-forecast-header">
@@ -473,6 +511,15 @@ export default function Weather({ lang, onWeatherFetched }) {
           </>
         )}
       </div>
+
+      <HelpButton label={wxTourT.needHelp} ariaLabel={wxTourT.helpAria} onClick={() => setTourOpen(true)} />
+      <SpotlightTour
+        steps={wxTourT.steps}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        storageKey="sa_tour_weather_seen_v1"
+        labels={{ next: wxTourT.next, back: wxTourT.back, skip: wxTourT.skip, done: wxTourT.done }}
+      />
     </div>
     </div>
   );

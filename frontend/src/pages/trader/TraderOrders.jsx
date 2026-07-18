@@ -5,6 +5,42 @@ import PayDialog from '../../components/PayDialog';
 import { SkeletonRows } from '../../components/Skeleton';
 import { useApp } from '../../context/AppContext';
 import { getAuthSession, request } from '../../services/api';
+import SpotlightTour   from '../../components/tour/SpotlightTour';
+import useAutoOpenOnce from '../../components/tour/useAutoOpenOnce';
+import HelpButton      from '../../components/tour/HelpButton';
+
+const TRO_TOUR_T = {
+  en: {
+    steps: [
+      { target: 'tr-orders-filters', title: 'Filter your orders', body: 'Switch between all orders, confirmed, or delivered.' },
+      { target: 'tr-orders-card', title: 'Order details', body: 'Each card shows the crop, quantity, price, and current status.' },
+      { target: 'tr-orders-status-tracker', title: 'Track progress', body: 'Follow an order from confirmed through delivered to completed. Pay Now or Confirm Receipt buttons appear here when it’s your turn to act.' },
+      { target: 'tr-orders-pay-btn', title: 'Pay when confirmed', body: 'Once a seller confirms your order, pay securely right here to move it toward delivery.' },
+      { target: 'tr-orders-confirm-btn', title: 'Confirm once delivered', body: 'After you receive your order, confirm receipt here to complete the transaction.' },
+    ],
+    next: 'Next →', back: '← Back', skip: 'Skip tour', done: 'Got it', helpAria: 'Replay the guided tour', needHelp: 'Need Help',
+  },
+  si: {
+    steps: [
+      { target: 'tr-orders-filters', title: 'ඔබේ ඇණවුම් පෙරහන් කරන්න', body: 'සියලුම ඇණවුම්, තහවුරු කළ, හෝ බෙදාහරින ලද අතර මාරු වන්න.' },
+      { target: 'tr-orders-card', title: 'ඇණවුම් විස්තර', body: 'සෑම කාඩ්පතක්ම බෝගය, ප්‍රමාණය, මිල, සහ වත්මන් තත්ත්වය පෙන්වයි.' },
+      { target: 'tr-orders-status-tracker', title: 'ප්‍රගතිය ලුහුබඳින්න', body: 'ඇණවුමක් තහවුරු කිරීමේ සිට බෙදාහැරීම හරහා සම්පූර්ණ වන තෙක් අනුගමනය කරන්න. ඔබේ වාරය එද්දී මුදල් ගෙවන්න හෝ ලැබීම තහවුරු කරන්න බොත්තම් මෙහි දිස්වේ.' },
+      { target: 'tr-orders-pay-btn', title: 'තහවුරු වූ පසු ගෙවන්න', body: 'විකුණුම්කරු ඔබේ ඇණවුම තහවුරු කළ පසු, බෙදාහැරීම දෙසට ගෙන යාමට මෙතැනින්ම ආරක්ෂිතව ගෙවන්න.' },
+      { target: 'tr-orders-confirm-btn', title: 'බෙදාහැරුණු පසු තහවුරු කරන්න', body: 'ඔබේ ඇණවුම ලැබුණු පසු, ගනුදෙනුව සම්පූර්ණ කිරීමට මෙහි ලැබීම තහවුරු කරන්න.' },
+    ],
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+  },
+  ta: {
+    steps: [
+      { target: 'tr-orders-filters', title: 'உங்கள் ஆர்டர்களை வடிகட்டவும்', body: 'அனைத்து ஆர்டர்கள், உறுதிசெய்யப்பட்டவை அல்லது வழங்கப்பட்டவை இடையே மாறவும்.' },
+      { target: 'tr-orders-card', title: 'ஆர்டர் விவரங்கள்', body: 'ஒவ்வொரு அட்டையும் பயிர், அளவு, விலை மற்றும் தற்போதைய நிலையைக் காட்டுகிறது.' },
+      { target: 'tr-orders-status-tracker', title: 'முன்னேற்றத்தைக் கண்காணிக்கவும்', body: 'உறுதிசெய்யப்பட்டதிலிருந்து வழங்கப்பட்டு முடிக்கப்படும் வரை ஒரு ஆர்டரைப் பின்தொடருங்கள். உங்கள் முறை வரும்போது இப்போது செலுத்து அல்லது பெறுதலை உறுதிப்படுத்து பொத்தான்கள் இங்கே தோன்றும்.' },
+      { target: 'tr-orders-pay-btn', title: 'உறுதிசெய்யப்பட்டதும் செலுத்துங்கள்', body: 'விற்பனையாளர் உங்கள் ஆர்டரை உறுதிப்படுத்திய பிறகு, டெலிவரிக்கு நகர்த்த இங்கேயே பாதுகாப்பாக செலுத்துங்கள்.' },
+      { target: 'tr-orders-confirm-btn', title: 'வழங்கியதும் உறுதிப்படுத்துங்கள்', body: 'உங்கள் ஆர்டரைப் பெற்ற பிறகு, பரிவர்த்தனையை முடிக்க இங்கே பெறுதலை உறுதிப்படுத்துங்கள்.' },
+    ],
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
+  },
+};
 
 const T = {
   en: {
@@ -122,6 +158,8 @@ export default function TraderOrders() {
 
   const { data: rawOrders, isLoading } = useSWR('/api/marketplace/orders', authFetcher, { refreshInterval: 8000 });
   const allOrders = Array.isArray(rawOrders) ? rawOrders : [];
+  const troTourT = TRO_TOUR_T[lang] || TRO_TOUR_T.en;
+  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_trorders_seen_v1', !isLoading);
 
   const activeOrders = useMemo(
     () => allOrders.filter(o => o.buyer_id === user?.id && ['Confirmed', 'Delivered'].includes(o.status)),
@@ -161,7 +199,7 @@ export default function TraderOrders() {
       </div>
 
       {/* Filter chips */}
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }} data-tour="tr-orders-filters">
         {filters.map(f => (
           <button
             key={f.key}
@@ -208,14 +246,14 @@ export default function TraderOrders() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {filtered.map(order => {
+          {filtered.map((order, i) => {
             const stStyle = STATUS_STYLE[order.status] || { bg: 'color-mix(in srgb, var(--muted) 15%, transparent)', color: 'var(--muted)' };
             const tKey    = order.status?.toLowerCase();
             return (
               <div key={order.id} style={{
                 background: 'var(--card)', border: '1px solid var(--border)',
                 borderRadius: '12px', padding: '20px',
-              }}>
+              }} data-tour={i === 0 ? 'tr-orders-card' : undefined}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
                   <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                     <div style={{ minWidth: 0, maxWidth: '100%' }}>
@@ -246,12 +284,15 @@ export default function TraderOrders() {
                   </span>
                 </div>
 
-                <StatusTracker status={order.status} t={t} />
+                <div data-tour={i === 0 ? 'tr-orders-status-tracker' : undefined}>
+                  <StatusTracker status={order.status} t={t} />
+                </div>
 
                 {order.status === 'Confirmed' && order.payment_status !== 'Paid' && (
                   <button
                     type="button"
                     onClick={() => setPayingOrder(order)}
+                    data-tour={i === 0 ? 'tr-orders-pay-btn' : undefined}
                     style={{
                       marginTop: '12px', padding: '9px 18px', borderRadius: '8px', border: 'none',
                       background: 'var(--accent)', color: 'var(--accent-text)',
@@ -267,6 +308,7 @@ export default function TraderOrders() {
                     type="button"
                     onClick={() => confirmReceipt(order.id)}
                     disabled={confirmingId === order.id}
+                    data-tour={i === 0 ? 'tr-orders-confirm-btn' : undefined}
                     style={{
                       marginTop: '12px', padding: '9px 18px', borderRadius: '8px', border: 'none',
                       background: 'var(--accent)', color: 'var(--accent-text)',
@@ -306,6 +348,15 @@ export default function TraderOrders() {
           onSuccess={() => { setPayingOrder(null); mutate('/api/marketplace/orders'); }}
         />
       )}
+
+      <HelpButton label={troTourT.needHelp} ariaLabel={troTourT.helpAria} onClick={() => setTourOpen(true)} />
+      <SpotlightTour
+        steps={troTourT.steps}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        storageKey="sa_tour_trorders_seen_v1"
+        labels={{ next: troTourT.next, back: troTourT.back, skip: troTourT.skip, done: troTourT.done }}
+      />
     </div>
   );
 }

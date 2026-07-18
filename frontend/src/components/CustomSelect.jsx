@@ -1,6 +1,6 @@
 import { Children, useEffect, useRef, useState } from 'react';
 
-export default function CustomSelect({ name, value, onChange, disabled, children, className, style }) {
+export default function CustomSelect({ name, value, onChange, disabled, children, className, style, ...rest }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -31,6 +31,7 @@ export default function CustomSelect({ name, value, onChange, disabled, children
       ref={ref}
       className={`csel${open ? ' csel--open' : ''}${disabled ? ' csel--disabled' : ''}${className ? ' ' + className : ''}`}
       style={style}
+      {...rest}
     >
       <button
         type="button"

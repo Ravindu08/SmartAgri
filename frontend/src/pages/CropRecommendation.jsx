@@ -14,8 +14,56 @@ import CompareCard    from "../components/CompareCard";
 import HistoryPanel, { saveToHistory, loadHistory, clearHistory }
                       from "../components/HistoryPanel";
 import CustomSelect   from "../components/CustomSelect";
+import SpotlightTour   from "../components/tour/SpotlightTour";
+import useAutoOpenOnce from "../components/tour/useAutoOpenOnce";
+import HelpButton      from "../components/tour/HelpButton";
 
 const API_BASE = ML_BASE_URL;
+
+const CR_TOUR_T = {
+  en: {
+    steps: [
+      { target: 'cr-history', title: 'Your past predictions', body: 'Every recommendation you run is saved here so you can revisit it later.' },
+      { target: 'cr-district-select', title: 'Pick your district', body: 'Your district determines the agro-ecological zone and unlocks live weather auto-fill below.' },
+      { target: 'cr-soil-select', title: 'Soil type', body: 'Not sure what soil you have? Use the "Identify my soil" guide next to this field.' },
+      { target: 'cr-nutrient-fields', title: 'Soil & climate values', body: 'Enter your N/P/K and climate readings, or let weather auto-fill do it for you once a district is picked.' },
+      { target: 'cr-predict-btn', title: 'Get your recommendation', body: 'Run the full AI analysis — you’ll get a recommended crop, confidence score, and an explanation of why.' },
+      { target: 'cr-result-card', title: 'Your result appears here', body: 'The recommended crop, alternatives, and a planting calendar will show up in this area.' },
+      { target: 'cr-xai-card', title: 'Understand why', body: 'See exactly which factors — soil, climate, season — drove this recommendation, and how much each one mattered.' },
+      { target: 'cr-crop-info-card', title: 'Full crop profile', body: 'Ideal duration, water needs, and nutrient ranges for the recommended crop — see how your own values compare.' },
+      { target: 'cr-compare-card', title: 'Compare top picks', body: 'See how the top 3 recommended crops stack up side by side before you decide.' },
+    ],
+    next: 'Next →', back: '← Back', skip: 'Skip tour', done: 'Got it', helpAria: 'Replay the guided tour', needHelp: 'Need Help',
+  },
+  si: {
+    steps: [
+      { target: 'cr-history', title: 'ඔබේ පෙර නිර්දේශ', body: 'ඔබ ධාවනය කරන සෑම නිර්දේශයක්ම පසුව නැවත බැලීමට මෙහි සුරැකේ.' },
+      { target: 'cr-district-select', title: 'ඔබේ දිස්ත්‍රික්කය තෝරන්න', body: 'ඔබේ දිස්ත්‍රික්කය කෘෂි-පාරිසරික කලාපය තීරණය කර පහත සජීවී කාලගුණ ස්වයං-පිරවීම විවෘත කරයි.' },
+      { target: 'cr-soil-select', title: 'පස වර්ගය', body: 'ඔබේ පස කුමක්දැයි විශ්වාස නැද්ද? මෙම ක්ෂේත්‍රය අසල ඇති "මගේ පස හඳුනාගන්න" මාර්ගෝපදේශය භාවිතා කරන්න.' },
+      { target: 'cr-nutrient-fields', title: 'පස සහ දේශගුණ අගයන්', body: 'ඔබේ N/P/K සහ දේශගුණ කියැවීම් ඇතුළත් කරන්න, නැතහොත් දිස්ත්‍රික්කයක් තෝරූ පසු කාලගුණ ස්වයං-පිරවීමට ඉඩ දෙන්න.' },
+      { target: 'cr-predict-btn', title: 'ඔබේ නිර්දේශය ලබාගන්න', body: 'සම්පූර්ණ AI විශ්ලේෂණය ධාවනය කරන්න — ඔබට නිර්දේශිත බෝගයක්, විශ්වාස ලකුණු, සහ එය මන්දැයි පැහැදිලි කිරීමක් ලැබෙනු ඇත.' },
+      { target: 'cr-result-card', title: 'ඔබේ ප්‍රතිඵලය මෙහි පෙන්වයි', body: 'නිර්දේශිත බෝගය, විකල්ප, සහ වගා දින දර්ශනයක් මෙම ප්‍රදේශයේ පෙන්වනු ඇත.' },
+      { target: 'cr-xai-card', title: 'මන්දැයි තේරුම් ගන්න', body: 'පස, දේශගුණය, කන්නය වැනි කුමන සාධක මෙම නිර්දේශයට හේතු වූයේද, සහ එක් එක් සාධකයේ බලපෑම කොපමණද යන්න බලන්න.' },
+      { target: 'cr-crop-info-card', title: 'සම්පූර්ණ බෝග පැතිකඩ', body: 'නිර්දේශිත බෝගය සඳහා පරමාදර්ශී කාලසීමාව, ජල අවශ්‍යතාව, සහ පෝෂක පරාසයන් — ඔබේ අගයන් සමඟ සසඳන්න.' },
+      { target: 'cr-compare-card', title: 'ඉහළම තේරීම් සසඳන්න', body: 'තීරණය කිරීමට පෙර ඉහළම බෝග 3 එකිනෙකට සසඳා බලන්න.' },
+    ],
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+  },
+  ta: {
+    steps: [
+      { target: 'cr-history', title: 'உங்கள் முந்தைய பரிந்துரைகள்', body: 'நீங்கள் இயக்கும் ஒவ்வொரு பரிந்துரையும் பின்னர் பார்வையிட இங்கே சேமிக்கப்படும்.' },
+      { target: 'cr-district-select', title: 'உங்கள் மாவட்டத்தைத் தேர்வு செய்யுங்கள்', body: 'உங்கள் மாவட்டம் வேளாண்-சுற்றுச்சூழல் மண்டலத்தை நிர்ணயித்து கீழே நேரடி வானிலை தானியங்கி-நிரப்புதலைத் திறக்கும்.' },
+      { target: 'cr-soil-select', title: 'மண் வகை', body: 'உங்கள் மண் என்னவென்று உறுதியாக தெரியவில்லையா? இந்த புலத்திற்கு அருகில் உள்ள "என் மண்ணை அடையாளம் காணுங்கள்" வழிகாட்டியைப் பயன்படுத்துங்கள்.' },
+      { target: 'cr-nutrient-fields', title: 'மண் மற்றும் காலநிலை மதிப்புகள்', body: 'உங்கள் N/P/K மற்றும் காலநிலை அளவீடுகளை உள்ளிடுங்கள், அல்லது மாவட்டம் தேர்ந்தெடுத்தவுடன் வானிலை தானாக நிரப்பட்டும்.' },
+      { target: 'cr-predict-btn', title: 'உங்கள் பரிந்துரையைப் பெறுங்கள்', body: 'முழு AI பகுப்பாய்வை இயக்குங்கள் — பரிந்துரைக்கப்பட்ட பயிர், நம்பகத்தன்மை மதிப்பெண் மற்றும் ஏன் என்பதற்கான விளக்கத்தைப் பெறுவீர்கள்.' },
+      { target: 'cr-result-card', title: 'உங்கள் முடிவு இங்கே தோன்றும்', body: 'பரிந்துரைக்கப்பட்ட பயிர், மாற்றுகள் மற்றும் நடவு நாட்காட்டி இந்தப் பகுதியில் தோன்றும்.' },
+      { target: 'cr-xai-card', title: 'ஏன் என்பதை புரிந்துகொள்ளுங்கள்', body: 'மண், காலநிலை, பருவகாலம் போன்ற எந்த காரணிகள் இந்த பரிந்துரையை உருவாக்கின, ஒவ்வொரு காரணியின் தாக்கம் எவ்வளவு என்பதைப் பாருங்கள்.' },
+      { target: 'cr-crop-info-card', title: 'முழுமையான பயிர் விவரம்', body: 'பரிந்துரைக்கப்பட்ட பயிருக்கான சிறந்த காலஅளவு, நீர் தேவை, மற்றும் ஊட்டச்சத்து வரம்புகள் — உங்கள் மதிப்புகளுடன் ஒப்பிடுங்கள்.' },
+      { target: 'cr-compare-card', title: 'சிறந்த தேர்வுகளை ஒப்பிடுங்கள்', body: 'முடிவெடுப்பதற்கு முன் சிறந்த 3 பயிர்களை பக்கத்திற்குப் பக்கம் ஒப்பிட்டுப் பாருங்கள்.' },
+    ],
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
+  },
+};
 
 // ── Mock fallback (used only when backend is unreachable) ─────────────────────
 const MOCK_CROPS = ["Tomato","Chilli","Capsicum","Cabbage","Carrot","Maize","Okra","Soybean","Mung Bean","Cowpea"];
@@ -149,6 +197,8 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
   const [showGuide,  setShowGuide]  = useState(false);
   const [history,    setHistory]    = useState(() => loadHistory());
   const resRef = useRef(null);
+  const crTourT = CR_TOUR_T[lang] || CR_TOUR_T.en;
+  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_croprec_seen_v1', true);
 
   const t   = T[lang];
   const dl  = DISTRICT_LABELS[lang];
@@ -371,7 +421,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
               <div className="g2">
                 <div className="fl">
                   <label className="flb">{t.district}</label>
-                  <CustomSelect name="district" value={district} onChange={e => setDistrict(e.target.value)}>
+                  <CustomSelect name="district" value={district} onChange={e => setDistrict(e.target.value)} data-tour="cr-district-select">
                     <option value="">{t.selectDistrict}</option>
                     {Object.keys(DISTRICT_TO_ZONES).map(d => (
                       <option key={d} value={d}>{dl[d] || d}</option>
@@ -409,7 +459,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
                         ℹ {t.soilGuideBtn}
                       </button>
                     </label>
-                    <CustomSelect name="soil_type" value={soilType} onChange={e => setSoilType(e.target.value)}>
+                    <CustomSelect name="soil_type" value={soilType} onChange={e => setSoilType(e.target.value)} data-tour="cr-soil-select">
                       <option value="">{t.selectSoil}</option>
                       {SOIL_TYPES.map(s => <option key={s} value={s}>{getSoilLabel(s, lang)}</option>)}
                     </CustomSelect>
@@ -453,7 +503,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
                       : <>💡 {t.wxSelectDistrictHint || "Select your district to auto-fill live weather data."}</>}
                   </div>
                 )}
-                <div className="g3">
+                <div className="g3" data-tour="cr-nutrient-fields">
                   {numFields.map(({ key, label, val, set, unit, ph: ph_, min, max, step }) => {
                     const sc = ci ? sClass(suit[key]) : "";
                     const sv = ci ? suit[key] : null;
@@ -483,7 +533,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
                   </div>
               </div>
 
-              <button className="btn" onClick={submit} disabled={!canSubmit || loading}>
+              <button className="btn" onClick={submit} disabled={!canSubmit || loading} data-tour="cr-predict-btn">
                 {loading ? <><div className="spin" />{t.btnAnalyse}</> : t.btnSubmit}
               </button>
 
@@ -527,7 +577,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
 
         {/* ── Result card ─────────────────────────────────────────────────── */}
         {result && (
-          <div className="rw" ref={resRef}>
+          <div className="rw" ref={resRef} data-tour="cr-result-card">
             <div className="res">
               <div className="res-sparkles" />
               <div className="res-top-row">
@@ -574,7 +624,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
 
         {/* ── XAI card ────────────────────────────────────────────────────── */}
         {result?.xai_features?.length > 0 && (
-          <div className="xai-card">
+          <div className="xai-card" data-tour="cr-xai-card">
             <div className="xai-inner">
               <div className="xai-hdr">
                 <div className="xai-hdr-icon">🧠</div>
@@ -617,7 +667,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
 
         {/* ── Crop info ───────────────────────────────────────────────────── */}
         {result?.crop_info && (
-          <div className="ci-card">
+          <div className="ci-card" data-tour="cr-crop-info-card">
             <div className="ci-inner">
               <div className="ci-hdr">
                 <span className="ci-emoji">{CROP_EMOJI[result.recommended_crop] || "🌿"}</span>
@@ -670,6 +720,15 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
 
       {/* ── Soil identification guide modal ─────────────────────────────── */}
       {showGuide && <SoilGuideModal lang={lang} t={t} onClose={() => setShowGuide(false)} />}
+
+      <HelpButton label={crTourT.needHelp} ariaLabel={crTourT.helpAria} onClick={() => setTourOpen(true)} />
+      <SpotlightTour
+        steps={crTourT.steps}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        storageKey="sa_tour_croprec_seen_v1"
+        labels={{ next: crTourT.next, back: crTourT.back, skip: crTourT.skip, done: crTourT.done }}
+      />
     </div>
   );
 }
