@@ -15,7 +15,6 @@ import HistoryPanel, { saveToHistory, loadHistory, clearHistory }
                       from "../components/HistoryPanel";
 import CustomSelect   from "../components/CustomSelect";
 import SpotlightTour   from "../components/tour/SpotlightTour";
-import useAutoOpenOnce from "../components/tour/useAutoOpenOnce";
 import HelpButton      from "../components/tour/HelpButton";
 
 const API_BASE = ML_BASE_URL;
@@ -198,7 +197,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
   const [history,    setHistory]    = useState(() => loadHistory());
   const resRef = useRef(null);
   const crTourT = CR_TOUR_T[lang] || CR_TOUR_T.en;
-  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_croprec_seen_v1', true);
+  const [tourOpen, setTourOpen] = useState(false);
 
   const t   = T[lang];
   const dl  = DISTRICT_LABELS[lang];
@@ -726,7 +725,6 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
         steps={crTourT.steps}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
-        storageKey="sa_tour_croprec_seen_v1"
         labels={{ next: crTourT.next, back: crTourT.back, skip: crTourT.skip, done: crTourT.done }}
       />
     </div>

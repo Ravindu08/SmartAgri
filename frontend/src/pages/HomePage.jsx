@@ -4,7 +4,6 @@ import FeatureCard from '../components/FeatureCard';
 import { fetchBackendHealth, getAuthSession } from '../services/api';
 import { useApp } from '../context/AppContext';
 import SpotlightTour from '../components/tour/SpotlightTour';
-import useAutoOpenOnce from '../components/tour/useAutoOpenOnce';
 import HelpButton from '../components/tour/HelpButton';
 
 function useCountUp(target, duration = 1800, start = false) {
@@ -257,7 +256,7 @@ export default function HomePage() {
   const [connectionState, setConnectionState] = useState('checking');
   const [statsInView, setStatsInView] = useState(false);
   const statsRef = useRef(null);
-  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_home_seen_v1', !isSignedIn);
+  const [tourOpen, setTourOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -421,7 +420,6 @@ export default function HomePage() {
             steps={tourT.steps}
             open={tourOpen}
             onClose={() => setTourOpen(false)}
-            storageKey="sa_tour_home_seen_v1"
             labels={{ next: tourT.next, back: tourT.back, skip: tourT.skip, done: tourT.done }}
           />
         </>
