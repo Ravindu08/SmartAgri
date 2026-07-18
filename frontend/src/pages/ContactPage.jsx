@@ -18,7 +18,7 @@ const CONTACT_T = {
     successBack: '← Send another message',
     infoTitle: 'Get In Touch',
     infoSub: "We're happy to hear from farmers, traders, and anyone interested in SmartAgri.",
-    emailLabel: 'Email', emailVal: 'hello@smartagri.lk',
+    emailLabel: 'Email', emailVal: 'admin.smartagri@gmail.com',
     locationLabel: 'Location', locationVal: 'Sri Lanka',
     projectLabel: 'Response Time', projectVal: 'Within 24 hours',
     githubLabel: 'GitHub', githubVal: 'SmartAgri',
@@ -39,7 +39,7 @@ const CONTACT_T = {
     successBack: '← තවත් පණිවිඩයක් යවන්න',
     infoTitle: 'සම්බන්ධ වන්න',
     infoSub: 'ගොවීන්, වෙළෙන්දන්, සහ SmartAgri ගැන ඕනෑ කෙනෙකු ඉදිරියෙන් ඇසීමට සතුටු වෙමු.',
-    emailLabel: 'ඊ-තැපෑල', emailVal: 'hello@smartagri.lk',
+    emailLabel: 'ඊ-තැපෑල', emailVal: 'admin.smartagri@gmail.com',
     locationLabel: 'ස්ථානය', locationVal: 'ශ්‍රී ලංකාව',
     projectLabel: 'ප්‍රතිචාර කාලය', projectVal: 'පැය 24ක් තුළ',
     githubLabel: 'GitHub', githubVal: 'SmartAgri',
@@ -60,7 +60,7 @@ const CONTACT_T = {
     successBack: '← மற்றொரு செய்தி அனுப்பு',
     infoTitle: 'தொடர்பு கொள்ளுங்கள்',
     infoSub: 'விவசாயிகள், வர்த்தகர்கள் மற்றும் SmartAgri இல் ஆர்வமுள்ள எவரிடமிருந்தும் கேட்க மகிழ்ச்சியாக இருக்கிறோம்.',
-    emailLabel: 'மின்னஞ்சல்', emailVal: 'hello@smartagri.lk',
+    emailLabel: 'மின்னஞ்சல்', emailVal: 'admin.smartagri@gmail.com',
     locationLabel: 'இடம்', locationVal: 'இலங்கை',
     projectLabel: 'பதில் நேரம்', projectVal: '24 மணி நேரத்திற்குள்',
     githubLabel: 'GitHub', githubVal: 'SmartAgri',
@@ -82,7 +82,7 @@ export default function ContactPage() {
     setSending(true);
     const subject = encodeURIComponent(form.subject || 'SmartAgri Contact');
     const body = encodeURIComponent(`Name: ${form.name}\nEmail: ${form.email}\n\n${form.message}`);
-    window.location.href = `mailto:hello@smartagri.lk?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:admin.smartagri@gmail.com?subject=${subject}&body=${body}`;
     setTimeout(() => { setSending(false); setSent(true); }, 1000);
   };
 
@@ -143,7 +143,7 @@ export default function ContactPage() {
             <p className="contact-info-sub">{t.infoSub}</p>
 
             <div className="contact-info-cards">
-              <a href="mailto:hello@smartagri.lk" className="contact-info-card">
+              <a href="mailto:admin.smartagri@gmail.com" className="contact-info-card">
                 <div className="contact-info-icon">📧</div>
                 <div>
                   <div className="contact-info-label">{t.emailLabel}</div>
