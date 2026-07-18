@@ -7,7 +7,7 @@ const FOOTER_T = {
     tagline: 'AI-powered crop planning for Sri Lankan farmers.',
     quickLinks: 'Quick Links',
     contact: 'Contact',
-    emailVal: 'hello@smartagri.lk',
+    emailVal: 'admin.smartagri@gmail.com',
     locationVal: 'Sri Lanka',
     projectVal: 'Serving farmers island-wide',
     copyright: '© 2026 SmartAgri. All rights reserved.',
@@ -20,7 +20,7 @@ const FOOTER_T = {
     tagline: 'ශ්‍රී ලාංකික ගොවීන් සඳහා AI-ශක්‍ය බෝග සැලසුම.',
     quickLinks: 'ඉක්මන් සබැඳි',
     contact: 'සම්බන්ධතා',
-    emailVal: 'hello@smartagri.lk',
+    emailVal: 'admin.smartagri@gmail.com',
     locationVal: 'ශ්‍රී ලංකාව',
     projectVal: 'දිවයින පුරා ගොවීන්ට සේවය කරයි',
     copyright: '© 2026 SmartAgri. සියලු හිමිකම් ඇවිරිණි.',
@@ -33,7 +33,7 @@ const FOOTER_T = {
     tagline: 'இலங்கை விவசாயிகளுக்கான AI-இயக்கப்படும் பயிர் திட்டமிடல்.',
     quickLinks: 'விரைவு இணைப்புகள்',
     contact: 'தொடர்பு',
-    emailVal: 'hello@smartagri.lk',
+    emailVal: 'admin.smartagri@gmail.com',
     locationVal: 'இலங்கை',
     projectVal: 'நாடு முழுவதும் விவசாயிகளுக்கு சேவை',
     copyright: '© 2026 SmartAgri. அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை.',
@@ -84,7 +84,7 @@ export default function Footer() {
           <ul className="footer-contact-list">
             <li>
               <span className="footer-contact-icon">📧</span>
-              <a href="mailto:hello@smartagri.lk">
+              <a href="mailto:admin.smartagri@gmail.com">
                 {t.emailVal.split('@').map((part, i, arr) =>
                   i < arr.length - 1 ? <span key={i}>{part}@<wbr /></span> : <span key={i}>{part}</span>
                 )}
