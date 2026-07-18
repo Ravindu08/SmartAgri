@@ -7,6 +7,33 @@ import { CROP_EMOJI, getCropLabel } from '../../data/cropData';
 import { useApp } from '../../context/AppContext';
 import { LAND_T, CROP_STATUS_LABELS } from '../../data/translations';
 import Toast from '../../components/Toast';
+import SpotlightTour   from '../../components/tour/SpotlightTour';
+import useAutoOpenOnce from '../../components/tour/useAutoOpenOnce';
+import HelpButton      from '../../components/tour/HelpButton';
+
+const MC_TOUR_T = {
+  en: {
+    steps: [
+      { target: 'crop-status-tabs', title: 'Filter by status', body: 'Switch between Active, Completed, Failed and All to find what you’re looking for.' },
+      { target: 'crop-card-actions', title: 'Manage a crop', body: 'View details, jump to its cultivation tracker, or abandon it from here.' },
+    ],
+    next: 'Next →', back: '← Back', skip: 'Skip tour', done: 'Got it', helpAria: 'Replay the guided tour', needHelp: 'Need Help',
+  },
+  si: {
+    steps: [
+      { target: 'crop-status-tabs', title: 'තත්ත්වය අනුව පෙරහන් කරන්න', body: 'ඔබ සොයන දේ සොයාගැනීමට ක්‍රියාකාරී, සම්පූර්ණ, අසාර්ථක සහ සියල්ල අතර මාරු වන්න.' },
+      { target: 'crop-card-actions', title: 'බෝගයක් කළමනාකරණය කරන්න', body: 'විස්තර බලන්න, එහි වගා ලුහුබැඳීමට යන්න, හෝ මෙතැනින් අත්හරින්න.' },
+    ],
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+  },
+  ta: {
+    steps: [
+      { target: 'crop-status-tabs', title: 'நிலை மூலம் வடிகட்டவும்', body: 'நீங்கள் தேடுவதைக் கண்டறிய செயலில், முடிந்தது, தோல்வி மற்றும் அனைத்திற்கும் இடையே மாறவும்.' },
+      { target: 'crop-card-actions', title: 'ஒரு பயிரை நிர்வகிக்கவும்', body: 'விவரங்களைப் பார்க்க, அதன் சாகுபடி கண்காணிப்பாளருக்குச் செல்ல, அல்லது இங்கிருந்து கைவிடவும்.' },
+    ],
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
+  },
+};
 
 function sessionProgress(session) {
   const tasks = Object.values(session.tasks || {});
@@ -37,6 +64,8 @@ export default function MyCrops() {
   const [toast,        setToast]        = useState({ type: 'success', message: '' });
   const [abandonTarget, setAbandonTarget] = useState(null);
   const [isAbandoning,  setIsAbandoning]  = useState(false);
+  const mcTourT = MC_TOUR_T[lang] || MC_TOUR_T.en;
+  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_mycrops_seen_v1', !isLoading);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -102,7 +131,7 @@ export default function MyCrops() {
       </div>
 
       <div className="crop-toolbar">
-        <div className="crop-status-tabs">
+        <div className="crop-status-tabs" data-tour="crop-status-tabs">
           {[
             { key: 'Active',    label: lt.statusActiveTab,    icon: '🌱', color: 'active'    },
             { key: 'Completed', label: lt.statusCompletedTab, icon: '✅', color: 'completed' },
@@ -129,6 +158,7 @@ export default function MyCrops() {
           placeholder={lt.searchCropsPh}
           value={searchText}
           onChange={e => setSearchText(e.target.value)}
+          data-tour="crop-search"
         />
       </div>
 
@@ -143,13 +173,13 @@ export default function MyCrops() {
         </div>
       ) : (
         <div className="crop-grid">
-          {filtered.map(crop => {
+          {filtered.map((crop, i) => {
             const session = getSession(crop);
             const prog = session ? sessionProgress(session) : null;
             const emoji = CROP_EMOJI[crop.crop_name] || '🌱';
 
             return (
-              <article key={crop.id} className="crop-card">
+              <article key={crop.id} className="crop-card" data-tour={i === 0 ? 'crop-card' : undefined}>
                 <div className="crop-card__image crop-card__image--emoji">
                   <span className="crop-card__emoji">{emoji}</span>
                   <span className={`crop-card__status-badge crop-card__status-badge--${(crop.status || 'active').toLowerCase()}`}>{CROP_STATUS_LABELS[lang]?.[crop.status] || crop.status}</span>
@@ -183,7 +213,7 @@ export default function MyCrops() {
                     </div>
                   )}
 
-                  <div className="crop-card__actions">
+                  <div className="crop-card__actions" data-tour={i === 0 ? 'crop-card-actions' : undefined}>
                     <Link className="button button--outline" to={`/landowner/crops/${crop.id}`}>
                       {lt.viewBtn}
                     </Link>
@@ -231,6 +261,15 @@ export default function MyCrops() {
       )}
 
       <Toast type={toast.type} message={toast.message} onClose={() => setToast({ type: '', message: '' })} />
+
+      <HelpButton label={mcTourT.needHelp} ariaLabel={mcTourT.helpAria} onClick={() => setTourOpen(true)} />
+      <SpotlightTour
+        steps={mcTourT.steps}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        storageKey="sa_tour_mycrops_seen_v1"
+        labels={{ next: mcTourT.next, back: mcTourT.back, skip: mcTourT.skip, done: mcTourT.done }}
+      />
     </section>
   );
 }
