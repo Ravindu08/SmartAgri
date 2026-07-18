@@ -7,7 +7,6 @@ import { LAND_T, SEA_LABELS, IRR_LABELS } from '../../data/translations';
 import { getSoilLabel } from '../../data/cropData';
 import Toast from '../../components/Toast';
 import SpotlightTour   from '../../components/tour/SpotlightTour';
-import useAutoOpenOnce from '../../components/tour/useAutoOpenOnce';
 import HelpButton      from '../../components/tour/HelpButton';
 
 const MF_TOUR_T = {
@@ -45,7 +44,7 @@ export default function MyFarms() {
   const [searchText,  setSearchText]  = useState('');
   const [toast,       setToast]       = useState({ type: 'success', message: '' });
   const [deleteTarget,setDeleteTarget]= useState(null);
-  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_myfarms_seen_v1', !isLoading);
+  const [tourOpen, setTourOpen] = useState(false);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -192,7 +191,6 @@ export default function MyFarms() {
         steps={mfTourT.steps}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
-        storageKey="sa_tour_myfarms_seen_v1"
         labels={{ next: mfTourT.next, back: mfTourT.back, skip: mfTourT.skip, done: mfTourT.done }}
       />
     </section>

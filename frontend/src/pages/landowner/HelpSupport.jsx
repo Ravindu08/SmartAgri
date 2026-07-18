@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { LAND_T, HELP_FAQS, HELP_CONTACT_CHANNELS } from '../../data/translations';
 import SpotlightTour   from '../../components/tour/SpotlightTour';
-import useAutoOpenOnce from '../../components/tour/useAutoOpenOnce';
 import HelpButton      from '../../components/tour/HelpButton';
 
 const HS_TOUR_T = {
@@ -33,7 +32,7 @@ export default function HelpSupport() {
   const { lang }               = useApp();
   const t                      = LAND_T[lang] || LAND_T.en;
   const hsTourT = HS_TOUR_T[lang] || HS_TOUR_T.en;
-  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_lohelp_seen_v1', true);
+  const [tourOpen, setTourOpen] = useState(false);
   const faqs                   = HELP_FAQS[lang] || HELP_FAQS.en;
   const contactChannels        = HELP_CONTACT_CHANNELS[lang] || HELP_CONTACT_CHANNELS.en;
   const [openFaq, setOpenFaq]  = useState(null);
@@ -154,7 +153,6 @@ export default function HelpSupport() {
         steps={hsTourT.steps}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
-        storageKey="sa_tour_lohelp_seen_v1"
         labels={{ next: hsTourT.next, back: hsTourT.back, skip: hsTourT.skip, done: hsTourT.done }}
       />
     </section>
