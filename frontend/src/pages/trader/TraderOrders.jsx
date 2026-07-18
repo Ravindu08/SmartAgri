@@ -6,7 +6,6 @@ import { SkeletonRows } from '../../components/Skeleton';
 import { useApp } from '../../context/AppContext';
 import { getAuthSession, request } from '../../services/api';
 import SpotlightTour   from '../../components/tour/SpotlightTour';
-import useAutoOpenOnce from '../../components/tour/useAutoOpenOnce';
 import HelpButton      from '../../components/tour/HelpButton';
 
 const TRO_TOUR_T = {
@@ -159,7 +158,7 @@ export default function TraderOrders() {
   const { data: rawOrders, isLoading } = useSWR('/api/marketplace/orders', authFetcher, { refreshInterval: 8000 });
   const allOrders = Array.isArray(rawOrders) ? rawOrders : [];
   const troTourT = TRO_TOUR_T[lang] || TRO_TOUR_T.en;
-  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_trorders_seen_v1', !isLoading);
+  const [tourOpen, setTourOpen] = useState(false);
 
   const activeOrders = useMemo(
     () => allOrders.filter(o => o.buyer_id === user?.id && ['Confirmed', 'Delivered'].includes(o.status)),
@@ -354,7 +353,6 @@ export default function TraderOrders() {
         steps={troTourT.steps}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
-        storageKey="sa_tour_trorders_seen_v1"
         labels={{ next: troTourT.next, back: troTourT.back, skip: troTourT.skip, done: troTourT.done }}
       />
     </div>
