@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 function getVisibleTarget(target) {
@@ -12,21 +12,28 @@ function getVisibleTarget(target) {
 
 // Shared spotlight-tour engine, reused for every tour instance in the app.
 // Holds no copy of its own — steps/labels are passed in already localized,
-// so switching language mid-tour just re-renders the same step with new text.
-export default function SpotlightTour({ steps, open, onClose, storageKey, labels }) {
+// so switching language mid-tour just re-renders the same step index with new text.
+//
+// Manual-only: the "Need Help" button is the sole trigger, there's no
+// auto-open. Whenever it's opened, steps are filtered down to whichever
+// targets actually exist and are visible on screen right now — a step whose
+// target hasn't rendered yet (a result card before a prediction runs, a tab
+// that isn't the active one, an empty history list) is skipped instead of
+// shown centered with nothing to point at. The filter is a one-time snapshot
+// taken at open time, not continuously re-evaluated — it reflects the page
+// as it was the moment the user asked for help.
+export default function SpotlightTour({ steps, open, onClose, labels }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [rect, setRect] = useState(null);
   const rafRef = useRef(null);
 
-  const step = open ? steps[stepIndex] : null;
+  const visibleSteps = useMemo(() => {
+    if (!open) return steps;
+    const filtered = steps.filter(s => getVisibleTarget(s.target));
+    return filtered.length > 0 ? filtered : steps;
+  }, [open, steps]);
 
-  // Marked "seen" as soon as the tour is shown, not only when it closes
-  // cleanly — a step can target a real nav link, and clicking through to
-  // navigate unmounts this component before close() would ever run.
-  useEffect(() => {
-    if (!open) return;
-    try { localStorage.setItem(storageKey, '1'); } catch { /* ignore */ }
-  }, [open, storageKey]);
+  const step = open ? visibleSteps[stepIndex] : null;
 
   const close = useCallback(() => {
     setStepIndex(0);
@@ -76,7 +83,7 @@ export default function SpotlightTour({ steps, open, onClose, storageKey, labels
 
   if (!open || !step) return null;
 
-  const total = steps.length;
+  const total = visibleSteps.length;
   const isLast = stepIndex === total - 1;
   const margin = 16;
   const tooltipWidth = 320;
@@ -114,14 +121,14 @@ export default function SpotlightTour({ steps, open, onClose, storageKey, labels
   // `position: fixed` descendant for as long as it's active (same mechanism
   // documented on `.navbar`'s backdrop-filter in styles.css). Without the
   // portal, the tour's "fixed" hole/tooltip would briefly anchor to that
-  // animating wrapper instead of the viewport on every auto-open — exactly
-  // the flash-in-the-wrong-place bug this fixes.
+  // animating wrapper instead of the viewport — a flash-in-the-wrong-place
+  // bug that showed up specifically right after a page transition.
   return createPortal(
     <div className="tour-layer">
       {holeStyle && <div className="tour-hole" style={holeStyle} />}
       <div className="tour-tooltip" style={tooltipStyle}>
         <div className="tour-tooltip__dots">
-          {steps.map((_, i) => (
+          {visibleSteps.map((_, i) => (
             <span key={i} className={`tour-tooltip__dot${i === stepIndex ? ' tour-tooltip__dot--active' : ''}`} />
           ))}
         </div>
