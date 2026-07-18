@@ -48,12 +48,12 @@ export default function AdminLayout() {
 
   const navItems = [
     { to: '/admin/dashboard',   icon: '📊', label: t.dashboard },
-    { to: '/admin/users',       icon: '👥', label: t.users },
-    { to: '/admin/marketplace', icon: '🏪', label: t.marketplace },
+    { to: '/admin/users',       icon: '👥', label: t.users, tour: 'admin-nav-users' },
+    { to: '/admin/marketplace', icon: '🏪', label: t.marketplace, tour: 'admin-nav-marketplace' },
     { to: '/admin/farms',       icon: '🌾', label: t.farms },
     { to: '/admin/activity',    icon: '📋', label: t.activity },
     { to: '/admin/feedback',    icon: '💬', label: t.feedback },
-    { to: '/admin/reports',           icon: '📈', label: t.reports },
+    { to: '/admin/reports',           icon: '📈', label: t.reports, tour: 'admin-nav-reports' },
     { to: '/admin/harvest-forecast',  icon: '🗓️', label: t.harvestForecast },
   ];
 
@@ -78,9 +78,10 @@ export default function AdminLayout() {
         </div>
 
         <nav className="lo-sidebar__nav">
-          {navItems.map(({ to, icon, label }) => (
+          {navItems.map(({ to, icon, label, tour }) => (
             <Link key={label} to={to}
               onClick={() => setSidebarOpen(false)}
+              data-tour={tour}
               className={`lo-sidebar__link${location.pathname.startsWith(to) ? ' active' : ''}`}
               style={location.pathname.startsWith(to) ? { '--link-active-bg': '#7c3aed22', '--link-active-color': '#7c3aed' } : {}}>
               <span className="lo-sidebar__link-icon">{icon}</span>

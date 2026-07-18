@@ -56,7 +56,7 @@ export default function HistoryPanel({ history, onClear, lang, t }) {
   };
 
   return (
-    <div className="hist-card">
+    <div className="hist-card" data-tour="cr-history">
       <div className="hist-inner">
         <div className="hist-hdr">
           <span className="hist-title">📋 {t.historyTitle}</span>
@@ -69,7 +69,7 @@ export default function HistoryPanel({ history, onClear, lang, t }) {
               <div className="hist-info">
                 <div className="hist-crop">{getCropLabel(entry.crop, lang)}</div>
                 <div className="hist-meta">
-                  {entry.mode === "full" ? t.historyFull : t.historyQuick}
+                  {t.historyFull}
                   {" · "}{entry.zone}{" · "}{entry.season}
                   {" · "}{relativeTime(entry.ts)}
                 </div>
