@@ -4,6 +4,36 @@ import useSWR from 'swr';
 import { useApp } from '../../context/AppContext';
 import { getAuthSession, request } from '../../services/api';
 import { SkeletonRows } from '../../components/Skeleton';
+import SpotlightTour   from '../../components/tour/SpotlightTour';
+import useAutoOpenOnce from '../../components/tour/useAutoOpenOnce';
+import HelpButton      from '../../components/tour/HelpButton';
+
+const TRH_TOUR_T = {
+  en: {
+    steps: [
+      { target: 'tr-hist-summary', title: 'Your totals', body: 'A quick summary of how many orders you’ve placed and how much you’ve spent.' },
+      { target: 'tr-hist-filters', title: 'Filter your history', body: 'Switch between all, completed, or cancelled transactions.' },
+      { target: 'tr-hist-row', title: 'Transaction details', body: 'Each row shows the crop, quantity, price, and final status of a past order.' },
+    ],
+    next: 'Next →', back: '← Back', skip: 'Skip tour', done: 'Got it', helpAria: 'Replay the guided tour', needHelp: 'Need Help',
+  },
+  si: {
+    steps: [
+      { target: 'tr-hist-summary', title: 'ඔබේ එකතුව', body: 'ඔබ තැබූ ඇණවුම් ගණන සහ වැය කළ මුදල පිළිබඳ ඉක්මන් සාරාංශයක්.' },
+      { target: 'tr-hist-filters', title: 'ඔබේ ඉතිහාසය පෙරහන් කරන්න', body: 'සියල්ල, සම්පූර්ණ කළ, හෝ අවලංගු කළ ගනුදෙනු අතර මාරු වන්න.' },
+      { target: 'tr-hist-row', title: 'ගනුදෙනු විස්තර', body: 'සෑම පේළියක්ම අතීත ඇණවුමක බෝගය, ප්‍රමාණය, මිල, සහ අවසාන තත්ත්වය පෙන්වයි.' },
+    ],
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+  },
+  ta: {
+    steps: [
+      { target: 'tr-hist-summary', title: 'உங்கள் மொத்தங்கள்', body: 'நீங்கள் வைத்த ஆர்டர்கள் மற்றும் செலவழித்த தொகையின் விரைவான சுருக்கம்.' },
+      { target: 'tr-hist-filters', title: 'உங்கள் வரலாற்றை வடிகட்டவும்', body: 'அனைத்தும், முடிந்தவை அல்லது ரத்து செய்யப்பட்ட பரிவர்த்தனைகளுக்கு இடையே மாறவும்.' },
+      { target: 'tr-hist-row', title: 'பரிவர்த்தனை விவரங்கள்', body: 'ஒவ்வொரு வரிசையும் கடந்த ஆர்டரின் பயிர், அளவு, விலை மற்றும் இறுதி நிலையைக் காட்டுகிறது.' },
+    ],
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
+  },
+};
 
 const T = {
   en: {
@@ -70,6 +100,8 @@ export default function TraderHistory() {
     () => filter === 'all' ? historyOrders : historyOrders.filter(o => o.status === filter),
     [historyOrders, filter],
   );
+  const trhTourT = TRH_TOUR_T[lang] || TRH_TOUR_T.en;
+  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_trhistory_seen_v1', !isLoading);
 
   const completedOrders = historyOrders.filter(o => o.status === 'Completed');
   const totalValue      = completedOrders.reduce((sum, o) => sum + ((o.agreed_price || o.proposed_price || 0) * (o.requested_quantity || 0)), 0);
@@ -103,7 +135,7 @@ export default function TraderHistory() {
 
       {/* Summary cards */}
       {historyOrders.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 240px))', gap: '12px' }} data-tour="tr-hist-summary">
           <div style={{
             background: 'var(--card)', border: '1px solid var(--border)',
             borderRadius: '10px', padding: '16px',
@@ -131,7 +163,7 @@ export default function TraderHistory() {
       )}
 
       {/* Filter chips */}
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }} data-tour="tr-hist-filters">
         {filters.map(f => (
           <button
             key={f.key}
@@ -209,7 +241,7 @@ export default function TraderHistory() {
                 gap: '8px', padding: '14px 20px',
                 borderTop: i > 0 ? '1px solid var(--border)' : 'none',
                 alignItems: 'center',
-              }}>
+              }} data-tour={i === 0 ? 'tr-hist-row' : undefined}>
                 <div style={{ overflowWrap: 'break-word', minWidth: 0 }}>
                   <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: '16px' }}>
                     {order.listing_name || '—'}
@@ -243,6 +275,15 @@ export default function TraderHistory() {
           })}
         </div>
       )}
+
+      <HelpButton label={trhTourT.needHelp} ariaLabel={trhTourT.helpAria} onClick={() => setTourOpen(true)} />
+      <SpotlightTour
+        steps={trhTourT.steps}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        storageKey="sa_tour_trhistory_seen_v1"
+        labels={{ next: trhTourT.next, back: trhTourT.back, skip: trhTourT.skip, done: trhTourT.done }}
+      />
     </div>
   );
 }
