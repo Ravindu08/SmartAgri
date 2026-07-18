@@ -350,7 +350,7 @@ export default function About({ lang }) {
             <div className="about-contact-card">
               <div className="about-contact-icon">📧</div>
               <div className="about-contact-label">{t.contactEmail}</div>
-              <a className="about-contact-value" href="mailto:hello@smartagri.lk">
+              <a className="about-contact-value" href="mailto:admin.smartagri@gmail.com">
                 hello@<wbr />smartagri.lk
               </a>
             </div>
