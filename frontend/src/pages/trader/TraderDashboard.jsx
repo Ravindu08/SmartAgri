@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import useSWR from 'swr';
 import { useApp } from '../../context/AppContext';
@@ -6,7 +6,6 @@ import { getAuthSession, request } from '../../services/api';
 import CountUp from '../../components/CountUp';
 import { relativeTime } from '../../utils/relativeTime';
 import SpotlightTour from '../../components/tour/SpotlightTour';
-import useAutoOpenOnce from '../../components/tour/useAutoOpenOnce';
 import HelpButton from '../../components/tour/HelpButton';
 import GettingStartedChecklist from '../../components/checklist/GettingStartedChecklist';
 
@@ -114,7 +113,7 @@ export default function TraderDashboard() {
 
   const tourT = TR_TOUR_T[lang] || TR_TOUR_T.en;
   const checklistT = TR_CHECKLIST_T[lang] || TR_CHECKLIST_T.en;
-  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_trader_seen_v1', rawOrders !== undefined);
+  const [tourOpen, setTourOpen] = useState(false);
   const checklistItems = [
     { id: 'firstOrder', label: checklistT.placeOrder, done: myOrders.length > 0, href: '/marketplace' },
     { id: 'confirmed', label: checklistT.getConfirmed, done: myOrders.some(o => o.status !== 'Pending'), href: '/trader/orders' },
@@ -297,7 +296,6 @@ export default function TraderDashboard() {
         steps={tourT.steps}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
-        storageKey="sa_tour_trader_seen_v1"
         labels={{ next: tourT.next, back: tourT.back, skip: tourT.skip, done: tourT.done }}
       />
 

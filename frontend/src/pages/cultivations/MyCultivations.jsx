@@ -9,7 +9,6 @@ import { T, LAND_T } from '../../data/translations';
 import CultivationTracker from '../../components/CultivationTracker';
 import Toast from '../../components/Toast';
 import SpotlightTour   from '../../components/tour/SpotlightTour';
-import useAutoOpenOnce from '../../components/tour/useAutoOpenOnce';
 import HelpButton      from '../../components/tour/HelpButton';
 
 const MCV_TOUR_T = {
@@ -118,7 +117,7 @@ export default function MyCultivations() {
   const [isAbandoning,      setIsAbandoning]      = useState(false);
   const [toast,             setToast]             = useState({ type: 'success', message: '' });
   const mcvTourT = MCV_TOUR_T[lang] || MCV_TOUR_T.en;
-  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_mycultivations_seen_v1', view === 'list' && !isLoading);
+  const [tourOpen, setTourOpen] = useState(false);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -356,7 +355,6 @@ export default function MyCultivations() {
         steps={mcvTourT.steps}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
-        storageKey="sa_tour_mycultivations_seen_v1"
         labels={{ next: mcvTourT.next, back: mcvTourT.back, skip: mcvTourT.skip, done: mcvTourT.done }}
       />
     </section>

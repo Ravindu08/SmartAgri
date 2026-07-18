@@ -9,7 +9,6 @@ import {
 import CustomSelect from "../components/CustomSelect";
 import "../styles/YieldPrice.css";
 import SpotlightTour   from "../components/tour/SpotlightTour";
-import useAutoOpenOnce from "../components/tour/useAutoOpenOnce";
 import HelpButton      from "../components/tour/HelpButton";
 
 const YP_TOUR_T = {
@@ -82,7 +81,7 @@ function fmt(n) {
 export default function YieldPrice({ lang }) {
   const t = T[lang] || T.en;
   const ypTourT = YP_TOUR_T[lang] || YP_TOUR_T.en;
-  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_yieldprice_seen_v1', true);
+  const [tourOpen, setTourOpen] = useState(false);
 
   // ── Yield form state ─────────────────────────────────────────────────────
   const [yf, setYf] = useState(DEFAULT_YIELD);
@@ -430,7 +429,6 @@ export default function YieldPrice({ lang }) {
         steps={ypTourT.steps}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
-        storageKey="sa_tour_yieldprice_seen_v1"
         labels={{ next: ypTourT.next, back: ypTourT.back, skip: ypTourT.skip, done: ypTourT.done }}
       />
     </div>

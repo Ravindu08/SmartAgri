@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { LAND_T, TRADER_HELP_FAQS, HELP_CONTACT_CHANNELS } from '../../data/translations';
 import SpotlightTour   from '../../components/tour/SpotlightTour';
-import useAutoOpenOnce from '../../components/tour/useAutoOpenOnce';
 import HelpButton      from '../../components/tour/HelpButton';
 
 const TRHS_TOUR_T = {
@@ -33,7 +32,7 @@ export default function TraderHelp() {
   const { lang }   = useApp();
   const t          = LAND_T[lang] || LAND_T.en;
   const trhsTourT = TRHS_TOUR_T[lang] || TRHS_TOUR_T.en;
-  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_trhelp_seen_v1', true);
+  const [tourOpen, setTourOpen] = useState(false);
   const faqs       = TRADER_HELP_FAQS[lang] || TRADER_HELP_FAQS.en;
   const channels   = HELP_CONTACT_CHANNELS[lang] || HELP_CONTACT_CHANNELS.en;
   const [openFaq, setOpenFaq] = useState(null);
@@ -141,7 +140,6 @@ export default function TraderHelp() {
         steps={trhsTourT.steps}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
-        storageKey="sa_tour_trhelp_seen_v1"
         labels={{ next: trhsTourT.next, back: trhsTourT.back, skip: trhsTourT.skip, done: trhsTourT.done }}
       />
     </section>
