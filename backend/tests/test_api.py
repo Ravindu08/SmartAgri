@@ -1,14 +1,10 @@
 """
 SmartAgri API tests — run with: pytest backend/tests/ -v
 """
-import sys
-from pathlib import Path
 import pytest
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "ml_service"))
-
 try:
-    from app import app
+    from ml_service.app import app
     from fastapi.testclient import TestClient
     client = TestClient(app)
     MODELS_LOADED = True
