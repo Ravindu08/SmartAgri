@@ -8,7 +8,6 @@ import { useApp } from '../../context/AppContext';
 import { LAND_T, CROP_STATUS_LABELS } from '../../data/translations';
 import Toast from '../../components/Toast';
 import SpotlightTour   from '../../components/tour/SpotlightTour';
-import useAutoOpenOnce from '../../components/tour/useAutoOpenOnce';
 import HelpButton      from '../../components/tour/HelpButton';
 
 const MC_TOUR_T = {
@@ -65,7 +64,7 @@ export default function MyCrops() {
   const [abandonTarget, setAbandonTarget] = useState(null);
   const [isAbandoning,  setIsAbandoning]  = useState(false);
   const mcTourT = MC_TOUR_T[lang] || MC_TOUR_T.en;
-  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_mycrops_seen_v1', !isLoading);
+  const [tourOpen, setTourOpen] = useState(false);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -267,7 +266,6 @@ export default function MyCrops() {
         steps={mcTourT.steps}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
-        storageKey="sa_tour_mycrops_seen_v1"
         labels={{ next: mcTourT.next, back: mcTourT.back, skip: mcTourT.skip, done: mcTourT.done }}
       />
     </section>

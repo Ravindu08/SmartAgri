@@ -14,7 +14,6 @@ import { useApp } from '../context/AppContext';
 import { LAND_T } from '../data/translations';
 import Toast from './Toast';
 import SpotlightTour   from './tour/SpotlightTour';
-import useAutoOpenOnce from './tour/useAutoOpenOnce';
 import HelpButton      from './tour/HelpButton';
 
 const AS_TOUR_T = {
@@ -64,7 +63,7 @@ export default function AccountSettings() {
   const [activeTab, setActiveTab] = useState('Profile');
   const [toast, setToast]         = useState({ type: 'success', message: '' });
   const asTourT = AS_TOUR_T[lang] || AS_TOUR_T.en;
-  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_settings_seen_v1', true);
+  const [tourOpen, setTourOpen] = useState(false);
 
   // ── Profile form ──────────────────────────────────────────────────────────
   const [profileForm, setProfileForm] = useState({
@@ -482,7 +481,6 @@ export default function AccountSettings() {
         steps={asTourT.steps}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
-        storageKey="sa_tour_settings_seen_v1"
         labels={{ next: asTourT.next, back: asTourT.back, skip: asTourT.skip, done: asTourT.done }}
       />
     </section>
