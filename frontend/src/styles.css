@@ -294,7 +294,15 @@
   transition: background-color var(--tr);
 }
 
-@media (max-width: 1600px) {
+/* Was 1600px — measured against the actual rendered nav (7 links, fully
+   compressed: icons dropped, 13.5px font) plus logo + lang/theme/login
+   controls: the widest real case (Tamil labels) needs ~1459px total, so
+   1600px was collapsing to the hamburger menu ~140px earlier than
+   necessary. That's exactly the common "1920px @ 125% Windows scaling"
+   laptop configuration (effective 1536px viewport) — desktop-width users
+   who nonetheless only ever saw the mobile dropdown. 1500px keeps a ~40px+
+   safety margin above the measured minimum in every supported language. */
+@media (max-width: 1500px) {
   .navbar { padding: 0 20px; }
   .navbar__links { display: none; }
   .nav-hamburger { display: flex; }
@@ -348,7 +356,7 @@
 }
 
 .navbar__mobile-extra { display: none; }
-@media (max-width: 1600px) {
+@media (max-width: 1500px) {
   .navbar__links.open .navbar__mobile-extra {
     display: flex;
     flex-direction: column;
