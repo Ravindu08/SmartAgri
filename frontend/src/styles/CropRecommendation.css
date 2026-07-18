@@ -901,7 +901,7 @@
 .ci-emoji { font-size: 19px; flex-shrink: 0; }
 .ci-body  { padding: 22px 28px; }
 
-.info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 10px; }
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,200px)); gap: 10px; }
 
 .ip {
   background: var(--border-soft);
