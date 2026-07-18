@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import '../styles/marketplace.css';
 import SpotlightTour   from '../components/tour/SpotlightTour';
-import useAutoOpenOnce from '../components/tour/useAutoOpenOnce';
 import HelpButton      from '../components/tour/HelpButton';
 
 // ── constants ─────────────────────────────────────────────────────────────────
@@ -1318,7 +1317,7 @@ export default function MarketplacePage() {
 
   const marketTourT = MARKET_TOUR_T[lang] || MARKET_TOUR_T.en;
   const marketTourSteps = marketTourT[role] || marketTourT.guest;
-  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_marketplace_seen_v1', true);
+  const [tourOpen, setTourOpen] = useState(false);
 
   return (
     <div className="marketplace-sprint min-h-screen bg-background">
@@ -1499,7 +1498,6 @@ export default function MarketplacePage() {
         steps={marketTourSteps}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
-        storageKey="sa_tour_marketplace_seen_v1"
         labels={{ next: marketTourT.next, back: marketTourT.back, skip: marketTourT.skip, done: marketTourT.done }}
       />
     </div>

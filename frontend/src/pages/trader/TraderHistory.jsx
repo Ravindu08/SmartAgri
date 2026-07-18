@@ -5,7 +5,6 @@ import { useApp } from '../../context/AppContext';
 import { getAuthSession, request } from '../../services/api';
 import { SkeletonRows } from '../../components/Skeleton';
 import SpotlightTour   from '../../components/tour/SpotlightTour';
-import useAutoOpenOnce from '../../components/tour/useAutoOpenOnce';
 import HelpButton      from '../../components/tour/HelpButton';
 
 const TRH_TOUR_T = {
@@ -101,7 +100,7 @@ export default function TraderHistory() {
     [historyOrders, filter],
   );
   const trhTourT = TRH_TOUR_T[lang] || TRH_TOUR_T.en;
-  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_trhistory_seen_v1', !isLoading);
+  const [tourOpen, setTourOpen] = useState(false);
 
   const completedOrders = historyOrders.filter(o => o.status === 'Completed');
   const totalValue      = completedOrders.reduce((sum, o) => sum + ((o.agreed_price || o.proposed_price || 0) * (o.requested_quantity || 0)), 0);
@@ -281,7 +280,6 @@ export default function TraderHistory() {
         steps={trhTourT.steps}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
-        storageKey="sa_tour_trhistory_seen_v1"
         labels={{ next: trhTourT.next, back: trhTourT.back, skip: trhTourT.skip, done: trhTourT.done }}
       />
     </div>

@@ -166,7 +166,6 @@ export default function AdminDashboard() {
         steps={adminTourT.steps}
         open={tourOpen}
         onClose={() => setTourOpen(false)}
-        storageKey="sa_tour_admin_seen_v1"
         labels={{ next: adminTourT.next, back: adminTourT.back, skip: adminTourT.skip, done: adminTourT.done }}
       />
     </div>
