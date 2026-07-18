@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import FeatureCard from '../components/FeatureCard';
-import { fetchBackendHealth } from '../services/api';
+import { fetchBackendHealth, getAuthSession } from '../services/api';
 import { useApp } from '../context/AppContext';
+import SpotlightTour from '../components/tour/SpotlightTour';
+import useAutoOpenOnce from '../components/tour/useAutoOpenOnce';
+import HelpButton from '../components/tour/HelpButton';
 
 function useCountUp(target, duration = 1800, start = false) {
   const [count, setCount] = useState(0);
@@ -32,7 +35,6 @@ const HOME_T = {
     offline: '⚠️ Some features may be temporarily unavailable',
     checking: '⏳ Loading...',
     btnMarket: 'Explore Marketplace →',
-    btnDemo: 'Request a Demo →',
     cardSoilLabel: 'Soil Health Score', cardSoilStatus: '● Healthy',
     cardWeatherLabel: 'Weather Forecast', cardWeatherVal: '28°C', cardWeatherStatus: 'Partly Cloudy',
     cardCropLabel: 'Crop Recommendation', cardCropVal: 'High Yield', cardCropStatus: 'Maize',
@@ -75,7 +77,6 @@ const HOME_T = {
     ctaTitle: 'Ready to farm smarter?',
     ctaSub: 'Join farmers across Sri Lanka using AI to reduce losses and maximise harvests.',
     ctaBtn1: 'Get Started Free →',
-    ctaBtn2: 'Request a Demo →',
   },
   si: {
     badge: 'AI-ශක්‍ය ගොවිතැන',
@@ -87,7 +88,6 @@ const HOME_T = {
     offline: '⚠️ සමහර විශේෂාංග තාවකාලිකව නොමැත',
     checking: '⏳ පූරණය කරමින්...',
     btnMarket: 'වෙළඳසැල ගවේෂණය →',
-    btnDemo: 'ආදර්ශනයක් ඉල්ලන්න →',
     cardSoilLabel: 'ඉඩම් සෞඛ්‍ය ලකුණු', cardSoilStatus: '● සෞඛ්‍ය සම්පන්නය',
     cardWeatherLabel: 'කාලගුණ අනාවැකිය', cardWeatherVal: '28°C', cardWeatherStatus: 'අර්ධ වලාකුළු',
     cardCropLabel: 'බෝග නිර්දේශ', cardCropVal: 'ඉහළ අස්වැන්න', cardCropStatus: 'ඉරිඟු',
@@ -130,7 +130,6 @@ const HOME_T = {
     ctaTitle: 'ස්මාර්ට් ගොවිකිරීමට සූදානම්ද?',
     ctaSub: 'ශ්‍රී ලංකාව පුරා ගොවීන් AI භාවිතා කර අස්වනු වැඩිකරගනිති.',
     ctaBtn1: 'නොමිලේ ලියාපදිංචි →',
-    ctaBtn2: 'ආදර්ශනයක් ඉල්ලන්න →',
   },
   ta: {
     badge: 'AI-இயக்கப்படும் வேளாண்மை',
@@ -142,7 +141,6 @@ const HOME_T = {
     offline: '⚠️ சில அம்சங்கள் தற்காலிகமாக இல்லை',
     checking: '⏳ ஏற்றுகிறது...',
     btnMarket: 'சந்தையை ஆராயுங்கள் →',
-    btnDemo: 'டெமோ கோருங்கள் →',
     cardSoilLabel: 'மண் ஆரோக்கிய மதிப்பெண்', cardSoilStatus: '● ஆரோக்கியமானது',
     cardWeatherLabel: 'வானிலை முன்னறிவிப்பு', cardWeatherVal: '28°C', cardWeatherStatus: 'பகுதியளவு மேகம்',
     cardCropLabel: 'பயிர் பரிந்துரை', cardCropVal: 'அதிக விளைச்சல்', cardCropStatus: 'மக்காச்சோளம்',
@@ -185,7 +183,57 @@ const HOME_T = {
     ctaTitle: 'ஸ்மார்ட் விவசாயத்திற்கு தயாரா?',
     ctaSub: 'இலங்கை முழுவதும் விவசாயிகள் AI பயன்படுத்தி மகசூலை அதிகரிக்கிறார்கள்.',
     ctaBtn1: 'இலவசமாக தொடங்கு →',
-    ctaBtn2: 'டெமோ கோருங்கள் →',
+  },
+};
+
+const HOME_TOUR_T = {
+  en: {
+    steps: [
+      { target: 'nav-crop-rec', title: 'Crop Recommendation', body: 'Get the best crop suggestion for your land using soil data, climate, and season inputs.' },
+      { target: 'nav-crop-guide', title: 'Crop Guidance', body: 'Follow a complete farming plan — fertilisation, irrigation, pest control, and harvest tips.' },
+      { target: 'nav-yield-price', title: 'Yield & Price', body: 'Estimate your expected harvest and calculate production costs, selling price, and profit.' },
+      { target: 'nav-weather', title: 'Weather Advice', body: 'Live weather data for Sri Lankan districts with farming-specific alerts and forecasts.' },
+      { target: 'nav-about', title: 'About SmartAgri', body: 'A smart agriculture platform connecting Sri Lankan farmers, land owners, and traders — with AI-powered crop planning, a live marketplace, and full administrative oversight.' },
+      { target: 'nav-contact', title: 'Contact Us', body: "Have a question, feedback, or collaboration idea? We'd love to hear from you." },
+      { target: 'nav-marketplace', title: 'Marketplace', body: 'Browse produce from real farmers and traders across Sri Lanka.' },
+      { target: 'nav-lang', title: 'Choose your language', body: 'Switch between English, Sinhala and Tamil at any time.' },
+      { target: 'nav-theme', title: 'Light or dark', body: 'Prefer dark mode? Toggle it here — your choice is remembered.' },
+      { target: 'nav-register', title: 'Ready to start?', body: 'Create a free account in under 2 minutes to unlock AI tools and the marketplace.' },
+    ],
+    next: 'Next →', back: '← Back', skip: 'Skip tour', done: 'Got it',
+    helpAria: 'Replay the guided tour', needHelp: 'Need Help',
+  },
+  si: {
+    steps: [
+      { target: 'nav-crop-rec', title: 'බෝග නිර්දේශ', body: 'පාංශු දත්ත, කාලගුණය, සහ කන්නය භාවිතා කර ඔබේ ඉඩමට හොඳම බෝගය ලබාගන්න.' },
+      { target: 'nav-crop-guide', title: 'බෝග මාර්ගෝපදේශ', body: 'පොහොරු, ජලය, රෝග, සහ අස්වනු නෙළීමේ ඉඟි සහිත සම්පූර්ණ ගොවිතැන් සැලැස්ම.' },
+      { target: 'nav-yield-price', title: 'අස්වැන්න සහ මිල', body: 'නිෂ්පාදන පිරිවැය, විකිණීමේ මිල, සහ ලාභය ගණනය කරමින් ඔබේ අස්වැන්න ගණනය කරන්න.' },
+      { target: 'nav-weather', title: 'කාලගුණ උපදෙස්', body: 'ශ්‍රී ලාංකික දිස්ත්‍රික්ක සඳහා සජීවී කාලගුණ දත්ත සහ ගොවිතැනට ආදාල ඇඟවීම්.' },
+      { target: 'nav-about', title: 'SmartAgri ගැන', body: 'ශ්‍රී ලාංකික ගොවීන්, ඉඩම් හිමියන් සහ වෙළෙඳුන් සම්බන්ධ කරන AI-ශක්‍ය ගොවිතැන් වේදිකාව.' },
+      { target: 'nav-contact', title: 'සම්බන්ධ කරගන්න', body: 'ප්‍රශ්නයක්, ප්‍රතිපෝෂණයක්, හෝ සහයෝගිතා අදහසක් ඇතිද? ඔබෙන් ඇසීමට සතුටු වෙමු.' },
+      { target: 'nav-marketplace', title: 'වෙළඳසැල', body: 'ශ්‍රී ලංකාව පුරා සැබෑ ගොවීන් සහ ව්‍යාපාරිකයන්ගේ නිෂ්පාදන පිරික්සන්න.' },
+      { target: 'nav-lang', title: 'ඔබේ භාෂාව තෝරන්න', body: 'ඕනෑම වේලාවක සිංහල, දෙමළ සහ ඉංග්‍රීසි අතර මාරු වන්න.' },
+      { target: 'nav-theme', title: 'ආලෝකය හෝ අඳුරු', body: 'අඳුරු ප්‍රකාරය කැමතිද? මෙහි මාරු කරන්න — ඔබේ තේරීම මතක තබා ගනී.' },
+      { target: 'nav-register', title: 'ආරම්භ කිරීමට සූදානම්ද?', body: 'AI මෙවලම් සහ වෙළඳසැල අගුළු හැරීමට මිනිත්තු 2කින් නොමිලේ ගිණුමක් සාදන්න.' },
+    ],
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා',
+    helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+  },
+  ta: {
+    steps: [
+      { target: 'nav-crop-rec', title: 'பயிர் பரிந்துரை', body: 'மண் தரவு, காலநிலை மற்றும் பருவகாலம் பயன்படுத்தி சிறந்த பயிர் பரிந்துரையைப் பெறுங்கள்.' },
+      { target: 'nav-crop-guide', title: 'பயிர் வழிகாட்டி', body: 'உரமிடுதல், நீர்ப்பாசனம், பூச்சி கட்டுப்பாடு மற்றும் அறுவடை குறிப்புகளுடன் முழுமையான விவசாய திட்டம்.' },
+      { target: 'nav-yield-price', title: 'மகசூல் & விலை', body: 'உற்பத்தி செலவு, விற்பனை விலை மற்றும் லாபத்தை கணக்கிட்டு மகசூலை மதிப்பிடுங்கள்.' },
+      { target: 'nav-weather', title: 'வானிலை ஆலோசனை', body: 'இலங்கை மாவட்டங்களுக்கான நேரடி வானிலை தரவு மற்றும் விவசாய எச்சரிக்கைகள்.' },
+      { target: 'nav-about', title: 'SmartAgri பற்றி', body: 'இலங்கை விவசாயிகள், நில உரிமையாளர்கள் மற்றும் வர்த்தகர்களை இணைக்கும் AI-இயக்கப்படும் விவசாய தளம்.' },
+      { target: 'nav-contact', title: 'தொடர்பு கொள்ளுங்கள்', body: 'கேள்வி, கருத்து அல்லது ஒத்துழைப்பு யோசனை உள்ளதா? உங்களிடமிருந்து கேட்க மகிழ்ச்சியாக இருக்கிறோம்.' },
+      { target: 'nav-marketplace', title: 'சந்தை', body: 'இலங்கை முழுவதும் உள்ள உண்மையான விவசாயிகள் மற்றும் வணிகர்களின் விளைபொருட்களை பாருங்கள்.' },
+      { target: 'nav-lang', title: 'உங்கள் மொழியை தேர்வு செய்யுங்கள்', body: 'எப்போது வேண்டுமானாலும் ஆங்கிலம், சிங்களம், தமிழ் மொழிகளுக்கு இடையே மாறலாம்.' },
+      { target: 'nav-theme', title: 'வெளிச்சம் அல்லது இருள்', body: 'இருள் பயன்முறையை விரும்புகிறீர்களா? இங்கே மாற்றவும் — உங்கள் தேர்வு நினைவில் வைக்கப்படும்.' },
+      { target: 'nav-register', title: 'தொடங்க தயாரா?', body: 'AI கருவிகள் மற்றும் சந்தையை திறக்க 2 நிமிடங்களில் இலவச கணக்கை உருவாக்குங்கள்.' },
+    ],
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி',
+    helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
   },
 };
 
@@ -203,9 +251,13 @@ function StatCardAnimated({ num, suffix, label, delay, inView }) {
 export default function HomePage() {
   const { lang } = useApp();
   const t = HOME_T[lang] || HOME_T.en;
+  const tourT = HOME_TOUR_T[lang] || HOME_TOUR_T.en;
+  const { user } = getAuthSession();
+  const isSignedIn = Boolean(user);
   const [connectionState, setConnectionState] = useState('checking');
   const [statsInView, setStatsInView] = useState(false);
   const statsRef = useRef(null);
+  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_home_seen_v1', !isSignedIn);
 
   useEffect(() => {
     let isMounted = true;
@@ -249,7 +301,6 @@ export default function HomePage() {
           </div>
           <div className="home-hero__actions">
             <Link className="home-btn home-btn--primary" to="/marketplace">{t.btnMarket}</Link>
-            <Link className="home-btn home-btn--outline" to="/contact">{t.btnDemo}</Link>
           </div>
         </div>
         <div className="home-hero__cards">
@@ -359,10 +410,22 @@ export default function HomePage() {
           <p className="home-cta-sub">{t.ctaSub}</p>
           <div className="home-cta-actions">
             <Link className="home-btn home-btn--primary" to="/register">{t.ctaBtn1}</Link>
-            <Link className="home-btn home-btn--ghost" to="/contact">{t.ctaBtn2}</Link>
           </div>
         </div>
       </section>
+
+      {!isSignedIn && (
+        <>
+          <HelpButton label={tourT.needHelp} ariaLabel={tourT.helpAria} onClick={() => setTourOpen(true)} />
+          <SpotlightTour
+            steps={tourT.steps}
+            open={tourOpen}
+            onClose={() => setTourOpen(false)}
+            storageKey="sa_tour_home_seen_v1"
+            labels={{ next: tourT.next, back: tourT.back, skip: tourT.skip, done: tourT.done }}
+          />
+        </>
+      )}
 
     </main>
   );

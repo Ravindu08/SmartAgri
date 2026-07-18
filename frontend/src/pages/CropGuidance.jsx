@@ -8,8 +8,47 @@ import { getAuthSession } from "../services/api";
 import "../styles/CropGuidance.css";
 import { getCropLabel } from "../data/cropData";
 import { ZONE_LABELS, FERT_TIMING_LABELS, STAGE_NAME_LABELS, PROPAGATION_LABELS } from "../data/translations";
+import SpotlightTour   from "../components/tour/SpotlightTour";
+import useAutoOpenOnce from "../components/tour/useAutoOpenOnce";
+import HelpButton      from "../components/tour/HelpButton";
 
 const API_BASE = ML_BASE_URL;
+
+const CG_TOUR_T = {
+  en: {
+    steps: [
+      { target: 'cg-mode-tabs', title: 'Two modes', body: 'Switch between browsing the crop guide and tracking your own cultivations.' },
+      { target: 'cg-crop-select', title: 'Pick a crop', body: 'Choose any of the 41 supported crops to see its full growing guide.' },
+      { target: 'cg-generate-btn', title: 'Generate the guide', body: 'This opens a stage-by-stage plan — fertilisation, irrigation, pest control and harvest tips.' },
+      { target: 'cg-zones', title: 'Suitable growing zones', body: "See at a glance whether your area's agro-climatic zone matches this crop." },
+      { target: 'cg-tab-nav', title: 'Explore each stage', body: 'Once a guide is open, use these tabs to jump between growth stages, fertilization, irrigation, and more.' },
+      { target: 'cg-tab-content', title: 'One panel, many topics', body: 'This panel updates with the tab you pick — fertiliser schedule, irrigation timing, pest and disease alerts, or harvest readiness.' },
+    ],
+    next: 'Next →', back: '← Back', skip: 'Skip tour', done: 'Got it', helpAria: 'Replay the guided tour', needHelp: 'Need Help',
+  },
+  si: {
+    steps: [
+      { target: 'cg-mode-tabs', title: 'ප්‍රකාර දෙකක්', body: 'බෝග මාර්ගෝපදේශය පිරික්සීම සහ ඔබේම වගාවන් නිරීක්ෂණය කිරීම අතර මාරු වන්න.' },
+      { target: 'cg-crop-select', title: 'බෝගයක් තෝරන්න', body: 'සම්පූර්ණ වගා මාර්ගෝපදේශය බැලීමට සහාය දක්වන බෝග 41න් ඕනෑම එකක් තෝරන්න.' },
+      { target: 'cg-generate-btn', title: 'මාර්ගෝපදේශය ජනනය කරන්න', body: 'මෙය අදියරෙන් අදියර සැලැස්මක් විවෘත කරයි — පොහොර, ජලය, පළිබෝධ පාලනය සහ අස්වනු ඉඟි.' },
+      { target: 'cg-zones', title: 'සුදුසු වගා කලාප', body: 'ඔබේ ප්‍රදේශයේ කෘෂි-දේශගුණික කලාපය මෙම බෝගයට ගැලපෙනවාදැයි එක් බැල්මකින් බලන්න.' },
+      { target: 'cg-tab-nav', title: 'සෑම අදියරක්ම ගවේෂණය කරන්න', body: 'මාර්ගෝපදේශයක් විවෘත වූ පසු, වර්ධන අදියර, පොහොර යෙදීම, ජලය සහ තවත් දේ අතර මාරු වීමට මෙම ටැබ් භාවිතා කරන්න.' },
+      { target: 'cg-tab-content', title: 'එක් පැනලයක්, මාතෘකා රැසක්', body: 'ඔබ තෝරන ටැබය අනුව මෙම පැනලය යාවත්කාලීන වේ — පොහොර කාලසටහන, ජලය දීමේ වේලාව, පළිබෝධ සහ රෝග ඇඟවීම්, හෝ අස්වනු නෙළීමේ සූදානම.' },
+    ],
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+  },
+  ta: {
+    steps: [
+      { target: 'cg-mode-tabs', title: 'இரண்டு பயன்முறைகள்', body: 'பயிர் வழிகாட்டியை உலாவுவதற்கும் உங்கள் சொந்த சாகுபடிகளை கண்காணிப்பதற்கும் இடையே மாறவும்.' },
+      { target: 'cg-crop-select', title: 'ஒரு பயிரைத் தேர்வு செய்யுங்கள்', body: 'ஆதரிக்கப்படும் 41 பயிர்களில் ஏதேனும் ஒன்றைத் தேர்ந்தெடுத்து அதன் முழு வளர்ப்பு வழிகாட்டியைப் பாருங்கள்.' },
+      { target: 'cg-generate-btn', title: 'வழிகாட்டியை உருவாக்குங்கள்', body: 'இது நிலைவாரியான திட்டத்தைத் திறக்கும் — உரமிடுதல், நீர்ப்பாசனம், பூச்சி கட்டுப்பாடு மற்றும் அறுவடை குறிப்புகள்.' },
+      { target: 'cg-zones', title: 'பொருத்தமான வளர்ப்பு மண்டலங்கள்', body: 'உங்கள் பகுதியின் வேளாண்-காலநிலை மண்டலம் இந்த பயிருக்குப் பொருந்துகிறதா என்பதை ஒரே பார்வையில் பாருங்கள்.' },
+      { target: 'cg-tab-nav', title: 'ஒவ்வொரு நிலையையும் ஆராயுங்கள்', body: 'ஒரு வழிகாட்டி திறந்தவுடன், வளர்ச்சி நிலைகள், உரமிடுதல், நீர்ப்பாசனம் மற்றும் பலவற்றுக்கு இடையே செல்ல இந்த தாவல்களைப் பயன்படுத்துங்கள்.' },
+      { target: 'cg-tab-content', title: 'ஒரு பலகம், பல தலைப்புகள்', body: 'நீங்கள் தேர்ந்தெடுக்கும் தாவலுக்கு ஏற்ப இந்த பலகம் புதுப்பிக்கப்படும் — உர அட்டவணை, நீர்ப்பாசன நேரம், பூச்சி மற்றும் நோய் எச்சரிக்கைகள், அல்லது அறுவடை தயார்நிலை.' },
+    ],
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
+  },
+};
 
 // ── Activity type metadata ─────────────────────────────────────────────────
 const ACT_META = {
@@ -554,6 +593,7 @@ function GuidanceSelector({ t, lang, onSelect }) {
               name="crop"
               value={selected}
               onChange={e => setSelected(e.target.value)}
+              data-tour="cg-crop-select"
             >
               <option value="">{t.selectCropPh}</option>
               {crops.map(c => (
@@ -562,7 +602,7 @@ function GuidanceSelector({ t, lang, onSelect }) {
             </CustomSelect>
           </div>
         </div>
-        <button className="guidance-generate-btn" type="submit" disabled={!selected}>
+        <button className="guidance-generate-btn" type="submit" disabled={!selected} data-tour="cg-generate-btn">
           🌱 {t.generateGuide}
         </button>
       </div>
@@ -676,7 +716,7 @@ function GuidanceDetail({ cropName, plantingDate, t, lang, onBack, weather }) {
 
       {/* Zones */}
       {data.zones?.length > 0 && (
-        <div className="guidance-zones-row">
+        <div className="guidance-zones-row" data-tour="cg-zones">
           <span className="guidance-zones-label">🗺 {t.suitableZones}</span>
           <div className="guidance-zone-chips">
             {data.zones.map(z => (
@@ -687,7 +727,7 @@ function GuidanceDetail({ cropName, plantingDate, t, lang, onBack, weather }) {
       )}
 
       {/* Tab navigation */}
-      <div className="guidance-tabs">
+      <div className="guidance-tabs" data-tour="cg-tab-nav">
         {TABS.map(key => {
           const count =
             key === "diseaseMgmt" ? (data.diseases || []).length :
@@ -708,7 +748,7 @@ function GuidanceDetail({ cropName, plantingDate, t, lang, onBack, weather }) {
       </div>
 
       {/* Tab content */}
-      <div className="guidance-section">
+      <div className="guidance-section" data-tour="cg-tab-content">
         <div className="guidance-section-hdr">
           <span className="guidance-section-hdr-icon">
             {{
@@ -749,6 +789,9 @@ export default function CropGuidance({ lang, t, weather, setWeather }) {
     setPlantingDate(null);
   }, []);
 
+  const cgTourT = CG_TOUR_T[lang] || CG_TOUR_T.en;
+  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_cropguide_seen_v1', true);
+
   return (
     <div className="page-wrapper">
     <div className="guidance-hero">
@@ -765,7 +808,7 @@ export default function CropGuidance({ lang, t, weather, setWeather }) {
 
       {/* Top-level mode switcher — hidden when viewing crop detail to reduce visual clutter */}
       {!selected && (
-        <div className="guidance-mode-tabs">
+        <div className="guidance-mode-tabs" data-tour="cg-mode-tabs">
           <button
             className={`guidance-mode-tab${mode === "guide" ? " active" : ""}`}
             onClick={() => setMode("guide")}
@@ -802,6 +845,15 @@ export default function CropGuidance({ lang, t, weather, setWeather }) {
         <CultivationTracker t={t} lang={lang} userId={String(user.id)} />
       )}
     </div>
+
+    <HelpButton label={cgTourT.needHelp} ariaLabel={cgTourT.helpAria} onClick={() => setTourOpen(true)} />
+    <SpotlightTour
+      steps={cgTourT.steps}
+      open={tourOpen}
+      onClose={() => setTourOpen(false)}
+      storageKey="sa_tour_cropguide_seen_v1"
+      labels={{ next: cgTourT.next, back: cgTourT.back, skip: cgTourT.skip, done: cgTourT.done }}
+    />
     </div>
   );
 }

@@ -22,7 +22,7 @@ export default function CalendarCard({ cal, season, lang, t }) {
   const yearRoundLbl = SEA_LABELS[lang]?.["Year-round"] || SEA_LABELS.en["Year-round"];
 
   return (
-    <div className="cal-card">
+    <div className="cal-card" data-tour="cr-calendar-card">
       <div className="cal-inner">
         <div className="cal-hdr">
           <div className="cal-title">

@@ -21,6 +21,8 @@ services:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-smartagri_pass}@db:5432/smartagri
     ports:
       - "8000:8000"
+    volumes:
+      - uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -34,6 +36,8 @@ services:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-smartagri_pass}@db:5432/smartagri
     ports:
       - "8001:8001"
+    volumes:
+      - uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -48,6 +52,9 @@ services:
         VITE_ML_URL: ""
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - backend
       - ml
@@ -55,3 +62,4 @@ services:
 
 volumes:
   pgdata:
+  uploads:

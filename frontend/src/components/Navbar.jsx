@@ -13,8 +13,7 @@ const NAV_T = {
     aboutUs: 'About',
     contactUs: 'Contact',
     marketplace: '🏪 Marketplace',
-    myFarms: '🌱 My Farms',
-    myOrders: '📦 My Orders',
+    myDashboard: '📊 My Dashboard',
     logout: 'Logout',
     login: 'Login',
     register: 'Register',
@@ -28,8 +27,7 @@ const NAV_T = {
     aboutUs: 'අප ගැන',
     contactUs: 'සම්බන්ධ කරගන්න',
     marketplace: '🏪 වෙළඳසැල',
-    myFarms: '🌱 මගේ ගොවිපළ',
-    myOrders: '📦 මගේ ඇණවුම්',
+    myDashboard: '📊 මගේ උපකරණ පුවරුව',
     logout: 'ලොග් අවුට්',
     login: 'ලොගින්',
     register: 'ලියාපදිංචිය',
@@ -43,8 +41,7 @@ const NAV_T = {
     aboutUs: 'எங்களை பற்றி',
     contactUs: 'தொடர்பு',
     marketplace: '🏪 சந்தை',
-    myFarms: '🌱 என் பண்ணைகள்',
-    myOrders: '📦 என் ஆர்டர்கள்',
+    myDashboard: '📊 என் டாஷ்போர்டு',
     logout: 'வெளியேறு',
     login: 'உள்நுழை',
     register: 'பதிவு செய்',
@@ -76,7 +73,7 @@ export default function Navbar() {
 
   return (
     <header className={`navbar${menuOpen ? ' navbar--menu-open' : ''}`}>
-      <Link className="navbar__brand" to="/" onClick={close}>
+      <Link className="navbar__brand" to="/" onClick={close} data-tour="nav-home">
         <span className="navbar__logo">🌿</span>
         <div className="navbar__brand-text">
           <span className="navbar__brand-smart">Smart</span><span className="navbar__brand-agri">Agri</span>
@@ -86,19 +83,19 @@ export default function Navbar() {
       <nav className={`navbar__links${menuOpen ? ' open' : ''}`}>
         {/* Home lives on the brand logo; a separate Home link only appears in the mobile menu */}
         <Link to="/" className={`nav-link nav-link--menu-only${isActive('/') ? ' nav-link--active' : ''}`} onClick={close}><span className="nav-link__icon">🏠</span>{t.home}</Link>
-        <Link to="/crop-recommendation" className={`nav-link${isActive('/crop-recommendation') ? ' nav-link--active' : ''}`} onClick={close}><span className="nav-link__icon">🌱</span>{t.cropRec}</Link>
-        <Link to="/crop-guidance" className={`nav-link${isActive('/crop-guidance') ? ' nav-link--active' : ''}`} onClick={close}><span className="nav-link__icon">📖</span>{t.cropGuide}</Link>
-        <Link to="/yield-price" className={`nav-link${isActive('/yield-price') ? ' nav-link--active' : ''}`} onClick={close}><span className="nav-link__icon">📊</span>{t.yieldPrice}</Link>
-        <Link to="/wx" className={`nav-link${isActive('/wx') ? ' nav-link--active' : ''}`} onClick={close}><span className="nav-link__icon">🌤️</span>{t.weather}</Link>
-        <Link to="/about" className={`nav-link${isActive('/about') ? ' nav-link--active' : ''}`} onClick={close}><span className="nav-link__icon">🌿</span>{t.aboutUs}</Link>
-        <Link to="/contact" className={`nav-link${isActive('/contact') ? ' nav-link--active' : ''}`} onClick={close}><span className="nav-link__icon">✉️</span>{t.contactUs}</Link>
-        <Link to="/marketplace" className={`nav-link${isActive('/marketplace') ? ' nav-link--active' : ''}`} onClick={close}>{t.marketplace}</Link>
+        <Link to="/crop-recommendation" className={`nav-link${isActive('/crop-recommendation') ? ' nav-link--active' : ''}`} onClick={close} data-tour="nav-crop-rec"><span className="nav-link__icon">🌱</span>{t.cropRec}</Link>
+        <Link to="/crop-guidance" className={`nav-link${isActive('/crop-guidance') ? ' nav-link--active' : ''}`} onClick={close} data-tour="nav-crop-guide"><span className="nav-link__icon">📖</span>{t.cropGuide}</Link>
+        <Link to="/yield-price" className={`nav-link${isActive('/yield-price') ? ' nav-link--active' : ''}`} onClick={close} data-tour="nav-yield-price"><span className="nav-link__icon">📊</span>{t.yieldPrice}</Link>
+        <Link to="/wx" className={`nav-link${isActive('/wx') ? ' nav-link--active' : ''}`} onClick={close} data-tour="nav-weather"><span className="nav-link__icon">🌤️</span>{t.weather}</Link>
+        <Link to="/about" className={`nav-link${isActive('/about') ? ' nav-link--active' : ''}`} onClick={close} data-tour="nav-about"><span className="nav-link__icon">🌿</span>{t.aboutUs}</Link>
+        <Link to="/contact" className={`nav-link${isActive('/contact') ? ' nav-link--active' : ''}`} onClick={close} data-tour="nav-contact"><span className="nav-link__icon">✉️</span>{t.contactUs}</Link>
+        <Link to="/marketplace" className={`nav-link${isActive('/marketplace') ? ' nav-link--active' : ''}`} onClick={close} data-tour="nav-marketplace">{t.marketplace}</Link>
 
         {isSignedIn && activeRole === 'Land Owner' && (
-          <Link className="navbar__farm-link" to="/landowner/farms" onClick={close}>{t.myFarms}</Link>
+          <Link className="navbar__farm-link" to="/landowner/dashboard" onClick={close}>{t.myDashboard}</Link>
         )}
         {isSignedIn && activeRole === 'Trader' && (
-          <Link className="navbar__farm-link" to="/trader/orders" onClick={close}>{t.myOrders}</Link>
+          <Link className="navbar__farm-link" to="/trader/dashboard" onClick={close}>{t.myDashboard}</Link>
         )}
 
         {/* Language, theme, and auth controls live in .navbar__controls for desktop
@@ -107,14 +104,14 @@ export default function Navbar() {
             mobile dropdown instead — otherwise Login/Register/language become
             completely unreachable on a phone (clipped by .navbar's overflow:hidden). */}
         <div className="navbar__mobile-extra">
-          <div className="navbar__lang">
+          <div className="navbar__lang" data-tour="nav-lang">
             {['en', 'si', 'ta'].map((code) => (
               <button key={code} className={`lang-btn${lang === code ? ' on' : ''}`} type="button" onClick={() => { setLang(code); close(); }}>
                 {code === 'en' ? 'EN' : code === 'si' ? 'සිං' : 'தமி'}
               </button>
             ))}
           </div>
-          <button className="navbar__theme-toggle" type="button" onClick={toggleTheme}
+          <button className="navbar__theme-toggle" type="button" onClick={toggleTheme} data-tour="nav-theme"
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
             {theme === 'dark' ? '☀️ Light mode' : '🌙 Dark mode'}
           </button>
@@ -129,21 +126,21 @@ export default function Navbar() {
           ) : (
             <>
               <Link className="navbar__login" to="/login" onClick={close}>{t.login}</Link>
-              <Link className="navbar__register" to="/register" onClick={close}>{t.register}</Link>
+              <Link className="navbar__register" to="/register" onClick={close} data-tour="nav-register">{t.register}</Link>
             </>
           )}
         </div>
       </nav>
 
       <div className="navbar__controls">
-        <div className="navbar__lang">
+        <div className="navbar__lang" data-tour="nav-lang">
           {['en', 'si', 'ta'].map((code) => (
             <button key={code} className={`lang-btn${lang === code ? ' on' : ''}`} type="button" onClick={() => { setLang(code); close(); }}>
               {code === 'en' ? 'EN' : code === 'si' ? 'සිං' : 'தமி'}
             </button>
           ))}
         </div>
-        <button className="navbar__theme-toggle" type="button" onClick={toggleTheme}
+        <button className="navbar__theme-toggle" type="button" onClick={toggleTheme} data-tour="nav-theme"
           title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
           {theme === 'dark' ? '☀️' : '🌙'}
         </button>
@@ -162,7 +159,7 @@ export default function Navbar() {
         ) : (
           <>
             <Link className="navbar__login" to="/login" onClick={close}>{t.login}</Link>
-            <Link className="navbar__register" to="/register" onClick={close}>{t.register}</Link>
+            <Link className="navbar__register" to="/register" onClick={close} data-tour="nav-register">{t.register}</Link>
           </>
         )}
         <button className="nav-hamburger" type="button" aria-label="Toggle menu" onClick={() => setMenuOpen(o => !o)}>

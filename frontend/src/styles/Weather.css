@@ -195,7 +195,7 @@
 /* ── Stats grid ── */
 .wx-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(175px, 240px));
   gap: 14px;
 }
 .wx-stat-card {
@@ -225,6 +225,7 @@
   text-transform: uppercase;
   letter-spacing: 0.4px;
   margin-bottom: 2px;
+  white-space: nowrap;
 }
 .wx-stat-value {
   font-size: 1.25rem;
@@ -289,7 +290,7 @@
   background: var(--bg);
   border: 1px solid var(--border);
   font-size: 0.98rem;
-  transition: background var(--tr);
+  transition: background-color var(--tr);
 }
 .wx-forecast-row:hover { background: var(--green-subtle); }
 .wx-fc-date { font-weight: 600; color: var(--text); }

@@ -129,7 +129,7 @@ export default function AdminReports() {
         </div>
       </Section>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 320px))', gap: '16px' }}>
         <Section title={t.farms}>
           <div style={{ fontSize: '36px', fontWeight: 700, color: '#f57c00', marginBottom: '4px' }}>{data.farms.total}</div>
           <div style={{ fontSize: '15px', color: 'var(--muted)' }}>{t.totalFarmsReg}</div>

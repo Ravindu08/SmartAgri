@@ -200,7 +200,7 @@ export default function TraderLayout() {
 
   const navItems = [
     { to: '/trader/dashboard', icon: '📊', label: t.dashboard },
-    { to: '/marketplace',      icon: '🏪', label: t.marketplace },
+    { to: '/marketplace',      icon: '🏪', label: t.marketplace, tour: 'tr-nav-marketplace' },
     { to: '/trader/requests',  icon: '📋', label: t.myRequests },
     { to: '/trader/orders',    icon: '📦', label: t.myOrders },
     { to: '/trader/history',   icon: '📜', label: t.history },
@@ -220,9 +220,10 @@ export default function TraderLayout() {
       {sidebarOpen && <div className="lo-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
       <aside className={`lo-sidebar${sidebarOpen ? ' lo-sidebar--open' : ''}`}>
         <nav className="lo-sidebar__nav">
-          {navItems.map(({ to, icon, label }) => (
+          {navItems.map(({ to, icon, label, tour }) => (
             <Link key={label} to={to}
               onClick={() => setSidebarOpen(false)}
+              data-tour={tour}
               className={`lo-sidebar__link${
                 location.pathname === to ||
                 (location.pathname.startsWith(to + '/') && to !== '/trader/dashboard')
@@ -275,7 +276,7 @@ export default function TraderLayout() {
           <div className="lo-topbar__title">{currentLabel}</div>
           <div className="lo-topbar__right">
             <div className="lo-topbar__notif-wrap" ref={notifRef}>
-              <button className="lo-topbar__notif-btn" type="button"
+              <button className="lo-topbar__notif-btn" type="button" data-tour="tr-notif-bell"
                 onClick={() => { setNotifOpen(o => !o); setProfileOpen(false); }}
                 aria-label={t.notifications}>
                 <span className={bellShaking ? 'bell-shake' : undefined}>🔔</span>

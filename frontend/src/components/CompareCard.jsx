@@ -7,7 +7,7 @@ export default function CompareCard({ top3, lang, t }) {
   const confCls = c => c >= 0.7 ? "cp-hi" : c >= 0.4 ? "cp-md" : "cp-lo";
 
   return (
-    <div className="cmp-card">
+    <div className="cmp-card" data-tour="cr-compare-card">
       <div className="cmp-inner">
         <div className="cmp-hdr">
           <div className="cmp-title">⚖️ {t.compareTitle}</div>

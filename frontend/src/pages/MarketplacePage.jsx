@@ -16,6 +16,9 @@ import {
   ArrowRight, CheckCircle2, History, Trash2,
 } from 'lucide-react';
 import '../styles/marketplace.css';
+import SpotlightTour   from '../components/tour/SpotlightTour';
+import useAutoOpenOnce from '../components/tour/useAutoOpenOnce';
+import HelpButton      from '../components/tour/HelpButton';
 
 // ── constants ─────────────────────────────────────────────────────────────────
 const ORDER_STATUS_FLOW = ['Pending', 'Confirmed', 'Delivered', 'Completed'];
@@ -36,7 +39,7 @@ const M = {
     cropName: 'Crop name', productName: 'Product name', cropType: 'Crop type', productCategory: 'Category',
     quantity: 'Quantity', unit: 'Unit', pricePerUnit: 'Price / unit (Rs.)',
     location: 'Location', description: 'Description',
-    imageLabel: 'Product Image (optional)', imageHint: 'Upload photo',
+    imageLabel: 'Product Image (optional)', imageHint: 'Upload photo (max 2MB)',
     publishListing: 'Publish Listing', listingInProgress: 'Publishing…',
     requiredFields: 'Name, quantity and price are required.',
     listed: 'listed on the marketplace.',
@@ -86,7 +89,7 @@ const M = {
     cropName: 'බෝග නම', productName: 'නිෂ්පාදන නම', cropType: 'බෝග වර්ගය', productCategory: 'කාණ්ඩය',
     quantity: 'ප්‍රමාණය', unit: 'ඒකකය', pricePerUnit: 'මිල / ඒකකය (රු.)',
     location: 'ස්ථානය', description: 'විස්තරය',
-    imageLabel: 'රූපය (අවශ්‍ය නොවේ)', imageHint: 'ඡායාරූපය',
+    imageLabel: 'රූපය (අවශ්‍ය නොවේ)', imageHint: 'ඡායාරූපය (උපරිම 2MB)',
     publishListing: 'ලැයිස්තු ප්‍රකාශ කරන්න', listingInProgress: 'ප්‍රකාශ කිරීම…',
     requiredFields: 'නම, ප්‍රමාණය සහ මිල අවශ්‍යයි.',
     listed: 'වෙළඳසැලේ ලැයිස්තු ගොනු කිරීය.',
@@ -136,7 +139,7 @@ const M = {
     cropName: 'பயிர் பெயர்', productName: 'தயாரிப்பு பெயர்', cropType: 'பயிர் வகை', productCategory: 'வகை',
     quantity: 'அளவு', unit: 'அலகு', pricePerUnit: 'விலை / அலகு (ரூ.)',
     location: 'இடம்', description: 'விவரம்',
-    imageLabel: 'படம் (விருப்பமான)', imageHint: 'படம் பதிவேற்று',
+    imageLabel: 'படம் (விருப்பமான)', imageHint: 'படம் பதிவேற்று (அதிகபட்சம் 2MB)',
     publishListing: 'பட்டியலை வெளியிடு', listingInProgress: 'வெளியிடுகிறது…',
     requiredFields: 'பெயர், அளவு மற்றும் விலை அவசியம்.',
     listed: 'சந்தையில் பட்டியலிடப்பட்டது.',
@@ -173,6 +176,69 @@ const M = {
     phoneAfterConfirm: 'ஆர்டர் உறுதிசெய்யப்பட்டதும் தொடர்பு எண் தெரியும்',
     payNow: 'இப்போது செலுத்து', paymentPaid: '✓ செலுத்தப்பட்டது', awaitingPayment: 'கட்டணத்திற்காக காத்திருக்கிறது',
     downloadReceipt: 'ரசீதைப் பதிவிறக்கு',
+  },
+};
+
+const MARKET_TOUR_T = {
+  en: {
+    guest: [
+      { target: 'mp-role-pill', title: 'Welcome to the Marketplace', body: 'Browse crops and products from real farmers and traders. Log in to buy or sell.' },
+      { target: 'mp-filters', title: 'Search & filter', body: 'Narrow listings by name, price range, district, or category, and sort by newest or price.' },
+      { target: 'mp-listings-grid', title: 'Available listings', body: 'These are live listings you can browse right now — filter, search and check prices freely.' },
+    ],
+    owner: [
+      { target: 'mp-role-pill', title: 'You’re browsing as Land Owner', body: 'Switch roles here anytime if your account also has Trader access.' },
+      { target: 'mp-owner-tabs', title: 'Your seller tools', body: 'My Listings to sell your harvest, Browse to shop, Incoming Orders and History to track sales.' },
+      { target: 'mp-add-listing-form', title: 'List your harvest', body: 'Publish a new crop listing here — set quantity, price, location, and an optional photo.' },
+      { target: 'mp-my-listings-grid', title: 'Manage what you’re selling', body: 'See the status of every listing you’ve published, and delete one if it’s no longer available.' },
+    ],
+    trader: [
+      { target: 'mp-role-pill', title: 'You’re browsing as Trader', body: 'Switch roles here anytime if your account also has Land Owner access.' },
+      { target: 'mp-trader-tabs', title: 'Your buyer tools', body: 'Browse to shop, My Products to sell, Incoming Requests, My Orders and History to track everything.' },
+      { target: 'mp-filters', title: 'Search & filter', body: 'Narrow listings by name, price range, district, or category, and sort by newest or price.' },
+      { target: 'mp-listings-grid', title: 'Browse what’s on offer', body: 'Send a purchase request straight from any listing card.' },
+    ],
+    next: 'Next →', back: '← Back', skip: 'Skip tour', done: 'Got it', helpAria: 'Replay the guided tour', needHelp: 'Need Help',
+  },
+  si: {
+    guest: [
+      { target: 'mp-role-pill', title: 'වෙළඳසැලට සාදරයෙන් පිළිගනිමු', body: 'සැබෑ ගොවීන් සහ ව්‍යාපාරිකයන්ගේ බෝග සහ නිෂ්පාදන පිරික්සන්න. මිලදී ගැනීමට හෝ විකිණීමට ලොගින් වන්න.' },
+      { target: 'mp-filters', title: 'සොයන්න සහ පෙරහන් කරන්න', body: 'නම, මිල පරාසය, දිස්ත්‍රික්කය, හෝ කාණ්ඩය අනුව ලැයිස්තු පටු කරන්න, අලුත්ම හෝ මිල අනුව අනුපිළිවෙළට සකසන්න.' },
+      { target: 'mp-listings-grid', title: 'ලබා ගත හැකි ලැයිස්තු', body: 'මේවා ඔබට දැන් පිරික්සිය හැකි සජීවී ලැයිස්තු — නිදහසේ පෙරහන් කරන්න, සොයන්න සහ මිල පරීක්ෂා කරන්න.' },
+    ],
+    owner: [
+      { target: 'mp-role-pill', title: 'ඔබ ඉඩම් හිමිකරු ලෙස පිරික්සමින්', body: 'ඔබේ ගිණුමට ව්‍යාපාරික ප්‍රවේශයක්ද ඇත්නම් ඕනෑම වේලාවක මෙහි භූමිකා මාරු කරන්න.' },
+      { target: 'mp-owner-tabs', title: 'ඔබේ විකුණුම් මෙවලම්', body: 'අස්වැන්න විකිණීමට මගේ ලැයිස්තු, සාප්පු සවාරි සඳහා පිරික්සන්න, විකුණුම් ලුහුබැඳීමට ලැබෙන ඇණවුම් සහ ඉතිහාසය.' },
+      { target: 'mp-add-listing-form', title: 'ඔබේ අස්වැන්න ලැයිස්තුගත කරන්න', body: 'මෙහි නව බෝග ලැයිස්තුවක් ප්‍රකාශ කරන්න — ප්‍රමාණය, මිල, ස්ථානය, සහ අවශ්‍ය නම් ඡායාරූපයක් සකසන්න.' },
+      { target: 'mp-my-listings-grid', title: 'ඔබ විකුණන දේ කළමනාකරණය කරන්න', body: 'ඔබ ප්‍රකාශ කළ සෑම ලැයිස්තුවක්ම තත්ත්වය බලන්න, තවදුරටත් නොමැති නම් එය මකන්න.' },
+    ],
+    trader: [
+      { target: 'mp-role-pill', title: 'ඔබ ව්‍යාපාරිකයෙකු ලෙස පිරික්සමින්', body: 'ඔබේ ගිණුමට ඉඩම් හිමිකරු ප්‍රවේශයක්ද ඇත්නම් ඕනෑම වේලාවක මෙහි භූමිකා මාරු කරන්න.' },
+      { target: 'mp-trader-tabs', title: 'ඔබේ මිලදී ගැනීමේ මෙවලම්', body: 'සාප්පු සවාරි සඳහා පිරික්සන්න, විකිණීමට මගේ නිෂ්පාදන, ලැබෙන ඉල්ලීම්, මගේ ඇණවුම් සහ ඉතිහාසය.' },
+      { target: 'mp-filters', title: 'සොයන්න සහ පෙරහන් කරන්න', body: 'නම, මිල පරාසය, දිස්ත්‍රික්කය, හෝ කාණ්ඩය අනුව ලැයිස්තු පටු කරන්න, අලුත්ම හෝ මිල අනුව අනුපිළිවෙළට සකසන්න.' },
+      { target: 'mp-listings-grid', title: 'ලබා ඇති දේ පිරික්සන්න', body: 'ඕනෑම ලැයිස්තු කාඩ්පතකින්ම මිලදී ගැනීමේ ඉල්ලීමක් යවන්න.' },
+    ],
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+  },
+  ta: {
+    guest: [
+      { target: 'mp-role-pill', title: 'சந்தைக்கு வரவேற்கிறோம்', body: 'உண்மையான விவசாயிகள் மற்றும் வணிகர்களின் பயிர்கள் மற்றும் பொருட்களைப் பாருங்கள். வாங்க அல்லது விற்க உள்நுழையவும்.' },
+      { target: 'mp-filters', title: 'தேடு & வடிகட்டு', body: 'பெயர், விலை வரம்பு, மாவட்டம் அல்லது வகை மூலம் பட்டியல்களை குறுக்கவும், புதியது அல்லது விலை அடிப்படையில் வரிசைப்படுத்தவும்.' },
+      { target: 'mp-listings-grid', title: 'கிடைக்கும் பட்டியல்கள்', body: 'இவை இப்போது நீங்கள் பார்க்கக்கூடிய நேரடி பட்டியல்கள் — சுதந்திரமாக வடிகட்டவும், தேடவும், விலைகளைச் சரிபார்க்கவும்.' },
+    ],
+    owner: [
+      { target: 'mp-role-pill', title: 'நீங்கள் நில உரிமையாளராகப் பார்க்கிறீர்கள்', body: 'உங்கள் கணக்கிற்கு வணிகர் அணுகலும் இருந்தால் எப்போது வேண்டுமானாலும் இங்கே பாத்திரங்களை மாற்றவும்.' },
+      { target: 'mp-owner-tabs', title: 'உங்கள் விற்பனை கருவிகள்', body: 'அறுவடையை விற்க எனது பட்டியல்கள், உலாவ பிரவுஸ், விற்பனையைக் கண்காணிக்க வரும் ஆர்டர்கள் மற்றும் வரலாறு.' },
+      { target: 'mp-add-listing-form', title: 'உங்கள் அறுவடையை பட்டியலிடுங்கள்', body: 'இங்கே புதிய பயிர் பட்டியலை வெளியிடுங்கள் — அளவு, விலை, இடம் மற்றும் விருப்பமான புகைப்படத்தை அமைக்கவும்.' },
+      { target: 'mp-my-listings-grid', title: 'நீங்கள் விற்பதை நிர்வகிக்கவும்', body: 'நீங்கள் வெளியிட்ட ஒவ்வொரு பட்டியலின் நிலையையும் பாருங்கள், இனி கிடைக்கவில்லை என்றால் அதை நீக்கவும்.' },
+    ],
+    trader: [
+      { target: 'mp-role-pill', title: 'நீங்கள் வணிகராகப் பார்க்கிறீர்கள்', body: 'உங்கள் கணக்கிற்கு நில உரிமையாளர் அணுகலும் இருந்தால் எப்போது வேண்டுமானாலும் இங்கே பாத்திரங்களை மாற்றவும்.' },
+      { target: 'mp-trader-tabs', title: 'உங்கள் வாங்குதல் கருவிகள்', body: 'உலாவ பிரவுஸ், விற்க எனது பொருட்கள், வரும் கோரிக்கைகள், எனது ஆர்டர்கள் மற்றும் வரலாறு.' },
+      { target: 'mp-filters', title: 'தேடு & வடிகட்டு', body: 'பெயர், விலை வரம்பு, மாவட்டம் அல்லது வகை மூலம் பட்டியல்களை குறுக்கவும், புதியது அல்லது விலை அடிப்படையில் வரிசைப்படுத்தவும்.' },
+      { target: 'mp-listings-grid', title: 'கிடைப்பவற்றைப் பாருங்கள்', body: 'எந்தவொரு பட்டியல் அட்டையிலிருந்தும் நேரடியாக வாங்குதல் கோரிக்கையை அனுப்பவும்.' },
+    ],
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
   },
 };
 
@@ -695,7 +761,7 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
       )}
       <div className="p-5 pb-3 flex flex-col flex-1">
         <div className="flex items-start justify-between gap-2 mb-1">
-          <h3 className="font-semibold text-foreground text-balance">{listing.crop_name}</h3>
+          <h3 className="font-semibold text-foreground text-balance break-words">{listing.crop_name}</h3>
           <Badge color={listingStatusColor(listing.status)}>{listing.status}</Badge>
         </div>
         {listing.crop_type && (
@@ -779,7 +845,7 @@ function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDele
   return (
     <>
       {/* Filter bar */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px', alignItems: 'center' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px', alignItems: 'center' }} data-tour={listingType === 'crop' ? 'mp-filters' : undefined}>
         <input
           type="text"
           placeholder="Search by name…"
@@ -1069,7 +1135,7 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-foreground">{order.listing_name}</span>
+              <span className="font-semibold text-foreground break-words">{order.listing_name}</span>
               <span className={statusFlash ? 'status-flash' : undefined}>
                 <Badge color={statusColor(order.status)}>{statusLabel(order.status, m)}</Badge>
               </span>
@@ -1250,6 +1316,10 @@ export default function MarketplacePage() {
 
   const currentUserId = user?.id ?? null;
 
+  const marketTourT = MARKET_TOUR_T[lang] || MARKET_TOUR_T.en;
+  const marketTourSteps = marketTourT[role] || marketTourT.guest;
+  const [tourOpen, setTourOpen] = useAutoOpenOnce('sa_tour_marketplace_seen_v1', true);
+
   return (
     <div className="marketplace-sprint min-h-screen bg-background">
       <Toaster />
@@ -1282,7 +1352,7 @@ export default function MarketplacePage() {
 
           <div className="flex items-center gap-3 flex-wrap">
             {isAuthenticated ? (
-              <div className="flex rounded-lg border bg-muted p-1">
+              <div className="flex rounded-lg border bg-muted p-1" data-tour="mp-role-pill">
                 <button
                   onClick={() => isDual && role !== 'owner' ? switchToRole('Land Owner') : undefined}
                   className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${role === 'owner' ? 'bg-primary text-primary-foreground' : isDual ? 'text-muted-foreground hover:text-foreground cursor-pointer' : 'text-muted-foreground cursor-default'}`}>
@@ -1295,7 +1365,7 @@ export default function MarketplacePage() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 rounded-lg border bg-muted px-3 py-1.5 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1.5 rounded-lg border bg-muted px-3 py-1.5 text-sm text-muted-foreground" data-tour="mp-role-pill">
                 <User size={15} />{m.guest}
               </div>
             )}
@@ -1334,7 +1404,7 @@ export default function MarketplacePage() {
         {/* Guest view — browse only */}
         {!isAuthenticated && (
           <div className="grid gap-8">
-            <div className="grid gap-3">
+            <div className="grid gap-3" data-tour="mp-listings-grid">
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{m.availableCrops}</h2>
               <ListingsGrid listingType="crop" currentUserId={null} isAuthenticated={false} m={m} />
             </div>
@@ -1348,17 +1418,19 @@ export default function MarketplacePage() {
         {/* Land Owner view */}
         {isAuthenticated && role === 'owner' && (
           <div className="grid gap-5">
+            <div data-tour="mp-owner-tabs">
             <Tabs value={ownerTab} onChange={setOwnerTab} tabs={[
               { value: 'my-listings', label: m.ownerTabs[0] },
               { value: 'browse',      label: m.ownerTabs[1] },
               { value: 'orders',      label: m.ownerTabs[2] },
               { value: 'history',     label: m.ownerTabs[3] },
             ]} />
+            </div>
 
             {ownerTab === 'my-listings' && (
               <div className="grid gap-6">
-                <CreateListingForm listingType="crop" m={m} />
-                <div className="grid gap-3">
+                <div data-tour="mp-add-listing-form"><CreateListingForm listingType="crop" m={m} /></div>
+                <div className="grid gap-3" data-tour="mp-my-listings-grid">
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{m.availableCrops}</h2>
                   <MyListingsGrid listingType="crop" currentUserId={currentUserId} m={m} />
                 </div>
@@ -1366,7 +1438,7 @@ export default function MarketplacePage() {
             )}
             {ownerTab === 'browse' && (
               <div className="grid gap-8">
-                <div className="grid gap-3">
+                <div className="grid gap-3" data-tour="mp-listings-grid">
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{m.availableCrops}</h2>
                   <ListingsGrid listingType="crop" currentUserId={currentUserId} isAuthenticated m={m} />
                 </div>
@@ -1384,6 +1456,7 @@ export default function MarketplacePage() {
         {/* Trader view */}
         {isAuthenticated && role === 'trader' && (
           <div className="grid gap-5">
+            <div data-tour="mp-trader-tabs">
             <Tabs value={traderTab} onChange={setTraderTab} tabs={[
               { value: 'browse',       label: m.traderTabs[0] },
               { value: 'my-products',  label: m.traderTabs[1] },
@@ -1391,10 +1464,11 @@ export default function MarketplacePage() {
               { value: 'orders',       label: m.traderTabs[2] },
               { value: 'history',      label: m.traderTabs[3] },
             ]} />
+            </div>
 
             {traderTab === 'browse' && (
               <div className="grid gap-8">
-                <div className="grid gap-3">
+                <div className="grid gap-3" data-tour="mp-listings-grid">
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{m.availableCrops}</h2>
                   <ListingsGrid listingType="crop" currentUserId={currentUserId} isAuthenticated m={m} />
                 </div>
@@ -1419,6 +1493,15 @@ export default function MarketplacePage() {
           </div>
         )}
       </div>
+
+      <HelpButton label={marketTourT.needHelp} ariaLabel={marketTourT.helpAria} onClick={() => setTourOpen(true)} />
+      <SpotlightTour
+        steps={marketTourSteps}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        storageKey="sa_tour_marketplace_seen_v1"
+        labels={{ next: marketTourT.next, back: marketTourT.back, skip: marketTourT.skip, done: marketTourT.done }}
+      />
     </div>
   );
 }

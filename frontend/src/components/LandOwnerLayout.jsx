@@ -308,9 +308,9 @@ export default function LandOwnerLayout() {
 
   const navItems = [
     { to: '/landowner/dashboard',    icon: '📊', label: t.dashboard },
-    { to: '/landowner/farms',        icon: '🌾', label: t.myFarms },
+    { to: '/landowner/farms',        icon: '🌾', label: t.myFarms, tour: 'lo-nav-farms' },
     { to: '/landowner/crops',        icon: '🌿', label: t.myCrops },
-    { to: '/landowner/cultivations', icon: '📅', label: t.myCultivations },
+    { to: '/landowner/cultivations', icon: '📅', label: t.myCultivations, tour: 'lo-nav-cultivations' },
     { to: '/crop-guidance',          icon: '🤖', label: t.advisories },
     ...(import.meta.env.VITE_SHOW_MARKETPLACE !== 'false' ? [{ to: '/marketplace', icon: '🏪', label: t.marketplace }] : []),
     { to: '/landowner/settings',     icon: '⚙️', label: t.settings },
@@ -327,10 +327,11 @@ export default function LandOwnerLayout() {
       {sidebarOpen && <div className="lo-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
       <aside className={`lo-sidebar${sidebarOpen ? ' lo-sidebar--open' : ''}`}>
         <nav className="lo-sidebar__nav">
-          {navItems.map(({ to, icon, label }) => (
+          {navItems.map(({ to, icon, label, tour }) => (
             <Link
               key={label} to={to}
               onClick={() => setSidebarOpen(false)}
+              data-tour={tour}
               className={`lo-sidebar__link${
                 location.pathname === to ||
                 (location.pathname.startsWith(to + '/') && to !== '/landowner/dashboard')
@@ -390,7 +391,7 @@ export default function LandOwnerLayout() {
           </div>
           <div className="lo-topbar__right">
             <div className="lo-topbar__notif-wrap" ref={notifRef}>
-              <button className="lo-topbar__notif-btn" type="button"
+              <button className="lo-topbar__notif-btn" type="button" data-tour="lo-notif-bell"
                 onClick={() => { setNotifOpen(o => !o); setProfileOpen(false); }}
                 aria-label={t.notifications}>
                 <span className={bellShaking ? 'bell-shake' : undefined}>🔔</span>
