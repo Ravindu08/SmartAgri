@@ -8,13 +8,14 @@ import smtplib
 import ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from html import escape
 
 
 def _is_enabled() -> bool:
     return os.getenv("EMAIL_ENABLED", "true").lower() == "true"
 
 
-def _send(to_email: str, subject: str, html_body: str, otp_code: str | None = None) -> None:
+def _send(to_email: str, subject: str, html_body: str, otp_code: str | None = None, reply_to: str | None = None) -> None:
     if not _is_enabled():
         print(f"\n{'='*60}")
         print(f"[EMAIL — console fallback]")
@@ -36,6 +37,8 @@ def _send(to_email: str, subject: str, html_body: str, otp_code: str | None = No
     msg["Subject"] = subject
     msg["From"] = f"{from_name} <{from_email}>"
     msg["To"] = to_email
+    if reply_to:
+        msg["Reply-To"] = reply_to
     msg.attach(MIMEText(html_body, "html"))
 
     context = ssl.create_default_context()
@@ -152,6 +155,50 @@ def send_password_reset_email(to_email: str, full_name: str, token: str) -> None
           If you did not request a password reset, you can safely ignore this email.
           Your password will not change.
         </p>
+      </div>
+    </div>
+    """
+    _send(to_email, subject, html)
+
+
+def send_contact_message_email(name: str, from_email: str, subject: str, message: str) -> None:
+    admin_email = os.getenv("EMAILS_FROM_EMAIL") or os.getenv("SMTP_USER", "")
+    safe_subject = " ".join(subject.split())  # strip newlines so it can't inject mail headers
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#f9f9f9">
+      <div style="background:#fff;border-radius:10px;padding:32px;border:1px solid #e0e0e0">
+        <div style="text-align:center;margin-bottom:24px">
+          <span style="font-size:32px">📧</span>
+          <h2 style="color:#1a7a4a;margin:8px 0 0">New Contact Message</h2>
+        </div>
+        <p style="color:#555;line-height:1.6"><strong>From:</strong> {escape(name)} ({escape(from_email)})</p>
+        <p style="color:#555;line-height:1.6"><strong>Subject:</strong> {escape(safe_subject)}</p>
+        <hr style="border:none;border-top:1px solid #eee;margin:16px 0">
+        <p style="color:#333;line-height:1.6;white-space:pre-wrap">{escape(message)}</p>
+      </div>
+    </div>
+    """
+    _send(admin_email, f"SmartAgri Contact: {safe_subject}", html, reply_to=from_email)
+
+
+def send_feedback_reply_email(to_email: str, full_name: str, original_subject: str, reply: str) -> None:
+    subject = f"SmartAgri — Reply to your feedback: {original_subject}"
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#f9f9f9">
+      <div style="background:#fff;border-radius:10px;padding:32px;border:1px solid #e0e0e0">
+        <div style="text-align:center;margin-bottom:24px">
+          <span style="font-size:32px">🌿</span>
+          <h2 style="color:#1a7a4a;margin:8px 0 0">SmartAgri</h2>
+        </div>
+        <h3 style="color:#111;margin-bottom:8px">Hi {escape(full_name)},</h3>
+        <p style="color:#555;line-height:1.6">
+          An admin replied to your feedback "<strong>{escape(original_subject)}</strong>":
+        </p>
+        <div style="background:#f0faf5;border-left:3px solid #1a7a4a;border-radius:6px;padding:14px 16px;margin:20px 0;color:#333;white-space:pre-wrap">
+          {escape(reply)}
+        </div>
+        <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
+        <p style="color:#aaa;font-size:12px;text-align:center">SmartAgri — Agribusiness Platform for Sri Lanka</p>
       </div>
     </div>
     """
