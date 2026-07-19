@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { request } from '../services/api';
 import '../styles/Contact.css';
 
 const CONTACT_T = {
@@ -16,6 +17,7 @@ const CONTACT_T = {
     successTitle: 'Message Sent!',
     successSub: "Thank you for reaching out. We'll get back to you as soon as possible.",
     successBack: '← Send another message',
+    errorMsg: "Couldn't send your message. Please try again in a moment.",
     infoTitle: 'Get In Touch',
     infoSub: "We're happy to hear from farmers, traders, and anyone interested in SmartAgri.",
     emailLabel: 'Email', emailVal: 'admin.smartagri@gmail.com',
@@ -37,6 +39,7 @@ const CONTACT_T = {
     successTitle: 'පණිවිඩය යවන ලදී!',
     successSub: 'සම්බන්ධ වීමට ස්තූතියි. හැකි ඉක්මනින් ඔබට ප්‍රතිචාර දක්වන්නෙමු.',
     successBack: '← තවත් පණිවිඩයක් යවන්න',
+    errorMsg: 'ඔබේ පණිවිඩය යැවීමට නොහැකි විය. කරුණාකර මොහොතකින් නැවත උත්සාහ කරන්න.',
     infoTitle: 'සම්බන්ධ වන්න',
     infoSub: 'ගොවීන්, වෙළෙන්දන්, සහ SmartAgri ගැන ඕනෑ කෙනෙකු ඉදිරියෙන් ඇසීමට සතුටු වෙමු.',
     emailLabel: 'ඊ-තැපෑල', emailVal: 'admin.smartagri@gmail.com',
@@ -58,6 +61,7 @@ const CONTACT_T = {
     successTitle: 'செய்தி அனுப்பப்பட்டது!',
     successSub: 'தொடர்பு கொண்டதற்கு நன்றி. முடிந்தவரை விரைவாக திரும்பி வருவோம்.',
     successBack: '← மற்றொரு செய்தி அனுப்பு',
+    errorMsg: 'உங்கள் செய்தியை அனுப்ப முடியவில்லை. தயவுசெய்து சிறிது நேரத்தில் மீண்டும் முயற்சிக்கவும்.',
     infoTitle: 'தொடர்பு கொள்ளுங்கள்',
     infoSub: 'விவசாயிகள், வர்த்தகர்கள் மற்றும் SmartAgri இல் ஆர்வமுள்ள எவரிடமிருந்தும் கேட்க மகிழ்ச்சியாக இருக்கிறோம்.',
     emailLabel: 'மின்னஞ்சல்', emailVal: 'admin.smartagri@gmail.com',
@@ -74,16 +78,30 @@ export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
-  const handleSubmit = e => {
+  const handleSubmit = async e => {
     e.preventDefault();
     setSending(true);
-    const subject = encodeURIComponent(form.subject || 'SmartAgri Contact');
-    const body = encodeURIComponent(`Name: ${form.name}\nEmail: ${form.email}\n\n${form.message}`);
-    window.location.href = `mailto:admin.smartagri@gmail.com?subject=${subject}&body=${body}`;
-    setTimeout(() => { setSending(false); setSent(true); }, 1000);
+    setError('');
+    try {
+      await request('/api/contact', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          subject: form.subject || 'SmartAgri Contact',
+          message: form.message,
+        }),
+      });
+      setSent(true);
+    } catch (err) {
+      setError(err.message || t.errorMsg);
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleReset = () => { setForm({ name: '', email: '', subject: '', message: '' }); setSent(false); };
@@ -130,6 +148,7 @@ export default function ContactPage() {
                   <label htmlFor="c-message">{t.msgLbl}</label>
                   <textarea id="c-message" name="message" placeholder={t.msgPlaceholder} rows={5} value={form.message} onChange={handleChange} required />
                 </div>
+                {error && <p className="contact-form-error" role="alert">{error}</p>}
                 <button type="submit" className="contact-submit-btn" disabled={sending}>
                   {sending ? t.btnSending : t.btnSend}
                 </button>

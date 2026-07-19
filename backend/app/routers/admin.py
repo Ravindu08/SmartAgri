@@ -19,7 +19,8 @@ from app.models.marketplace import MarketplaceListing, MarketplaceListingStatus,
 from app.models.user import User, UserRole
 from app.schemas.user import UserRead
 from app.services.auth import generate_verification_token
-from app.services.email import send_verification_email
+from app.services.email import send_feedback_reply_email, send_verification_email
+from app.services.notification_service import create_notification
 
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -393,8 +394,26 @@ def admin_reply_feedback(
     fb.admin_reply = payload.reply
     fb.status = "resolved"
     fb.resolved_at = datetime.now(timezone.utc)
+
+    user = db.get(User, fb.user_id) if fb.user_id else None
+    if user:
+        create_notification(
+            db,
+            user_id=user.id,
+            type="feedback_reply",
+            title=f"Reply to your feedback — {fb.subject}",
+            body=payload.reply,
+        )
+
     db.commit()
     db.refresh(fb)
+
+    if user and user.email:
+        try:
+            send_feedback_reply_email(user.email, user.full_name, fb.subject, payload.reply)
+        except Exception:
+            pass
+
     return FeedbackRead.model_validate(fb)
 
 

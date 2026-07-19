@@ -21,6 +21,7 @@ from app.core.limiter import limiter
 from app.api.auth import router as auth_router
 from app.db.database import SessionLocal
 from app.routers.admin import router as admin_router
+from app.routers.contact import router as contact_router
 from app.routers.crop import router as crop_router
 from app.routers.marketplace import router as marketplace_router
 from app.routers.notifications import router as notifications_router
@@ -94,6 +95,7 @@ app.include_router(crop_router)
 app.include_router(marketplace_router)
 app.include_router(payments_router)
 app.include_router(admin_router)
+app.include_router(contact_router)
 app.include_router(notifications_router, prefix="/api", tags=["notifications"])
 app.include_router(ratings_router, prefix="/api", tags=["ratings"])
 
