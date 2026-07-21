@@ -5,7 +5,16 @@ function getVisibleTarget(target) {
   const els = document.querySelectorAll(`[data-tour="${target}"]`);
   for (const el of els) {
     const rect = el.getBoundingClientRect();
-    if (rect.width > 0 && rect.height > 0) return el;
+    // width/height alone isn't enough: an off-canvas mobile drawer link (CSS
+    // transform: translateX(-100%)) still reports its real size, just parked
+    // outside the viewport. Require the rect to actually intersect the
+    // viewport too, or a closed hamburger/sidebar menu's items get treated
+    // as valid spotlight targets and the tour points at nothing.
+    if (
+      rect.width > 0 && rect.height > 0 &&
+      rect.right > 0 && rect.bottom > 0 &&
+      rect.left < window.innerWidth && rect.top < window.innerHeight
+    ) return el;
   }
   return null;
 }
