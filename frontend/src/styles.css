@@ -1643,7 +1643,7 @@
   width: 240px; flex-shrink: 0; background: var(--grad-hero);
   display: flex; flex-direction: column;
   position: fixed; top: var(--nav-h); left: 0;
-  height: calc(100vh - var(--nav-h)); z-index: 100; overflow-y: auto;
+  height: calc(100vh - var(--nav-h)); z-index: 210; overflow-y: auto;
   transition: transform 0.25s ease;
 }
 .lo-sidebar__brand {
