@@ -1,8 +1,10 @@
 # SmartAgri — AI-Powered Agribusiness Platform for Sri Lanka
 
-**ML Service v5.3 · Main API v8.0** | Multi-role platform | AI Crop Recommendation | Farm Management | Marketplace | Trilingual
+**ML Service v9.0 · Main API v10.0** | Multi-role platform | AI Crop Recommendation | Farm Management | Marketplace | Trilingual
 
 Full-stack web application for Sri Lankan agribusiness. Farmers get AI-driven crop recommendations and lifecycle guidance; land owners manage farms, crops, and cultivation sessions; traders access their own dashboard and marketplace; admins have full platform oversight.
+
+**Live demo:** https://smartagri-demo.duckdns.org (see [`DEPLOY_GCP.md`](DEPLOY_GCP.md) — the VM may be stopped between demos to avoid billing)
 
 ---
 
@@ -60,7 +62,7 @@ The admin account (`admin@smartagri.lk`) is created automatically on first start
 ### Tests
 
 ```bash
-python -m pytest backend/tests/test_main_api.py backend/tests/test_payments.py -v
+python -m pytest backend/tests/test_main_api.py backend/tests/test_payments.py backend/tests/test_ml_endpoints.py -v --cov=app --cov=ml_service
 ```
 
 (`backend/tests/test_api.py` is the ML service's own suite — it requires trained model `.pkl` files to be present and is not run in CI; running the whole `backend/tests/` directory without them will error, not just skip.)
@@ -95,12 +97,9 @@ To run the whole stack locally via Docker instead of the manual/one-command dev 
 
 ---
 
-## Two ML Prediction Modes
+## ML Prediction
 
-| Mode | Input | Accuracy |
-|---|---|---|
-| **Full Analysis** | N, P, K, Temperature, Rainfall, pH, Humidity + soil/zone/irrigation/season | ~90% Top-1 |
-| **Quick Predict** | Soil type, agro zone, irrigation, season (+ optional district) | ~47% Top-1 |
+Single mode — **Full Analysis**: N, P, K, Temperature, Rainfall, pH, Humidity + soil/zone/irrigation/season → ~90% Top-1 accuracy. (An earlier "Quick Predict" mode using only categorical inputs topped out at ~47% Top-1 and was retired — see DOCS.md §9 v9.0.)
 
 ---
 
