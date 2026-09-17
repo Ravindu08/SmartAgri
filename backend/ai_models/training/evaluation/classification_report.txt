@@ -1,0 +1,47 @@
+                         precision    recall  f1-score   support
+
+                  Beans     0.9867    0.9867    0.9867        75
+               Beetroot     0.9079    0.9200    0.9139        75
+              Big Onion     0.8987    0.9467    0.9221        75
+           Bitter Gourd     0.9351    0.9600    0.9474        75
+             Black Gram     0.9012    0.9733    0.9359        75
+     Brinjal (Eggplant)     0.8750    0.9333    0.9032        75
+                Cabbage     0.9853    0.8933    0.9371        75
+               Capsicum     0.7941    0.7200    0.7552        75
+                 Carrot     0.9524    0.8000    0.8696        75
+                Cassava     0.9359    0.9733    0.9542        75
+     Cauliflower (Gowa)     0.9041    0.8800    0.8919        75
+                 Chilli     0.9155    0.8667    0.8904        75
+                 Cowpea     0.9740    1.0000    0.9868        75
+               Cucumber     0.9867    0.9867    0.9867        75
+Elabatu (Thai Eggplant)     0.9494    1.0000    0.9740        75
+                 Innala     0.9178    0.8933    0.9054        75
+               Kiri Ala     1.0000    0.9867    0.9933        75
+                 Kohila     1.0000    0.9733    0.9865        75
+       Kohlrabi (Nokol)     1.0000    0.9200    0.9583        75
+               Kurakkan     0.8947    0.9067    0.9007        75
+                  Leeks     0.9250    0.9867    0.9548        75
+                  Luffa     0.8784    0.8667    0.8725        75
+                  Maize     0.9538    0.8267    0.8857        75
+  Menari (Proso Millet)     0.8333    0.7333    0.7801        75
+              Mung Bean     0.9155    0.8667    0.8904        75
+                Mustard     0.7294    0.8267    0.7750        75
+                   Okra     0.7558    0.8667    0.8075        75
+  Pathola (Snake Gourd)     0.9867    0.9867    0.9867        75
+             Pigeon Pea     0.9861    0.9467    0.9660        75
+                 Potato     0.9740    1.0000    0.9868        75
+                Pumpkin     0.8000    0.8533    0.8258        75
+                 Radish     0.8243    0.8133    0.8188        75
+              Red Onion     0.8861    0.9333    0.9091        75
+                Sorghum     0.8649    0.8533    0.8591        75
+                Soybean     0.9178    0.8933    0.9054        75
+              Sunflower     0.8800    0.8800    0.8800        75
+             Sweet Corn     0.8313    0.9200    0.8734        75
+ Sweet Potato (Bathala)     0.9467    0.9467    0.9467        75
+ Tibbatu (Turkey Berry)     0.8630    0.8400    0.8514        75
+                 Tomato     0.8205    0.8533    0.8366        75
+  Winged Bean (Dambala)     0.9867    0.9867    0.9867        75
+
+               accuracy                         0.9073      3075
+              macro avg     0.9091    0.9073    0.9073      3075
+           weighted avg     0.9091    0.9073    0.9073      3075
