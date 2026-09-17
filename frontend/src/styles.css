@@ -1683,7 +1683,9 @@
   align-items: center;
   gap: 2rem;
   padding: calc(var(--nav-h) + 40px) clamp(24px, 6vw, 80px) 60px;
-  background: var(--grad-hero);
+  background:
+    linear-gradient(rgba(2, 6, 23, 0.7), rgba(2, 6, 23, 0.7)),
+    url('/src/assets/hero-bg.jpeg') center/cover no-repeat;
   overflow: hidden;
 }
 
