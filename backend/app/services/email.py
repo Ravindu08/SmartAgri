@@ -86,6 +86,14 @@ def send_verification_email(to_email: str, full_name: str, code: str) -> None:
     _send(to_email, subject, html, otp_code=code)
 
 
+def send_order_event_email_quietly(to_email: str, full_name: str, event: str, crop_name: str, order_link: str) -> None:
+    """Background-task wrapper: an email failure must never affect the order action that triggered it."""
+    try:
+        send_order_event_email(to_email, full_name, event, crop_name, order_link)
+    except Exception:
+        pass
+
+
 def send_order_event_email(to_email: str, full_name: str, event: str, crop_name: str, order_link: str) -> None:
     event_labels = {
         "order_created":   ("New Purchase Request",   "A trader has placed a purchase request for your listing."),
