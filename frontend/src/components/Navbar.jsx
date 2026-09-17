@@ -158,6 +158,13 @@ export default function Navbar() {
               <>
                 <span className="navbar__session">
                   <span className="navbar__role">{activeRole}</span>
+                  {user.profile_image && (
+                    <img 
+                      src={user.profile_image} 
+                      alt="profile" 
+                      style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }} 
+                    />
+                  )}
                   <span className="navbar__user">{user.full_name.split(' ')[0]}</span>
                 </span>
                 <button className="navbar__logout" type="button" onClick={handleLogout}>{t.logout}</button>
