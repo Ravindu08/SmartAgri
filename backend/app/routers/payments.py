@@ -1,11 +1,11 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db
 from app.schemas.payment import PaymentSimulateResponse
-from app.services.email import send_order_event_email
+from app.services.email import send_order_event_email_quietly
 from app.services.marketplace_service import get_order
 from app.services.notification_service import create_notification
 from app.services.payment_service import simulate_payment
@@ -16,6 +16,7 @@ router = APIRouter(tags=["payments"])
 @router.post("/api/marketplace/orders/{order_id}/payment/simulate", response_model=PaymentSimulateResponse)
 def simulate_payment_endpoint(
     order_id: UUID,
+    background_tasks: BackgroundTasks,
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> PaymentSimulateResponse:
@@ -38,11 +39,10 @@ def simulate_payment_endpoint(
         link="/marketplace",
     )
     db.commit()
+    # Sent after the response so a slow SMTP server doesn't stall the request.
     if order.seller and order.seller.email:
-        try:
-            send_order_event_email(order.seller.email, order.seller_name, "payment_received", order.listing_name, "/marketplace")
-        except Exception:
-            pass
+        background_tasks.add_task(send_order_event_email_quietly, order.seller.email, order.seller_name,
+                                  "payment_received", order.listing_name, "/marketplace")
 
     return PaymentSimulateResponse(
         status=payment.status.value,
