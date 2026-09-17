@@ -1,6 +1,6 @@
 # SmartAgri — Complete Project Documentation
 
-**ML Service v5.3 · Main API v8.0** | AI-Powered Agribusiness Platform for Sri Lanka
+**ML Service v9.0 · Main API v10.0** | AI-Powered Agribusiness Platform for Sri Lanka
 
 ---
 
@@ -1105,6 +1105,39 @@ Once `payment_status=Paid`, the order's `Confirmed → Delivered` transition (bl
 - `FullModeRequest` re-based to inherit directly from Pydantic's `BaseModel` instead of the now-deleted `SimplifiedModeRequest` (previously `FullModeRequest` inherited shared fields/validators from it).
 - Weather auto-fill (`Temperature`, `Rainfall`, `Humidity` from `/weather`) was kept in Full Analysis — the friction Quick Predict was meant to reduce is still addressed there, without the accuracy trade-off.
 - `/health` no longer reports a `simple_model` block. `/predict/simple` now returns 404.
+
+### v10.0 — Production hardening, guided-tour rework, and UX polish (2026-07-14 → 2026-07-18)
+
+**Deployment & infrastructure**
+- **HTTPS via Let's Encrypt on a free DuckDNS domain** (`smartagri-demo.duckdns.org`) — replaces the bare-IP `http://` link, which read as untrustworthy without a domain name or padlock. Certbot's systemd timer handles renewal; `frontend/nginx.conf` redirects plain HTTP and the bare IP to the HTTPS domain.
+- **Fixed uploaded images being wiped on every redeploy/restart:** `backend/uploads` had no persistent volume in production — unlike Postgres's data dir, it lived in the container's ephemeral writable layer, so profile photos, marketplace listing images, and cultivation task photos vanished on every container recreation while the DB kept referencing them. `backend` and `ml` now mount the same named `uploads` Docker volume (see `docker-compose.yml`). Also fixed cultivation task photos specifically — they upload through the `ml` service, which was writing to its own container's uploads dir that nothing served.
+- **Fixed a marketplace migration bug that could wipe a fresh database:** the migration created its ENUM types both explicitly and via `op.create_table()`'s automatic type creation, causing a `DuplicateObject` error that rolled back the entire migration transaction — including the `users` table — on first run against an empty database. Only surfaced now because local dev never re-runs migrations from empty.
+- Added `.dockerignore` to `backend/` and `frontend/` so `.env` secrets don't get baked into built images.
+- Fixed three separate nginx trailing-slash infinite-redirect loops (`/guidance`, `/predict`, `/cultivation`) that silently broke the crop-guidance dropdown and the "Start Growing" cultivation tracker; proxied `/health` through nginx so the homepage's "Platform Ready" connectivity check works.
+- Added `DEPLOY_GCP.md`, a Compute Engine + docker-compose deployment runbook.
+
+**Guided tours**
+- Removed auto-open-on-first-visit everywhere; the "Need Help" pill button (replacing the old bare "?" icon) is now the sole way to open a tour. Deleted the now-unused `useAutoOpenOnce` hook.
+- `SpotlightTour` now filters its step list to only targets that currently exist and are visible on screen, computed fresh each time the tour opens — previously a step could point at content that didn't exist yet (e.g. an AI explanation card before a prediction had run).
+- Fixed the tour briefly rendering in the wrong place on open: a page's `.page-transition` entrance animation makes it a `position: fixed` containing block for as long as the animation runs (same mechanism as `.navbar`'s `backdrop-filter`, documented in §7). The tour now portals straight to `document.body` so it's never nested inside an animating ancestor.
+- Tours trimmed on simple pages (dashboards, My Farms/Crops) to non-obvious content only; expanded on the core AI tool pages, Marketplace, Cultivations, and Trader Orders/History to cover real parameters in depth. Fixed a dead tour target on the Land Owner Marketplace tour and a redundant Getting Started checklist item.
+
+**Contact form & notifications**
+- The Contact Us form now actually sends email via the existing SMTP pipeline (`POST /api/contact`) instead of just opening a `mailto:` link and unconditionally showing "Message Sent!".
+- Admin replies to feedback/complaints now create an in-app notification and send a confirmation email to the user, reusing the marketplace order-update notification/email pattern.
+- Contact/feedback email updated to `admin.smartagri@gmail.com` (Footer, Contact page, About page) — was a placeholder `hello@smartagri.lk`.
+
+**UI/UX polish**
+- Lowered the navbar's hamburger-menu breakpoint from 1600px to 1500px. The navbar's own container-query system already handles narrowing down to ~1459px (measured worst case: Tamil labels, fully compressed); the old 1600px threshold meant desktop users at common scaled resolutions (e.g. a 1920×1080 laptop at Windows' default 125% scaling → 1536px effective viewport) only ever saw the mobile dropdown.
+- Fixed remaining CSS Grid auto-fill gaps (`AdminReports`, `About`, `CropRecommendation`, `Weather`) — switched to auto-fit with a capped max column width so wide desktop screens don't show large empty gaps between cards, matching the fix already applied elsewhere (§7 responsive layout).
+- Unified navbar's separate "My Farms" (Land Owner) / "My Orders" (Trader) links into a single "My Dashboard" link.
+- Added upload size/type hints to every image picker (profile, farm, marketplace listing, cultivation task photo).
+- Fixed a systemic `background` (shorthand) → `background-color` transition bug across 8 CSS files — the shorthand doesn't reliably re-trigger when only a referenced CSS custom property changes.
+- Added `overflow-wrap: break-word` to every card/detail-row showing user-generated text, so long unbroken strings (farm/crop names, marketplace listings) can't overflow their container.
+- Fixed inconsistent Weather stat cards on `/wx` (the "Wind Speed" label was the only one that wrapped to two lines) and a duplicate weather icon on the Condition card; fixed the same icon+label `StatCard` layout bug in `AdminDashboard` that was already fixed in Weather.
+
+**Other**
+- `backend/tests/test_api.py` now imports from `ml_service.app` directly instead of a `sys.path` hack.
 
 ---
 
