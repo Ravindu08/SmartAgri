@@ -1,7 +1,7 @@
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -18,7 +18,7 @@ from app.schemas.marketplace import (
     MarketplaceOrderStatusUpdate,
     NegotiationMessageRead,
 )
-from app.services.email import send_order_event_email
+from app.services.email import send_order_event_email_quietly
 from app.utils.image_storage import ImageTooLargeError, InvalidImageError
 from app.services.marketplace_service import (
     add_negotiation,
@@ -135,6 +135,7 @@ def delete_listing_endpoint(
 @router.post("/orders", response_model=MarketplaceOrderRead, status_code=status.HTTP_201_CREATED)
 def create_order_endpoint(
     payload: MarketplaceOrderCreate,
+    background_tasks: BackgroundTasks,
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> MarketplaceOrderRead:
@@ -156,11 +157,10 @@ def create_order_endpoint(
         link="/marketplace",
     )
     db.commit()
+    # Sent after the response so a slow SMTP server doesn't stall the request.
     if order.seller and order.seller.email:
-        try:
-            send_order_event_email(order.seller.email, order.seller_name, "order_created", order.listing_name, "/marketplace")
-        except Exception:
-            pass
+        background_tasks.add_task(send_order_event_email_quietly, order.seller.email, order.seller_name,
+                                  "order_created", order.listing_name, "/marketplace")
     return order
 
 
@@ -176,6 +176,7 @@ def read_orders(
 def update_order_status_endpoint(
     order_id: UUID,
     payload: MarketplaceOrderStatusUpdate,
+    background_tasks: BackgroundTasks,
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> MarketplaceOrderRead:
@@ -216,10 +217,8 @@ def update_order_status_endpoint(
         )
         db.commit()
         if notify_email:
-            try:
-                send_order_event_email(notify_email, notify_name, event_key, updated.listing_name, notify_link)
-            except Exception:
-                pass
+            background_tasks.add_task(send_order_event_email_quietly, notify_email, notify_name, event_key,
+                                      updated.listing_name, notify_link)
 
     return updated
 
