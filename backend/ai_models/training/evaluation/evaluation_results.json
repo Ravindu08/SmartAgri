@@ -1,0 +1,135 @@
+{
+  "split": {
+    "train": 14350,
+    "calibration": 3075,
+    "test": 3075
+  },
+  "held_out_test": {
+    "Random Forest": {
+      "top1_accuracy": 0.8715447154471545,
+      "top3_accuracy": 0.9762601626016261,
+      "precision_macro": 0.8725490366095515,
+      "recall_macro": 0.8715447154471545,
+      "f1_macro": 0.8703208621780932
+    },
+    "XGBoost": {
+      "top1_accuracy": 0.9063414634146342,
+      "top3_accuracy": 0.9895934959349594,
+      "precision_macro": 0.9080342072386356,
+      "recall_macro": 0.9063414634146343,
+      "f1_macro": 0.9063146408753497
+    },
+    "RF + XGBoost (ensemble)": {
+      "top1_accuracy": 0.9073170731707317,
+      "top3_accuracy": 0.9876422764227643,
+      "precision_macro": 0.9091178385064238,
+      "recall_macro": 0.9073170731707316,
+      "f1_macro": 0.9072603636034053
+    }
+  },
+  "cross_validation_5fold": {
+    "records": 17425,
+    "Random Forest": {
+      "mean": 0.8585939741750359,
+      "std": 0.004670758094548252,
+      "folds": [
+        0.8616929698708752,
+        0.8493543758967002,
+        0.8614060258249642,
+        0.860832137733142,
+        0.8596843615494979
+      ]
+    },
+    "XGBoost": {
+      "mean": 0.9003156384505022,
+      "std": 0.0067235588497480915,
+      "folds": [
+        0.9110473457675753,
+        0.8958393113342898,
+        0.8958393113342898,
+        0.8935437589670014,
+        0.9053084648493543
+      ]
+    },
+    "RF + XGBoost (ensemble)": {
+      "mean": 0.8982496413199426,
+      "std": 0.003641364035400946,
+      "folds": [
+        0.9027259684361549,
+        0.8929698708751793,
+        0.8955523672883787,
+        0.8984218077474893,
+        0.9015781922525108
+      ]
+    }
+  },
+  "top_confusions": [
+    {
+      "actual": "Menari (Proso Millet)",
+      "predicted": "Mustard",
+      "share": 0.21333333333333335
+    },
+    {
+      "actual": "Radish",
+      "predicted": "Okra",
+      "share": 0.14666666666666667
+    },
+    {
+      "actual": "Sunflower",
+      "predicted": "Sorghum",
+      "share": 0.12
+    },
+    {
+      "actual": "Sorghum",
+      "predicted": "Sunflower",
+      "share": 0.09333333333333334
+    },
+    {
+      "actual": "Mustard",
+      "predicted": "Menari (Proso Millet)",
+      "share": 0.08
+    },
+    {
+      "actual": "Okra",
+      "predicted": "Radish",
+      "share": 0.08
+    },
+    {
+      "actual": "Mung Bean",
+      "predicted": "Black Gram",
+      "share": 0.08
+    },
+    {
+      "actual": "Maize",
+      "predicted": "Sweet Corn",
+      "share": 0.06666666666666667
+    }
+  ],
+  "roc_macro_auc": 0.9981223848238481,
+  "feature_importance": {
+    "random_forest_top": {
+      "NPK_Sum": 0.0797,
+      "N": 0.0741,
+      "P": 0.0697,
+      "Rainfall": 0.0687,
+      "Rainfall_Temp_Ratio": 0.0633,
+      "N_P_Ratio": 0.062,
+      "N_K_Ratio": 0.0609,
+      "P_K_Ratio": 0.059,
+      "K": 0.0587,
+      "Temperature": 0.0571
+    },
+    "xgboost_top": {
+      "Soil_Type_Deep Loam": 0.07670000195503235,
+      "Soil_Type_Fertile Loam": 0.05909999832510948,
+      "Soil_Type_Marshy Soil": 0.05180000141263008,
+      "Agro_Zone_Wet Zone": 0.05119999870657921,
+      "Soil_Type_Deep Sandy Loam": 0.05090000107884407,
+      "Soil_Type_Light Loam": 0.04520000144839287,
+      "Agro_Zone_Dry Zone with Irrigation": 0.043800000101327896,
+      "Agro_Zone_Mahaweli H Zone": 0.0357000008225441,
+      "Soil_Type_Red Loam": 0.029200000688433647,
+      "Soil_Type_Sandy Regosol": 0.02889999933540821
+    }
+  }
+}
