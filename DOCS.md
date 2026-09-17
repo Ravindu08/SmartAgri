@@ -180,6 +180,7 @@ SmartAgri/
 │   └── tests/
 │       ├── test_main_api.py            # Main API tests (pytest) — run in CI
 │       ├── test_payments.py            # Payment-gate + simulated-checkout tests — run in CI
+│       ├── test_ml_endpoints.py        # ML guidance/cultivation/weather tests (no model needed, Open-Meteo mocked) — run in CI
 │       └── test_api.py                 # ML API tests (pytest) — requires loaded ML models, not run in CI
 │
 └── frontend/
