@@ -166,28 +166,37 @@
     padding-bottom: 6px;
     justify-content: space-between;
   }
+
   .navbar__brand {
     order: 1;
   }
+
   .navbar__controls {
     order: 2;
     margin-left: 0;
   }
+
   .navbar__links {
     order: 3;
     flex: 0 0 100%;
     margin-top: 6px;
-    justify-content: space-between; /* Spreads the links across the entire width */
+    justify-content: space-between;
+    /* Spreads the links across the entire width */
     overflow-x: hidden;
   }
+
   .navbar__links a,
   .navbar__links button.nav-link {
-    flex: 1 1 auto; /* Grow and shrink proportionally to fill space */
-    justify-content: center; /* Center the text/icon inside */
+    flex: 1 1 auto;
+    /* Grow and shrink proportionally to fill space */
+    justify-content: center;
+    /* Center the text/icon inside */
     padding: clamp(6px, 0.6vw, 10px) clamp(4px, 0.6vw, 16px);
-    font-size: clamp(12.5px, 1.1vw, 15px); /* Larger dynamic font size */
+    font-size: clamp(12.5px, 1.1vw, 15px);
+    /* Larger dynamic font size */
     gap: clamp(4px, 0.4vw, 8px);
   }
+
   .navbar__farm-link {
     font-size: clamp(11.5px, 1vw, 14px) !important;
   }
