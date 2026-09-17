@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { clearAuthSession, getAuthSession, getActiveRole } from '../services/api';
+import { clearAuthSession, getAuthSession, getActiveRole, ACTIVE_ROLE_EVENT } from '../services/api';
 import { useApp } from '../context/AppContext';
 
 const NAV_T = {
@@ -55,7 +55,15 @@ export default function Navbar() {
   const { user } = getAuthSession();
   const isSignedIn = Boolean(user);
   const activeRole = getActiveRole();
+  const [, setRoleVersion] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Re-render when the active role is switched elsewhere (e.g. the Marketplace role toggle).
+  useEffect(() => {
+    const onRoleChange = () => setRoleVersion(v => v + 1);
+    window.addEventListener(ACTIVE_ROLE_EVENT, onRoleChange);
+    return () => window.removeEventListener(ACTIVE_ROLE_EVENT, onRoleChange);
+  }, []);
   const t = NAV_T[lang] || NAV_T.en;
 
   const isActive = (path) => {

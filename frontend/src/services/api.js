@@ -99,8 +99,12 @@ export function getActiveRole() {
   return user?.role ?? null;
 }
 
+export const ACTIVE_ROLE_EVENT = 'sa-active-role-change';
+
 export function setActiveRole(role) {
   localStorage.setItem('sa-active-role', role);
+  // Components outside the one that switched roles (e.g. the Navbar) re-read the role on this event.
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(ACTIVE_ROLE_EVENT));
 }
 
 export function getUserRoles() {
