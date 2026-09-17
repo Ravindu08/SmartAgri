@@ -283,7 +283,7 @@ export default function MyCultivations() {
                         <button
                           className="cult-btn cult-btn-open"
                           type="button"
-                          style={{ background: 'var(--muted-bg, #e5e7eb)', color: 'var(--text)', fontSize: '14px' }}
+                          style={{ background: 'var(--surface-2)', color: 'var(--text)', fontSize: '14px' }}
                           onClick={() => exportSessionPDF(session, getCropLabel(crop.crop_name, lang))}
                           title="Export PDF report"
                           data-tour={i === 0 ? 'cult-export-pdf' : undefined}
