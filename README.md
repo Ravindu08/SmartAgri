@@ -62,7 +62,7 @@ The admin account (`admin@smartagri.lk`) is created automatically on first start
 ### Tests
 
 ```bash
-python -m pytest backend/tests/test_main_api.py backend/tests/test_payments.py -v
+python -m pytest backend/tests/test_main_api.py backend/tests/test_payments.py backend/tests/test_ml_endpoints.py -v --cov=app --cov=ml_service
 ```
 
 (`backend/tests/test_api.py` is the ML service's own suite — it requires trained model `.pkl` files to be present and is not run in CI; running the whole `backend/tests/` directory without them will error, not just skip.)
