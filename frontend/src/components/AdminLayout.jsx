@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { getAuthSession, clearAuthSession } from '../services/api';
+import Navbar from './Navbar';
 import ErrorBoundary from './ErrorBoundary';
 
 const ADMIN_T = {
@@ -61,7 +62,9 @@ export default function AdminLayout() {
   const currentLabel = navItems.find(n => location.pathname.startsWith(n.to))?.label || t.dashboard;
 
   return (
-    <div className="lo-shell">
+    <>
+      <Navbar />
+      <div className="lo-shell">
       {sidebarOpen && <div className="lo-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
       {/* Admin sidebar — reuses lo-sidebar CSS but with admin accent color */}
       <aside className={`lo-sidebar${sidebarOpen ? ' lo-sidebar--open' : ''}`} style={{ '--sidebar-accent': '#7c3aed' }}>
@@ -148,5 +151,6 @@ export default function AdminLayout() {
         </main>
       </div>
     </div>
+    </>
   );
 }

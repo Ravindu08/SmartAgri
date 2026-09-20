@@ -10,8 +10,11 @@ from app.models.activity import Feedback, UserActivity
 from app.models.crop import Crop
 from app.models.cultivation import CultivationSession, CultivationTask
 from app.models.farm import Farm
-from app.models.marketplace import MarketplaceListing, MarketplaceOrder
+from app.models.marketplace import MarketplaceListing, MarketplaceOrder, MarketplaceNegotiationMessage
 from app.models.user import User, UserRole
+from app.models.payment import Payment
+from app.models.rating import Rating
+from app.models.notification import Notification
 
 __all__ = [
     "Crop",
@@ -21,7 +24,11 @@ __all__ = [
     "Feedback",
     "MarketplaceListing",
     "MarketplaceOrder",
+    "MarketplaceNegotiationMessage",
     "User",
     "UserActivity",
     "UserRole",
+    "Payment",
+    "Rating",
+    "Notification",
 ]
