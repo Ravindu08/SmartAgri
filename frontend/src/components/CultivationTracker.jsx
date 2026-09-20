@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { ML_BASE_URL } from "../services/api";
 import * as API from "../utils/cultivationApi";
 import { getFarms, getFarm } from "../services/farmService";
-import { createCrop, deleteCrop } from "../services/cropService";
+import { createCrop, deleteCrop, updateCrop } from "../services/cropService";
 import { useApp } from "../context/AppContext";
 import { getCropLabel, getSoilLabel } from "../data/cropData";
 import { STAGE_NAME_LABELS } from "../data/translations";
@@ -474,20 +474,21 @@ function SessionCard({ session, t, onOpen, onAbandon, lang }) {
           <span className="cult-overdue-badge">{overdue} {t.overdueWarning}</span>
         )}
         <div className="cult-card-actions">
+          {/* A finished session stays readable — only abandoning is active-only. */}
+          {(session.status === "active" || session.status === "completed") && (
+            <button className="cult-btn cult-btn-open" onClick={() => onOpen(session)}>
+              {t.openSession}
+            </button>
+          )}
           {session.status === "active" && (
-            <>
-              <button className="cult-btn cult-btn-open" onClick={() => onOpen(session)}>
-                {t.openSession}
-              </button>
-              <button
-                className="cult-btn cult-btn-abandon"
-                onClick={() => {
-                  if (window.confirm(t.confirmAbandon)) onAbandon(session.id);
-                }}
-              >
-                {t.abandonSession}
-              </button>
-            </>
+            <button
+              className="cult-btn cult-btn-abandon"
+              onClick={() => {
+                if (window.confirm(t.confirmAbandon)) onAbandon(session.id);
+              }}
+            >
+              {t.abandonSession}
+            </button>
           )}
         </div>
       </div>
@@ -497,7 +498,8 @@ function SessionCard({ session, t, onOpen, onAbandon, lang }) {
 
 // ── MyCultivationsList ────────────────────────────────────────────────────────
 function MyCultivationsList({ sessions, loading, error, t, onStart, onOpen, onAbandon, lang }) {
-  const active = sessions.filter(s => s.status === "active");
+  const active    = sessions.filter(s => s.status === "active");
+  const completed = sessions.filter(s => s.status === "completed");
 
   if (loading) return <div className="guidance-empty"><p>{t.guidanceLoading}</p></div>;
 
@@ -513,12 +515,20 @@ function MyCultivationsList({ sessions, loading, error, t, onStart, onOpen, onAb
         </button>
       </div>
       {error && <div className="cult-error">⚠ {error}</div>}
-      {active.length === 0 && !error && (
+      {active.length === 0 && completed.length === 0 && !error && (
         <div className="cult-empty">{t.noCultivations}</div>
       )}
       {active.map(s => (
         <SessionCard key={s.id} session={s} t={t} onOpen={onOpen} onAbandon={onAbandon} lang={lang} />
       ))}
+      {completed.length > 0 && (
+        <>
+          <h3 className="cult-list-subhead">✅ {t.completedCultivations}</h3>
+          {completed.map(s => (
+            <SessionCard key={s.id} session={s} t={t} onOpen={onOpen} onAbandon={onAbandon} lang={lang} />
+          ))}
+        </>
+      )}
     </div>
   );
 }
@@ -756,16 +766,30 @@ export default function CultivationTracker({ t, userId, initialSessionId, initia
 
   async function handleUpdateTask(sessionId, taskId, status, photo) {
     try {
-      const updated = await API.updateTask(userId, sessionId, taskId, status, photo);
+      const { task, sessionStatus } = await API.updateTask(userId, sessionId, taskId, status, photo);
+      const session = sessions.find(s => s.id === sessionId);
+      const justFinished = sessionStatus === "completed" && session?.status !== "completed";
+
       setSessions(prev => prev.map(s => {
         if (s.id !== sessionId) return s;
-        return { ...s, tasks: { ...s.tasks, [taskId]: updated } };
+        return { ...s, status: sessionStatus || s.status, tasks: { ...s.tasks, [taskId]: task } };
       }));
       setActiveSession(prev =>
         prev?.id === sessionId
-          ? { ...prev, tasks: { ...prev.tasks, [taskId]: updated } }
+          ? { ...prev, status: sessionStatus || prev.status, tasks: { ...prev.tasks, [taskId]: task } }
           : prev
       );
+
+      // Closing the last task finishes the crop too, so My Crops and the
+      // dashboard's "Completed" stat stay in step with the tracker.
+      if (justFinished && session?.crop_id) {
+        try {
+          await updateCrop(session.crop_id, { status: "Completed", growth_stage: "Harvest" });
+        } catch {
+          // The session is already saved as completed; a failed crop update
+          // shouldn't surface as a task-update error.
+        }
+      }
     } catch (err) {
       alert(err.message || "Update failed");
     }

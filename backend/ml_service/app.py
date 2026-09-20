@@ -1065,6 +1065,24 @@ def list_cultivations(user_id: str):
     return {"sessions": sessions}
 
 
+TERMINAL_TASK_STATUSES = ("done", "skipped")
+
+
+def _derive_session_status(current: str, task_statuses) -> str:
+    """Return what a session's status should be, given its tasks' statuses.
+
+    A session is complete once every task has reached a terminal state, and
+    drops back to active if a task is later reopened. 'abandoned' is a manual,
+    final decision, so it is never recomputed away.
+    """
+    if current == "abandoned":
+        return current
+    statuses = list(task_statuses)
+    if statuses and all(s in TERMINAL_TASK_STATUSES for s in statuses):
+        return "completed"
+    return "active"
+
+
 @app.put("/cultivation/{user_id}/{session_id}/task/{task_id}")
 def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: TaskStatusUpdate):
     if body.status not in ("done", "skipped", "pending", "overdue"):
@@ -1098,8 +1116,15 @@ def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: T
                 task_obj.status = body.status
                 if body.photo is not None:
                     task_obj.photo = _store_task_photo(body.photo)
+
+                # Marking the last outstanding task closes the whole session.
+                session_obj.status = _derive_session_status(
+                    session_obj.status,
+                    (t.status for t in session_obj.tasks or []),
+                )
                 db.commit()
                 return {
+                    "session_status": session_obj.status,
                     "id":             task_obj.id,
                     "type":           task_obj.type,
                     "title":          task_obj.title,
@@ -1138,7 +1163,11 @@ def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: T
             raise HTTPException(413, str(exc))
         except InvalidImageError as exc:
             raise HTTPException(400, str(exc))
-    return task
+    session["status"] = _derive_session_status(
+        session.get("status", "active"),
+        (t.get("status") for t in session["tasks"].values()),
+    )
+    return {"session_status": session["status"], **task}
 
 
 @app.delete("/cultivation/{user_id}/{session_id}", status_code=204)
