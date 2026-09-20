@@ -479,9 +479,13 @@ export default function LandOwnerDashboard() {
                     </div>
                     <div className="lo-dash-cult-card__dates">
                       <span>{t.dayPrefix} {daysSince < 0 ? 0 : daysSince}</span>
-                      {isOverdue
-                        ? <span className="lo-dash-cult-card__overdue">⚠ {Math.abs(daysLeft)}{t.daysOverdue}</span>
-                        : <span>{daysLeft}{t.daysToHarvest}</span>
+                      {/* A finished crop has no harvest left to count down to —
+                          without this it reads "-1d to harvest". */}
+                      {crop.status !== 'Active'
+                        ? null
+                        : isOverdue
+                          ? <span className="lo-dash-cult-card__overdue">⚠ {Math.abs(daysLeft)}{t.daysOverdue}</span>
+                          : <span>{daysLeft}{t.daysToHarvest}</span>
                       }
                     </div>
                   </div>
