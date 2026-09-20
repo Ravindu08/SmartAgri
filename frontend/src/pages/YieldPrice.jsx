@@ -65,7 +65,6 @@ const DEFAULT_YIELD = {
   landSize: "",
   landUnit: "Acre",
   avgYield: "",
-  seedQty: "",
   germRate: 90,
 };
 
@@ -242,34 +241,20 @@ export default function YieldPrice({ lang }) {
           </div>
         </div>
 
-        {/* Row 2: Avg yield + Seed qty */}
-        <div className="yp-grid" style={{ marginBottom: "1rem" }}>
-          <div className="yp-field">
-            <label>{t.avgYieldPerAcre}</label>
-            <input
-              type="number"
-              min="0"
-              step="1"
-              value={yf.avgYield}
-              onChange={e => setYf(p => ({ ...p, avgYield: e.target.value }))}
-              placeholder="kg / acre"
-            />
-            {yieldTooBig
-              ? <span className="yp-hint yp-hint--error">⚠ {t.ypTooLarge}</span>
-              : <span className="yp-hint">{t.yieldPerAcreHint}</span>}
-          </div>
-
-          <div className="yp-field">
-            <label>{t.seedQty}</label>
-            <input
-              type="number"
-              min="0"
-              step="0.1"
-              value={yf.seedQty}
-              onChange={e => setYf(p => ({ ...p, seedQty: e.target.value }))}
-              placeholder="e.g. 5"
-            />
-          </div>
+        {/* Row 2: Avg yield per acre */}
+        <div className="yp-field" style={{ marginBottom: "1rem" }}>
+          <label>{t.avgYieldPerAcre}</label>
+          <input
+            type="number"
+            min="0"
+            step="1"
+            value={yf.avgYield}
+            onChange={e => setYf(p => ({ ...p, avgYield: e.target.value }))}
+            placeholder="kg / acre"
+          />
+          {yieldTooBig
+            ? <span className="yp-hint yp-hint--error">⚠ {t.ypTooLarge}</span>
+            : <span className="yp-hint">{t.yieldPerAcreHint}</span>}
         </div>
 
         {/* Row 3: Germination rate */}
