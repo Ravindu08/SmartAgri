@@ -13,18 +13,18 @@
       "f1_macro": 0.8703208621780932
     },
     "XGBoost": {
-      "top1_accuracy": 0.9063414634146342,
-      "top3_accuracy": 0.9895934959349594,
-      "precision_macro": 0.9080342072386356,
-      "recall_macro": 0.9063414634146343,
-      "f1_macro": 0.9063146408753497
+      "top1_accuracy": 0.904390243902439,
+      "top3_accuracy": 0.9902439024390244,
+      "precision_macro": 0.9062433926608349,
+      "recall_macro": 0.9043902439024392,
+      "f1_macro": 0.9044174231148406
     },
     "RF + XGBoost (ensemble)": {
-      "top1_accuracy": 0.9073170731707317,
-      "top3_accuracy": 0.9876422764227643,
-      "precision_macro": 0.9091178385064238,
-      "recall_macro": 0.9073170731707316,
-      "f1_macro": 0.9072603636034053
+      "top1_accuracy": 0.9069918699186992,
+      "top3_accuracy": 0.9882926829268293,
+      "precision_macro": 0.908404007887181,
+      "recall_macro": 0.9069918699186992,
+      "f1_macro": 0.9068742941851119
     }
   },
   "cross_validation_5fold": {
@@ -41,25 +41,25 @@
       ]
     },
     "XGBoost": {
-      "mean": 0.9003156384505022,
-      "std": 0.0067235588497480915,
+      "mean": 0.8999139167862268,
+      "std": 0.0053633212017014705,
       "folds": [
-        0.9110473457675753,
-        0.8958393113342898,
-        0.8958393113342898,
-        0.8935437589670014,
+        0.9058823529411765,
+        0.8941176470588236,
+        0.8932568149210904,
+        0.9010043041606887,
         0.9053084648493543
       ]
     },
     "RF + XGBoost (ensemble)": {
-      "mean": 0.8982496413199426,
-      "std": 0.003641364035400946,
+      "mean": 0.8990530846484935,
+      "std": 0.005098891542322226,
       "folds": [
-        0.9027259684361549,
-        0.8929698708751793,
-        0.8955523672883787,
-        0.8984218077474893,
-        0.9015781922525108
+        0.9064562410329986,
+        0.8952654232424677,
+        0.8918220946915352,
+        0.8998565279770445,
+        0.9018651362984218
       ]
     }
   },
@@ -72,16 +72,26 @@
     {
       "actual": "Radish",
       "predicted": "Okra",
-      "share": 0.14666666666666667
+      "share": 0.13333333333333333
     },
     {
-      "actual": "Sunflower",
-      "predicted": "Sorghum",
-      "share": 0.12
+      "actual": "Okra",
+      "predicted": "Radish",
+      "share": 0.10666666666666667
     },
     {
       "actual": "Sorghum",
       "predicted": "Sunflower",
+      "share": 0.09333333333333334
+    },
+    {
+      "actual": "Sunflower",
+      "predicted": "Sorghum",
+      "share": 0.09333333333333334
+    },
+    {
+      "actual": "Mung Bean",
+      "predicted": "Black Gram",
       "share": 0.09333333333333334
     },
     {
@@ -90,22 +100,12 @@
       "share": 0.08
     },
     {
-      "actual": "Okra",
-      "predicted": "Radish",
-      "share": 0.08
-    },
-    {
-      "actual": "Mung Bean",
-      "predicted": "Black Gram",
-      "share": 0.08
-    },
-    {
       "actual": "Maize",
-      "predicted": "Sweet Corn",
+      "predicted": "Pumpkin",
       "share": 0.06666666666666667
     }
   ],
-  "roc_macro_auc": 0.9981223848238481,
+  "roc_macro_auc": 0.9981073170731707,
   "feature_importance": {
     "random_forest_top": {
       "NPK_Sum": 0.0797,
@@ -120,16 +120,16 @@
       "Temperature": 0.0571
     },
     "xgboost_top": {
-      "Soil_Type_Deep Loam": 0.07670000195503235,
-      "Soil_Type_Fertile Loam": 0.05909999832510948,
-      "Soil_Type_Marshy Soil": 0.05180000141263008,
-      "Agro_Zone_Wet Zone": 0.05119999870657921,
-      "Soil_Type_Deep Sandy Loam": 0.05090000107884407,
-      "Soil_Type_Light Loam": 0.04520000144839287,
-      "Agro_Zone_Dry Zone with Irrigation": 0.043800000101327896,
-      "Agro_Zone_Mahaweli H Zone": 0.0357000008225441,
-      "Soil_Type_Red Loam": 0.029200000688433647,
-      "Soil_Type_Sandy Regosol": 0.02889999933540821
+      "Soil_Type_Fertile Loam": 0.07320000231266022,
+      "Soil_Type_Deep Loam": 0.07169999927282333,
+      "Agro_Zone_Wet Zone": 0.05180000141263008,
+      "Soil_Type_Organic-Rich Loam": 0.04569999873638153,
+      "Agro_Zone_Dry Zone with Irrigation": 0.043699998408555984,
+      "Soil_Type_Marshy Soil": 0.04360000044107437,
+      "Soil_Type_Light Loam": 0.039400000125169754,
+      "Agro_Zone_Mahaweli H Zone": 0.03350000083446503,
+      "Agro_Zone_Dry Coastal Zone": 0.032099999487400055,
+      "Soil_Type_Deep Sandy Loam": 0.029100000858306885
     }
   }
 }
