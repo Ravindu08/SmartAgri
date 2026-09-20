@@ -128,7 +128,9 @@ export default function MyCultivations() {
           ? listCultivations(userId).catch(() => ({ sessions: [] }))
           : Promise.resolve({ sessions: [] }),
       ]);
-      setCrops(cropData.filter(c => c.status === 'Active'));
+      // Completed crops stay listed here — finishing a cultivation shouldn't
+      // make it vanish from the page that tracks it.
+      setCrops(cropData.filter(c => c.status === 'Active' || c.status === 'Completed'));
       setSessions(cultData.sessions || []);
     } catch (err) {
       setToast({ type: 'error', message: err.message });
@@ -147,7 +149,7 @@ export default function MyCultivations() {
 
   function getSession(crop) {
     return sessions.find(s =>
-      (s.status === 'active') && (
+      (s.status === 'active' || s.status === 'completed') && (
         (crop.id && s.crop_id && s.crop_id === String(crop.id)) ||
         s.crop.toLowerCase() === crop.crop_name.toLowerCase()
       )
@@ -241,8 +243,12 @@ export default function MyCultivations() {
                       <span className="cult-crop-card__name">{getCropLabel(crop.crop_name, lang)}</span>
                       <span className="cult-crop-card__farm">📍 {crop.farm_name || '—'}</span>
                     </div>
-                    <span className={`cult-status-badge status-${session ? 'active' : 'pending'}`}>
-                      {session ? lt.trackingBadge : lt.noTrackingBadge}
+                    <span className={`cult-status-badge status-${session ? session.status : 'pending'}`}>
+                      {!session
+                        ? lt.noTrackingBadge
+                        : session.status === 'completed'
+                          ? lt.completedBadge
+                          : lt.trackingBadge}
                     </span>
                   </div>
 
@@ -306,13 +312,15 @@ export default function MyCultivations() {
                         {lt.startTrackingBtn}
                       </button>
                     )}
-                    <button
-                      className="cult-btn cult-btn-abandon"
-                      type="button"
-                      onClick={() => setAbandonTarget({ crop, session })}
-                    >
-                      {lt.abandonBtn}
-                    </button>
+                    {session?.status !== 'completed' && (
+                      <button
+                        className="cult-btn cult-btn-abandon"
+                        type="button"
+                        onClick={() => setAbandonTarget({ crop, session })}
+                      >
+                        {lt.abandonBtn}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
