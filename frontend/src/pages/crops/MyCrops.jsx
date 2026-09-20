@@ -201,7 +201,9 @@ export default function MyCrops() {
                         {prog.overdue > 0 && (
                           <span className="crop-card__cult-overdue">⚠ {prog.overdue} {lt.statOverdue}</span>
                         )}
-                        <span className="crop-card__cult-active">{lt.trackingBadge}</span>
+                        <span className="crop-card__cult-active">
+                          {session.status === 'completed' ? lt.completedBadge : lt.trackingBadge}
+                        </span>
                       </div>
                       <div className="crop-card__cult-track">
                         <div className="crop-card__cult-bar">
