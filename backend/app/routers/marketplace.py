@@ -6,7 +6,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db
-from app.models.marketplace import MarketplaceListing, MarketplaceListingStatus, MarketplaceOrderStatus
+from app.models.marketplace import MarketplaceListing, MarketplaceOrderStatus
 from app.models.rating import Rating
 from app.schemas.marketplace import (
     MarketplaceListingCreate,

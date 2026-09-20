@@ -2,7 +2,6 @@
 SmartAgri main API tests — run with: pytest backend/tests/test_main_api.py -v
 Requires the conftest.py in this directory to run first (sets env + patches dotenv).
 """
-from datetime import timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -170,12 +169,11 @@ def test_farm_size_accepts_realistic_sizes():
         FarmCreate(**base, farm_size=size, size_unit=unit)  # must not raise
 
 def test_farm_size_rejects_unrealistic_sizes():
-    import pytest as _pytest
     from pydantic import ValidationError
     from app.schemas.farm import FarmCreate
     base = dict(farm_name="T", location="L", soil_type="Alluvial", season="Maha")
     for size, unit in [(999999999, "acres"), (50000, "hectares"), (1e9, "sq. meters")]:
-        with _pytest.raises(ValidationError):
+        with pytest.raises(ValidationError):
             FarmCreate(**base, farm_size=size, size_unit=unit)
 
 def test_farm_update_skips_size_check_without_unit():
