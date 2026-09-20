@@ -18,7 +18,7 @@ def _is_enabled() -> bool:
 def _send(to_email: str, subject: str, html_body: str, otp_code: str | None = None, reply_to: str | None = None) -> None:
     if not _is_enabled():
         print(f"\n{'='*60}")
-        print(f"[EMAIL — console fallback]")
+        print("[EMAIL — console fallback]")
         print(f"To:      {to_email}")
         print(f"Subject: {subject}")
         if otp_code:

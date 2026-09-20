@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, field_validator
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict
 import asyncio
 import joblib, json, hashlib, logging, math, os, ssl
 import numpy as np
@@ -624,7 +624,7 @@ def _get_crop_info(crop_name: str) -> Optional[CropInfo]:
     return None
 
 
-def _get_calendar(season: str, crop_name: str = None) -> Optional[PlantingCalendar]:
+def _get_calendar(season: str, crop_name: Optional[str] = None) -> Optional[PlantingCalendar]:
     window = PLANTING_WINDOWS.get(season)
     if not window:
         return None

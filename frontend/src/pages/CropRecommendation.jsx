@@ -302,15 +302,20 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
   const [wxLoading, setWxLoading] = useState(false);
   useEffect(() => {
     if (!district) { setWxFilled(false); return; }
+    // Guarded: switching district twice in quick succession could otherwise let
+    // the first (slower) response land last and fill the form with the wrong
+    // district's weather.
+    let cancelled = false;
     setWxLoading(true);
     const url = season
       ? `${API_BASE}/weather?district=${encodeURIComponent(district)}&season=${encodeURIComponent(season)}`
       : `${API_BASE}/weather?district=${encodeURIComponent(district)}`;
     fetch(url)
       .then(r => r.ok ? r.json() : Promise.reject())
-      .then(data => setWeather?.(data))
+      .then(data => { if (!cancelled) setWeather?.(data); })
       .catch(() => {})
-      .finally(() => setWxLoading(false));
+      .finally(() => { if (!cancelled) setWxLoading(false); });
+    return () => { cancelled = true; };
   }, [district, season]);
 
   // Auto-fill climate fields from weather when district matches
