@@ -235,6 +235,11 @@
   color: var(--muted);
 }
 
+.yp-hint--error {
+  color: var(--danger, #ef4444);
+  font-weight: 600;
+}
+
 /* ── Radio-style pill selectors ── */
 .yp-pills {
   display: flex;

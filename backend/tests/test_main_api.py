@@ -157,3 +157,28 @@ def test_rate_limit_login():
         statuses.append(r.status_code)
     # All should be 401 (wrong password) or 429 (rate limited)
     assert all(s in (401, 429) for s in statuses), f"Unexpected statuses: {statuses}"
+
+
+# ── Farm size bounds ─────────────────────────────────────────────────────────
+# PositiveFloat alone accepted 999999999; the cap is applied in acre-equivalent
+# so the same number is judged correctly whatever unit it is given in.
+
+def test_farm_size_accepts_realistic_sizes():
+    from app.schemas.farm import FarmCreate
+    base = dict(farm_name="T", location="L", soil_type="Alluvial", season="Maha")
+    for size, unit in [(2, "acres"), (500000, "perches"), (10, "hectares"), (4000, "sq. meters")]:
+        FarmCreate(**base, farm_size=size, size_unit=unit)  # must not raise
+
+def test_farm_size_rejects_unrealistic_sizes():
+    import pytest as _pytest
+    from pydantic import ValidationError
+    from app.schemas.farm import FarmCreate
+    base = dict(farm_name="T", location="L", soil_type="Alluvial", season="Maha")
+    for size, unit in [(999999999, "acres"), (50000, "hectares"), (1e9, "sq. meters")]:
+        with _pytest.raises(ValidationError):
+            FarmCreate(**base, farm_size=size, size_unit=unit)
+
+def test_farm_update_skips_size_check_without_unit():
+    """A size-only patch must not be measured against the wrong unit."""
+    from app.schemas.farm import FarmUpdate
+    FarmUpdate(farm_size=500000)  # 500000 perches is valid; must not raise
