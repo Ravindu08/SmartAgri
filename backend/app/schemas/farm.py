@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, PositiveFloat
+from pydantic import BaseModel, ConfigDict, Field, PositiveFloat, model_validator
 
 
 class FarmSeason(str, Enum):
@@ -90,6 +90,32 @@ class SizeUnit(str, Enum):
     SQM = "sq. meters"
 
 
+# PositiveFloat alone accepts 999999999, so sizes are also capped. The cap is
+# applied in acre-equivalent because the same number means wildly different
+# areas depending on the unit. 100,000 acres is far larger than any single
+# Sri Lankan holding (national farmland is roughly 5 million acres), so this
+# rejects nonsense without ever getting in a real user's way.
+_ACRES_PER_UNIT = {
+    SizeUnit.ACRES:    1.0,
+    SizeUnit.HECTARES: 2.47105,
+    SizeUnit.PERCHES:  1.0 / 160.0,
+    SizeUnit.SQM:      1.0 / 4046.86,
+}
+MAX_FARM_SIZE_ACRES = 100_000.0
+
+
+def _validate_farm_size(size: Optional[float], unit: Optional[SizeUnit]) -> None:
+    """Reject sizes that are not a real farm. No-op when either field is absent."""
+    if size is None:
+        return
+    acres = size * _ACRES_PER_UNIT.get(unit or SizeUnit.ACRES, 1.0)
+    if acres > MAX_FARM_SIZE_ACRES:
+        raise ValueError(
+            f"farm_size {size} {(unit or SizeUnit.ACRES).value} is unrealistically large "
+            f"(max {MAX_FARM_SIZE_ACRES:,.0f} acres)."
+        )
+
+
 class FarmBase(BaseModel):
     farm_name: str = Field(min_length=1, max_length=255)
     location: str = Field(min_length=1, max_length=255)
@@ -101,6 +127,11 @@ class FarmBase(BaseModel):
     cultivated_crops: Optional[str] = None  # comma-separated crop names
     season: FarmSeason
     image_data: Optional[str] = None
+
+    @model_validator(mode="after")
+    def check_farm_size(self):
+        _validate_farm_size(self.farm_size, self.size_unit)
+        return self
 
 
 class FarmCreate(FarmBase):
@@ -118,6 +149,15 @@ class FarmUpdate(BaseModel):
     cultivated_crops: Optional[str] = None
     season: Optional[FarmSeason] = None
     image_data: Optional[str] = None
+
+    @model_validator(mode="after")
+    def check_farm_size(self):
+        # Only checkable when the unit came with the size — a size-only patch
+        # would otherwise be measured against the wrong unit and wrongly rejected
+        # (200000 perches is a valid 1250 acres, but nonsense read as acres).
+        if self.size_unit is not None:
+            _validate_farm_size(self.farm_size, self.size_unit)
+        return self
 
 
 class FarmRead(BaseModel):
