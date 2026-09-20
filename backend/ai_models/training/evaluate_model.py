@@ -21,7 +21,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier, VotingClassifier
+from sklearn.ensemble import VotingClassifier
 from sklearn.metrics import (accuracy_score, auc, classification_report, confusion_matrix,
                              precision_recall_fscore_support, roc_curve, top_k_accuracy_score)
 from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split

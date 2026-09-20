@@ -1,5 +1,6 @@
 import csv
 import io
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
@@ -22,6 +23,8 @@ from app.services.auth import generate_verification_token
 from app.services.email import send_feedback_reply_email, send_verification_email
 from app.services.notification_service import create_notification
 
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -412,7 +415,9 @@ def admin_reply_feedback(
         try:
             send_feedback_reply_email(user.email, user.full_name, fb.subject, payload.reply)
         except Exception:
-            pass
+            # The reply is already committed; a mail failure must not fail the
+            # request, but swallowing it silently hides a broken mail server.
+            logger.warning("feedback reply e-mail failed for feedback id=%s", fb.id, exc_info=True)
 
     return FeedbackRead.model_validate(fb)
 
