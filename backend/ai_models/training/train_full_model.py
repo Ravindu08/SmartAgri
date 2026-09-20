@@ -140,7 +140,7 @@ def train_full_model():
     top3 = top_k_accuracy_score(y_test, y_proba, k=3)
     top5 = top_k_accuracy_score(y_test, y_proba, k=5)
 
-    print(f"\nResults (held-out test set):")
+    print("\nResults (held-out test set):")
     print(f"  Top-1 accuracy: {top1*100:.2f}%")
     print(f"  Top-3 accuracy: {top3*100:.2f}%")
     print(f"  Top-5 accuracy: {top5*100:.2f}%")
@@ -194,7 +194,7 @@ def train_full_model():
     joblib.dump(model_info, MODELS_DIR / "model_info_full.pkl")
 
     print(f"\n{'='*65}")
-    print(f"Saved: crop_model_full.pkl  |  label_encoder_full.pkl  |  model_info_full.pkl")
+    print("Saved: crop_model_full.pkl  |  label_encoder_full.pkl  |  model_info_full.pkl")
     print(f"{'='*65}\n")
     return model_info
 

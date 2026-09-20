@@ -617,11 +617,15 @@ function GuidanceDetail({ cropName, plantingDate, t, lang, onBack, weather }) {
   const daysSince = daysSincePlanting(plantingDate);
 
   useEffect(() => {
+    // Guarded so switching crops quickly cannot leave the previous crop's
+    // guidance on screen under the new crop's heading.
+    let cancelled = false;
     setLoading(true);
     fetch(`${API_BASE}/guidance/${encodeURIComponent(cropName)}`)
       .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(d => { setData(d.data ?? null); setLoading(false); })
-      .catch(() => { setData(null); setLoading(false); });
+      .then(d => { if (!cancelled) { setData(d.data ?? null); setLoading(false); } })
+      .catch(() => { if (!cancelled) { setData(null); setLoading(false); } });
+    return () => { cancelled = true; };
   }, [cropName]);
 
   if (loading) return <div className="guidance-empty"><p>{t.guidanceLoading}</p></div>;

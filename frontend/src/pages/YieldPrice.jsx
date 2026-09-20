@@ -11,6 +11,12 @@ import "../styles/YieldPrice.css";
 import SpotlightTour   from "../components/tour/SpotlightTour";
 import HelpButton      from "../components/tour/HelpButton";
 
+// Sanity caps for this client-side calculator. Chosen to be far beyond any real
+// Sri Lankan smallholding while still rejecting obvious nonsense.
+const MAX_LAND_ACRES         = 100_000;   // matches MAX_FARM_SIZE_ACRES server-side
+const MAX_YIELD_PER_ACRE_KG  = 100_000;   // ~10x the most productive crop in the DB
+const MAX_TOTAL_YIELD_KG     = 1_000_000_000;
+
 const YP_TOUR_T = {
   en: {
     steps: [
@@ -59,7 +65,6 @@ const DEFAULT_YIELD = {
   landSize: "",
   landUnit: "Acre",
   avgYield: "",
-  seedQty: "",
   germRate: 90,
 };
 
@@ -105,7 +110,7 @@ export default function YieldPrice({ lang }) {
   function calcYield() {
     const landSizeNum  = parseFloat(yf.landSize);
     const avgYieldNum  = parseFloat(yf.avgYield);
-    if (!yf.crop || isNaN(landSizeNum) || landSizeNum <= 0 || isNaN(avgYieldNum) || avgYieldNum <= 0) return;
+    if (!yieldValid) return;
 
     const acres      = landSizeNum * (LAND_UNIT_TO_ACRES[yf.landUnit] ?? 1);
     const germFactor = yf.germRate / 100;
@@ -131,7 +136,7 @@ export default function YieldPrice({ lang }) {
 
   function calcPrice() {
     const yieldKg = parseFloat(priceEstYield);
-    if (isNaN(yieldKg) || yieldKg <= 0) return;
+    if (!priceValid) return;
 
     const costs = [
       parseFloat(pf.seedCost) || 0,
@@ -158,8 +163,18 @@ export default function YieldPrice({ lang }) {
   }
 
   // ── Yield form validity ──────────────────────────────────────────────────
-  const yieldValid = yf.crop && parseFloat(yf.landSize) > 0 && parseFloat(yf.avgYield) > 0;
-  const priceValid = parseFloat(priceEstYield) > 0;
+  // Upper bounds as well as lower ones: this calculator is entirely client-side,
+  // so without a cap it will happily report a yield for a million-acre farm.
+  // The land cap matches MAX_FARM_SIZE_ACRES in backend/app/schemas/farm.py.
+  const landAcres  = parseFloat(yf.landSize) * (LAND_UNIT_TO_ACRES[yf.landUnit] ?? 1);
+  const landTooBig  = landAcres > MAX_LAND_ACRES;
+  const yieldTooBig = parseFloat(yf.avgYield) > MAX_YIELD_PER_ACRE_KG;
+  const estTooBig   = parseFloat(priceEstYield) > MAX_TOTAL_YIELD_KG;
+
+  const yieldValid = yf.crop
+    && parseFloat(yf.landSize) > 0 && parseFloat(yf.avgYield) > 0
+    && !landTooBig && !yieldTooBig;
+  const priceValid = parseFloat(priceEstYield) > 0 && !estTooBig;
 
   return (
     <div className="page-wrapper">
@@ -215,6 +230,7 @@ export default function YieldPrice({ lang }) {
               onChange={e => setYf(p => ({ ...p, landSize: e.target.value }))}
               placeholder="e.g. 2"
             />
+            {landTooBig && <span className="yp-hint yp-hint--error">⚠ {t.ypTooLarge}</span>}
           </div>
 
           <div className="yp-field">
@@ -225,32 +241,20 @@ export default function YieldPrice({ lang }) {
           </div>
         </div>
 
-        {/* Row 2: Avg yield + Seed qty */}
-        <div className="yp-grid" style={{ marginBottom: "1rem" }}>
-          <div className="yp-field">
-            <label>{t.avgYieldPerAcre}</label>
-            <input
-              type="number"
-              min="0"
-              step="1"
-              value={yf.avgYield}
-              onChange={e => setYf(p => ({ ...p, avgYield: e.target.value }))}
-              placeholder="kg / acre"
-            />
-            <span className="yp-hint">{t.yieldPerAcreHint}</span>
-          </div>
-
-          <div className="yp-field">
-            <label>{t.seedQty}</label>
-            <input
-              type="number"
-              min="0"
-              step="0.1"
-              value={yf.seedQty}
-              onChange={e => setYf(p => ({ ...p, seedQty: e.target.value }))}
-              placeholder="e.g. 5"
-            />
-          </div>
+        {/* Row 2: Avg yield per acre */}
+        <div className="yp-field" style={{ marginBottom: "1rem" }}>
+          <label>{t.avgYieldPerAcre}</label>
+          <input
+            type="number"
+            min="0"
+            step="1"
+            value={yf.avgYield}
+            onChange={e => setYf(p => ({ ...p, avgYield: e.target.value }))}
+            placeholder="kg / acre"
+          />
+          {yieldTooBig
+            ? <span className="yp-hint yp-hint--error">⚠ {t.ypTooLarge}</span>
+            : <span className="yp-hint">{t.yieldPerAcreHint}</span>}
         </div>
 
         {/* Row 3: Germination rate */}
