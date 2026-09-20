@@ -73,14 +73,29 @@ const API_FIELD = {
 // Used only until /meta answers. The server is the authority on these bounds —
 // see NUMERIC_RANGES in backend/ml_service/app.py — so this is a starting value,
 // not a second source of truth.
+//
+// These are the range of the TRAINING DATA, not what is physically possible.
+// Outside it the model has no evidence and returns a confident guess, so the
+// form refuses the value rather than asking for one.
 const FALLBACK_RANGES = {
-  N:           { min: 0,   max: 300,  step: 1   },
-  P:           { min: 0,   max: 200,  step: 1   },
-  K:           { min: 0,   max: 300,  step: 1   },
-  Temperature: { min: 5,   max: 45,   step: 0.1 },
-  Rainfall:    { min: 0,   max: 5000, step: 1   },
-  pH:          { min: 3,   max: 10,   step: 0.1 },
-  Humidity:    { min: 0,   max: 100,  step: 1   },
+  N:           { min: 10,   max: 226,  step: 1   },
+  P:           { min: 12,   max: 151,  step: 1   },
+  K:           { min: 22,   max: 217,  step: 1   },
+  Temperature: { min: 13.6, max: 35.5, step: 0.1 },
+  Rainfall:    { min: 25,   max: 3663, step: 1   },
+  pH:          { min: 4.9,  max: 8.2,  step: 0.1 },
+  Humidity:    { min: 45,   max: 97,   step: 1   },
+};
+
+// Label key + unit per form field, shared by the inputs and the clamp notice.
+const NUM_FIELD_META = {
+  N:    { labelKey: "nitrogen",    unit: "kg/ha", placeholder: "100"  },
+  P:    { labelKey: "phosphorus",  unit: "kg/ha", placeholder: "60"   },
+  K:    { labelKey: "potassium",   unit: "kg/ha", placeholder: "91"   },
+  temp: { labelKey: "temperature", unit: "°C",    placeholder: "27"   },
+  rain: { labelKey: "rainfall",    unit: "mm",    placeholder: "1051" },
+  ph:   { labelKey: "soilPh",      unit: "pH",    placeholder: "6.3"  },
+  hum:  { labelKey: "humidity",    unit: "%",     placeholder: "72"   },
 };
 
 // Drop a trailing ".0" so hints read "0–300", not "0.0–300.0".
@@ -299,19 +314,36 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
   }, [district, season]);
 
   // Auto-fill climate fields from weather when district matches
-  const [wxFilled, setWxFilled] = useState(false);
+  const [wxFilled,   setWxFilled]   = useState(false);
+  const [wxClamped,  setWxClamped]  = useState([]);
   useEffect(() => {
-    if (!weather || !district) { setWxFilled(false); return; }
-    if (weather.district !== district) { setWxFilled(false); return; }
+    if (!weather || !district) { setWxFilled(false); setWxClamped([]); return; }
+    if (weather.district !== district) { setWxFilled(false); setWxClamped([]); return; }
     const c = weather.current;
+
+    // A live reading can sit outside the range the model was trained on — a hot
+    // day in Kilinochchi, a humid morning in Matara. Blocking the form over a
+    // number the app filled in itself would be baffling, so the value is pulled
+    // to the nearest bound and the adjustment is named in the UI. Only ever
+    // applied to machine-supplied readings, never to what the user typed.
+    const clamped = [];
+    const fit = (key, raw) => {
+      const r = ranges[API_FIELD[key]];
+      const n = Number(raw);
+      if (!r || !Number.isFinite(n)) return raw;
+      if (n < r.min) { clamped.push({ key, actual: n, used: r.min }); return r.min; }
+      if (n > r.max) { clamped.push({ key, actual: n, used: r.max }); return r.max; }
+      return raw;
+    };
+
     // Use season-to-date averages from archive — matches what the model trained on.
     // Falls back to current live reading if archive values aren't available yet.
-    setTemp(String(
+    setTemp(String(fit("temp",
       weather.season_avg_temp != null ? weather.season_avg_temp : c.temperature.toFixed(1)
-    ));
-    setHum(String(
+    )));
+    setHum(String(fit("hum",
       weather.season_avg_humidity != null ? weather.season_avg_humidity : c.humidity
-    ));
+    )));
     // Rainfall: use actual season-to-date accumulation from Open-Meteo archive.
     // Falls back to climatological seasonal lookup if archive not available.
     const actualMm = weather.season_actual_mm;
@@ -319,9 +351,11 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
     const seasonKey = weather.season_name || season || "Year-round";
     const fallback  = sr[seasonKey] ?? sr["Year-round"] ?? null;
     const rainfallMm = (actualMm != null && actualMm > 0) ? actualMm : fallback;
-    if (rainfallMm !== null) setRain(String(rainfallMm));
+    if (rainfallMm !== null) setRain(String(fit("rain", rainfallMm)));
+
+    setWxClamped(clamped);
     setWxFilled(true);
-  }, [district, weather, season]);
+  }, [district, weather, season, ranges]);
 
   const baseOk = district && agroZone && soilType && irrigation && season;
 
@@ -454,16 +488,21 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
   // min/max/step come from `ranges` (i.e. from /meta) so the form always shows
   // and enforces exactly what the server accepts.
   const numFields = [
-    { key:"N",    label:t.nitrogen,    val:N,    set:setN,    unit:"kg/ha", ph:"100"  },
-    { key:"P",    label:t.phosphorus,  val:P,    set:setP,    unit:"kg/ha", ph:"60"   },
-    { key:"K",    label:t.potassium,   val:K,    set:setK,    unit:"kg/ha", ph:"91"   },
-    { key:"temp", label:t.temperature, val:temp, set:setTemp, unit:"°C",    ph:"27"   },
-    { key:"rain", label:t.rainfall,    val:rain, set:setRain, unit:"mm",    ph:"1051" },
-    { key:"ph",   label:t.soilPh,      val:ph,   set:setPh,   unit:"pH",    ph:"6.3"  },
-    { key:"hum",  label:t.humidity,    val:hum,  set:setHum,  unit:"%",     ph:"72"   },
+    { key:"N",    val:N,    set:setN    },
+    { key:"P",    val:P,    set:setP    },
+    { key:"K",    val:K,    set:setK    },
+    { key:"temp", val:temp, set:setTemp },
+    { key:"rain", val:rain, set:setRain },
+    { key:"ph",   val:ph,   set:setPh   },
+    { key:"hum",  val:hum,  set:setHum  },
   ].map(f => {
-    const r = ranges[API_FIELD[f.key]] || FALLBACK_RANGES[API_FIELD[f.key]];
-    return { ...f, min: r.min, max: r.max, step: String(r.step ?? 1) };
+    const r    = ranges[API_FIELD[f.key]] || FALLBACK_RANGES[API_FIELD[f.key]];
+    const meta = NUM_FIELD_META[f.key];
+    return {
+      ...f,
+      label: t[meta.labelKey], unit: meta.unit, ph: meta.placeholder,
+      min: r.min, max: r.max, step: String(r.step ?? 1),
+    };
   });
 
   return (
@@ -588,6 +627,21 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
                 {wxFilled && (
                   <div className="wx-autofill-badge">
                     🌦️ {t.wxAutoFillBadge} <strong>{district}</strong>. {t.wxAutoFillAdjust}
+                  </div>
+                )}
+                {wxFilled && wxClamped.length > 0 && (
+                  <div className="wx-clamped-note">
+                    ⚠ {t.wxClampedNote}
+                    <ul>
+                      {wxClamped.map(({ key, actual, used }) => {
+                        const f = NUM_FIELD_META[key];
+                        return (
+                          <li key={key}>
+                            <strong>{t[f.labelKey]}</strong>: {actual}{f.unit} → {used}{f.unit}
+                          </li>
+                        );
+                      })}
+                    </ul>
                   </div>
                 )}
                 {!wxFilled && district && (
