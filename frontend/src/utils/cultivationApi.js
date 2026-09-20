@@ -42,12 +42,13 @@ export async function listCultivations(userId) {
 export async function updateTask(userId, sessionId, taskId, status, photo) {
   const body = { status };
   if (photo !== undefined) body.photo = photo; // data URI, or null to clear
-  const result = await req("PUT",
+  const { session_status: sessionStatus, ...task } = await req("PUT",
     `/cultivation/${encodeURIComponent(userId)}/${encodeURIComponent(sessionId)}/task/${encodeURIComponent(taskId)}`,
     body,
   );
   _listCache.ts = 0; // bust cache so next listCultivations call fetches fresh data
-  return result;
+  // sessionStatus flips to "completed" on the call that closes the last task.
+  return { task, sessionStatus };
 }
 
 export const abandonCultivation = (userId, sessionId) =>

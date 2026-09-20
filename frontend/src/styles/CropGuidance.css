@@ -914,6 +914,17 @@
 .cult-list-header p  { color: var(--muted); font-size: 15px; margin: 0; }
 .cult-list-header .guidance-generate-btn { white-space: nowrap; min-width: 180px; margin-top: 0; }
 
+/* Divider above the finished sessions listed under the active ones. */
+.cult-list-subhead {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  margin: 8px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
 .cult-empty {
   text-align: center;
   padding: 48px 20px;
