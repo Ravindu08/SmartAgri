@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -9,7 +10,9 @@ logger = logging.getLogger(__name__)
 load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
@@ -74,6 +77,35 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+def _json_safe(obj):
+    """Replace NaN/Infinity with a string so a value can always be echoed back."""
+    if isinstance(obj, float) and not math.isfinite(obj):
+        return str(obj)
+    if isinstance(obj, dict):
+        return {k: _json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_json_safe(v) for v in obj]
+    return obj
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Return 422 for invalid input even when the input itself cannot be encoded.
+
+    JSON permits NaN and Infinity, so a client can send them into any float
+    field. FastAPI's default handler echoes the offending value back in the
+    error's `input` field, and encoding NaN then raises -- turning a clean 422
+    rejection into a 500. Scrub the values so the rejection survives.
+    """
+    # _json_safe first (removes NaN, which json.dumps rejects), then
+    # jsonable_encoder (turns the ctx ValueError object into plain data).
+    return JSONResponse(
+        status_code=422,
+        content={"detail": jsonable_encoder(_json_safe(exc.errors()))},
+    )
+
 app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(
     CORSMiddleware,

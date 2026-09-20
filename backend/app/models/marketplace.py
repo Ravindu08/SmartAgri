@@ -153,11 +153,11 @@ class MarketplaceOrder(Base):
 
     # Phone numbers are only shared once the seller has confirmed the order —
     # a Pending/Rejected/Cancelled request shouldn't leak either side's contact info.
-    _PHONE_VISIBLE_STATUSES = {
+    _PHONE_VISIBLE_STATUSES = frozenset({
         MarketplaceOrderStatus.CONFIRMED,
         MarketplaceOrderStatus.DELIVERED,
         MarketplaceOrderStatus.COMPLETED,
-    }
+    })
 
     @property
     def buyer_phone(self) -> Optional[str]:

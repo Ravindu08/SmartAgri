@@ -9,8 +9,6 @@ Writes: merged_all_crops_clean.csv (standardized dataset)
 """
 
 import csv
-import io
-import re
 from collections import Counter, defaultdict
 
 INPUT  = "merged_all_crops_raw.csv"
