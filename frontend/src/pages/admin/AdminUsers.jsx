@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { adminRequest, downloadAdminCSV } from '../../services/api';
 import { useApp } from '../../context/AppContext';
@@ -66,15 +66,27 @@ export default function AdminUsers() {
   const [toast, setToast]     = useState('');
   const [page, setPage]       = useState(1);
 
+  // Bumped on every request so a slow earlier response can never overwrite a
+  // newer one — without this, typing in the search box could leave the list
+  // showing results for a query the user has already moved on from.
+  const reqSeq = useRef(0);
+
   const loadUsers = () => {
+    const seq = ++reqSeq.current;
     setLoading(true);
     const params = new URLSearchParams();
     if (search)     params.set('search', search);
     if (roleFilter) params.set('role', roleFilter);
-    adminRequest(`/users?${params}`).then(data => { setUsers(data); setLoading(false); }).catch(() => setLoading(false));
+    adminRequest(`/users?${params}`)
+      .then(data => { if (seq === reqSeq.current) { setUsers(data); setLoading(false); } })
+      .catch(()   => { if (seq === reqSeq.current) setLoading(false); });
   };
 
-  useEffect(() => { loadUsers(); }, [search, roleFilter]);
+  // Debounced: the search box fired one request per keystroke before this.
+  useEffect(() => {
+    const id = setTimeout(loadUsers, 300);
+    return () => clearTimeout(id);
+  }, [search, roleFilter]);
   useEffect(() => { setPage(1); }, [search, roleFilter]);
 
   const totalPages = Math.max(1, Math.ceil(users.length / PAGE_SIZE));

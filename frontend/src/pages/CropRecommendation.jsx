@@ -64,6 +64,43 @@ const CR_TOUR_T = {
   },
 };
 
+// Form field key -> the name the API uses for the same feature.
+const API_FIELD = {
+  N: "N", P: "P", K: "K",
+  temp: "Temperature", rain: "Rainfall", ph: "pH", hum: "Humidity",
+};
+
+// Used only until /meta answers. The server is the authority on these bounds —
+// see NUMERIC_RANGES in backend/ml_service/app.py — so this is a starting value,
+// not a second source of truth.
+//
+// These are the range of the TRAINING DATA, not what is physically possible.
+// Outside it the model has no evidence and returns a confident guess, so the
+// form refuses the value rather than asking for one.
+const FALLBACK_RANGES = {
+  N:           { min: 10,   max: 226,  step: 1   },
+  P:           { min: 12,   max: 151,  step: 1   },
+  K:           { min: 22,   max: 217,  step: 1   },
+  Temperature: { min: 13.6, max: 35.5, step: 0.1 },
+  Rainfall:    { min: 25,   max: 3663, step: 1   },
+  pH:          { min: 4.9,  max: 8.2,  step: 0.1 },
+  Humidity:    { min: 45,   max: 97,   step: 1   },
+};
+
+// Label key + unit per form field, shared by the inputs and the clamp notice.
+const NUM_FIELD_META = {
+  N:    { labelKey: "nitrogen",    unit: "kg/ha", placeholder: "100"  },
+  P:    { labelKey: "phosphorus",  unit: "kg/ha", placeholder: "60"   },
+  K:    { labelKey: "potassium",   unit: "kg/ha", placeholder: "91"   },
+  temp: { labelKey: "temperature", unit: "°C",    placeholder: "27"   },
+  rain: { labelKey: "rainfall",    unit: "mm",    placeholder: "1051" },
+  ph:   { labelKey: "soilPh",      unit: "pH",    placeholder: "6.3"  },
+  hum:  { labelKey: "humidity",    unit: "%",     placeholder: "72"   },
+};
+
+// Drop a trailing ".0" so hints read "0–300", not "0.0–300.0".
+const fmtBound = n => (Number.isInteger(Number(n)) ? String(Number(n)) : String(n));
+
 // ── Mock fallback (used only when backend is unreachable) ─────────────────────
 const MOCK_CROPS = ["Tomato","Chilli","Capsicum","Cabbage","Carrot","Maize","Okra","Soybean","Mung Bean","Cowpea"];
 const MOCK_CI    = { crop_duration_min:75,crop_duration_max:100,water_required_min:400,water_required_max:600,rainfall_min:450,rainfall_max:1800,ph_min:5.0,ph_max:7.5,n_min:80,n_max:170,p_min:53,p_max:120,k_min:60,k_max:140,temp_min:20,temp_max:30.5,humidity_min:52,humidity_max:88 };
@@ -193,6 +230,8 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
   const [result,     setResult]     = useState(null);
   const [error,      setError]      = useState(null);
   const [isMock,     setIsMock]     = useState(false);
+  const [ranges,     setRanges]     = useState(FALLBACK_RANGES);
+  const [touched,    setTouched]    = useState({});
   const [showGuide,  setShowGuide]  = useState(false);
   const [history,    setHistory]    = useState(() => loadHistory());
   const resRef = useRef(null);
@@ -239,6 +278,17 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
   const setPh  = mkSet(setPhRaw,   "sa_ph");
   const setHum = mkSet(setHumRaw,  "sa_hum");
 
+  // Pull the accepted ranges from the server so the form cannot drift from what
+  // the model will actually accept. Falls back to FALLBACK_RANGES if /meta fails.
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${API_BASE}/meta`)
+      .then(r => (r.ok ? r.json() : Promise.reject()))
+      .then(m => { if (!cancelled && m?.numeric_ranges) setRanges(m.numeric_ranges); })
+      .catch(() => { /* keep fallback */ });
+    return () => { cancelled = true; };
+  }, []);
+
   // Update available zones when district changes
   useEffect(() => {
     if (!district) { setAvZones([]); setAgroZone(""); return; }
@@ -252,31 +302,53 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
   const [wxLoading, setWxLoading] = useState(false);
   useEffect(() => {
     if (!district) { setWxFilled(false); return; }
+    // Guarded: switching district twice in quick succession could otherwise let
+    // the first (slower) response land last and fill the form with the wrong
+    // district's weather.
+    let cancelled = false;
     setWxLoading(true);
     const url = season
       ? `${API_BASE}/weather?district=${encodeURIComponent(district)}&season=${encodeURIComponent(season)}`
       : `${API_BASE}/weather?district=${encodeURIComponent(district)}`;
     fetch(url)
       .then(r => r.ok ? r.json() : Promise.reject())
-      .then(data => setWeather?.(data))
+      .then(data => { if (!cancelled) setWeather?.(data); })
       .catch(() => {})
-      .finally(() => setWxLoading(false));
+      .finally(() => { if (!cancelled) setWxLoading(false); });
+    return () => { cancelled = true; };
   }, [district, season]);
 
   // Auto-fill climate fields from weather when district matches
-  const [wxFilled, setWxFilled] = useState(false);
+  const [wxFilled,   setWxFilled]   = useState(false);
+  const [wxClamped,  setWxClamped]  = useState([]);
   useEffect(() => {
-    if (!weather || !district) { setWxFilled(false); return; }
-    if (weather.district !== district) { setWxFilled(false); return; }
+    if (!weather || !district) { setWxFilled(false); setWxClamped([]); return; }
+    if (weather.district !== district) { setWxFilled(false); setWxClamped([]); return; }
     const c = weather.current;
+
+    // A live reading can sit outside the range the model was trained on — a hot
+    // day in Kilinochchi, a humid morning in Matara. Blocking the form over a
+    // number the app filled in itself would be baffling, so the value is pulled
+    // to the nearest bound and the adjustment is named in the UI. Only ever
+    // applied to machine-supplied readings, never to what the user typed.
+    const clamped = [];
+    const fit = (key, raw) => {
+      const r = ranges[API_FIELD[key]];
+      const n = Number(raw);
+      if (!r || !Number.isFinite(n)) return raw;
+      if (n < r.min) { clamped.push({ key, actual: n, used: r.min }); return r.min; }
+      if (n > r.max) { clamped.push({ key, actual: n, used: r.max }); return r.max; }
+      return raw;
+    };
+
     // Use season-to-date averages from archive — matches what the model trained on.
     // Falls back to current live reading if archive values aren't available yet.
-    setTemp(String(
+    setTemp(String(fit("temp",
       weather.season_avg_temp != null ? weather.season_avg_temp : c.temperature.toFixed(1)
-    ));
-    setHum(String(
+    )));
+    setHum(String(fit("hum",
       weather.season_avg_humidity != null ? weather.season_avg_humidity : c.humidity
-    ));
+    )));
     // Rainfall: use actual season-to-date accumulation from Open-Meteo archive.
     // Falls back to climatological seasonal lookup if archive not available.
     const actualMm = weather.season_actual_mm;
@@ -284,12 +356,31 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
     const seasonKey = weather.season_name || season || "Year-round";
     const fallback  = sr[seasonKey] ?? sr["Year-round"] ?? null;
     const rainfallMm = (actualMm != null && actualMm > 0) ? actualMm : fallback;
-    if (rainfallMm !== null) setRain(String(rainfallMm));
-    setWxFilled(true);
-  }, [district, weather, season]);
+    if (rainfallMm !== null) setRain(String(fit("rain", rainfallMm)));
 
-  const baseOk   = district && agroZone && soilType && irrigation && season;
-  const canSubmit = baseOk && N && P && K && temp && rain && ph && hum;
+    setWxClamped(clamped);
+    setWxFilled(true);
+  }, [district, weather, season, ranges]);
+
+  const baseOk = district && agroZone && soilType && irrigation && season;
+
+  // Range-check every numeric field against the server's bounds. The min/max
+  // attributes on <input type="number"> are advisory only — nothing enforces
+  // them, because submit is a button click rather than a form submit.
+  const numValues = { N, P, K, temp, rain, ph, hum };
+  const fieldErrors = {};
+  for (const key of Object.keys(API_FIELD)) {
+    const raw = numValues[key];
+    const r = ranges[API_FIELD[key]];
+    if (raw === "" || raw == null)            { fieldErrors[key] = t.errRequired; continue; }
+    const n = Number(raw);
+    if (!Number.isFinite(n))                  { fieldErrors[key] = t.errNotNumber; continue; }
+    if (!r) continue;
+    if (n < r.min || n > r.max) {
+      fieldErrors[key] = `${t.errOutOfRange} ${fmtBound(r.min)}–${fmtBound(r.max)}`;
+    }
+  }
+  const hasFieldErrors = Object.keys(fieldErrors).length > 0;
 
   // Suitability classes for numeric inputs
   const ci = result?.crop_info;
@@ -309,31 +400,70 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
     setIrrigationRaw(""); setSeasonRaw("");
     setNRaw(""); setPRaw(""); setKRaw(""); setTempRaw("");
     setRainRaw(""); setPhRaw(""); setHumRaw("");
-    setResult(null); setError(null); setIsMock(false);
+    setResult(null); setError(null); setIsMock(false); setTouched({});
     ["sa_district","sa_zone","sa_soil","sa_irr","sa_season",
      "sa_N","sa_P","sa_K","sa_temp","sa_rain","sa_ph","sa_hum"]
       .forEach(k => { try { ss?.removeItem(k); } catch {} });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const submit = async () => {
-    setLoading(true); setError(null); setResult(null); setIsMock(false);
-    try {
-      const endpoint = "/predict/full";
-      const body = { N: +N, P: +P, K: +K, Temperature: +temp, Rainfall: +rain, pH: +ph, Humidity: +hum,
-            Soil_Type: soilType, Agro_Zone: agroZone, Irrigation: irrigation, Season: season };
+  // FastAPI returns 422 as detail: [{loc, msg}, ...] and 4xx from HTTPException
+  // as detail: "<string>". Flatten either into one readable sentence.
+  const formatApiDetail = (detail, status) => {
+    if (Array.isArray(detail)) {
+      const parts = detail.map(d => {
+        const field = Array.isArray(d.loc) ? d.loc[d.loc.length - 1] : null;
+        const msg = String(d.msg || "").replace(/^Value error,\s*/, "");
+        return field && !msg.startsWith(String(field)) ? `${field}: ${msg}` : msg;
+      }).filter(Boolean);
+      if (parts.length) return parts.join(" ");
+    }
+    if (typeof detail === "string" && detail) return detail;
+    return `Error ${status}`;
+  };
 
-      const res = await fetch(`${API_BASE}${endpoint}`, {
+  const submit = async () => {
+    // Guard the button being enabled by anything other than a real click.
+    if (!baseOk || hasFieldErrors) {
+      setTouched(Object.fromEntries(Object.keys(API_FIELD).map(k => [k, true])));
+      setError(t.errFixFields);
+      return;
+    }
+
+    setLoading(true); setError(null); setResult(null); setIsMock(false);
+
+    const body = { N: +N, P: +P, K: +K, Temperature: +temp, Rainfall: +rain, pH: +ph, Humidity: +hum,
+          Soil_Type: soilType, Agro_Zone: agroZone, Irrigation: irrigation, Season: season };
+
+    let res;
+    try {
+      res = await fetch(`${API_BASE}/predict/full`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+    } catch {
+      // fetch() only rejects when the request never got an answer — a dead
+      // server, DNS failure or CORS block. This is the ONLY case that means
+      // "backend unreachable", and so the only one the demo fallback may serve.
+      await new Promise(r => setTimeout(r, 1300));
+      setResult(mockPredict(soilType, season, irrigation, { N, P, K, temp, rain, ph, hum }));
+      setIsMock(true);
+      setLoading(false);
+      setTimeout(() => resRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+      return;
+    }
 
-      if (!res.ok) {
-        const e = await res.json().catch(() => ({}));
-        throw new Error(e.detail || `Error ${res.status}`);
-      }
+    // The server answered. Whatever it said, it is reachable — so a rejection
+    // is reported as a rejection and never replaced with a fabricated result.
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setError(formatApiDetail(body.detail, res.status));
+      setLoading(false);
+      return;
+    }
 
+    try {
       const json = await res.json();
       setResult(json.data);
 
@@ -347,11 +477,10 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
         soil:   soilType,
       });
       setHistory(loadHistory());
-
-    } catch (e) {
-      await new Promise(r => setTimeout(r, 1300));
-      setResult(mockPredict(soilType, season, irrigation, { N, P, K, temp, rain, ph, hum }));
-      setIsMock(true);
+    } catch {
+      setError(`Error ${res.status}: malformed response from the server.`);
+      setLoading(false);
+      return;
     }
 
     setLoading(false);
@@ -361,15 +490,25 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
   const pct = result ? Math.round(result.confidence * 100) : 0;
   const maxScore = result?.xai_features?.length > 0 ? result.xai_features[0].score : 1;
 
+  // min/max/step come from `ranges` (i.e. from /meta) so the form always shows
+  // and enforces exactly what the server accepts.
   const numFields = [
-    { key:"N",    label:t.nitrogen,    val:N,    set:setN,    unit:"kg/ha", ph:"100",  min:0,   max:300  },
-    { key:"P",    label:t.phosphorus,  val:P,    set:setP,    unit:"kg/ha", ph:"60",   min:0,   max:200  },
-    { key:"K",    label:t.potassium,   val:K,    set:setK,    unit:"kg/ha", ph:"91",   min:0,   max:300  },
-    { key:"temp", label:t.temperature, val:temp, set:setTemp, unit:"°C",    ph:"27",   min:5,   max:45   },
-    { key:"rain", label:t.rainfall,    val:rain, set:setRain, unit:"mm",    ph:"1051", min:0,   max:5000 },
-    { key:"ph",   label:t.soilPh,      val:ph,   set:setPh,   unit:"pH",    ph:"6.3",  min:3,   max:10,  step:"0.1" },
-    { key:"hum",  label:t.humidity,    val:hum,  set:setHum,  unit:"%",     ph:"72",   min:0,   max:100  },
-  ];
+    { key:"N",    val:N,    set:setN    },
+    { key:"P",    val:P,    set:setP    },
+    { key:"K",    val:K,    set:setK    },
+    { key:"temp", val:temp, set:setTemp },
+    { key:"rain", val:rain, set:setRain },
+    { key:"ph",   val:ph,   set:setPh   },
+    { key:"hum",  val:hum,  set:setHum  },
+  ].map(f => {
+    const r    = ranges[API_FIELD[f.key]] || FALLBACK_RANGES[API_FIELD[f.key]];
+    const meta = NUM_FIELD_META[f.key];
+    return {
+      ...f,
+      label: t[meta.labelKey], unit: meta.unit, ph: meta.placeholder,
+      min: r.min, max: r.max, step: String(r.step ?? 1),
+    };
+  });
 
   return (
     <div className="page-wrapper">
@@ -495,6 +634,21 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
                     🌦️ {t.wxAutoFillBadge} <strong>{district}</strong>. {t.wxAutoFillAdjust}
                   </div>
                 )}
+                {wxFilled && wxClamped.length > 0 && (
+                  <div className="wx-clamped-note">
+                    ⚠ {t.wxClampedNote}
+                    <ul>
+                      {wxClamped.map(({ key, actual, used }) => {
+                        const f = NUM_FIELD_META[key];
+                        return (
+                          <li key={key}>
+                            <strong>{t[f.labelKey]}</strong>: {actual}{f.unit} → {used}{f.unit}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
                 {!wxFilled && district && (
                   <div className="wx-autofill-hint">
                     {wxLoading
@@ -504,7 +658,10 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
                 )}
                 <div className="g3" data-tour="cr-nutrient-fields">
                   {numFields.map(({ key, label, val, set, unit, ph: ph_, min, max, step }) => {
-                    const sc = ci ? sClass(suit[key]) : "";
+                    // An invalid value outranks the post-result suitability tint:
+                    // the field is wrong, not merely outside the crop's ideal band.
+                    const invalid = touched[key] && fieldErrors[key];
+                    const sc = invalid ? "err" : (ci ? sClass(suit[key]) : "");
                     const sv = ci ? suit[key] : null;
                     return (
                         <div className="fl" key={key}>
@@ -517,22 +674,30 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
                               placeholder={ph_}
                               value={val}
                               onChange={e => set(e.target.value)}
+                              onBlur={() => setTouched(prev => ({ ...prev, [key]: true }))}
                               min={min}
                               max={max}
                               aria-label={label}
+                              aria-invalid={invalid ? "true" : undefined}
                             />
                             <span className="iunit">{unit}</span>
                           </div>
-                          {ci && sv === "below" && <span className="fwarn">▼ {t.belowRange}</span>}
-                          {ci && sv === "above" && <span className="ferr">▲ {t.aboveRange}</span>}
-                          {!ci && <span className="fhint">{t.rangeHint}: {min}–{max} {unit}</span>}
+                          {invalid
+                            ? <span className="ferr">⚠ {fieldErrors[key]} {unit}</span>
+                            : <>
+                                {ci && sv === "below" && <span className="fwarn">▼ {t.belowRange}</span>}
+                                {ci && sv === "above" && <span className="ferr">▲ {t.aboveRange}</span>}
+                                {!ci && <span className="fhint">{t.rangeHint}: {min}–{max} {unit}</span>}
+                              </>}
                         </div>
                       );
                     })}
                   </div>
               </div>
 
-              <button className="btn" onClick={submit} disabled={!canSubmit || loading} data-tour="cr-predict-btn">
+              {/* Stays clickable while only the numeric fields are wrong, so the
+                  click can reveal which ones rather than leaving a dead button. */}
+              <button className="btn" onClick={submit} disabled={!baseOk || loading} data-tour="cr-predict-btn">
                 {loading ? <><div className="spin" />{t.btnAnalyse}</> : t.btnSubmit}
               </button>
 

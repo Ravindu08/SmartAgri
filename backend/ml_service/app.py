@@ -8,12 +8,15 @@ Changes vs v5.2:
 - uvicorn[standard] extras dropped
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, field_validator
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict
 import asyncio
-import joblib, json, hashlib, logging, os, ssl
+import joblib, json, hashlib, logging, math, os, ssl
 import numpy as np
 from pathlib import Path
 import httpx
@@ -71,6 +74,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+def _json_safe(obj):
+    """Replace NaN/Infinity with a string so a value can always be echoed back."""
+    if isinstance(obj, float) and not math.isfinite(obj):
+        return str(obj)
+    if isinstance(obj, dict):
+        return {k: _json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_json_safe(v) for v in obj]
+    return obj
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Return 422 for invalid input even when the input itself cannot be encoded.
+
+    JSON permits NaN and Infinity, so a client can send them. FastAPI's default
+    handler echoes the offending value back in the error's `input` field, and
+    encoding NaN then raises — turning a clean 422 rejection into a 500. Scrub
+    the values so the rejection survives serialisation.
+    """
+    # _json_safe first (removes NaN, which json.dumps rejects), then
+    # jsonable_encoder (turns the ctx ValueError object into plain data).
+    return JSONResponse(
+        status_code=422,
+        content={"detail": jsonable_encoder(_json_safe(exc.errors()))},
+    )
+
 # ── Valid categorical values ──────────────────────────────────────────────────
 VALID_SOIL_TYPES = {
     "Alluvial", "Alluvial Loam", "Bog and Half-Bog Soil", "Clay Loam", "Clay Soil",
@@ -96,6 +127,56 @@ VALID_SEASONS    = {"Maha", "Yala", "Year-round"}
 
 FULL_CAT_FEATURES   = ["Soil_Type", "Agro_Zone", "Irrigation", "Season"]
 FULL_NUM_FEATURES   = ["N", "P", "K", "Temperature", "Rainfall", "pH", "Humidity"]
+
+# Single source of truth for the accepted range of every numeric feature.
+# Consumed by FullModeRequest's validator AND served from /meta, so the
+# frontend's inputs and the server's validation can never disagree.
+#
+# The bounds come from the TRAINING DATA, not from what is physically possible.
+# A tree ensemble cannot extrapolate: a value past the edge of the training data
+# falls into the same leaves as the nearest real data, so every tree agrees and
+# the prediction returns a high confidence it has not earned. Refusing to answer
+# outside the data is more honest than guessing confidently.
+#
+#   min/max           — accepted range (the observed min/max of the training set)
+#   warn_min/warn_max — 1st-99th percentile; inside the data but thinly
+#                       represented, so the prediction is flagged as less reliable
+#   unit              — display unit sent to the client
+#   suffix            — exactly how the unit reads inside a validation message
+#   step              — input granularity the client should use
+#
+# Regenerate after retraining:
+#   python ai_models/training/generate_feature_bounds.py
+_DEFAULT_NUMERIC_RANGES = {
+    "N":           {"min": 10.0, "max": 226.0,  "warn_min": 23.0,  "warn_max": 193.0,  "unit": "kg/ha", "suffix": " kg/ha", "step": 1},
+    "P":           {"min": 12.0, "max": 151.0,  "warn_min": 18.6,  "warn_max": 133.0,  "unit": "kg/ha", "suffix": " kg/ha", "step": 1},
+    "K":           {"min": 22.0, "max": 217.0,  "warn_min": 28.0,  "warn_max": 176.0,  "unit": "kg/ha", "suffix": " kg/ha", "step": 1},
+    "Temperature": {"min": 13.6, "max": 35.5,   "warn_min": 16.2,  "warn_max": 33.3,   "unit": "C",     "suffix": " C",     "step": 0.1},
+    "Rainfall":    {"min": 25.0, "max": 3663.0, "warn_min": 75.0,  "warn_max": 2756.1, "unit": "mm",    "suffix": " mm",    "step": 1},
+    "pH":          {"min": 4.9,  "max": 8.2,    "warn_min": 5.2,   "warn_max": 7.7,    "unit": "pH",    "suffix": "",       "step": 0.1},
+    "Humidity":    {"min": 45.0, "max": 97.0,   "warn_min": 50.0,  "warn_max": 91.8,   "unit": "%",     "suffix": "%",      "step": 1},
+}
+
+FEATURE_BOUNDS_PATH = Path(__file__).parent.parent / "ai_models" / "training" / "models" / "feature_bounds.json"
+try:
+    with open(FEATURE_BOUNDS_PATH, encoding="utf-8") as _f:
+        _bounds_file = json.load(_f)
+    NUMERIC_RANGES = _bounds_file["features"]
+    missing = set(FULL_NUM_FEATURES) - set(NUMERIC_RANGES)
+    if missing:
+        raise ValueError(f"feature_bounds.json is missing {sorted(missing)}")
+    _BOUNDS_SRC = "feature_bounds.json"
+    logger.info("[OK] Feature bounds from %s (%s rows)",
+                FEATURE_BOUNDS_PATH.name, _bounds_file.get("_rows", "?"))
+except Exception as _bounds_err:
+    NUMERIC_RANGES = _DEFAULT_NUMERIC_RANGES
+    _BOUNDS_SRC = "hardcoded_defaults"
+    logger.warning("[WARN] Feature bounds: using hardcoded defaults (%s)", _bounds_err)
+
+
+def _fmt_bound(v: float) -> str:
+    """Render a bound without a trailing '.0' so messages read '0-300', not '0.0-300.0'."""
+    return str(int(v)) if float(v).is_integer() else str(v)
 
 PLANTING_WINDOWS = {
     "Maha":       {"plant_start": 10, "plant_end": 1},
@@ -152,46 +233,22 @@ class FullModeRequest(BaseModel):
             raise ValueError(f"Invalid Season '{v}'. Must be: Maha, Yala, or Year-round.")
         return v
 
-    @field_validator("N")
+    @field_validator(*FULL_NUM_FEATURES)
     @classmethod
-    def validate_N(cls, v):
-        if not (0 <= v <= 300): raise ValueError("N must be 0-300 kg/ha.")
-        return v
+    def validate_numeric_range(cls, v, info):
+        """Range-check every numeric feature against the shared NUMERIC_RANGES table.
 
-    @field_validator("P")
-    @classmethod
-    def validate_P(cls, v):
-        if not (0 <= v <= 200): raise ValueError("P must be 0-200 kg/ha.")
-        return v
-
-    @field_validator("K")
-    @classmethod
-    def validate_K(cls, v):
-        if not (0 <= v <= 300): raise ValueError("K must be 0-300 kg/ha.")
-        return v
-
-    @field_validator("Temperature")
-    @classmethod
-    def validate_temp(cls, v):
-        if not (5 <= v <= 45): raise ValueError("Temperature must be 5-45 C.")
-        return v
-
-    @field_validator("Rainfall")
-    @classmethod
-    def validate_rainfall(cls, v):
-        if not (0 <= v <= 5000): raise ValueError("Rainfall must be 0-5000 mm.")
-        return v
-
-    @field_validator("pH")
-    @classmethod
-    def validate_ph(cls, v):
-        if not (3.0 <= v <= 10.0): raise ValueError("pH must be 3.0-10.0.")
-        return v
-
-    @field_validator("Humidity")
-    @classmethod
-    def validate_humidity(cls, v):
-        if not (0 <= v <= 100): raise ValueError("Humidity must be 0-100%.")
+        NaN/Infinity are checked first only to give a clearer message than the
+        range one they would otherwise fall through to.
+        """
+        spec = NUMERIC_RANGES[info.field_name]
+        if not math.isfinite(v):
+            raise ValueError(f"{info.field_name} must be a finite number.")
+        lo, hi = spec["min"], spec["max"]
+        if not (lo <= v <= hi):
+            raise ValueError(
+                f"{info.field_name} must be {_fmt_bound(lo)}-{_fmt_bound(hi)}{spec['suffix']}."
+            )
         return v
 
 
@@ -314,22 +371,9 @@ if full_model is not None and hasattr(full_model, "named_estimators_"):
     if _xai_rf_model is not None:
         logger.info("[OK] RF sub-model extracted for XAI")
 
-_DEFAULT_TRAIN_STATS = {
-    "N":           (100.6, 40.1),
-    "P":           (65.9,  25.8),
-    "K":           (94.1,  40.6),
-    "Temperature": (26.5,  3.9),
-    "Rainfall":    (1139.7, 545.4),
-    "pH":          (6.3,   0.6),
-    "Humidity":    (71.9,  9.3),
-}
-
-if full_model_info and "train_stats" in full_model_info:
-    TRAIN_STATS = {k: (float(v[0]), float(v[1])) for k, v in full_model_info["train_stats"].items()}
-    logger.info("[OK] Train stats loaded from model_info")
-else:
-    TRAIN_STATS = _DEFAULT_TRAIN_STATS
-    logger.warning("[WARN] Train stats: using hardcoded defaults (retrain to fix)")
+# NOTE: the model artefact also carries per-feature mean/std under "train_stats".
+# It is no longer read here: it only fed the ±3σ warning band, which was replaced
+# by the percentile bounds in NUMERIC_RANGES (see check_warnings for why).
 
 _cal_T = float(full_model_info.get("calibration_temperature", 1.0)) if full_model_info else 1.0
 logger.info("[OK] Calibration temperature T=%.4f", _cal_T)
@@ -522,7 +566,13 @@ def generate_xai_summary(xai_features: list, crop: str, user_inputs: dict) -> di
 
 
 def check_warnings(user_inputs: dict) -> list:
-    """Return warnings for values outside ±3σ of the training distribution."""
+    """Flag values that sit in the sparse tails of the training distribution.
+
+    Previously used a ±3σ band, which did not work on these features: N, P, K
+    and Rainfall are right-skewed, so mean-3σ fell BELOW ZERO (N: -25.2,
+    Rainfall: -605.1) and a reading of 0 was never flagged. Uses the 1st-99th
+    percentile from the data instead, which cannot go outside the real range.
+    """
     field_labels = {
         "N":           {"en": "Nitrogen (N)",   "si": "නයිට්‍රජන් (N)",  "ta": "நைட்ரஜன் (N)"},
         "P":           {"en": "Phosphorus (P)", "si": "පොස්පරස් (P)",    "ta": "பாஸ்பரஸ் (P)"},
@@ -533,11 +583,13 @@ def check_warnings(user_inputs: dict) -> list:
         "Humidity":    {"en": "Humidity",       "si": "ආර්ද්‍රතාවය",      "ta": "ஈரப்பதம்"},
     }
     warnings = []
-    for field, (mean, std) in TRAIN_STATS.items():
+    for field, spec in NUMERIC_RANGES.items():
         val = user_inputs.get(field)
         if val is None:
             continue
-        lo, hi = mean - 3 * std, mean + 3 * std
+        lo, hi = spec.get("warn_min"), spec.get("warn_max")
+        if lo is None or hi is None:
+            continue
         if val < lo or val > hi:
             lbl = field_labels[field]
             warnings.append(Warning(
@@ -572,7 +624,7 @@ def _get_crop_info(crop_name: str) -> Optional[CropInfo]:
     return None
 
 
-def _get_calendar(season: str, crop_name: str = None) -> Optional[PlantingCalendar]:
+def _get_calendar(season: str, crop_name: Optional[str] = None) -> Optional[PlantingCalendar]:
     window = PLANTING_WINDOWS.get(season)
     if not window:
         return None
@@ -607,13 +659,13 @@ async def health():
             "accuracy":        full_model_info.get("accuracy")   if full_model_info else None,
             "type":            full_model_info.get("model_type") if full_model_info else None,
             "calibration_T":   _cal_T,
-            "train_stats_src": "model_info" if (full_model_info and "train_stats" in full_model_info) else "hardcoded_defaults",
+            "bounds_src":      _BOUNDS_SRC,
         },
         "crop_info_crops": len(crop_info_db),
         "cache_entries":   len(_prediction_cache),
         "features": [
             "xai_per_prediction", "xai_direction", "xai_multilingual",
-            "warnings_3sigma", "crop_specific_calendar",
+            "warnings_percentile", "training_range_bounds", "crop_specific_calendar",
             "caching", "logging", "temperature_scaling",
         ],
     }
@@ -634,14 +686,15 @@ async def meta():
             "Mullaitivu", "Nuwara Eliya", "Polonnaruwa", "Puttalam", "Ratnapura",
             "Trincomalee", "Vavuniya",
         ],
+        # Served straight from the constant the validator uses, so a range can
+        # never be tightened server-side while the form still accepts the old one.
         "numeric_ranges": {
-            "N":           {"min": 0,   "max": 300,  "unit": "kg/ha"},
-            "P":           {"min": 0,   "max": 200,  "unit": "kg/ha"},
-            "K":           {"min": 0,   "max": 300,  "unit": "kg/ha"},
-            "Temperature": {"min": 5,   "max": 45,   "unit": "C"},
-            "Rainfall":    {"min": 0,   "max": 5000, "unit": "mm"},
-            "pH":          {"min": 3.0, "max": 10.0, "unit": "pH"},
-            "Humidity":    {"min": 0,   "max": 100,  "unit": "%"},
+            f: {
+                "min": s["min"], "max": s["max"],
+                "warn_min": s.get("warn_min"), "warn_max": s.get("warn_max"),
+                "unit": s["unit"], "step": s["step"],
+            }
+            for f, s in NUMERIC_RANGES.items()
         },
     }
 
@@ -755,6 +808,12 @@ from datetime import date as _date, timedelta as _timedelta
 _cultivations_fallback: Dict[str, Dict] = {}
 
 
+# How far a planting date may sit from today. Past allows back-filling an
+# already-running cultivation; future allows planning the next season.
+PLANTING_DATE_MAX_PAST_DAYS   = 365 * 5
+PLANTING_DATE_MAX_FUTURE_DAYS = 365 * 2
+
+
 class StartCultivationRequest(BaseModel):
     user_id:       str
     crop:          str
@@ -763,6 +822,43 @@ class StartCultivationRequest(BaseModel):
     crop_id:       Optional[str] = None   # UUID of the crops table row
     farm_id:       Optional[str] = None   # UUID of the farms table row
 
+    @field_validator("user_id", "crop")
+    @classmethod
+    def validate_non_blank(cls, v, info):
+        if not v or not v.strip():
+            raise ValueError(f"{info.field_name} must not be blank.")
+        return v.strip()
+
+    @field_validator("planting_date")
+    @classmethod
+    def validate_planting_date(cls, v):
+        """Reject anything _gen_cultivation_tasks could not build a schedule from.
+
+        Without this the task generator returns an empty list and the session is
+        still created — a cultivation with no tasks and no error shown.
+        """
+        try:
+            pd = _date.fromisoformat(v)
+        except (ValueError, TypeError):
+            raise ValueError(f"planting_date '{v}' is not a valid ISO date (YYYY-MM-DD).")
+        delta = (pd - _date.today()).days
+        if delta < -PLANTING_DATE_MAX_PAST_DAYS:
+            raise ValueError(f"planting_date '{v}' is too far in the past.")
+        if delta > PLANTING_DATE_MAX_FUTURE_DAYS:
+            raise ValueError(f"planting_date '{v}' is too far in the future.")
+        return v
+
+    @field_validator("crop_id", "farm_id")
+    @classmethod
+    def validate_optional_uuid(cls, v, info):
+        if v is None or v == "":
+            return None
+        try:
+            _uuid.UUID(v)
+        except (ValueError, AttributeError, TypeError):
+            raise ValueError(f"{info.field_name} '{v}' is not a valid UUID.")
+        return v
+
 
 class TaskStatusUpdate(BaseModel):
     status: str  # done | skipped | pending | overdue
@@ -770,10 +866,12 @@ class TaskStatusUpdate(BaseModel):
 
 
 def _gen_cultivation_tasks(crop_data: dict, planting_date_str: str) -> list:
-    try:
-        pd = _date.fromisoformat(planting_date_str)
-    except ValueError:
-        return []
+    # Raises rather than returning [] on a bad date: an empty task list is
+    # indistinguishable from a crop that legitimately has no activities, which
+    # is how a session with no schedule used to get created silently.
+    # StartCultivationRequest already rejects bad dates, so this only fires for
+    # a caller that bypassed the model.
+    pd = _date.fromisoformat(planting_date_str)
     today = _date.today()
     tasks = []
 
@@ -878,7 +976,14 @@ def start_cultivation(req: StartCultivationRequest):
     if crop_data is None:
         raise HTTPException(404, f"No guidance for crop: {req.crop}")
 
-    task_list = _gen_cultivation_tasks(crop_data, req.planting_date)
+    try:
+        task_list = _gen_cultivation_tasks(crop_data, req.planting_date)
+    except ValueError as exc:
+        raise HTTPException(400, f"Cannot build a task schedule: {exc}")
+
+    if not task_list:
+        raise HTTPException(500, f"No cultivation activities defined for crop: {req.crop}")
+
     logger.info("cultivation started | user=%s crop=%s tasks=%d", req.user_id[:8], req.crop, len(task_list))
 
     if _DB_AVAILABLE:
