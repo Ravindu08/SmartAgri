@@ -60,7 +60,9 @@ def test_predict_full_ph_invalid():
 
 @pytest.mark.skipif(not MODELS_LOADED, reason="Models not trained yet")
 def test_predict_full_outlier_warning():
-    r = client.post("/predict/full", json={**VALID_FULL,"Rainfall":4999.0})
+    # Inside the accepted range (max 3663) but past the 99th percentile (2756),
+    # so it is served with a warning rather than rejected.
+    r = client.post("/predict/full", json={**VALID_FULL,"Rainfall":3200.0})
     assert r.status_code == 200
     assert any(w["field"]=="Rainfall" for w in r.json()["data"]["warnings"])
 
@@ -157,3 +159,58 @@ def test_cultivation_rejects_malformed_uuid():
 def test_cultivation_rejects_unknown_crop():
     r = client.post("/cultivation", json={**VALID_CULTIVATION, "crop": "Dragonfruit-XYZ"})
     assert r.status_code == 404
+
+
+# ── Bounds come from the training data, not from physical limits ─────────────
+# A tree ensemble cannot extrapolate, so outside the training range it returns a
+# confident guess. These lock in that such values are refused rather than served.
+
+def test_bounds_are_training_range_not_physical():
+    """Guards against the ranges being widened back to physical limits."""
+    from ml_service.app import NUMERIC_RANGES
+    # values that are physically possible but were never in the training data
+    for field, value in [("N", 0), ("P", 0), ("K", 0), ("Temperature", 5.0),
+                         ("Rainfall", 0), ("pH", 3.0), ("Humidity", 0)]:
+        spec = NUMERIC_RANGES[field]
+        assert not (spec["min"] <= value <= spec["max"]), (
+            f"{field}={value} is outside the training data but still accepted"
+        )
+
+def test_the_91_percent_nonsense_case_is_now_refused():
+    """The exact input that used to return 'Pigeon Pea, 91% confidence'."""
+    r = client.post("/predict/full", json={
+        "Soil_Type": "Sandy Soil", "Agro_Zone": "Wet Zone",
+        "Irrigation": "Rainfed", "Season": "Maha",
+        "N": 0, "P": 0, "K": 0, "Temperature": 5,
+        "Rainfall": 0, "pH": 3.0, "Humidity": 0,
+    })
+    assert r.status_code == 422
+    # every one of the seven should be named, not just the first
+    detail = str(r.json()["detail"])
+    for field in ["N", "P", "K", "Temperature", "Rainfall", "pH", "Humidity"]:
+        assert field in detail, f"{field} not reported"
+
+@pytest.mark.skipif(not MODELS_LOADED, reason="Models not trained yet")
+def test_realistic_farm_still_works_without_warnings():
+    """The tightened bounds must not get in the way of ordinary use."""
+    r = client.post("/predict/full", json=VALID_FULL)
+    assert r.status_code == 200
+    assert r.json()["data"]["warnings"] == []
+
+def test_warn_band_sits_inside_accept_band():
+    from ml_service.app import NUMERIC_RANGES
+    for field, spec in NUMERIC_RANGES.items():
+        assert spec["min"] <= spec["warn_min"] < spec["warn_max"] <= spec["max"], field
+
+def test_warn_bounds_are_never_negative():
+    """The ±3σ band this replaced had negative lower bounds on N/P/K/Rainfall,
+    so a reading of 0 was never flagged."""
+    from ml_service.app import NUMERIC_RANGES
+    for field, spec in NUMERIC_RANGES.items():
+        assert spec["warn_min"] >= 0, f"{field} warn_min is negative"
+        assert spec["min"] >= 0, f"{field} min is negative"
+
+def test_meta_serves_warn_band():
+    ranges = client.get("/meta").json()["numeric_ranges"]
+    for field, spec in ranges.items():
+        assert spec["warn_min"] is not None and spec["warn_max"] is not None, field

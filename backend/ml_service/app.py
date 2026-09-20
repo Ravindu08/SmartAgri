@@ -131,18 +131,47 @@ FULL_NUM_FEATURES   = ["N", "P", "K", "Temperature", "Rainfall", "pH", "Humidity
 # Single source of truth for the accepted range of every numeric feature.
 # Consumed by FullModeRequest's validator AND served from /meta, so the
 # frontend's inputs and the server's validation can never disagree.
-#   unit    — display unit sent to the client
-#   suffix  — exactly how the unit reads inside a validation message
-#   step    — input granularity the client should use
-NUMERIC_RANGES = {
-    "N":           {"min": 0.0,  "max": 300.0,  "unit": "kg/ha", "suffix": " kg/ha", "step": 1},
-    "P":           {"min": 0.0,  "max": 200.0,  "unit": "kg/ha", "suffix": " kg/ha", "step": 1},
-    "K":           {"min": 0.0,  "max": 300.0,  "unit": "kg/ha", "suffix": " kg/ha", "step": 1},
-    "Temperature": {"min": 5.0,  "max": 45.0,   "unit": "C",     "suffix": " C",     "step": 0.1},
-    "Rainfall":    {"min": 0.0,  "max": 5000.0, "unit": "mm",    "suffix": " mm",    "step": 1},
-    "pH":          {"min": 3.0,  "max": 10.0,   "unit": "pH",    "suffix": "",       "step": 0.1},
-    "Humidity":    {"min": 0.0,  "max": 100.0,  "unit": "%",     "suffix": "%",      "step": 1},
+#
+# The bounds come from the TRAINING DATA, not from what is physically possible.
+# A tree ensemble cannot extrapolate: a value past the edge of the training data
+# falls into the same leaves as the nearest real data, so every tree agrees and
+# the prediction returns a high confidence it has not earned. Refusing to answer
+# outside the data is more honest than guessing confidently.
+#
+#   min/max           — accepted range (the observed min/max of the training set)
+#   warn_min/warn_max — 1st-99th percentile; inside the data but thinly
+#                       represented, so the prediction is flagged as less reliable
+#   unit              — display unit sent to the client
+#   suffix            — exactly how the unit reads inside a validation message
+#   step              — input granularity the client should use
+#
+# Regenerate after retraining:
+#   python ai_models/training/generate_feature_bounds.py
+_DEFAULT_NUMERIC_RANGES = {
+    "N":           {"min": 10.0, "max": 226.0,  "warn_min": 23.0,  "warn_max": 193.0,  "unit": "kg/ha", "suffix": " kg/ha", "step": 1},
+    "P":           {"min": 12.0, "max": 151.0,  "warn_min": 18.6,  "warn_max": 133.0,  "unit": "kg/ha", "suffix": " kg/ha", "step": 1},
+    "K":           {"min": 22.0, "max": 217.0,  "warn_min": 28.0,  "warn_max": 176.0,  "unit": "kg/ha", "suffix": " kg/ha", "step": 1},
+    "Temperature": {"min": 13.6, "max": 35.5,   "warn_min": 16.2,  "warn_max": 33.3,   "unit": "C",     "suffix": " C",     "step": 0.1},
+    "Rainfall":    {"min": 25.0, "max": 3663.0, "warn_min": 75.0,  "warn_max": 2756.1, "unit": "mm",    "suffix": " mm",    "step": 1},
+    "pH":          {"min": 4.9,  "max": 8.2,    "warn_min": 5.2,   "warn_max": 7.7,    "unit": "pH",    "suffix": "",       "step": 0.1},
+    "Humidity":    {"min": 45.0, "max": 97.0,   "warn_min": 50.0,  "warn_max": 91.8,   "unit": "%",     "suffix": "%",      "step": 1},
 }
+
+FEATURE_BOUNDS_PATH = Path(__file__).parent.parent / "ai_models" / "training" / "models" / "feature_bounds.json"
+try:
+    with open(FEATURE_BOUNDS_PATH, encoding="utf-8") as _f:
+        _bounds_file = json.load(_f)
+    NUMERIC_RANGES = _bounds_file["features"]
+    missing = set(FULL_NUM_FEATURES) - set(NUMERIC_RANGES)
+    if missing:
+        raise ValueError(f"feature_bounds.json is missing {sorted(missing)}")
+    _BOUNDS_SRC = "feature_bounds.json"
+    logger.info("[OK] Feature bounds from %s (%s rows)",
+                FEATURE_BOUNDS_PATH.name, _bounds_file.get("_rows", "?"))
+except Exception as _bounds_err:
+    NUMERIC_RANGES = _DEFAULT_NUMERIC_RANGES
+    _BOUNDS_SRC = "hardcoded_defaults"
+    logger.warning("[WARN] Feature bounds: using hardcoded defaults (%s)", _bounds_err)
 
 
 def _fmt_bound(v: float) -> str:
@@ -342,22 +371,9 @@ if full_model is not None and hasattr(full_model, "named_estimators_"):
     if _xai_rf_model is not None:
         logger.info("[OK] RF sub-model extracted for XAI")
 
-_DEFAULT_TRAIN_STATS = {
-    "N":           (100.6, 40.1),
-    "P":           (65.9,  25.8),
-    "K":           (94.1,  40.6),
-    "Temperature": (26.5,  3.9),
-    "Rainfall":    (1139.7, 545.4),
-    "pH":          (6.3,   0.6),
-    "Humidity":    (71.9,  9.3),
-}
-
-if full_model_info and "train_stats" in full_model_info:
-    TRAIN_STATS = {k: (float(v[0]), float(v[1])) for k, v in full_model_info["train_stats"].items()}
-    logger.info("[OK] Train stats loaded from model_info")
-else:
-    TRAIN_STATS = _DEFAULT_TRAIN_STATS
-    logger.warning("[WARN] Train stats: using hardcoded defaults (retrain to fix)")
+# NOTE: the model artefact also carries per-feature mean/std under "train_stats".
+# It is no longer read here: it only fed the ±3σ warning band, which was replaced
+# by the percentile bounds in NUMERIC_RANGES (see check_warnings for why).
 
 _cal_T = float(full_model_info.get("calibration_temperature", 1.0)) if full_model_info else 1.0
 logger.info("[OK] Calibration temperature T=%.4f", _cal_T)
@@ -550,7 +566,13 @@ def generate_xai_summary(xai_features: list, crop: str, user_inputs: dict) -> di
 
 
 def check_warnings(user_inputs: dict) -> list:
-    """Return warnings for values outside ±3σ of the training distribution."""
+    """Flag values that sit in the sparse tails of the training distribution.
+
+    Previously used a ±3σ band, which did not work on these features: N, P, K
+    and Rainfall are right-skewed, so mean-3σ fell BELOW ZERO (N: -25.2,
+    Rainfall: -605.1) and a reading of 0 was never flagged. Uses the 1st-99th
+    percentile from the data instead, which cannot go outside the real range.
+    """
     field_labels = {
         "N":           {"en": "Nitrogen (N)",   "si": "නයිට්‍රජන් (N)",  "ta": "நைட்ரஜன் (N)"},
         "P":           {"en": "Phosphorus (P)", "si": "පොස්පරස් (P)",    "ta": "பாஸ்பரஸ் (P)"},
@@ -561,11 +583,13 @@ def check_warnings(user_inputs: dict) -> list:
         "Humidity":    {"en": "Humidity",       "si": "ආර්ද්‍රතාවය",      "ta": "ஈரப்பதம்"},
     }
     warnings = []
-    for field, (mean, std) in TRAIN_STATS.items():
+    for field, spec in NUMERIC_RANGES.items():
         val = user_inputs.get(field)
         if val is None:
             continue
-        lo, hi = mean - 3 * std, mean + 3 * std
+        lo, hi = spec.get("warn_min"), spec.get("warn_max")
+        if lo is None or hi is None:
+            continue
         if val < lo or val > hi:
             lbl = field_labels[field]
             warnings.append(Warning(
@@ -635,13 +659,13 @@ async def health():
             "accuracy":        full_model_info.get("accuracy")   if full_model_info else None,
             "type":            full_model_info.get("model_type") if full_model_info else None,
             "calibration_T":   _cal_T,
-            "train_stats_src": "model_info" if (full_model_info and "train_stats" in full_model_info) else "hardcoded_defaults",
+            "bounds_src":      _BOUNDS_SRC,
         },
         "crop_info_crops": len(crop_info_db),
         "cache_entries":   len(_prediction_cache),
         "features": [
             "xai_per_prediction", "xai_direction", "xai_multilingual",
-            "warnings_3sigma", "crop_specific_calendar",
+            "warnings_percentile", "training_range_bounds", "crop_specific_calendar",
             "caching", "logging", "temperature_scaling",
         ],
     }
@@ -665,7 +689,11 @@ async def meta():
         # Served straight from the constant the validator uses, so a range can
         # never be tightened server-side while the form still accepts the old one.
         "numeric_ranges": {
-            f: {"min": s["min"], "max": s["max"], "unit": s["unit"], "step": s["step"]}
+            f: {
+                "min": s["min"], "max": s["max"],
+                "warn_min": s.get("warn_min"), "warn_max": s.get("warn_max"),
+                "unit": s["unit"], "step": s["step"],
+            }
             for f, s in NUMERIC_RANGES.items()
         },
     }

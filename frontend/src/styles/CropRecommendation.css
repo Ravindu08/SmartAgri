@@ -40,6 +40,25 @@
 }
 .wx-autofill-badge strong { color: #0d47a1; }
 
+/* Shown when a live weather reading fell outside the model's trained range and
+   was pulled to the nearest bound. Amber, not red: the form still works. */
+.wx-clamped-note {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1.5px solid rgba(245, 158, 11, 0.30);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #7c4a03;
+  line-height: 1.5;
+}
+.wx-clamped-note ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+.wx-clamped-note li { margin-top: 2px; }
+.wx-clamped-note strong { color: #92400e; }
+
 .wx-autofill-hint {
   margin-bottom: 12px;
   padding: 9px 14px;
@@ -1126,6 +1145,12 @@
   color: #93c5fd;
 }
 [data-theme="dark"] .wx-autofill-badge strong { color: #60a5fa; }
+[data-theme="dark"] .wx-clamped-note {
+  background: rgba(245, 158, 11, 0.10);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #fcd34d;
+}
+[data-theme="dark"] .wx-clamped-note strong { color: #fbbf24; }
 [data-theme="dark"] .wx-autofill-hint {
   background: var(--border-soft);
   border-color: var(--border);
