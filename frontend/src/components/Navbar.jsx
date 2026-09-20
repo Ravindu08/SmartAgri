@@ -105,6 +105,9 @@ export default function Navbar() {
         {isSignedIn && activeRole === 'Trader' && (
           <Link className="navbar__farm-link" to="/trader/dashboard" onClick={close}>{t.myDashboard}</Link>
         )}
+        {isSignedIn && activeRole === 'Admin' && (
+          <Link className="navbar__farm-link" to="/admin/dashboard" onClick={close}>{t.myDashboard}</Link>
+        )}
 
         {/* Language, theme, and auth controls live in .navbar__controls for desktop
             (fits comfortably beside the links). Below the collapse breakpoint that
@@ -154,7 +157,7 @@ export default function Navbar() {
         </button>
         {isSignedIn ? (
           <>
-            {!location.pathname.startsWith('/landowner') && !location.pathname.startsWith('/trader') && (
+            {!location.pathname.startsWith('/landowner') && !location.pathname.startsWith('/trader') && !location.pathname.startsWith('/admin') && (
               <>
                 <span className="navbar__session">
                   <span className="navbar__role">{activeRole}</span>
