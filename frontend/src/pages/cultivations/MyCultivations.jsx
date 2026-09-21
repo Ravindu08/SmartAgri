@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getCrops, deleteCrop } from '../../services/cropService';
-import { listCultivations, abandonCultivation } from '../../utils/cultivationApi';
+import { listCultivations, abandonCultivation, findSessionForCrop } from '../../utils/cultivationApi';
 import { getAuthSession } from '../../services/api';
 import { CROP_EMOJI, getCropLabel } from '../../data/cropData';
 import { useApp } from '../../context/AppContext';
@@ -148,12 +148,7 @@ export default function MyCultivations() {
   }, []);
 
   function getSession(crop) {
-    return sessions.find(s =>
-      (s.status === 'active' || s.status === 'completed') && (
-        (crop.id && s.crop_id && s.crop_id === String(crop.id)) ||
-        s.crop.toLowerCase() === crop.crop_name.toLowerCase()
-      )
-    ) || null;
+    return findSessionForCrop(sessions, crop, ['active', 'completed']);
   }
 
   function goBack() {
