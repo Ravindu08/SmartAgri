@@ -3,7 +3,7 @@ import { ML_BASE_URL } from '../../services/api';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getFarm } from '../../services/farmService';
 import { createCrop, getCropsByFarm } from '../../services/cropService';
-import { listCultivations } from '../../utils/cultivationApi';
+import { listCultivations, findSessionForCrop } from '../../utils/cultivationApi';
 import { getAuthSession } from '../../services/api';
 import { CROP_EMOJI, getCropLabel, getSoilLabel } from '../../data/cropData';
 import { useApp } from '../../context/AppContext';
@@ -113,8 +113,8 @@ export default function FarmDetails() {
     : [];
   const noPlannedCrops = cropOptions.length === 0;
 
-  function findSession(cropName) {
-    return sessions.find(s => s.crop.toLowerCase() === cropName.toLowerCase()) || null;
+  function findSession(crop) {
+    return findSessionForCrop(sessions, crop);
   }
 
   if (isLoading) return <div className="farm-loading">{t.loadingFarmDetails}</div>;
@@ -216,7 +216,7 @@ export default function FarmDetails() {
                 <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 8 }}>{t.activeCultLabel}</p>
                 <div className="farm-detail-crops">
                   {crops.map(crop => {
-                    const session = findSession(crop.crop_name);
+                    const session = findSession(crop);
                     return (
                       <div key={crop.id} className="farm-detail-crop-row">
                         <Link
