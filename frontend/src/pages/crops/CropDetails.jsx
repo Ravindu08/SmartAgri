@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getCrop, deleteCrop } from '../../services/cropService';
-import { listCultivations, abandonCultivation } from '../../utils/cultivationApi';
+import { listCultivations, abandonCultivation, findSessionForCrop } from '../../utils/cultivationApi';
 import { getAuthSession } from '../../services/api';
 import { useApp } from '../../context/AppContext';
 import { getCropLabel } from '../../data/cropData';
 import { LAND_T, CROP_STATUS_LABELS } from '../../data/translations';
 import Toast from '../../components/Toast';
 
-function resolveCultStatus(sessions, cropName) {
-  if (!sessions || !sessions.length || !cropName) return null;
-  const match = sessions.find(s => s.crop.toLowerCase() === cropName.toLowerCase());
+function resolveCultStatus(match) {
   if (!match) return null;
   if (match.status === 'abandoned') return 'Abandoned';
   if (match.status === 'completed') return 'Completed';
@@ -43,12 +41,9 @@ export default function CropDetails() {
             : Promise.resolve({ sessions: [] }),
         ]);
         const allSessions = cultData.sessions || [];
-        const matchedSession = allSessions.find(s =>
-          (cropData?.id && s.crop_id && s.crop_id === String(cropData.id)) ||
-          s.crop.toLowerCase() === cropData?.crop_name?.toLowerCase()
-        ) || null;
+        const matchedSession = findSessionForCrop(allSessions, cropData);
         setCrop(cropData);
-        setCultStatus(resolveCultStatus(allSessions, cropData?.crop_name));
+        setCultStatus(resolveCultStatus(matchedSession));
         setCultSession(matchedSession);
       } catch (error) {
         setToast({ type: 'error', message: error.message });
