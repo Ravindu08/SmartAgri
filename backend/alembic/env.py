@@ -3,7 +3,9 @@ from pathlib import Path
 import sys
 
 from alembic import context
+# pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
+# pyrefly: ignore [missing-import]
 from sqlalchemy import engine_from_config, pool
 
 
