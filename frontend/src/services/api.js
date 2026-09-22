@@ -1,6 +1,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 export const ML_BASE_URL = import.meta.env.VITE_ML_URL || '';
 
+//jwt token backend ekata yawana hama request ekatam alawala yawanne meken
 export async function fetchBackendHealth() {
   const response = await fetch(`${API_BASE_URL}/health`);
   if (!response.ok) throw new Error('Unable to reach SmartAgri backend');
