@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
-import { BookOpen, CalendarDays, Check, CloudRain, CloudSun, Droplets, Info, MapPin, ShieldAlert, Sparkles, Thermometer, TriangleAlert, Wind } from "lucide-react";
+import { BookOpen, CalendarDays, Check, CloudRain, Droplets, Info, MapPin, ShieldAlert, Sparkles, Thermometer, TriangleAlert, Wind } from "lucide-react";
 import { ML_BASE_URL } from "../services/api";
 import { DISTRICTS } from "../data/districtZones";
 import { DISTRICT_LABELS, SEA_LABELS } from "../data/translations";
 import ToolSwitcher from "../components/ToolSwitcher";
+import ToolIntro from "../components/ToolIntro";
 import "../styles/tool-wx.css";
 import SpotlightTour   from "../components/tour/SpotlightTour";
 import HelpButton      from "../components/tour/HelpButton";
@@ -269,9 +270,9 @@ const WET = ["Colombo", "Gampaha", "Kalutara", "Galle", "Matara", "Ratnapura", "
 const INTERMEDIATE = ["Kurunegala", "Matale", "Badulla", "Monaragala"];
 const zoneGroup = d => (WET.includes(d) ? "wet" : INTERMEDIATE.includes(d) ? "inter" : "dry");
 const GROUPS = [
-  { key: "wet",   tone: "sky",   nameKey: "zone1Name" },
-  { key: "dry",   tone: "amber", nameKey: "zone2Name" },
-  { key: "inter", tone: "green", nameKey: "zone3Name" },
+  { key: "wet",   dot: "#38bdf8", nameKey: "zone1Name" },
+  { key: "dry",   dot: "#f59e0b", nameKey: "zone2Name" },
+  { key: "inter", dot: "#22c55e", nameKey: "zone3Name" },
 ];
 
 // How each kind of advice is shown, and the order it is listed in.
@@ -355,21 +356,22 @@ export default function Weather({ lang, onWeatherFetched }) {
   const myGroup = district ? zoneGroup(district) : null;
 
   const ZONES = [
-    { key: "wet",   bg: "linear-gradient(135deg,#1d4ed8,#38bdf8)", name: t.zone1Name, desc: t.zone1Desc, list: t.zone1Districts },
-    { key: "dry",   bg: "linear-gradient(135deg,#b45309,#fbbf24)", name: t.zone2Name, desc: t.zone2Desc, list: t.zone2Districts },
-    { key: "inter", bg: "linear-gradient(135deg,#15803d,#a3e635)", name: t.zone3Name, desc: t.zone3Desc, list: t.zone3Districts },
+    { key: "wet",   dot: "#38bdf8", name: t.zone1Name, desc: t.zone1Desc, list: t.zone1Districts },
+    { key: "dry",   dot: "#f59e0b", name: t.zone2Name, desc: t.zone2Desc, list: t.zone2Districts },
+    { key: "inter", dot: "#22c55e", name: t.zone3Name, desc: t.zone3Desc, list: t.zone3Districts },
   ];
   const SEASONS = [
-    { key: "Maha",       bg: "linear-gradient(135deg,#0f766e,#2dd4bf)", name: t.sea1Name, months: t.sea1Months, desc: t.sea1Desc },
-    { key: "Yala",       bg: "linear-gradient(135deg,#c2410c,#fb923c)", name: t.sea2Name, months: t.sea2Months, desc: t.sea2Desc },
-    { key: "Year-round", bg: "linear-gradient(135deg,#6d28d9,#f472b6)", name: t.sea3Name, months: t.sea3Months, desc: t.sea3Desc },
+    { key: "Maha",       dot: "var(--tu-sky)", name: t.sea1Name, months: t.sea1Months, desc: t.sea1Desc },
+    { key: "Yala",       dot: "var(--tu-sky)", name: t.sea2Name, months: t.sea2Months, desc: t.sea2Desc },
+    { key: "Year-round", dot: "var(--tu-sky)", name: t.sea3Name, months: t.sea3Months, desc: t.sea3Desc },
   ];
 
   return (
     <div className="tu-page tu-tone-sky">
       <ToolSwitcher />
+      <ToolIntro tool="wx" />
 
-      <div className="wx2-top">
+      <div className={data ? "wx2-top" : "wx2-top wx2-top--solo"}>
         {/* ── Now, or the intro before a district is picked ── */}
         {data ? (
           <section className={`wx2-now wx2-now--${skyMood(data.current.weather_code)} tu-rise`} data-tour="wx-current">
@@ -390,16 +392,7 @@ export default function Weather({ lang, onWeatherFetched }) {
               <div><small><TriangleAlert size={14} />{x.rainTomorrow}</small><b>{tomorrow ? `${Math.round(tomorrow.precip_prob || 0)}%` : "–"}</b></div>
             </div>
           </section>
-        ) : (
-          <section className="wx2-now wx2-intro tu-rise">
-            <div>
-              <span className="tu-eyebrow"><CloudSun size={14} />{t.title}</span>
-              <h1>{t.emptyTitle}</h1>
-              <p>{t.subtitle}.</p>
-            </div>
-            <ul>{x.points.map(pt => <li key={pt}><Check size={15} strokeWidth={3} />{pt}</li>)}</ul>
-          </section>
-        )}
+        ) : null}
 
         {/* ── District picker ── */}
         <section className="tu-card wx2-pick tu-rise" data-tour="wx-district-select">
@@ -408,7 +401,7 @@ export default function Weather({ lang, onWeatherFetched }) {
             <div><h2>{x.pickTitle}</h2><small>{x.pickSub}</small></div>
           </div>
           {GROUPS.map(g => (
-            <div className={`wx2-group tu-tone-${g.tone}`} key={g.key}>
+            <div className="wx2-group" key={g.key} style={{ "--dot": g.dot }}>
               <span className="tu-label"><i />{t[g.nameKey]}</span>
               <div className="tu-pills">
                 {DISTRICTS.filter(d => zoneGroup(d) === g.key).map(d => (
@@ -457,18 +450,18 @@ export default function Weather({ lang, onWeatherFetched }) {
             {day && (
               <div className="wx2-detail">
                 <div className="tu-tile"><small>{t.condition}</small><b>{day.condition}</b></div>
-                <div className="tu-tile"><small>{x.high}</small><b style={{ color: "var(--tu-coral)" }}>{num(day.max_temp, 1)}°C</b></div>
-                <div className="tu-tile"><small>{x.low}</small><b style={{ color: "var(--tu-sky)" }}>{num(day.min_temp, 1)}°C</b></div>
-                <div className="tu-tile"><small>{t.rainfall}</small><b style={{ color: "var(--tu-sky)" }}>{num(day.rain_mm, 1)} mm</b></div>
+                <div className="tu-tile"><small>{x.high}</small><b>{num(day.max_temp, 1)}°C</b></div>
+                <div className="tu-tile"><small>{x.low}</small><b>{num(day.min_temp, 1)}°C</b></div>
+                <div className="tu-tile"><small>{t.rainfall}</small><b>{num(day.rain_mm, 1)} mm</b></div>
                 <div className="tu-tile"><small>{x.rainChance}</small><b>{Math.round(day.precip_prob || 0)}%</b></div>
-                <div className="tu-tile"><small>{t.humidity}</small><b style={{ color: "var(--tu-teal)" }}>{num(day.humidity)}%</b></div>
+                <div className="tu-tile"><small>{t.humidity}</small><b>{num(day.humidity)}%</b></div>
               </div>
             )}
           </section>
 
           <div className="wx2-two tu-sec">
             {/* ── Advice ── */}
-            <section className="tu-card tu-rise tu-tone-green" data-tour="wx-advice">
+            <section className="tu-card tu-rise" data-tour="wx-advice">
               <div className="tu-head">
                 <span className="tu-ic tu-ic--sm"><Sparkles size={18} /></span>
                 <div><h2>{t.advice}</h2><small>{x.adviceSub}</small></div>
@@ -486,7 +479,7 @@ export default function Weather({ lang, onWeatherFetched }) {
             </section>
 
             {/* ── Season so far ── */}
-            <section className="tu-card tu-rise tu-tone-violet">
+            <section className="tu-card tu-rise">
               <div className="tu-head">
                 <span className="tu-ic tu-ic--sm"><Thermometer size={18} /></span>
                 <div>
@@ -505,9 +498,9 @@ export default function Weather({ lang, onWeatherFetched }) {
                 <b>{normal != null ? `${normal} mm` : "–"}</b>
               </div>
               <div className="wx2-tiles">
-                <div className="tu-tile"><small>{x.ofNormal}</small><b style={{ color: "var(--tu-sky)" }}>{pctOfNormal != null ? `${pctOfNormal}%` : "–"}</b></div>
-                <div className="tu-tile"><small>{x.avgTemp}</small><b style={{ color: "var(--tu-coral)" }}>{num(data.season_avg_temp, 1)}°</b></div>
-                <div className="tu-tile"><small>{x.avgHum}</small><b style={{ color: "var(--tu-teal)" }}>{num(data.season_avg_humidity)}%</b></div>
+                <div className="tu-tile"><small>{x.ofNormal}</small><b>{pctOfNormal != null ? `${pctOfNormal}%` : "–"}</b></div>
+                <div className="tu-tile"><small>{x.avgTemp}</small><b>{num(data.season_avg_temp, 1)}°</b></div>
+                <div className="tu-tile"><small>{x.avgHum}</small><b>{num(data.season_avg_humidity)}%</b></div>
               </div>
             </section>
           </div>
@@ -515,20 +508,20 @@ export default function Weather({ lang, onWeatherFetched }) {
       )}
 
       {/* ── Zones and seasons: always shown, highlighted once there is data ── */}
-      <section className="tu-sec tu-tone-teal" data-tour="wx-empty-zones">
+      <section className="tu-sec" data-tour="wx-empty-zones">
         <div className="tu-head">
           <span className="tu-ic tu-ic--sm"><BookOpen size={18} /></span>
           <div><h2>{x.refTitle}</h2><small>{x.refSub}</small></div>
         </div>
         <div className="wx2-refs">
           {ZONES.map(z => (
-            <div key={z.key} className={`wx2-ref${myGroup === z.key ? " wx2-ref--on" : ""}`} style={{ background: z.bg }}>
+            <div key={z.key} className={`wx2-ref${myGroup === z.key ? " wx2-ref--on" : ""}`} style={{ "--dot": z.dot }}>
               <span>{myGroup === z.key ? x.yourZone : x.zone}</span>
               <h3>{z.name}</h3><p>{z.desc}</p><small>{z.list}</small>
             </div>
           ))}
           {SEASONS.map(se => (
-            <div key={se.key} className={`wx2-ref${seasonKey === se.key ? " wx2-ref--on" : ""}`} style={{ background: se.bg }}>
+            <div key={se.key} className={`wx2-ref${seasonKey === se.key ? " wx2-ref--on" : ""}`} style={{ "--dot": se.dot }}>
               <span>{seasonKey === se.key ? `${x.now} · ${se.months}` : se.months}</span>
               <h3>{se.name}</h3><p>{se.desc}</p>
             </div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { ChartLine, ChartPie, CloudSun, Coins, FlaskConical, RotateCcw, Sprout, Store } from "lucide-react";
+import { ChartPie, CloudSun, Coins, FlaskConical, RotateCcw, Sprout, Store } from "lucide-react";
 import { T } from "../data/translations";
 import {
   CROP_YIELD_PER_ACRE,
@@ -10,6 +10,7 @@ import {
 } from "../data/cropData";
 import CustomSelect from "../components/CustomSelect";
 import ToolSwitcher from "../components/ToolSwitcher";
+import ToolIntro from "../components/ToolIntro";
 import "../styles/tool-yp.css";
 import SpotlightTour   from "../components/tour/SpotlightTour";
 import HelpButton      from "../components/tour/HelpButton";
@@ -214,11 +215,7 @@ export default function YieldPrice({ lang }) {
     <div className="tu-page tu-tone-amber">
       <ToolSwitcher />
 
-      <section className="tu-hero yp2-hero tu-rise">
-        <span className="tu-eyebrow"><ChartLine size={14} />{y.eyebrow}</span>
-        <h1>{y.h1a}<br /><span style={{ color: "#7c2d12" }}>{y.h1b}</span> {y.h1c}</h1>
-        <p>{y.sub}</p>
-      </section>
+      <ToolIntro tool="yield" />
 
       <div className="yp2-grid">
         {/* ── Inputs ── */}
@@ -274,7 +271,7 @@ export default function YieldPrice({ lang }) {
 
             <div className="yp2-gap">
               <label className="tu-label">{t.avgYieldPerAcre}</label>
-              <div className="yp2-slide" style={{ "--k": "#f59e0b" }}>
+              <div className="yp2-slide">
                 <input className="tu-range" type="range" min="0" max={YIELD_SLIDER_MAX} step="100" tabIndex={-1}
                   value={Math.min(YIELD_SLIDER_MAX, avgYieldNum)} style={{ "--p": pctOf(avgYieldNum, YIELD_SLIDER_MAX) }}
                   onChange={e => setYf(p => ({ ...p, avgYield: e.target.value }))} aria-label={t.avgYieldPerAcre} />
@@ -296,7 +293,7 @@ export default function YieldPrice({ lang }) {
             </div>
           </section>
 
-          <section className="tu-card tu-rise tu-tone-violet">
+          <section className="tu-card tu-rise">
             <div className="tu-head">
               <span className="tu-ic tu-ic--sm"><FlaskConical size={18} /></span>
               <div><h2>2. {y.s2}</h2><small>{y.s2h}</small></div>
@@ -319,7 +316,7 @@ export default function YieldPrice({ lang }) {
             </div>
           </section>
 
-          <section className="tu-card tu-rise tu-tone-green">
+          <section className="tu-card tu-rise">
             <div className="tu-head">
               <span className="tu-ic tu-ic--sm"><Coins size={18} /></span>
               <div><h2>3. {y.s3}</h2><small>{y.s3h}</small></div>
@@ -330,11 +327,11 @@ export default function YieldPrice({ lang }) {
                 ))}
               </div>
             </div>
-            <div className="yp2-margin" style={{ "--k": "#22c55e" }}>
+            <div className="yp2-margin">
               <input className="tu-range" type="range" min="0" max="60" step="1" value={Math.min(60, margin)}
                 style={{ "--p": pctOf(margin, 60) }} aria-label={bare(t.profitMargin)}
                 onChange={e => setPf(p => ({ ...p, profitMargin: e.target.value }))} />
-              <div className="tu-tile"><b style={{ color: "var(--tu-green)" }}>{margin}%</b></div>
+              <div className="tu-tile"><b>{margin}%</b></div>
             </div>
           </section>
 
@@ -358,12 +355,12 @@ export default function YieldPrice({ lang }) {
           )}
 
           <div className="yp2-kp">
-            <div className="tu-tile" data-tour="yp-calc-yield-btn"><small>{y.harvest}</small><b style={{ color: "var(--tu-gold)" }}>{harvestKg > 0 ? `${fmt(harvestKg)} kg` : "–"}</b></div>
-            <div className="tu-tile"><small>{t.totalCost}</small><b style={{ color: "var(--tu-coral)" }}>{totalCost > 0 ? `Rs. ${fmt(totalCost)}` : "–"}</b></div>
+            <div className="tu-tile" data-tour="yp-calc-yield-btn"><small>{y.harvest}</small><b>{harvestKg > 0 ? `${fmt(harvestKg)} kg` : "–"}</b></div>
+            <div className="tu-tile"><small>{t.totalCost}</small><b>{totalCost > 0 ? `Rs. ${fmt(totalCost)}` : "–"}</b></div>
             <div className="tu-tile"><small>{y.profit}</small><b style={{ color: "var(--tu-green)" }}>{totalCost > 0 ? `Rs. ${fmt(profitAmt)}` : "–"}</b></div>
           </div>
 
-          <section className="tu-card tu-tone-violet">
+          <section className="tu-card">
             <div className="tu-head">
               <span className="tu-ic tu-ic--sm"><ChartPie size={18} /></span>
               <div><h3>{y.donut}</h3><small>{t.totalRevenue}: {totalCost > 0 ? `Rs. ${fmt(totalRevenue)}` : "–"}</small></div>
@@ -389,7 +386,7 @@ export default function YieldPrice({ lang }) {
             </div>
           </section>
 
-          <section className="tu-card tu-tone-green">
+          <section className="tu-card">
             <div className="tu-head">
               <span className="tu-ic tu-ic--sm"><Coins size={18} /></span>
               <div><h3>{y.perKgT}</h3><small>{y.breakEven}: {ready ? `Rs. ${fmt(breakEven)}` : "–"}</small></div>
@@ -399,7 +396,7 @@ export default function YieldPrice({ lang }) {
               <div style={{ flexGrow: Math.max(margin, 1), background: "#4ade80" }}>{y.gain}{ready ? ` +${fmt(pricePerKg - breakEven)}` : ""}</div>
             </div>
             <div className="yp2-next">
-              <Link className="tu-linkbtn tu-tone-violet" to="/marketplace"><Store size={16} />{y.market}</Link>
+              <Link className="tu-linkbtn tu-linkbtn--plain" to="/marketplace"><Store size={16} />{y.market}</Link>
               <Link className="tu-linkbtn tu-tone-sky" to="/wx"><CloudSun size={16} />{y.weather}</Link>
             </div>
             <p className="yp2-note" style={{ marginTop: 14 }}>{t.yieldNote} {t.priceNote}</p>
