@@ -1,0 +1,20 @@
+# HTTPS mode — used when DOMAIN is set and its Let's Encrypt cert is mounted.
+server {
+    listen 80 default_server;
+    server_name _;
+    # Redirect everything to the HTTPS domain — including requests that arrive
+    # via the bare IP, since the cert is only valid for the domain name.
+    return 301 https://${DOMAIN}$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name ${DOMAIN};
+
+    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+
+    add_header Strict-Transport-Security "max-age=31536000" always;
+
+    include /etc/nginx/smartagri/locations.conf;
+}

@@ -85,7 +85,7 @@ def test_cultivation_list(memory_store):
     r = client.get(f"/cultivation/{USER}")
     assert r.status_code == 200
     assert [s["id"] for s in r.json()["sessions"]] == [sid]
-    assert client.get("/cultivation/someone-else").json()["sessions"] == []
+    assert client.get("/cultivation/someone-else").status_code == 403
 
 
 def test_cultivation_update_task(memory_store):

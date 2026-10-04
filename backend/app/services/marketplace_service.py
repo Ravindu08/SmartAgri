@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models.marketplace import (
@@ -84,9 +84,16 @@ def list_owner_listings(db: Session, owner_id: int) -> list[MarketplaceListing]:
     ).scalars().all()
 
 
+# The only listing columns that may be cleared; an explicit null for any other
+# field is ignored rather than violating its NOT NULL constraint.
+_NULLABLE_LISTING_FIELDS = {"description", "location", "image"}
+
+
 def update_listing(db: Session, listing: MarketplaceListing, listing_in: MarketplaceListingUpdate) -> MarketplaceListing:
     for field in listing_in.model_fields_set:
         value = getattr(listing_in, field)
+        if value is None and field not in _NULLABLE_LISTING_FIELDS:
+            continue
         if field == "image":
             value = _store_image(value)
         setattr(listing, field, value)
@@ -96,13 +103,25 @@ def update_listing(db: Session, listing: MarketplaceListing, listing_in: Marketp
     return listing
 
 
+def listing_has_orders(db: Session, listing_id: UUID) -> bool:
+    return bool(db.execute(
+        select(func.count(MarketplaceOrder.id)).where(MarketplaceOrder.listing_id == listing_id)
+    ).scalar())
+
+
 def delete_listing(db: Session, listing: MarketplaceListing) -> None:
     db.delete(listing)
     db.commit()
 
 
 def create_order(db: Session, order_in: MarketplaceOrderCreate, buyer_id: int) -> MarketplaceOrder:
-    listing = get_listing(db, order_in.listing_id)
+    # Row lock: two buyers ordering at the same moment would otherwise both
+    # read the same quantity and oversell it.
+    listing = db.execute(
+        select(MarketplaceListing)
+        .where(MarketplaceListing.id == order_in.listing_id)
+        .with_for_update(of=MarketplaceListing)
+    ).scalar_one_or_none()
     if listing is None:
         raise ValueError("Listing not found")
     if listing.status != MarketplaceListingStatus.ACTIVE:
@@ -187,8 +206,15 @@ def update_order_status(
         MarketplaceOrderStatus.DELIVERED: {MarketplaceOrderStatus.COMPLETED},
     }
 
-    if new_status != current_status and new_status not in allowed_transitions.get(current_status, set()):
+    # A repeat of the current status is rejected too: letting it through would
+    # re-run the side effects below (restoring stock again, re-pricing a paid order).
+    if new_status == current_status:
+        raise ValueError(f"Order is already {current_status.value}")
+    if new_status not in allowed_transitions.get(current_status, set()):
         raise ValueError("Invalid status transition")
+
+    if new_status == MarketplaceOrderStatus.CANCELLED and order.payment_status == OrderPaymentStatus.PAID:
+        raise ValueError("A paid order cannot be cancelled")
 
     if new_status == MarketplaceOrderStatus.DELIVERED and order.payment_status != OrderPaymentStatus.PAID:
         raise ValueError("Payment required before order can be marked as delivered")

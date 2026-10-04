@@ -5,7 +5,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, s
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_current_user, get_db
+from app.core.deps import get_current_land_owner, get_current_trader, get_current_user, get_db
 from app.models.marketplace import MarketplaceListing, MarketplaceOrderStatus
 from app.models.rating import Rating
 from app.schemas.marketplace import (
@@ -29,6 +29,7 @@ from app.services.marketplace_service import (
     get_listing_for_owner,
     get_order,
     list_active_listings,
+    listing_has_orders,
     list_negotiation_messages,
     list_orders_for_user,
     list_owner_listings,
@@ -83,7 +84,7 @@ def read_my_listings(
 @router.post("/listings", response_model=MarketplaceListingRead, status_code=status.HTTP_201_CREATED)
 def create_listing_endpoint(
     payload: MarketplaceListingCreate,
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_current_land_owner),
     db: Session = Depends(get_db),
 ) -> MarketplaceListingRead:
     try:
@@ -106,7 +107,7 @@ def read_listing(listing_id: UUID, db: Session = Depends(get_db)) -> Marketplace
 def update_listing_endpoint(
     listing_id: UUID,
     payload: MarketplaceListingUpdate,
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_current_land_owner),
     db: Session = Depends(get_db),
 ) -> MarketplaceListingRead:
     listing = get_listing_for_owner(db, listing_id, current_user.id)
@@ -123,12 +124,19 @@ def update_listing_endpoint(
 @router.delete("/listings/{listing_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_listing_endpoint(
     listing_id: UUID,
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_current_land_owner),
     db: Session = Depends(get_db),
 ) -> None:
     listing = get_listing_for_owner(db, listing_id, current_user.id)
     if listing is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Listing not found")
+    # Orders (and their payments) cascade-delete with the listing, which would
+    # erase the buyer's order history and payment record.
+    if listing_has_orders(db, listing.id):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This listing has orders and cannot be deleted. Archive it instead.",
+        )
     delete_listing(db, listing)
 
 
@@ -136,7 +144,7 @@ def delete_listing_endpoint(
 def create_order_endpoint(
     payload: MarketplaceOrderCreate,
     background_tasks: BackgroundTasks,
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_current_trader),
     db: Session = Depends(get_db),
 ) -> MarketplaceOrderRead:
     listing = get_listing(db, payload.listing_id)
@@ -191,6 +199,9 @@ def update_order_status_endpoint(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the seller can perform this action")
     if payload.status == MarketplaceOrderStatus.COMPLETED and order.buyer_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the buyer can confirm completion")
+    # The counter-offer feeds the agreed price on confirmation, so a buyer must not be able to write it.
+    if order.seller_id != current_user.id and (payload.seller_note is not None or payload.counter_offer_price is not None):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the seller can set a seller note or counter-offer")
     try:
         updated = update_order_status(db, order, payload)
     except ValueError as exc:
