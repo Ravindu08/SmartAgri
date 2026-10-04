@@ -191,10 +191,7 @@ const HOME_T = {
 const HOME_TOUR_T = {
   en: {
     steps: [
-      { target: 'nav-crop-rec', title: 'Crop Recommendation', body: 'Get the best crop suggestion for your land using soil data, climate, and season inputs.' },
-      { target: 'nav-crop-guide', title: 'Crop Guidance', body: 'Follow a complete farming plan — fertilisation, irrigation, pest control, and harvest tips.' },
-      { target: 'nav-yield-price', title: 'Yield & Price', body: 'Estimate your expected harvest and calculate production costs, selling price, and profit.' },
-      { target: 'nav-weather', title: 'Weather Advice', body: 'Live weather data for Sri Lankan districts with farming-specific alerts and forecasts.' },
+      { target: 'nav-tools', title: 'AI Tools', body: 'Four tools in one menu: crop recommendation, crop guidance, yield and price estimation, and live weather advice.' },
       { target: 'nav-about', title: 'About SmartAgri', body: 'A smart agriculture platform connecting Sri Lankan farmers, land owners, and traders — with AI-powered crop planning, a live marketplace, and full administrative oversight.' },
       { target: 'nav-contact', title: 'Contact Us', body: "Have a question, feedback, or collaboration idea? We'd love to hear from you." },
       { target: 'nav-marketplace', title: 'Marketplace', body: 'Browse produce from real farmers and traders across Sri Lanka.' },
@@ -207,10 +204,7 @@ const HOME_TOUR_T = {
   },
   si: {
     steps: [
-      { target: 'nav-crop-rec', title: 'බෝග නිර්දේශ', body: 'පාංශු දත්ත, කාලගුණය, සහ කන්නය භාවිතා කර ඔබේ ඉඩමට හොඳම බෝගය ලබාගන්න.' },
-      { target: 'nav-crop-guide', title: 'බෝග මාර්ගෝපදේශ', body: 'පොහොරු, ජලය, රෝග, සහ අස්වනු නෙළීමේ ඉඟි සහිත සම්පූර්ණ ගොවිතැන් සැලැස්ම.' },
-      { target: 'nav-yield-price', title: 'අස්වැන්න සහ මිල', body: 'නිෂ්පාදන පිරිවැය, විකිණීමේ මිල, සහ ලාභය ගණනය කරමින් ඔබේ අස්වැන්න ගණනය කරන්න.' },
-      { target: 'nav-weather', title: 'කාලගුණ උපදෙස්', body: 'ශ්‍රී ලාංකික දිස්ත්‍රික්ක සඳහා සජීවී කාලගුණ දත්ත සහ ගොවිතැනට ආදාල ඇඟවීම්.' },
+      { target: 'nav-tools', title: 'AI මෙවලම්', body: 'එක් මෙනුවක මෙවලම් හතරක්: බෝග නිර්දේශ, බෝග මාර්ගෝපදේශ, අස්වැන්න සහ මිල ඇස්තමේන්තු, සහ සජීවී කාලගුණ උපදෙස්.' },
       { target: 'nav-about', title: 'SmartAgri ගැන', body: 'ශ්‍රී ලාංකික ගොවීන්, ඉඩම් හිමියන් සහ වෙළෙඳුන් සම්බන්ධ කරන AI-ශක්‍ය ගොවිතැන් වේදිකාව.' },
       { target: 'nav-contact', title: 'සම්බන්ධ කරගන්න', body: 'ප්‍රශ්නයක්, ප්‍රතිපෝෂණයක්, හෝ සහයෝගිතා අදහසක් ඇතිද? ඔබෙන් ඇසීමට සතුටු වෙමු.' },
       { target: 'nav-marketplace', title: 'වෙළඳසැල', body: 'ශ්‍රී ලංකාව පුරා සැබෑ ගොවීන් සහ ව්‍යාපාරිකයන්ගේ නිෂ්පාදන පිරික්සන්න.' },
@@ -223,10 +217,7 @@ const HOME_TOUR_T = {
   },
   ta: {
     steps: [
-      { target: 'nav-crop-rec', title: 'பயிர் பரிந்துரை', body: 'மண் தரவு, காலநிலை மற்றும் பருவகாலம் பயன்படுத்தி சிறந்த பயிர் பரிந்துரையைப் பெறுங்கள்.' },
-      { target: 'nav-crop-guide', title: 'பயிர் வழிகாட்டி', body: 'உரமிடுதல், நீர்ப்பாசனம், பூச்சி கட்டுப்பாடு மற்றும் அறுவடை குறிப்புகளுடன் முழுமையான விவசாய திட்டம்.' },
-      { target: 'nav-yield-price', title: 'மகசூல் & விலை', body: 'உற்பத்தி செலவு, விற்பனை விலை மற்றும் லாபத்தை கணக்கிட்டு மகசூலை மதிப்பிடுங்கள்.' },
-      { target: 'nav-weather', title: 'வானிலை ஆலோசனை', body: 'இலங்கை மாவட்டங்களுக்கான நேரடி வானிலை தரவு மற்றும் விவசாய எச்சரிக்கைகள்.' },
+      { target: 'nav-tools', title: 'AI கருவிகள்', body: 'ஒரே பட்டியில் நான்கு கருவிகள்: பயிர் பரிந்துரை, பயிர் வழிகாட்டி, மகசூல் மற்றும் விலை மதிப்பீடு, நேரடி வானிலை ஆலோசனை.' },
       { target: 'nav-about', title: 'SmartAgri பற்றி', body: 'இலங்கை விவசாயிகள், நில உரிமையாளர்கள் மற்றும் வர்த்தகர்களை இணைக்கும் AI-இயக்கப்படும் விவசாய தளம்.' },
       { target: 'nav-contact', title: 'தொடர்பு கொள்ளுங்கள்', body: 'கேள்வி, கருத்து அல்லது ஒத்துழைப்பு யோசனை உள்ளதா? உங்களிடமிருந்து கேட்க மகிழ்ச்சியாக இருக்கிறோம்.' },
       { target: 'nav-marketplace', title: 'சந்தை', body: 'இலங்கை முழுவதும் உள்ள உண்மையான விவசாயிகள் மற்றும் வணிகர்களின் விளைபொருட்களை பாருங்கள்.' },
