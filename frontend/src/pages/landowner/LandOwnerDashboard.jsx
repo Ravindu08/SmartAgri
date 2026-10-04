@@ -12,6 +12,7 @@ import CountUp from '../../components/CountUp';
 import SpotlightTour from '../../components/tour/SpotlightTour';
 import HelpButton from '../../components/tour/HelpButton';
 import GettingStartedChecklist from '../../components/checklist/GettingStartedChecklist';
+import { DashHero, ProgressRing } from '../../components/dash/DashWidgets';
 
 const LO_TOUR_T = {
   en: {
@@ -46,6 +47,12 @@ const LO_CHECKLIST_T = {
 function daysBetween(a, b) {
   return Math.floor((new Date(b) - new Date(a)) / 86400000);
 }
+const LO_HERO_T = {
+  en: { tagline: (a, u) => `${a} active crop${a === 1 ? '' : 's'} · ${u} harvest${u === 1 ? '' : 's'} due in the next 30 days`, ring: 'Season progress', ringSub: 'Average across your active crops' },
+  si: { tagline: (a, u) => `සක්‍රිය බෝග ${a} · ඉදිරි දින 30 තුළ අස්වනු ${u}`, ring: 'කන්නයේ ප්‍රගතිය', ringSub: 'ඔබේ සක්‍රිය බෝගවල සාමාන්‍යය' },
+  ta: { tagline: (a, u) => `செயலில் உள்ள பயிர்கள் ${a} · அடுத்த 30 நாட்களில் அறுவடை ${u}`, ring: 'பருவ முன்னேற்றம்', ringSub: 'உங்கள் செயலில் உள்ள பயிர்களின் சராசரி' },
+};
+
 function harvestProgress(planting, harvest) {
   const total = daysBetween(planting, harvest);
   if (total <= 0) return 100;
@@ -263,6 +270,11 @@ export default function LandOwnerDashboard() {
     return acc;
   }, {});
 
+  const heroT = LO_HERO_T[lang] || LO_HERO_T.en;
+  const seasonPct = active.length
+    ? active.reduce((sum, c) => sum + harvestProgress(c.planting_date, c.expected_harvest_date), 0) / active.length
+    : 0;
+
   const tourT = LO_TOUR_T[lang] || LO_TOUR_T.en;
   const checklistT = LO_CHECKLIST_T[lang] || LO_CHECKLIST_T.en;
   const [tourOpen, setTourOpen] = useState(false);
@@ -274,6 +286,10 @@ export default function LandOwnerDashboard() {
 
   return (
     <div className="lo-dash">
+
+      <DashHero name={user?.full_name?.split(' ')[0]} lang={lang} tagline={loading ? undefined : heroT.tagline(active.length, upcoming.length)}>
+        {!loading && active.length > 0 && <ProgressRing pct={seasonPct} label={heroT.ring} sub={heroT.ringSub} />}
+      </DashHero>
 
       <GettingStartedChecklist
         title={checklistT.title}

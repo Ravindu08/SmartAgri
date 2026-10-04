@@ -121,11 +121,11 @@ export default function AdminHarvestForecast() {
       {loading ? (
         <div style={{ padding: '60px', textAlign: 'center', color: 'var(--muted)' }}>{t.loading}</div>
       ) : data.length === 0 ? (
-        <div style={{ padding: '60px', textAlign: 'center', color: 'var(--muted)', background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)' }}>
+        <div className="fx-card" style={{ padding: '60px', textAlign: 'center', color: 'var(--muted)', background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)' }}>
           🌱 {t.noData}
         </div>
       ) : (
-        <div style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', overflow: 'hidden' }}>
+        <div className="fx-card" style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', overflow: 'hidden' }}>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px' }}>
               <thead>

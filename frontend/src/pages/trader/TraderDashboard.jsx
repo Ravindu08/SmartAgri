@@ -8,6 +8,7 @@ import { relativeTime } from '../../utils/relativeTime';
 import SpotlightTour from '../../components/tour/SpotlightTour';
 import HelpButton from '../../components/tour/HelpButton';
 import GettingStartedChecklist from '../../components/checklist/GettingStartedChecklist';
+import { DashHero, PipelineBar, ProgressRing } from '../../components/dash/DashWidgets';
 
 const TR_TOUR_T = {
   en: {
@@ -92,6 +93,12 @@ const STATUS_COLORS = {
   Completed: 'var(--green)', Rejected: 'var(--red)', Cancelled: 'var(--muted)',
 };
 
+const TR_HERO_T = {
+  en: { tagline: 'Here is where your orders stand today.', ring: 'Orders completed', ringSub: (c, n) => `${c} of ${n} so far`, pipeline: 'Order pipeline' },
+  si: { tagline: 'අද ඔබේ ඇණවුම්වල තත්ත්වය මෙන්න.', ring: 'සම්පූර්ණ කළ ඇණවුම්', ringSub: (c, n) => `${n} න් ${c}`, pipeline: 'ඇණවුම් ප්‍රවාහය' },
+  ta: { tagline: 'இன்று உங்கள் ஆர்டர்களின் நிலை இதோ.', ring: 'முடிந்த ஆர்டர்கள்', ringSub: (c, n) => `${n} இல் ${c}`, pipeline: 'ஆர்டர் நிலை' },
+};
+
 const authFetcher = url => request(url);
 
 export default function TraderDashboard() {
@@ -110,6 +117,13 @@ export default function TraderDashboard() {
   const pendingOrders   = myOrders.filter(o => o.status === 'Pending');
   const activeOrders    = myOrders.filter(o => ['Confirmed', 'Delivered'].includes(o.status));
   const completedOrders = myOrders.filter(o => o.status === 'Completed');
+
+  const heroT = TR_HERO_T[lang] || TR_HERO_T.en;
+  const pipeline = ['Pending', 'Confirmed', 'Delivered', 'Completed'].map(status => ({
+    label: t[status] || status,
+    value: myOrders.filter(o => o.status === status).length,
+    color: STATUS_COLORS[status],
+  }));
 
   const tourT = TR_TOUR_T[lang] || TR_TOUR_T.en;
   const checklistT = TR_CHECKLIST_T[lang] || TR_CHECKLIST_T.en;
@@ -146,26 +160,16 @@ export default function TraderDashboard() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
       {/* Welcome */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: 'var(--text)' }}>
-            {t.welcome}, {user?.full_name?.split(' ')[0] || t.trader} 👋
-          </h1>
-          <p style={{ margin: '4px 0 0', color: 'var(--muted)', fontSize: '16px' }}>
-            {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-          </p>
-        </div>
-        <Link
-          to="/marketplace"
-          style={{
-            padding: '10px 20px', borderRadius: '8px',
-            background: 'var(--accent)', color: 'var(--accent-text)',
-            textDecoration: 'none', fontWeight: 600, fontSize: '16px',
-          }}
-        >
-          🏪 {t.browseMarket}
-        </Link>
-      </div>
+      <DashHero name={user?.full_name?.split(' ')[0] || t.trader} lang={lang} tagline={heroT.tagline} tone="blue">
+        {myOrders.length > 0 && (
+          <ProgressRing
+            pct={(completedOrders.length / myOrders.length) * 100}
+            label={heroT.ring}
+            sub={heroT.ringSub(completedOrders.length, myOrders.length)}
+          />
+        )}
+        <Link className="dash-hero__cta" to="/marketplace">🏪 {t.browseMarket}</Link>
+      </DashHero>
 
       <GettingStartedChecklist
         title={checklistT.title}
@@ -178,12 +182,13 @@ export default function TraderDashboard() {
       {/* Stats */}
       <div data-tour="tr-dash-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 260px))', gap: '16px' }}>
         {stats.map(s => (
-          <div key={s.label} className="stat-card-hover" style={{
+          <div key={s.label} className="stat-card-hover dash-tile" style={{
             background: 'var(--card)', borderRadius: '12px',
             padding: '20px', border: '1px solid var(--border)',
             display: 'flex', flexDirection: 'column', gap: '8px',
+            '--tone': s.color,
           }}>
-            <div style={{ fontSize: '28px' }}>{s.icon}</div>
+            <div className="dash-tile__icon" style={{ fontSize: '28px', width: 'fit-content' }}>{s.icon}</div>
             <div style={{ fontSize: '28px', fontWeight: 700, color: s.color, lineHeight: 1 }}>
               <CountUp value={s.value} />
             </div>
@@ -191,6 +196,8 @@ export default function TraderDashboard() {
           </div>
         ))}
       </div>
+
+      <PipelineBar title={heroT.pipeline} segments={pipeline} emptyLabel={t.noActivity} />
 
       {/* Quick Actions */}
       <div data-tour="tr-quick-actions">
@@ -202,16 +209,17 @@ export default function TraderDashboard() {
             <Link
               key={qa.label}
               to={qa.to}
+              className="dash-action"
               style={{
                 display: 'flex', alignItems: 'center', gap: '14px',
                 padding: '16px', borderRadius: '10px',
                 background: 'var(--card)', border: '1px solid var(--border)',
-                textDecoration: 'none', transition: 'box-shadow 0.15s',
+                textDecoration: 'none', '--tone': qa.color,
               }}
               onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 16px var(--shadow-md)'}
               onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
             >
-              <div style={{
+              <div className="dash-action__icon" style={{
                 width: '44px', height: '44px', borderRadius: '10px',
                 background: `color-mix(in srgb, ${qa.color} 15%, transparent)`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -247,7 +255,8 @@ export default function TraderDashboard() {
               const label = t[item.status] || item.status;
               const dest = ['Completed', 'Rejected', 'Cancelled'].includes(item.status) ? '/trader/history' : '/trader/orders';
               return (
-                <Link key={item.id} to={dest} style={{
+                <Link key={item.id} to={dest} className="dash-row" style={{
+                  '--i': i,
                   padding: '14px 20px', textDecoration: 'none',
                   borderBottom: i < recentItems.length - 1 ? '1px solid var(--border)' : 'none',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
@@ -256,7 +265,7 @@ export default function TraderDashboard() {
                 onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-hover)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '19px' }}>📦</span>
+                    <span className="dash-row__icon" style={{ fontSize: '19px' }}>📦</span>
                     <div>
                       <div style={{ fontWeight: 600, fontSize: '16px', color: 'var(--text)' }}>
                         {item.listing_name || '—'}

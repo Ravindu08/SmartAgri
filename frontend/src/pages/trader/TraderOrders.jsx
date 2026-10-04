@@ -5,6 +5,7 @@ import PayDialog from '../../components/PayDialog';
 import { SkeletonRows } from '../../components/Skeleton';
 import { useApp } from '../../context/AppContext';
 import { getAuthSession, request } from '../../services/api';
+import { celebrate } from '../../utils/celebrate';
 import SpotlightTour   from '../../components/tour/SpotlightTour';
 import HelpButton      from '../../components/tour/HelpButton';
 
@@ -103,13 +104,15 @@ function StatusTracker({ status, t }) {
         return (
           <div key={step} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
             {i > 0 && (
-              <div style={{
+              <div className={i <= current ? 'trk-line--done' : undefined} style={{
+                '--i': i,
                 position: 'absolute', top: '12px', right: '50%', left: '-50%',
                 height: '3px',
                 background: i <= current ? 'var(--accent)' : 'var(--border)',
               }} />
             )}
-            <div style={{
+            <div className={`trk-dot${active ? ' trk-dot--active' : ''}`} style={{
+              '--i': i,
               width: '24px', height: '24px', borderRadius: '50%', zIndex: 1,
               background: done ? 'var(--accent)' : 'var(--border)',
               border: active ? '3px solid var(--accent-text)' : 'none',
@@ -150,6 +153,7 @@ export default function TraderOrders() {
         method: 'PUT',
         body: JSON.stringify({ status: 'Completed' }),
       });
+      celebrate();
       mutate('/api/marketplace/orders');
     } catch { /* order list refreshes on next poll */ }
     finally { setConfirmingId(null); }
@@ -225,7 +229,7 @@ export default function TraderOrders() {
       {isLoading ? (
         <SkeletonRows count={3} />
       ) : filtered.length === 0 ? (
-        <div style={{
+        <div className="fx-card" style={{
           background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px',
           padding: '48px', textAlign: 'center',
         }}>
@@ -249,7 +253,7 @@ export default function TraderOrders() {
             const stStyle = STATUS_STYLE[order.status] || { bg: 'color-mix(in srgb, var(--muted) 15%, transparent)', color: 'var(--muted)' };
             const tKey    = order.status?.toLowerCase();
             return (
-              <div key={order.id} style={{
+              <div key={order.id} className="fx-card" style={{
                 background: 'var(--card)', border: '1px solid var(--border)',
                 borderRadius: '12px', padding: '20px',
               }} data-tour={i === 0 ? 'tr-orders-card' : undefined}>

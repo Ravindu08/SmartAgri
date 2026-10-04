@@ -6,6 +6,7 @@ import { SkeletonStatCards } from '../../components/Skeleton';
 import { useCountUp } from '../../hooks/useCountUp';
 import SpotlightTour from '../../components/tour/SpotlightTour';
 import HelpButton from '../../components/tour/HelpButton';
+import { BarList, DashHero, ProgressRing } from '../../components/dash/DashWidgets';
 
 const ADMIN_TOUR_T = {
   en: {
@@ -64,14 +65,21 @@ const T = {
   },
 };
 
+const ADMIN_HERO_T = {
+  en: { tagline: 'Here is how the platform is doing.', ring: 'Active accounts', ringSub: n => `${n} suspended`, glance: 'Platform at a glance' },
+  si: { tagline: 'වේදිකාවේ වත්මන් තත්ත්වය මෙන්න.', ring: 'සක්‍රිය ගිණුම්', ringSub: n => `අත්හිටුවා ඇති ${n}`, glance: 'වේදිකාව එක බැල්මකින්' },
+  ta: { tagline: 'தளத்தின் தற்போதைய நிலை இதோ.', ring: 'செயலில் உள்ள கணக்குகள்', ringSub: n => `${n} இடைநிறுத்தம்`, glance: 'தளம் ஒரே பார்வையில்' },
+};
+
 function StatCard({ icon, label, value, color = '#7c3aed', sub }) {
   const displayValue = useCountUp(value ?? 0);
   return (
-    <div className="stat-card-hover" style={{
+    <div className="stat-card-hover dash-tile" style={{
       background: 'var(--card)', borderRadius: '14px', padding: '20px 24px',
       border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '16px',
+      '--tone': color,
     }}>
-      <div style={{ fontSize: '32px', width: '52px', height: '52px', borderRadius: '12px', background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
+      <div className="dash-tile__icon" style={{ fontSize: '32px', width: '52px', height: '52px', borderRadius: '12px', background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
       <div>
         <div className="count-up" style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text)' }}>{value == null ? '—' : displayValue}</div>
         <div style={{ fontSize: '15px', color: 'var(--muted)', whiteSpace: 'nowrap' }}>{label}</div>
@@ -110,12 +118,27 @@ export default function AdminDashboard() {
     { to: '/admin/reports',      label: t.fullReports,   color: '#1565c0' },
   ];
 
+  const heroT = ADMIN_HERO_T[lang] || ADMIN_HERO_T.en;
+  const totalUsers = reports?.users?.total || 0;
+  const suspended = reports?.users?.suspended || 0;
+  const activePct = totalUsers ? ((totalUsers - Math.min(suspended, totalUsers)) / totalUsers) * 100 : 0;
+  const glanceRows = [
+    { icon: '🌾', label: t.landOwners,   value: reports?.users?.land_owners,          color: '#2d6a4f' },
+    { icon: '🏪', label: t.traders,      value: reports?.users?.traders,              color: '#1565c0' },
+    { icon: '🌱', label: t.totalFarms,   value: reports?.farms?.total,                color: '#f57c00' },
+    { icon: '📦', label: t.listings,     value: reports?.marketplace?.total_listings, color: '#0097a7' },
+    { icon: '🛒', label: t.orders,       value: reports?.marketplace?.total_orders,   color: '#00897b' },
+    { icon: '💬', label: t.openFeedback, value: reports?.feedback?.open,              color: '#c62828' },
+  ];
+
   return (
-    <div style={{ padding: '28px', maxWidth: '1100px' }}>
-      <h2 style={{ margin: '0 0 24px', color: 'var(--text)', fontSize: '22px' }}>{t.title}</h2>
+    <div style={{ padding: '28px', maxWidth: '1100px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <DashHero lang={lang} tagline={heroT.tagline} tone="purple">
+        {totalUsers > 0 && <ProgressRing pct={activePct} label={heroT.ring} sub={heroT.ringSub(suspended)} />}
+      </DashHero>
 
       {/* Stats grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 280px))', gap: '16px', marginBottom: '32px' }} data-tour="admin-dash-stats">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 280px))', gap: '16px' }} data-tour="admin-dash-stats">
         <StatCard icon="👥" label={t.totalUsers}   value={reports?.users?.total}       color="#7c3aed" />
         <StatCard icon="🌾" label={t.landOwners}   value={reports?.users?.land_owners}  color="#2d6a4f" />
         <StatCard icon="🏪" label={t.traders}       value={reports?.users?.traders}      color="#1565c0" />
@@ -127,10 +150,13 @@ export default function AdminDashboard() {
           sub={reports?.feedback?.open > 0 ? t.needsAttention : t.allClear} />
       </div>
 
+      <BarList title={heroT.glance} rows={glanceRows} />
+
       {/* Quick links */}
-      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '32px' }} data-tour="admin-dash-quicklinks">
+      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }} data-tour="admin-dash-quicklinks">
         {quickLinks.map(({ to, label, color }) => (
-          <Link key={to} to={to} style={{
+          <Link key={to} to={to} className="dash-action" style={{
+            '--tone': color,
             padding: '8px 18px', borderRadius: '8px', border: `1px solid ${color}`,
             color, fontWeight: 600, fontSize: '15px', textDecoration: 'none',
           }}>{label}</Link>
@@ -146,8 +172,8 @@ export default function AdminDashboard() {
         {activity.length === 0 ? (
           <div style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)' }}>{t.noActivity}</div>
         ) : (
-          activity.map(a => (
-            <div key={a.id} style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+          activity.map((a, i) => (
+            <div key={a.id} className="dash-row" style={{ '--i': i, padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
               <span style={{ fontSize: '21px' }}>📋</span>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600, fontSize: '16px', color: 'var(--text)' }}>{a.action.replace(/_/g, ' ')}</div>

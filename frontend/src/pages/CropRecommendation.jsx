@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { ML_BASE_URL } from "../services/api";
+import { celebrate } from "../utils/celebrate";
 
 import "../styles/CropRecommendation.css";
 import { T, DISTRICT_LABELS, ZONE_LABELS, IRR_LABELS, SEA_LABELS, SEA_DESC } from "../data/translations";
@@ -466,6 +467,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
     try {
       const json = await res.json();
       setResult(json.data);
+      if (!json.data?.low_confidence) celebrate();
 
       // Persist to history
       saveToHistory({

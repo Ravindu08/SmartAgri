@@ -10,6 +10,7 @@ import LandOwnerLayout from './components/LandOwnerLayout';
 import TraderLayout from './components/TraderLayout';
 import AdminLayout from './components/AdminLayout';
 import PageLoader from './components/PageLoader';
+import MotionLayer from './components/MotionLayer';
 
 // ── Auth / public pages ───────────────────────────────────────────────────────
 const HomePage          = lazy(() => import('./pages/HomePage'));
@@ -194,6 +195,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppProvider>
+        <MotionLayer />
         <Suspense fallback={<PageLoader />}>
           <AppRoutes />
         </Suspense>
