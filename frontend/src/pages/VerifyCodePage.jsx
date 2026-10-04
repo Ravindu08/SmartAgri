@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router';
 import { useApp } from '../context/AppContext';
 import { resendVerificationEmail, verifyEmail } from '../services/api';
 

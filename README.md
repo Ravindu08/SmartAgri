@@ -42,7 +42,7 @@ npm run dev
 ### Prerequisites
 
 - Python 3.10+
-- Node.js 18+
+- Node.js 22+
 - PostgreSQL — database `smartagri` must exist before first run
 
 ### Environment setup
@@ -93,7 +93,7 @@ To run the whole stack locally via Docker instead of the manual/one-command dev 
 |---|---|---|
 | Main API | 8000 | Python · FastAPI · Uvicorn · SQLAlchemy · PostgreSQL · Alembic · JWT |
 | ML / AI Service | 8001 | Python · FastAPI · Uvicorn · scikit-learn · XGBoost · NumPy · joblib |
-| Frontend | 5173 | React 18 · React Router v6 · Vite 5 · Tailwind CSS · SWR |
+| Frontend | 5173 | React 18 · React Router v7 · Vite 8 · Tailwind CSS · SWR |
 
 ---
 

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Link, Navigate, Route, Routes, useOutletContext } from 'react-router-dom';
+import { BrowserRouter, Link, Navigate, Route, Routes, useOutletContext } from 'react-router';
 
 // ── Context ───────────────────────────────────────────────────────────────────
 import { AppProvider, useApp } from './context/AppContext';

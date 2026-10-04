@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router';
 import Navbar from './Navbar';
 import CustomSelect from './CustomSelect';
 import ErrorBoundary from './ErrorBoundary';
