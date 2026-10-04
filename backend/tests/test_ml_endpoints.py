@@ -131,6 +131,11 @@ ARCHIVE = {"daily": {"precipitation_sum": [10.0, None, 5.5],
                      "relative_humidity_2m_mean": [80.0, 82.0, 84.0]}}
 
 
+@pytest.fixture(autouse=True)
+def _empty_weather_cache():
+    ml._weather_cache.clear()
+
+
 def test_weather_invalid_district_400():
     assert client.get("/weather", params={"district": "Atlantis"}).status_code == 400
 
@@ -157,6 +162,26 @@ def test_weather_parses_open_meteo(monkeypatch):
     titles = [a["title"] for a in d["advice"]]
     assert ml._ADVICE_TEXT["avoid_chem_rain"]["en"]["title"] in titles  # 12 mm tomorrow
     assert ml._ADVICE_TEXT["disease_risk"]["en"]["title"] in titles     # humidity 85%
+
+
+def test_weather_second_request_is_served_from_cache(monkeypatch):
+    calls = []
+
+    async def fake_get(self, url, *args, **kwargs):
+        calls.append(url)
+        body = ARCHIVE if "archive-api" in url else FORECAST
+        return httpx.Response(200, json=body, request=httpx.Request("GET", url))
+    monkeypatch.setattr(httpx.AsyncClient, "get", fake_get)
+
+    first = client.get("/weather", params={"district": "Kandy", "season": "Yala"})
+    second = client.get("/weather", params={"district": "Kandy", "season": "Yala"})
+    assert first.status_code == second.status_code == 200
+    assert first.json() == second.json()
+    assert len(calls) == 2  # one forecast + one archive call, not four
+
+    # A different district is a different upstream request.
+    client.get("/weather", params={"district": "Galle", "season": "Yala"})
+    assert len(calls) == 4
 
 
 def test_weather_upstream_error_502(monkeypatch):

@@ -17,6 +17,7 @@ from pydantic import BaseModel, field_validator
 from typing import List, Optional, Dict
 import asyncio
 import joblib, json, hashlib, logging, math, os, ssl
+import time as _time
 import numpy as np
 from pathlib import Path
 import httpx
@@ -409,6 +410,12 @@ def _set_cached(key: str, value):
     if len(_prediction_cache) >= MAX_CACHE_SIZE:
         del _prediction_cache[next(iter(_prediction_cache))]
     _prediction_cache[key] = value
+
+
+# Raw Open-Meteo responses, keyed by the request URLs. Weather does not change
+# minute to minute, and without this every page view made two upstream calls.
+WEATHER_CACHE_SECONDS = 600
+_weather_cache: dict = {}   # (forecast_url, archive_url) -> (fetched_at, forecast_raw, archive_raw)
 
 
 # ── Input builders (numpy, no pandas) ────────────────────────────────────────
@@ -1674,16 +1681,22 @@ async def get_weather(district: str, season: Optional[str] = None, lang: str = "
         f"&timezone={tz}"
     )
 
+    cache_key = (forecast_url, archive_url)
+    cached = _weather_cache.get(cache_key)
     try:
-        async with httpx.AsyncClient(timeout=25.0, headers={"User-Agent": "SmartAgri/1.0"}) as client:
-            forecast_resp, archive_resp = await asyncio.gather(
-                client.get(forecast_url),
-                client.get(archive_url),
-            )
-        forecast_resp.raise_for_status()
-        archive_resp.raise_for_status()
-        forecast_raw = forecast_resp.json()
-        archive_raw  = archive_resp.json()
+        if cached and _time.monotonic() - cached[0] < WEATHER_CACHE_SECONDS:
+            _, forecast_raw, archive_raw = cached
+        else:
+            async with httpx.AsyncClient(timeout=25.0, headers={"User-Agent": "SmartAgri/1.0"}) as client:
+                forecast_resp, archive_resp = await asyncio.gather(
+                    client.get(forecast_url),
+                    client.get(archive_url),
+                )
+            forecast_resp.raise_for_status()
+            archive_resp.raise_for_status()
+            forecast_raw = forecast_resp.json()
+            archive_raw  = archive_resp.json()
+            _weather_cache[cache_key] = (_time.monotonic(), forecast_raw, archive_raw)
     except httpx.HTTPStatusError as e:
         logger.error("Open-Meteo HTTP error: %s", e.response.text)
         raise HTTPException(502, f"Weather API error: {e.response.status_code}")

@@ -3,7 +3,7 @@
  * Reads lang/weather from AppContext and passes them as props to Part 1 ML pages
  * via the Outlet context.
  */
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import ErrorBoundary from './ErrorBoundary';
