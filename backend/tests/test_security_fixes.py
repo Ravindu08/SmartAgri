@@ -3,27 +3,19 @@ Regression tests for the marketplace, auth and upload bugs found in the
 2026-10 audit — run with: pytest backend/tests/test_security_fixes.py -v
 Requires the conftest.py in this directory to run first (sets env + patches dotenv).
 """
+from datetime import datetime, timedelta, timezone
+
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from app.core.deps import get_db
 from app.core.limiter import limiter
 from app.core.security import hash_password
-from app.db.database import Base
 from app.main import app
 from app.models.user import User, UserRole
 from app.utils.image_storage import InvalidImageError, store_image
 
-_engine = create_engine(
-    "sqlite:///:memory:",
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
-Base.metadata.create_all(bind=_engine)
+from tests.db import TestingSessionLocal
 
 PASSWORD = "Password123!"
 
@@ -282,6 +274,70 @@ def test_placeholder_secret_keys_are_refused(placeholder, monkeypatch):
     finally:
         monkeypatch.setenv("SECRET_KEY", good)
         importlib.reload(security)
+
+
+# ── A password change signs out every other device ───────────────────────────
+
+def _login(email: str, password: str = PASSWORD) -> dict:
+    r = client.post("/auth/login", json={"email": email, "password": password})
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+def test_password_change_invalidates_other_sessions_but_not_this_one():
+    this_device = _login_new(UserRole.TRADER)
+    other_device = _login(this_device["user"]["email"])
+    assert client.get("/auth/me", headers=_h(other_device)).status_code == 200
+
+    r = client.put("/auth/me/password", headers=_h(this_device),
+                   json={"current_password": PASSWORD, "new_password": "NewPassword456!"})
+    assert r.status_code == 200, r.text
+    fresh = r.json()
+
+    # Old tokens are dead on both devices, access and refresh alike.
+    assert client.get("/auth/me", headers=_h(other_device)).status_code == 401
+    assert client.get("/auth/me", headers=_h(this_device)).status_code == 401
+    assert client.post("/auth/refresh",
+                       json={"refresh_token": other_device["refresh_token"]}).status_code == 401
+
+    # The pair returned by the change keeps this device logged in.
+    assert client.get("/auth/me", headers=_h(fresh)).status_code == 200
+    refreshed = client.post("/auth/refresh", json={"refresh_token": fresh["refresh_token"]})
+    assert refreshed.status_code == 200
+    assert client.get("/auth/me", headers=_h(refreshed.json())).status_code == 200
+
+
+def test_password_reset_invalidates_existing_sessions():
+    session = _login_new(UserRole.TRADER)
+    db = TestingSessionLocal()
+    user = db.get(User, session["user"]["id"])
+    user.reset_token = "reset-token-for-test"
+    user.reset_token_expires = datetime.now(timezone.utc) + timedelta(hours=1)
+    db.commit()
+    db.close()
+
+    r = client.post("/auth/reset-password",
+                    json={"token": "reset-token-for-test", "new_password": "ResetPassword789!"})
+    assert r.status_code == 200, r.text
+
+    assert client.get("/auth/me", headers=_h(session)).status_code == 401
+    assert client.post("/auth/refresh",
+                       json={"refresh_token": session["refresh_token"]}).status_code == 401
+    again = _login(session["user"]["email"], "ResetPassword789!")
+    assert client.get("/auth/me", headers=_h(again)).status_code == 200
+
+
+def test_token_without_version_claim_still_works_until_password_changes():
+    # Tokens issued before the "ver" claim existed must not all break on deploy.
+    from app.core.security import create_access_token
+
+    session = _login_new(UserRole.TRADER)
+    legacy = {"access_token": create_access_token({"sub": str(session["user"]["id"])})}
+    assert client.get("/auth/me", headers=_h(legacy)).status_code == 200
+
+    client.put("/auth/me/password", headers=_h(session),
+               json={"current_password": PASSWORD, "new_password": "NewPassword456!"})
+    assert client.get("/auth/me", headers=_h(legacy)).status_code == 401
 
 
 # ── Cultivation tracker (ML service) requires the owner's token ───────────────

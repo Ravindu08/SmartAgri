@@ -35,3 +35,15 @@ def _ml_service_runs_as_test_user():
     import ml_service.app as ml
     ml.app.dependency_overrides[ml.current_user_id] = lambda: ML_TEST_USER
     yield
+
+
+@pytest.fixture(autouse=True, scope="module")
+def _fresh_database():
+    """Give each test module empty tables, so files never see each other's rows."""
+    import app.main  # noqa: F401 — registers every model on Base.metadata
+    from app.db.database import Base
+    from tests.db import engine
+
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    yield
