@@ -32,14 +32,14 @@ def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def create_access_token(data: dict[str, str], expires_delta: timedelta | None = None) -> str:
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     payload = data.copy()
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     payload.update({"exp": expire, "type": "access"})
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def create_refresh_token(data: dict[str, str]) -> str:
+def create_refresh_token(data: dict) -> str:
     payload = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     payload.update({"exp": expire, "type": "refresh"})
@@ -48,3 +48,17 @@ def create_refresh_token(data: dict[str, str]) -> str:
 
 def decode_token(token: str) -> dict:
     return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+
+def issue_token_pair(user) -> tuple[str, str]:
+    """Access and refresh tokens for a user, stamped with their token_version."""
+    data = {"sub": str(user.id), "ver": user.token_version}
+    return create_access_token(data=data), create_refresh_token(data=data)
+
+
+def token_is_current(payload: dict, user) -> bool:
+    """False for a token issued before the user's last password change.
+
+    Tokens from before this claim existed carry no "ver" and count as 0.
+    """
+    return payload.get("ver", 0) == user.token_version

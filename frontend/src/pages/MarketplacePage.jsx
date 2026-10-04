@@ -4,7 +4,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useOutletContext } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router';
 import useSWR, { mutate } from 'swr';
 import CustomSelect from '../components/CustomSelect';
 import PayDialog from '../components/PayDialog';

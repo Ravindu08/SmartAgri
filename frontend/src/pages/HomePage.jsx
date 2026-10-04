@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import FeatureCard from '../components/FeatureCard';
 import { fetchBackendHealth, getAuthSession } from '../services/api';
 import { useApp } from '../context/AppContext';

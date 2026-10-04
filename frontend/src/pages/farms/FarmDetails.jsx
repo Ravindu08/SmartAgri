@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ML_BASE_URL } from '../../services/api';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router';
 import { getFarm } from '../../services/farmService';
 import { createCrop, getCropsByFarm } from '../../services/cropService';
 import { listCultivations, findSessionForCrop } from '../../utils/cultivationApi';

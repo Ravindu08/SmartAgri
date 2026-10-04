@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router';
 import { useApp } from '../context/AppContext';
 import { getAuthSession, clearAuthSession } from '../services/api';
 import Navbar from './Navbar';

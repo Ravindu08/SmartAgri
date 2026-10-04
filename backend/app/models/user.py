@@ -34,6 +34,9 @@ class User(Base):
     roles: Mapped[list | None] = mapped_column(JSON, nullable=True)
     is_suspended: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default='false')
     is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default='false')
+    # Carried in every token as "ver". Bumped when the password changes, which
+    # invalidates every token issued before it.
+    token_version: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default='0')
     email_verification_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     reset_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     reset_token_expires: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
