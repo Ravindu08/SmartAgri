@@ -1,0 +1,595 @@
+/* Tool pages — motion and interaction.
+   Crop Recommendation, Crop Guidance, Yield & Price, Weather, About (and the
+   shared page-hero pattern, which Contact uses too). Imported once by
+   MotionLayer. Entrance animations use fill-mode `backwards` so nothing stays
+   applied afterwards. Still under prefers-reduced-motion (bottom of file). */
+
+@keyframes tm-rise {
+  from { opacity: 0; translate: 0 18px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+@keyframes tm-slide {
+  from { opacity: 0; translate: -18px 0; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+@keyframes tm-pop {
+  from { opacity: 0; scale: 0.86; }
+  to   { opacity: 1; scale: 1; }
+}
+
+@keyframes tm-grow {
+  from { scale: 0 1; }
+  to   { scale: 1 1; }
+}
+
+@keyframes tm-wiggle {
+  0%   { rotate: 0deg;   scale: 1; }
+  35%  { rotate: -12deg; scale: 1.2; }
+  70%  { rotate: 8deg;   scale: 1.08; }
+  100% { rotate: 0deg;   scale: 1; }
+}
+
+@keyframes tm-bob {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -6px; }
+}
+
+@keyframes tm-shine {
+  0%, 55% { translate: -120% 0; }
+  100%    { translate: 220% 0; }
+}
+
+@keyframes tm-pulse-ring {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--tm-tone, var(--green-mid)) 55%, transparent); }
+  100% { box-shadow: 0 0 0 10px transparent; }
+}
+
+@keyframes tm-shake {
+  0%, 100% { translate: 0 0; }
+  20%      { translate: -7px 0; }
+  40%      { translate: 6px 0; }
+  60%      { translate: -4px 0; }
+  80%      { translate: 3px 0; }
+}
+
+/* ══ Shared page hero (every tool page has one) ═══════════════════════════ */
+:is(.hero-inner, .guidance-hero-inner, .yp-hero-inner, .wx-hero-inner, .about-hero-inner, .contact-hero-inner) {
+  animation: none;
+}
+
+:is(.hero-badge, .guidance-hero-badge, .yp-hero-badge, .wx-hero-badge, .about-hero-badge, .contact-hero-badge),
+:is(.hero-title, .guidance-hero-title, .yp-hero-title, .wx-hero-title, .about-hero-title, .contact-hero-title),
+:is(.hero-sub, .guidance-hero-sub, .yp-hero-sub, .wx-hero-sub, .about-hero-sub, .contact-hero-sub) {
+  animation: tm-hero-in 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+:is(.hero-title, .guidance-hero-title, .yp-hero-title, .wx-hero-title, .about-hero-title, .contact-hero-title) { animation-delay: 0.1s; }
+:is(.hero-sub, .guidance-hero-sub, .yp-hero-sub, .wx-hero-sub, .about-hero-sub, .contact-hero-sub)             { animation-delay: 0.2s; }
+
+@keyframes tm-hero-in {
+  from { opacity: 0; translate: 0 18px; filter: blur(6px); }
+  to   { opacity: 1; translate: 0 0;    filter: blur(0); }
+}
+
+:is(.hero-badge, .guidance-hero-badge, .yp-hero-badge, .wx-hero-badge, .about-hero-badge, .contact-hero-badge) {
+  position: relative;
+  overflow: hidden;
+}
+
+:is(.hero-badge, .guidance-hero-badge, .yp-hero-badge, .wx-hero-badge, .about-hero-badge, .contact-hero-badge)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.35) 50%, transparent 65%);
+  translate: -120% 0;
+  animation: tm-shine 4.5s ease-in-out 1.2s infinite;
+  pointer-events: none;
+}
+
+/* ══ Crop Recommendation (.app) ═══════════════════════════════════════════ */
+.app .fsec { animation: tm-rise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+.app .fsec:nth-of-type(2) { animation-delay: 0.08s; }
+.app .fsec:nth-of-type(3) { animation-delay: 0.16s; }
+
+.app .fl .flb { transition: color 0.2s ease; }
+.app .fl:focus-within .flb { color: var(--accent); }
+
+.app .iw input { transition: border-color 0.2s ease, box-shadow 0.25s ease, translate 0.2s ease; }
+.app .iw input:focus {
+  translate: 0 -1px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.app .ferr,
+.app .alert-error { animation: tm-shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) backwards; }
+
+.app .alert-warn,
+.app .alert-demo { animation: tm-rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+
+/* analyse button: a light keeps sweeping across it, lifts on hover */
+.app .btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: translate 0.2s ease, box-shadow 0.25s ease, scale 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease;
+}
+
+.app .btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
+  translate: -120% 0;
+  animation: tm-shine 3.6s ease-in-out 1s infinite;
+  pointer-events: none;
+}
+
+.app .btn:hover:not(:disabled) {
+  translate: 0 -2px;
+  box-shadow: 0 14px 30px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* the answer: card pops in, crop emoji lands with a bounce, bar fills */
+.app .res { animation: tm-result 0.75s cubic-bezier(0.34, 1.35, 0.64, 1) backwards; }
+
+@keyframes tm-result {
+  from { opacity: 0; scale: 0.9; translate: 0 26px; filter: blur(6px); }
+  to   { opacity: 1; scale: 1;   translate: 0 0;    filter: blur(0); }
+}
+
+.app .re {
+  display: inline-block;
+  animation: tm-emoji-land 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s backwards, tm-bob 3.4s ease-in-out 1.3s infinite;
+}
+
+@keyframes tm-emoji-land {
+  0%   { opacity: 0; scale: 0;   rotate: -40deg; }
+  60%  { opacity: 1; scale: 1.3; rotate: 10deg; }
+  100% { opacity: 1; scale: 1;   rotate: 0deg; }
+}
+
+.app .rc  { animation: tm-rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s backwards; }
+.app .rcf { animation: tm-rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.35s backwards; }
+
+.app .cf {
+  position: relative;
+  overflow: hidden;
+  transform-origin: left center;
+  animation: tm-grow 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s backwards;
+}
+
+.app .cf::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.6) 50%, transparent 70%);
+  translate: -120% 0;
+  animation: tm-shine 2.6s ease-in-out 1.8s infinite;
+}
+
+.app .res-sparkles { animation: tm-twinkle 3s ease-in-out infinite; }
+
+@keyframes tm-twinkle {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 1; }
+}
+
+.app .t3c {
+  animation: tm-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  transition: translate 0.2s ease, background-color 0.2s ease;
+}
+
+.app .t3c:nth-of-type(1) { animation-delay: 0.75s; }
+.app .t3c:nth-of-type(2) { animation-delay: 0.87s; }
+.app .t3c:hover { translate: 0 -2px; }
+
+.app .ei { animation: tm-slide 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+.app .ei:nth-child(1) { animation-delay: 0.85s; }
+.app .ei:nth-child(2) { animation-delay: 0.93s; }
+.app .ei:nth-child(3) { animation-delay: 1.01s; }
+.app .ei:nth-child(4) { animation-delay: 1.09s; }
+
+.app .low-conf { animation: tm-shake 0.5s ease 0.9s backwards; }
+
+/* why this crop: feature cards deal out, their bars fill */
+.app .xai-card,
+.app .ci-card { animation: tm-rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s backwards; }
+
+.app .xai-hdr-icon { display: inline-grid; animation: tm-bob 3.2s ease-in-out infinite; }
+
+.xai-feat-card {
+  animation: tm-pop 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) backwards;
+  transition: translate 0.2s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+}
+
+.xai-feat-card:nth-child(1) { animation-delay: 0.45s; }
+.xai-feat-card:nth-child(2) { animation-delay: 0.53s; }
+.xai-feat-card:nth-child(3) { animation-delay: 0.61s; }
+.xai-feat-card:nth-child(4) { animation-delay: 0.69s; }
+.xai-feat-card:nth-child(5) { animation-delay: 0.77s; }
+.xai-feat-card:nth-child(n + 6) { animation-delay: 0.85s; }
+
+.xai-feat-card:hover { translate: 0 -3px; }
+
+.xai-feat-icon { transition: scale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), rotate 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.xai-feat-card:hover .xai-feat-icon { scale: 1.18; rotate: -8deg; }
+
+.xai-bar-fill {
+  transform-origin: left center;
+  animation: tm-grow 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.8s backwards;
+}
+
+.suit-range {
+  transform-origin: left center;
+  animation: tm-grow 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s backwards;
+}
+
+.suit-dot { animation: tm-dot-drop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 1s backwards; }
+
+@keyframes tm-dot-drop {
+  from { opacity: 0; translate: 0 -14px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+.app .ip {
+  animation: tm-pop 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) backwards;
+  transition: translate 0.2s ease;
+}
+
+.app .ip:nth-child(2) { animation-delay: 0.06s; }
+.app .ip:nth-child(3) { animation-delay: 0.12s; }
+.app .ip:nth-child(4) { animation-delay: 0.18s; }
+.app .ip:nth-child(n + 5) { animation-delay: 0.24s; }
+.app .ip:hover { translate: 0 -3px; }
+
+.soil-overlay { animation: tm-fade 0.25s ease backwards; }
+.soil-modal   { animation: tm-result 0.4s cubic-bezier(0.34, 1.35, 0.64, 1) backwards; }
+
+@keyframes tm-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.soil-info-card { transition: translate 0.2s ease, border-color 0.2s ease, box-shadow 0.25s ease; }
+.soil-info-card:hover { translate: 0 -2px; border-color: var(--accent); }
+
+.soil-guide-btn,
+.btn-print,
+.btn-reset { transition: translate 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; }
+
+.soil-guide-btn:hover,
+.btn-print:hover,
+.btn-reset:hover { translate: 0 -2px; }
+
+/* ══ Crop Guidance ════════════════════════════════════════════════════════ */
+.guidance-how-step {
+  animation: tm-rise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  transition: translate 0.2s ease;
+}
+
+.guidance-how-step:nth-child(2) { animation-delay: 0.08s; }
+.guidance-how-step:nth-child(3) { animation-delay: 0.16s; }
+.guidance-how-step:nth-child(n + 4) { animation-delay: 0.24s; }
+.guidance-how-step:hover { translate: 0 -3px; }
+
+.guidance-how-icon,
+.guidance-tab-preview-icon,
+.guidance-selector-icon,
+.guidance-section-hdr-icon { display: inline-block; transition: scale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), rotate 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+.guidance-how-step:hover .guidance-how-icon,
+.guidance-tab-preview-card:hover .guidance-tab-preview-icon { animation: tm-wiggle 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+.guidance-tab-preview-card {
+  animation: tm-pop 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) backwards;
+  transition: translate 0.2s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+}
+
+.guidance-tab-preview-card:nth-child(2) { animation-delay: 0.07s; }
+.guidance-tab-preview-card:nth-child(3) { animation-delay: 0.14s; }
+.guidance-tab-preview-card:nth-child(4) { animation-delay: 0.21s; }
+.guidance-tab-preview-card:nth-child(n + 5) { animation-delay: 0.28s; }
+.guidance-tab-preview-card:hover { translate: 0 -4px; }
+
+.guidance-popular-chip,
+.guidance-zone-chip {
+  animation: tm-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  transition: translate 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.guidance-popular-chip:nth-child(2) { animation-delay: 0.04s; }
+.guidance-popular-chip:nth-child(3) { animation-delay: 0.08s; }
+.guidance-popular-chip:nth-child(4) { animation-delay: 0.12s; }
+.guidance-popular-chip:nth-child(5) { animation-delay: 0.16s; }
+.guidance-popular-chip:nth-child(n + 6) { animation-delay: 0.2s; }
+.guidance-popular-chip:hover { translate: 0 -3px; }
+
+.guidance-generate-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: translate 0.2s ease, box-shadow 0.25s ease, scale 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease;
+}
+
+.guidance-generate-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
+  translate: -120% 0;
+  animation: tm-shine 3.6s ease-in-out 1s infinite;
+  pointer-events: none;
+}
+
+.guidance-generate-btn:hover:not(:disabled) { translate: 0 -2px; }
+
+.guidance-crop-header { animation: tm-result 0.6s cubic-bezier(0.34, 1.3, 0.64, 1) backwards; }
+
+.guidance-tab-btn { transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, translate 0.2s ease; }
+.guidance-tab-btn:hover { translate: 0 -2px; }
+.guidance-tab-btn .tab-btn-icon { display: inline-block; transition: scale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.guidance-tab-btn:hover .tab-btn-icon { scale: 1.2; }
+
+/* timeline: stages arrive down the line, the open one unfolds */
+.guidance-stage {
+  animation: tm-slide 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+.guidance-stage:nth-child(2) { animation-delay: 0.06s; }
+.guidance-stage:nth-child(3) { animation-delay: 0.12s; }
+.guidance-stage:nth-child(4) { animation-delay: 0.18s; }
+.guidance-stage:nth-child(5) { animation-delay: 0.24s; }
+.guidance-stage:nth-child(6) { animation-delay: 0.30s; }
+.guidance-stage:nth-child(n + 7) { animation-delay: 0.36s; }
+
+.guidance-stage-header { transition: background-color 0.2s ease, padding-left 0.2s ease; }
+.stage-icon { display: inline-block; transition: scale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), rotate 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.guidance-stage-header:hover .stage-icon { scale: 1.2; rotate: -8deg; }
+
+.guidance-stage-body { animation: tm-unfold 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+
+@keyframes tm-unfold {
+  from { opacity: 0; translate: 0 -8px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+.activity-card {
+  animation: tm-rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  transition: translate 0.2s ease, border-color 0.2s ease;
+}
+
+.activity-card:nth-child(2) { animation-delay: 0.05s; }
+.activity-card:nth-child(3) { animation-delay: 0.10s; }
+.activity-card:nth-child(n + 4) { animation-delay: 0.15s; }
+.activity-card:hover { translate: 4px 0; }
+
+.today-badge { --tm-tone: var(--yellow-accent); animation: tm-pulse-ring 1.8s ease-out infinite; }
+
+.threat-card,
+.guidance-wx-alert {
+  animation: tm-rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  transition: translate 0.2s ease, box-shadow 0.25s ease;
+}
+
+.threat-card:nth-child(2), .guidance-wx-alert:nth-child(2) { animation-delay: 0.07s; }
+.threat-card:nth-child(3), .guidance-wx-alert:nth-child(3) { animation-delay: 0.14s; }
+.threat-card:nth-child(n + 4) { animation-delay: 0.21s; }
+.threat-card:hover { translate: 0 -2px; }
+
+.guidance-wx-icon { display: inline-block; animation: tm-bob 3s ease-in-out infinite; }
+
+.irrig-item,
+.harvest-block {
+  animation: tm-pop 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) backwards;
+  transition: translate 0.2s ease;
+}
+
+.irrig-item:nth-child(2), .harvest-block:nth-child(2) { animation-delay: 0.06s; }
+.irrig-item:nth-child(3), .harvest-block:nth-child(3) { animation-delay: 0.12s; }
+.irrig-item:nth-child(n + 4), .harvest-block:nth-child(n + 4) { animation-delay: 0.18s; }
+.irrig-item:hover, .harvest-block:hover { translate: 0 -3px; }
+
+.irrig-item--critical { --tm-tone: #3b82f6; animation: tm-pop 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) backwards, tm-pulse-ring 2.2s ease-out 0.6s infinite; }
+.harvest-countdown--ready { --tm-tone: var(--green-mid); animation: tm-pulse-ring 1.8s ease-out infinite; }
+
+/* ══ Yield & Price ════════════════════════════════════════════════════════ */
+.yp-card { animation: tm-rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+.yp-card:nth-child(2) { animation-delay: 0.1s; }
+
+.yp-card-icon { transition: scale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), rotate 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.yp-card:hover .yp-card-icon { scale: 1.15; rotate: -8deg; }
+
+.yp-field > label,
+.yp-field > span:first-child { transition: color 0.2s ease; }
+.yp-field:focus-within > label { color: var(--accent); }
+
+.yp-field input { transition: border-color 0.2s ease, box-shadow 0.25s ease, translate 0.2s ease; }
+.yp-field input:focus {
+  translate: 0 -1px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.yp-pill { transition: translate 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, scale 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.yp-pill:hover { translate: 0 -2px; }
+
+.yp-btn-primary,
+.yp-use-yield-btn {
+  transition: translate 0.2s ease, box-shadow 0.25s ease, scale 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease;
+}
+
+.yp-btn-primary:hover:not(:disabled),
+.yp-use-yield-btn:hover { translate: 0 -2px; box-shadow: 0 12px 26px color-mix(in srgb, var(--accent) 32%, transparent); }
+
+.yp-hint--error { animation: tm-shake 0.45s ease backwards; }
+
+/* results land with a pop and a glow on the number */
+.yp-result,
+.yp-price-result { animation: tm-result 0.6s cubic-bezier(0.34, 1.35, 0.64, 1) backwards; }
+
+.yp-result-value,
+.yp-price-hero-value {
+  display: inline-block;
+  animation: tm-number 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
+}
+
+@keyframes tm-number {
+  0%   { opacity: 0; scale: 0.6; filter: blur(6px); }
+  60%  { opacity: 1; scale: 1.12; filter: blur(0); }
+  100% { opacity: 1; scale: 1; }
+}
+
+.yp-yield-badge { animation: tm-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s backwards; }
+
+.yp-breakdown-row,
+.yp-price-row {
+  animation: tm-slide 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  transition: background-color 0.2s ease, padding-left 0.2s ease;
+}
+
+.yp-breakdown-row:nth-child(1), .yp-price-row:nth-child(1) { animation-delay: 0.35s; }
+.yp-breakdown-row:nth-child(2), .yp-price-row:nth-child(2) { animation-delay: 0.43s; }
+.yp-price-row:nth-child(3) { animation-delay: 0.51s; }
+.yp-price-row:nth-child(4) { animation-delay: 0.59s; }
+
+/* ══ Weather ══════════════════════════════════════════════════════════════ */
+.wx-selector-card { animation: tm-rise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+
+.wx-fetch-btn,
+.wx-retry-btn { transition: translate 0.2s ease, box-shadow 0.25s ease, scale 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease; }
+.wx-fetch-btn:hover:not(:disabled),
+.wx-retry-btn:hover { translate: 0 -2px; }
+
+.wx-stat-card {
+  animation: tm-pop 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) backwards;
+  transition: translate 0.2s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+}
+
+.wx-stat-card:nth-child(2) { animation-delay: 0.07s; }
+.wx-stat-card:nth-child(3) { animation-delay: 0.14s; }
+.wx-stat-card:nth-child(4) { animation-delay: 0.21s; }
+.wx-stat-card:nth-child(n + 5) { animation-delay: 0.28s; }
+.wx-stat-card:hover { translate: 0 -4px; }
+
+.wx-stat-icon { display: inline-block; animation: tm-bob 3.4s ease-in-out infinite; }
+.wx-stat-card:nth-child(2n) .wx-stat-icon { animation-delay: -1.4s; }
+
+.wx-stat-value { display: inline-block; animation: tm-number 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s backwards; }
+
+.wx-forecast-row {
+  animation: tm-slide 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  transition: background-color 0.2s ease, translate 0.2s ease;
+}
+
+.wx-forecast-row:nth-child(2) { animation-delay: 0.05s; }
+.wx-forecast-row:nth-child(3) { animation-delay: 0.10s; }
+.wx-forecast-row:nth-child(4) { animation-delay: 0.15s; }
+.wx-forecast-row:nth-child(5) { animation-delay: 0.20s; }
+.wx-forecast-row:nth-child(6) { animation-delay: 0.25s; }
+.wx-forecast-row:nth-child(7) { animation-delay: 0.30s; }
+.wx-forecast-row:nth-child(n + 8) { animation-delay: 0.35s; }
+.wx-forecast-row:hover { translate: 4px 0; background-color: var(--surface-hover); }
+
+.wx-fc-icon { display: inline-block; transition: scale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.wx-forecast-row:hover .wx-fc-icon { scale: 1.3; }
+
+.wx-advice-card {
+  animation: tm-rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  transition: translate 0.2s ease, box-shadow 0.25s ease;
+}
+
+.wx-advice-card:nth-child(2) { animation-delay: 0.07s; }
+.wx-advice-card:nth-child(3) { animation-delay: 0.14s; }
+.wx-advice-card:nth-child(n + 4) { animation-delay: 0.21s; }
+.wx-advice-card:hover { translate: 4px 0; }
+
+.wx-advice-icon { display: inline-block; }
+.wx-advice-card:hover .wx-advice-icon { animation: tm-wiggle 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+.wx-zone-card,
+.wx-season-card,
+.wx-preview-card { transition: translate 0.25s ease, box-shadow 0.25s ease, border-color 0.2s ease; }
+
+.wx-zone-card:hover,
+.wx-season-card:hover,
+.wx-preview-card:hover { translate: 0 -5px; }
+
+.wx-zone-icon,
+.wx-season-icon,
+.wx-preview-icon { display: inline-block; }
+
+.wx-zone-card:hover .wx-zone-icon,
+.wx-season-card:hover .wx-season-icon,
+.wx-preview-card:hover .wx-preview-icon { animation: tm-wiggle 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+.wx-error-card { animation: tm-shake 0.5s ease backwards; }
+
+/* ══ About ════════════════════════════════════════════════════════════════ */
+.about-mv-card,
+.about-ps-card,
+.about-tech-card,
+.about-module-card,
+.about-team-card,
+.about-impact-card,
+.about-contact-card {
+  transition: translate 0.25s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+}
+
+.about-mv-card:hover,
+.about-ps-card:hover,
+.about-tech-card:hover,
+.about-module-card:hover,
+.about-team-card:hover,
+.about-impact-card:hover,
+.about-contact-card:hover { translate: 0 -5px; }
+
+.about-mv-icon,
+.about-ps-icon,
+.about-tech-icon,
+.about-module-icon,
+.about-contact-icon { display: inline-block; transition: scale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), rotate 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+.about-mv-card:hover .about-mv-icon,
+.about-ps-card:hover .about-ps-icon,
+.about-tech-card:hover .about-tech-icon,
+.about-module-card:hover .about-module-icon,
+.about-contact-card:hover .about-contact-icon { animation: tm-wiggle 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+.about-team-avatar { transition: scale 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease; }
+
+.about-team-card:hover .about-team-avatar {
+  scale: 1.08;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent), 0 10px 24px rgba(0, 0, 0, 0.2);
+}
+
+.about-team-chip { transition: translate 0.2s ease, background-color 0.2s ease; }
+.about-team-card:hover .about-team-chip { translate: 0 -2px; }
+.about-team-card:hover .about-team-chip:nth-child(2) { transition-delay: 0.04s; }
+.about-team-card:hover .about-team-chip:nth-child(3) { transition-delay: 0.08s; }
+
+.about-impact-num { display: inline-block; transition: scale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.about-impact-card:hover .about-impact-num { scale: 1.12; }
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.hero-badge, .guidance-hero-badge, .yp-hero-badge, .wx-hero-badge, .about-hero-badge, .contact-hero-badge),
+  :is(.hero-badge, .guidance-hero-badge, .yp-hero-badge, .wx-hero-badge, .about-hero-badge, .contact-hero-badge)::after,
+  :is(.hero-title, .guidance-hero-title, .yp-hero-title, .wx-hero-title, .about-hero-title, .contact-hero-title),
+  :is(.hero-sub, .guidance-hero-sub, .yp-hero-sub, .wx-hero-sub, .about-hero-sub, .contact-hero-sub),
+  .app :is(.fsec, .ferr, .alert-error, .alert-warn, .alert-demo, .btn::after, .res, .re, .rc, .rcf, .cf, .cf::after, .res-sparkles, .t3c, .ei, .low-conf, .xai-card, .ci-card, .xai-hdr-icon, .ip),
+  .app .btn::after,
+  .app .cf::after,
+  .xai-feat-card, .xai-bar-fill, .suit-range, .suit-dot, .soil-overlay, .soil-modal,
+  .guidance-how-step, .guidance-tab-preview-card, .guidance-popular-chip, .guidance-zone-chip,
+  .guidance-generate-btn::after, .guidance-crop-header, .guidance-stage, .guidance-stage-body,
+  .activity-card, .today-badge, .threat-card, .guidance-wx-alert, .guidance-wx-icon,
+  .irrig-item, .irrig-item--critical, .harvest-block, .harvest-countdown--ready,
+  .yp-card, .yp-hint--error, .yp-result, .yp-price-result, .yp-result-value, .yp-price-hero-value,
+  .yp-yield-badge, .yp-breakdown-row, .yp-price-row,
+  .wx-selector-card, .wx-stat-card, .wx-stat-icon, .wx-stat-value, .wx-forecast-row,
+  .wx-advice-card, .wx-error-card {
+    animation: none !important;
+  }
+}

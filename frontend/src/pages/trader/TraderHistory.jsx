@@ -135,14 +135,14 @@ export default function TraderHistory() {
       {/* Summary cards */}
       {historyOrders.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 240px))', gap: '12px' }} data-tour="tr-hist-summary">
-          <div style={{
+          <div className="fx-card" style={{
             background: 'var(--card)', border: '1px solid var(--border)',
             borderRadius: '10px', padding: '16px',
           }}>
             <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--accent)' }}>{historyOrders.length}</div>
             <div style={{ fontSize: '15px', color: 'var(--muted)', marginTop: '4px' }}>{t.totalOrders}</div>
           </div>
-          <div style={{
+          <div className="fx-card" style={{
             background: 'var(--card)', border: '1px solid var(--border)',
             borderRadius: '10px', padding: '16px',
           }}>
@@ -151,7 +151,7 @@ export default function TraderHistory() {
             </div>
             <div style={{ fontSize: '15px', color: 'var(--muted)', marginTop: '4px' }}>{t.totalValue}</div>
           </div>
-          <div style={{
+          <div className="fx-card" style={{
             background: 'var(--card)', border: '1px solid var(--border)',
             borderRadius: '10px', padding: '16px',
           }}>
@@ -189,7 +189,7 @@ export default function TraderHistory() {
       {isLoading ? (
         <SkeletonRows count={3} />
       ) : filtered.length === 0 ? (
-        <div style={{
+        <div className="fx-card" style={{
           background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px',
           padding: '48px', textAlign: 'center',
         }}>
@@ -208,7 +208,7 @@ export default function TraderHistory() {
           </Link>
         </div>
       ) : (
-        <div style={{
+        <div className="fx-card" style={{
           background: 'var(--card)', border: '1px solid var(--border)',
           borderRadius: '12px', overflow: 'hidden',
         }}>
