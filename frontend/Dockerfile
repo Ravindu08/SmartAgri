@@ -18,6 +18,10 @@ RUN npm run build
 FROM nginx:alpine
 
 COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# select-conf.sh picks the HTTP or HTTPS config at container start (see nginx/).
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx/locations.conf nginx/http.conf.template nginx/https.conf.template /etc/nginx/smartagri/
+COPY nginx/select-conf.sh /docker-entrypoint.d/15-smartagri-select-conf.sh
+RUN chmod +x /docker-entrypoint.d/15-smartagri-select-conf.sh
 
-EXPOSE 80
+EXPOSE 80 443

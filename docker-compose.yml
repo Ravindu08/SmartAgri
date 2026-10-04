@@ -19,14 +19,16 @@ services:
     env_file: ./backend/.env.docker
     environment:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-smartagri_pass}@db:5432/smartagri
+    # Loopback only: the public route in is nginx. Publishing on all interfaces
+    # would let a client bypass it and forge X-Forwarded-For.
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       - uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips=*
     restart: unless-stopped
 
   ml:
@@ -35,13 +37,13 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-smartagri_pass}@db:5432/smartagri
     ports:
-      - "8001:8001"
+      - "127.0.0.1:8001:8001"
     volumes:
       - uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
-    command: uvicorn ml_service.app:app --host 0.0.0.0 --port 8001
+    command: uvicorn ml_service.app:app --host 0.0.0.0 --port 8001 --proxy-headers --forwarded-allow-ips=*
     restart: unless-stopped
 
   frontend:
@@ -50,6 +52,10 @@ services:
       args:
         VITE_API_URL: ""
         VITE_ML_URL: ""
+    # DOMAIN (from the root .env) switches nginx to HTTPS once its certificate
+    # exists under /etc/letsencrypt; without it the site is served over plain HTTP.
+    environment:
+      DOMAIN: ${DOMAIN:-}
     ports:
       - "80:80"
       - "443:443"
