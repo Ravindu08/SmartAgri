@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { getFarm, updateFarm } from '../../services/farmService';
 import { DISTRICTS, IRRIGATION_TYPES, SEASONS, SIZE_UNITS, SOIL_TYPES } from '../../data/farmOptions';
 import { useApp } from '../../context/AppContext';

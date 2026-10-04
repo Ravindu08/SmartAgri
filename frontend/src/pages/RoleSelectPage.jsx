@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { getAuthSession, setActiveRole, getUserRoles, clearAuthSession } from '../services/api';
 import { useApp } from '../context/AppContext';
 

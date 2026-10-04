@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 // Dismissible "Getting Started" card, reused by the Land Owner and Trader
 // dashboards. `done` on each item is computed by the caller from data
