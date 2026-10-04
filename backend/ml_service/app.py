@@ -8,7 +8,7 @@ Changes vs v5.2:
 - uvicorn[standard] extras dropped
 """
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
@@ -52,6 +52,19 @@ except Exception as _db_err:
     logger.warning("[WARN] Cultivation DB unavailable: %s — sessions will be in-memory only", _db_err)
 
 from app.utils.image_storage import ImageTooLargeError, InvalidImageError, store_image as _store_task_photo
+from app.core.deps import get_current_user as _get_current_user
+
+
+def current_user_id(user=Depends(_get_current_user)) -> str:
+    """The logged-in user's id, in the string form cultivation_sessions.user_id stores."""
+    return str(user.id)
+
+
+def _require_owner(path_user_id: str, uid: str) -> None:
+    # The user id stays in the URL for client compatibility, but it is only
+    # honoured when it matches the token — it is never trusted on its own.
+    if path_user_id != uid:
+        raise HTTPException(403, "You can only access your own cultivations")
 
 app = FastAPI(
     title="SMARTAGRI ML Service",
@@ -971,7 +984,8 @@ def _session_to_dict(session: "_CultivationSession") -> dict:
 
 
 @app.post("/cultivation", status_code=201)
-def start_cultivation(req: StartCultivationRequest):
+def start_cultivation(req: StartCultivationRequest, uid: str = Depends(current_user_id)):
+    _require_owner(req.user_id, uid)
     crop_data = crop_guidance_db.get(req.crop)
     if crop_data is None:
         raise HTTPException(404, f"No guidance for crop: {req.crop}")
@@ -1045,7 +1059,8 @@ def start_cultivation(req: StartCultivationRequest):
 
 
 @app.get("/cultivation/{user_id}")
-def list_cultivations(user_id: str):
+def list_cultivations(user_id: str, uid: str = Depends(current_user_id)):
+    _require_owner(user_id, uid)
     if _DB_AVAILABLE:
         try:
             db: "_OrmSession" = _SessionLocal()
@@ -1084,7 +1099,9 @@ def _derive_session_status(current: str, task_statuses) -> str:
 
 
 @app.put("/cultivation/{user_id}/{session_id}/task/{task_id}")
-def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: TaskStatusUpdate):
+def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: TaskStatusUpdate,
+                            uid: str = Depends(current_user_id)):
+    _require_owner(user_id, uid)
     if body.status not in ("done", "skipped", "pending", "overdue"):
         raise HTTPException(400, "status must be: done | skipped | pending | overdue")
 
@@ -1171,7 +1188,8 @@ def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: T
 
 
 @app.delete("/cultivation/{user_id}/{session_id}", status_code=204)
-def abandon_cultivation(user_id: str, session_id: str):
+def abandon_cultivation(user_id: str, session_id: str, uid: str = Depends(current_user_id)):
+    _require_owner(user_id, uid)
     if _DB_AVAILABLE:
         try:
             db: "_OrmSession" = _SessionLocal()

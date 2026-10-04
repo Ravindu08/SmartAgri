@@ -63,8 +63,8 @@ def _make_user(email: str, role: UserRole, password: str = "Password123!") -> Us
 
 
 def _bearer(email: str, role: UserRole) -> dict[str, str]:
-    _make_user(email, role)
-    token = create_access_token(data={"sub": email})
+    user = _make_user(email, role)
+    token = create_access_token(data={"sub": str(user.id)})
     return {"Authorization": f"Bearer {token}"}
 
 

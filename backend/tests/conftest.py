@@ -22,3 +22,16 @@ os.environ.setdefault("SECRET_KEY", "test-secret-key-for-pytest-32chars!!")
 os.environ.setdefault("EMAIL_ENABLED", "false")
 os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 os.environ.setdefault("REFRESH_TOKEN_EXPIRE_DAYS", "7")
+
+import pytest
+
+# The cultivation tracker requires a logged-in user. ML-service tests have no
+# users table, so they run as this fixed id instead of presenting a real token.
+ML_TEST_USER = "test-user-ml"
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _ml_service_runs_as_test_user():
+    import ml_service.app as ml
+    ml.app.dependency_overrides[ml.current_user_id] = lambda: ML_TEST_USER
+    yield
