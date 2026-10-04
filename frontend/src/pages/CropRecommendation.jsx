@@ -7,6 +7,7 @@ import { celebrate } from "../utils/celebrate";
 import "../styles/CropRecommendation.css";
 import "../styles/tool-rec.css";
 import ToolSwitcher from "../components/ToolSwitcher";
+import ToolIntro from "../components/ToolIntro";
 import { T, DISTRICT_LABELS, ZONE_LABELS, IRR_LABELS, SEA_LABELS, SEA_DESC } from "../data/translations";
 import { DISTRICT_TO_ZONES }                                         from "../data/districtZones";
 import { SOIL_TYPES, CROP_EMOJI, SOIL_GUIDE_ROWS,
@@ -300,15 +301,15 @@ const CR2_T = {
   },
 };
 
-// Colour and short tag for each numeric field's slider.
+// Short tag shown beside each numeric field. One colour for all: the page's own.
 const FIELD_LOOK = {
-  N:    { color: "#22c55e", tag: "N"  },
-  P:    { color: "#fb923c", tag: "P"  },
-  K:    { color: "#c084fc", tag: "K"  },
-  temp: { color: "#f87171", tag: "°C" },
-  rain: { color: "#38bdf8", tag: "mm" },
-  ph:   { color: "#2dd4bf", tag: "pH" },
-  hum:  { color: "#818cf8", tag: "%"  },
+  N:    { color: "var(--tu-green)", tag: "N"  },
+  P:    { color: "var(--tu-green)", tag: "P"  },
+  K:    { color: "var(--tu-green)", tag: "K"  },
+  temp: { color: "var(--tu-green)", tag: "°C" },
+  rain: { color: "var(--tu-green)", tag: "mm" },
+  ph:   { color: "var(--tu-green)", tag: "pH" },
+  hum:  { color: "var(--tu-green)", tag: "%"  },
 };
 
 // Offered as one-tap chips; every soil stays available in the dropdown.
@@ -636,22 +637,13 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
     </span>
   );
   const xaiLabel = f => (lang === "si" ? f.label_si : lang === "ta" ? f.label_ta : f.label) || f.label;
-  const altColors = ["#fb923c", "#38bdf8"];
+  const altColors = ["var(--tu-green)", "var(--tu-green)"];
 
   return (
     <div className="tu-page tu-tone-green">
       <ToolSwitcher />
 
-      <section className="tu-hero tu-rise">
-        <span className="tu-eyebrow"><Sparkles size={14} />{c2.eyebrow}</span>
-        <h1>{c2.h1a}<br /><span style={{ color: "#fff3b0" }}>{c2.h1b}</span></h1>
-        <p>{c2.sub}</p>
-        <div className="tu-chips">
-          <div className="tu-chip"><b>11</b>{c2.chipParams}</div>
-          <div className="tu-chip"><b>3</b>{c2.chipMatches}</div>
-          <div className="tu-chip"><Check size={16} strokeWidth={3} />{c2.chipWhy}</div>
-        </div>
-      </section>
+      <ToolIntro tool="rec" />
 
       {error && (
         <div className="cr2-alert tu-tone-red"><TriangleAlert size={18} /><span>{error}</span></div>
@@ -674,7 +666,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
       <div className="cr2-grid">
         {/* ── Inputs ── */}
         <div className="cr2-steps">
-          <section className="tu-card cr2-step tu-tone-sky tu-rise">
+          <section className="tu-card cr2-step tu-rise">
             <div className="tu-head">
               <span className="cr2-num">1</span>
               <div><h2>{c2.s1}</h2><small>{c2.s1h}</small></div>
@@ -710,7 +702,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
             </div>
           </section>
 
-          <section className="tu-card cr2-step tu-tone-amber tu-rise">
+          <section className="tu-card cr2-step tu-rise">
             <div className="tu-head">
               <span className="cr2-num">2</span>
               <div><h2>{c2.s2}</h2><small>{c2.s2h}</small></div>
@@ -757,7 +749,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
             </div>
           </section>
 
-          <section className="tu-card cr2-step tu-tone-green tu-rise">
+          <section className="tu-card cr2-step tu-rise">
             <div className="tu-head">
               <span className="cr2-num">3</span>
               <div><h2>{c2.s3}</h2><small>{c2.s3h}</small></div>
@@ -765,7 +757,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
             </div>
 
             {wxFilled && (
-              <div className="cr2-note tu-tone-sky">
+              <div className="cr2-note">
                 <CloudSun size={18} />
                 <span>{t.wxAutoFillBadge} <strong>{dl[district] || district}</strong>. {t.wxAutoFillAdjust}</span>
               </div>
@@ -785,7 +777,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
               </div>
             )}
             {!wxFilled && district && (
-              <div className="cr2-note tu-tone-sky">
+              <div className="cr2-note">
                 <CloudSun size={18} />
                 <span>
                   {wxLoading
@@ -869,7 +861,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
           )}
 
           {!result && (
-            <div className="tu-card tu-rise tu-tone-amber">
+            <div className="tu-card tu-rise">
               <div className="tu-head">
                 <span className="tu-ic tu-ic--sm"><Info size={18} /></span>
                 <div><h3>{c2.tipsT}</h3><small>{c2.tipsS}</small></div>
@@ -919,7 +911,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
                 {result.xai_features?.length > 0 && (
                   <>
                     <div className="tu-head">
-                      <span className="tu-ic tu-ic--sm tu-tone-violet"><Sparkles size={18} /></span>
+                      <span className="tu-ic tu-ic--sm"><Sparkles size={18} /></span>
                       <div><h3>{t.xaiTitle}</h3><small>{result.xai_is_global ? t.xaiSubtitleGlobal : t.xaiSubtitle}</small></div>
                     </div>
                     {result.xai_summary && (

@@ -8,6 +8,7 @@ import "../styles/CropGuidance.css";
 import "../styles/tool-cg.css";
 import { ArrowLeft, BookOpen, Bug, CalendarDays, Check, CloudSun, Droplets, FlaskConical, Lock, Search, ShieldAlert, ShoppingBasket, Sprout, TriangleAlert } from "lucide-react";
 import ToolSwitcher from "../components/ToolSwitcher";
+import ToolIntro from "../components/ToolIntro";
 import { getCropLabel, CROP_EMOJI } from "../data/cropData";
 import { ZONE_LABELS, FERT_TIMING_LABELS, STAGE_NAME_LABELS, PROPAGATION_LABELS } from "../data/translations";
 import SpotlightTour   from "../components/tour/SpotlightTour";
@@ -468,16 +469,16 @@ const GUIDE_TABS_INFO = [
     desc_ta: "எப்போது, எவ்வாறு அறுவடை செய்வது மற்றும் சிறந்த தரத்திற்காக அறுவடைக்கு பிந்தைய கையாளுதலை அறியுங்கள்." },
 ];
 
-// Icon and colour for each guide tab, shared by the tab bar and the
-// "what every guide includes" tiles.
+// Icon for each guide tab, shared by the tab bar and the "what every guide
+// includes" tiles.
 const TAB_LOOK = {
-  growthStages:    { Icon: Sprout,         tone: "teal"   },
-  fertilization:   { Icon: FlaskConical,   tone: "green"  },
-  irrigationGuide: { Icon: Droplets,       tone: "sky"    },
-  diseaseMgmt:     { Icon: ShieldAlert,    tone: "red"    },
-  pestMgmt:        { Icon: Bug,            tone: "violet" },
-  riskFactors:     { Icon: TriangleAlert,  tone: "amber"  },
-  harvestGuide:    { Icon: ShoppingBasket, tone: "amber"  },
+  growthStages:    { Icon: Sprout, },
+  fertilization:   { Icon: FlaskConical, },
+  irrigationGuide: { Icon: Droplets, },
+  diseaseMgmt:     { Icon: ShieldAlert, },
+  pestMgmt:        { Icon: Bug, },
+  riskFactors:     { Icon: TriangleAlert, },
+  harvestGuide:    { Icon: ShoppingBasket, },
 };
 // GUIDE_TABS_INFO lists six of the tabs, in this order.
 const INFO_TABS = ["growthStages", "fertilization", "irrigationGuide", "diseaseMgmt", "pestMgmt", "harvestGuide"];
@@ -743,7 +744,7 @@ function GuidanceDetail({ cropName, plantingDate, onDateChange, t, lang, onBack,
                 <div>
                   <h3>{STAGE_NAME_LABELS[lang]?.[current.name] || current.name}</h3>
                   {current.description && <p>{tF(current, "description", lang)}</p>}
-                  <div className="tu-tile"><small>{c.daysLeft}</small><b style={{ color: "var(--tu-gold)" }}>{current.day_end - daysSince}</b></div>
+                  <div className="tu-tile"><small>{c.daysLeft}</small><b>{current.day_end - daysSince}</b></div>
                 </div>
                 {upcoming.length > 0 && (
                   <div>
@@ -767,7 +768,7 @@ function GuidanceDetail({ cropName, plantingDate, onDateChange, t, lang, onBack,
         )}
 
         {/* Weather fit */}
-        <section className="tu-card tu-rise tu-tone-sky">
+        <section className="tu-card tu-rise">
           <div className="tu-head">
             <span className="tu-ic tu-ic--sm"><CloudSun size={18} /></span>
             <div><h2>{c.fitT}</h2><small>{c.fitS}</small></div>
@@ -775,9 +776,9 @@ function GuidanceDetail({ cropName, plantingDate, onDateChange, t, lang, onBack,
           {weather ? (
             <>
               <div className="cg2-wx">
-                <div className="tu-tile"><small>{c.temp}</small><b style={{ color: "var(--tu-coral)" }}>{Number(wxTemp).toFixed(1)}°</b></div>
-                <div className="tu-tile"><small>{c.hum}</small><b style={{ color: "var(--tu-teal)" }}>{Math.round(wxHum)}%</b></div>
-                <div className="tu-tile"><small>{c.rain2d}</small><b style={{ color: "var(--tu-sky)" }}>{rain2d.toFixed(0)} mm</b></div>
+                <div className="tu-tile"><small>{c.temp}</small><b>{Number(wxTemp).toFixed(1)}°</b></div>
+                <div className="tu-tile"><small>{c.hum}</small><b>{Math.round(wxHum)}%</b></div>
+                <div className="tu-tile"><small>{c.rain2d}</small><b>{rain2d.toFixed(0)} mm</b></div>
               </div>
               {wxAlerts.length > 0 ? (
                 <div className="cg2-alerts">
@@ -805,9 +806,9 @@ function GuidanceDetail({ cropName, plantingDate, onDateChange, t, lang, onBack,
             key === "diseaseMgmt" ? (data.diseases || []).length :
             key === "pestMgmt"    ? (data.pests    || []).length :
             key === "riskFactors" ? (data.risks    || []).length : 0;
-          const { Icon, tone } = TAB_LOOK[key];
+          const { Icon } = TAB_LOOK[key];
           return (
-            <button key={key} type="button" className={`cg2-tab tu-tone-${tone}`} aria-pressed={tab === key} onClick={() => setTab(key)}>
+            <button key={key} type="button" className="cg2-tab" aria-pressed={tab === key} onClick={() => setTab(key)}>
               <Icon size={16} />{t[key] || key}{count > 0 && <em>{count}</em>}
             </button>
           );
@@ -866,11 +867,7 @@ export default function CropGuidance({ lang, t, weather, setWeather }) {
       {mode === "guide" ? (
         !selected ? (
           <>
-            <section className="tu-hero tu-rise">
-              <span className="tu-eyebrow"><BookOpen size={14} />{t.cropGuideTab}</span>
-              <h1>{t.guidanceTitle}</h1>
-              <p>{t.guidanceSub}</p>
-            </section>
+            <ToolIntro tool="guide" />
 
             <div className="cg2-pick">
               <GuideCropPicker lang={lang} onSelect={handleSelect} />
@@ -881,7 +878,7 @@ export default function CropGuidance({ lang, t, weather, setWeather }) {
                     onChange={e => setPlantingDate(e.target.value || null)} />
                   <span className="cg2-hint">{c.dateH}</span>
                 </div>
-                <div className="tu-card tu-tone-sky">
+                <div className="tu-card">
                   <span className="tu-label">{c.wxT}</span>
                   <WeatherLocationPicker weather={weather} onWeatherFetched={setWeather} t={t} lang={lang} />
                 </div>
@@ -895,9 +892,9 @@ export default function CropGuidance({ lang, t, weather, setWeather }) {
               </div>
               <div className="cg2-gets">
                 {GUIDE_TABS_INFO.map((info, i) => {
-                  const { Icon, tone } = TAB_LOOK[INFO_TABS[i]];
+                  const { Icon } = TAB_LOOK[INFO_TABS[i]];
                   return (
-                    <div className={`cg2-get tu-tone-${tone}`} key={i}>
+                    <div className="cg2-get" key={i}>
                       <Icon size={24} />
                       <b>{info[lang] || info.en}</b>
                       <p>{info[`desc_${lang}`] || info.desc_en}</p>
