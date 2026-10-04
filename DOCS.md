@@ -38,29 +38,29 @@ SmartAgri is an AI-powered agribusiness platform built for Sri Lanka. It has two
 | Technology | Version | What it does in this project |
 |---|---|---|
 | **Python** | 3.10+ | Language the entire backend runs in |
-| **FastAPI** | 0.115.0 | Web framework for all ML API endpoints |
-| **Uvicorn** | ≥0.30.0 | ASGI server — runs FastAPI on port 8001 |
-| **Pydantic** | 2.7.0 | Request validation — pH must be 3–10, Season must be Maha/Yala/Year-round, etc. |
-| **scikit-learn** | 1.5.0 | `RandomForestClassifier`, `VotingClassifier`, `LabelEncoder`, `GridSearchCV` |
+| **FastAPI** | 0.136.1 | Web framework for all ML API endpoints |
+| **Uvicorn** | 0.50.0 | ASGI server — runs FastAPI on port 8001 |
+| **Pydantic** | 2.13.3 | Request validation — pH must be 3–10, Season must be Maha/Yala/Year-round, etc. |
+| **scikit-learn** | 1.8.0 | `RandomForestClassifier`, `VotingClassifier`, `LabelEncoder`, `GridSearchCV` |
 | **XGBoost** | 3.2.0 | Second model in the ensemble; sequential boosting covers RF's weaknesses |
-| **joblib** | 1.4.2 | Saves and loads trained models as `.pkl` files |
-| **NumPy** | 1.26.4 | Array operations, input vector construction, XAI impurity math |
+| **joblib** | 1.5.3 | Saves and loads trained models as `.pkl` files |
+| **NumPy** | 2.4.4 | Array operations, input vector construction, XAI impurity math |
 | **httpx** | 0.27.0 | HTTP client for calling Open-Meteo forecast and archive APIs |
-| **python-dotenv** | ≥1.0.1 | Loads `backend/.env` for both services |
+| **python-dotenv** | 1.2.2 | Loads `backend/.env` for both services |
 
 ### Main API — Runtime (`requirements.txt`, port 8000)
 
 | Technology | Version | What it does in this project |
 |---|---|---|
-| **FastAPI** | 0.115.0 | Web framework — auth, farms, crops routes |
-| **Uvicorn** | ≥0.30.0 | ASGI server — runs the main API on port 8000 |
-| **SQLAlchemy** | ≥2.0.0 | ORM — `User`, `Farm`, `Crop`, `CultivationSession`, `CultivationTask` models |
-| **psycopg2-binary** | ≥2.9.9 | PostgreSQL driver |
-| **Alembic** | ≥1.13.0 | Database schema migrations |
-| **python-jose** | ≥3.3.0 | JWT creation and verification |
-| **passlib** | ≥1.7.4 | Password hashing (pbkdf2_sha256) |
+| **FastAPI** | 0.136.1 | Web framework — auth, farms, crops routes |
+| **Uvicorn** | 0.50.0 | ASGI server — runs the main API on port 8000 |
+| **SQLAlchemy** | 2.0.49 | ORM — `User`, `Farm`, `Crop`, `CultivationSession`, `CultivationTask` models |
+| **psycopg2-binary** | 2.9.12 | PostgreSQL driver |
+| **Alembic** | 1.18.4 | Database schema migrations |
+| **python-jose** | 3.5.0 | JWT creation and verification |
+| **passlib** | 1.7.4 | Password hashing (pbkdf2_sha256) |
 | **pydantic-settings** | ≥2.4.0 | Settings management |
-| **email-validator** | ≥2.2.0 | Email field validation in Pydantic schemas |
+| **email-validator** | 2.3.0 | Email field validation in Pydantic schemas |
 
 ### Backend — Dev & Training Only (`requirements-dev.txt`)
 
