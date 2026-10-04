@@ -1,4 +1,5 @@
 import base64
+import binascii
 import re
 import uuid
 from io import BytesIO
@@ -15,6 +16,7 @@ MAX_DIMENSION = 1600  # longest side, px — downscaled if the source exceeds it
 JPEG_QUALITY = 85
 
 _DATA_URI_RE = re.compile(r"data:image/(\w+);base64,(.+)", re.DOTALL)
+_STORED_PATH_RE = re.compile(r"/uploads/[\w.-]+")
 
 
 class ImageTooLargeError(ValueError):
@@ -28,20 +30,27 @@ class InvalidImageError(ValueError):
 def store_image(data_uri: Optional[str]) -> Optional[str]:
     """Persist a base64 image data URI to UPLOAD_DIR and return its /uploads/ URL.
 
-    Non-data-URI values (already-stored URLs, None, empty string) pass through
-    unchanged. Oversized uploads raise ImageTooLargeError; content that Pillow
+    None, an empty string and an already-stored /uploads/ path pass through
+    unchanged; any other non-data-URI value is rejected, so a client cannot
+    make other users' browsers load an arbitrary external URL.
+    Oversized uploads raise ImageTooLargeError; content that Pillow
     can't decode as a real image (magic bytes don't match, truncated, or a
     non-image file wearing an image/* content type) raises InvalidImageError.
     Callers should catch both and turn them into 4xx responses.
     """
-    if not data_uri or not data_uri.startswith("data:image/"):
+    if not data_uri:
+        return data_uri
+    if _STORED_PATH_RE.fullmatch(data_uri):
         return data_uri
 
     match = _DATA_URI_RE.match(data_uri)
     if not match:
-        return data_uri
+        raise InvalidImageError("Image must be an uploaded image file")
 
-    raw = base64.b64decode(match.group(2))
+    try:
+        raw = base64.b64decode(match.group(2))
+    except (binascii.Error, ValueError) as exc:
+        raise InvalidImageError("File is not a valid image") from exc
     if len(raw) > MAX_UPLOAD_BYTES:
         raise ImageTooLargeError(f"Image exceeds the {MAX_UPLOAD_BYTES // (1024 * 1024)}MB upload limit")
 

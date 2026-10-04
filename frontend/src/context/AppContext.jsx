@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { flushSync } from 'react-dom';
 
 const AppContext = createContext(null);
 
@@ -43,11 +44,25 @@ export function AppProvider({ children }) {
   }, []);
 
   const toggleTheme = () => {
-    setTheme((t) => {
-      const next = t === 'dark' ? 'light' : 'dark';
-      try { localStorage.setItem('sa-theme', next); } catch (_) {}
-      return next;
-    });
+    const next = theme === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('sa-theme', next); } catch (_) {}
+    const apply = () => {
+      setTheme(next);
+      // Set here as well as in the effect so the attribute is already in place
+      // when the view transition takes its "after" snapshot.
+      document.documentElement.setAttribute('data-theme', next);
+    };
+    const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    // Where supported, the new theme grows out from the toggle (see motion.css).
+    if (document.startViewTransition && !still && !document.hidden) {
+      const transition = document.startViewTransition(() => flushSync(apply));
+      // The browser can abandon the animation (e.g. the tab loses focus); the
+      // theme itself has still been applied, so there is nothing to recover.
+      transition.ready.catch(() => {});
+      transition.finished.catch(() => {});
+    } else {
+      apply();
+    }
   };
 
   const changeLang = (code) => {

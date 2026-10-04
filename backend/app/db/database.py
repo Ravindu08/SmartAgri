@@ -18,6 +18,12 @@ if not DATABASE_URL:
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
+# Name the driver explicitly. requirements.txt installs psycopg2, but from
+# SQLAlchemy 2.1 a bare postgresql:// URL selects psycopg (v3) instead, and
+# the app then fails to start with "No module named 'psycopg'".
+if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
+
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

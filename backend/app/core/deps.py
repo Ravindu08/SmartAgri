@@ -3,7 +3,6 @@ from collections.abc import Generator
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.security import ALGORITHM, SECRET_KEY
@@ -34,13 +33,17 @@ def get_current_user(
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email = payload.get("sub")
-        if not email:
+        # A refresh token is signed with the same key, so without this check it
+        # would pass as a 7-day access token.
+        if payload.get("type") != "access":
             raise credentials_exception
-    except JWTError as exc:
+        # sub is the user id, not the e-mail: an e-mail can change (and be
+        # re-registered by someone else) while a token is still valid.
+        user_id = int(payload.get("sub"))
+    except (JWTError, TypeError, ValueError) as exc:
         raise credentials_exception from exc
 
-    user = db.execute(select(User).where(User.email == email)).scalar_one_or_none()
+    user = db.get(User, user_id)
     if user is None:
         raise credentials_exception
     if user.is_suspended:

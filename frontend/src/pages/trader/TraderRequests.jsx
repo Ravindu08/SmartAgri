@@ -105,7 +105,7 @@ export default function TraderRequests() {
       {isLoading ? (
         <SkeletonRows count={3} />
       ) : pendingOrders.length === 0 ? (
-        <div style={{
+        <div className="fx-card" style={{
           background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px',
           padding: '48px', textAlign: 'center',
         }}>
@@ -126,7 +126,7 @@ export default function TraderRequests() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {pendingOrders.map((order, i) => (
-            <div key={order.id} style={{
+            <div key={order.id} className="fx-card" style={{
               background: 'var(--card)', border: '2px solid color-mix(in srgb, var(--amber) 35%, var(--border))',
               borderRadius: '12px', padding: '20px',
             }} data-tour={i === 0 ? 'tr-req-card' : undefined}>

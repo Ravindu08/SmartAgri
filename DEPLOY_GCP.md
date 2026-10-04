@@ -67,8 +67,8 @@ nano backend/.env.docker
 Set at minimum:
 - `SECRET_KEY` — generate with `python3 -c "import secrets; print(secrets.token_hex(32))"`
 - `SMARTAGRI_CORS_ORIGINS` — set to your HTTPS domain, e.g. `https://smartagri-demo.duckdns.org`
-  (see step 6a below for pointing a free domain at the VM; `frontend/nginx.conf` is hard-coded
-  to redirect the bare IP and plain HTTP to this domain, so the app won't work over `http://<IP>` alone)
+  (see step 6a below for pointing a free domain at the VM; once `DOMAIN` is set, nginx redirects
+  the bare IP and plain HTTP to that domain, so the app won't work over `http://<IP>` alone)
 - SMTP_* — only if you want real password-reset emails to send during the demo;
   otherwise leave `EMAIL_ENABLED=false`
 - **Do not reuse the SMTP app password found in your local `backend/.env`** — generate
@@ -86,12 +86,17 @@ echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> .env
 
 ## 6a. Point a free domain at the VM and get an HTTPS certificate
 
-`frontend/nginx.conf` is checked in with `server_name smartagri-demo.duckdns.org` and expects a
-cert at `/etc/letsencrypt/live/smartagri-demo.duckdns.org/`. To reuse it as-is, register that
-exact free subdomain at [duckdns.org](https://www.duckdns.org) and point it at the VM's external
-IP (duckdns.org's dashboard has an "update IP" field — paste the VM's external IP from step 3/4).
-For a different domain, edit `server_name` and the cert paths in `frontend/nginx.conf` to match
-before building.
+Register a free subdomain at [duckdns.org](https://www.duckdns.org) and point it at the VM's
+external IP (duckdns.org's dashboard has an "update IP" field — paste the VM's external IP from
+step 3/4). Then tell the stack which domain to serve by adding it to the root `.env`:
+
+```bash
+echo "DOMAIN=smartagri-demo.duckdns.org" >> .env
+```
+
+nginx serves HTTPS for `DOMAIN` once its certificate exists at `/etc/letsencrypt/live/<DOMAIN>/`.
+If `DOMAIN` is unset, or the certificate is not there yet, the site is served over plain HTTP
+instead — which is what a local `docker compose up` uses.
 
 Then, on the VM, get a cert with certbot in standalone mode (port 80 must be free — stop the
 compose stack first if it's already running):

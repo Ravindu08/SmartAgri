@@ -6,7 +6,9 @@ from passlib.context import CryptContext
 
 
 _SECRET_KEY = os.getenv("SECRET_KEY")
-if not _SECRET_KEY or _SECRET_KEY == "change-this-secret-key":
+# Every template in the repo ships a key starting with "change" (.env.example,
+# .env.docker), so match the prefix rather than one exact string.
+if not _SECRET_KEY or _SECRET_KEY.lower().startswith("change") or len(_SECRET_KEY) < 16:
     raise RuntimeError(
         "SECRET_KEY environment variable is not set or is still the placeholder value. "
         "Set a strong random key in backend/.env before starting the server."

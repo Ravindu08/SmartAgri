@@ -50,7 +50,7 @@ function Bar({ label, value, max, color }) {
 
 function Section({ title, children }) {
   return (
-    <div style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', padding: '24px', marginBottom: '20px' }}>
+    <div className="fx-card" style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', padding: '24px', marginBottom: '20px' }}>
       <h3 style={{ margin: '0 0 20px', fontSize: '18px', fontWeight: 700, color: 'var(--text)' }}>{title}</h3>
       {children}
     </div>

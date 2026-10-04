@@ -59,7 +59,12 @@ def update_crop_endpoint(
     crop = get_crop_by_owner(db, crop_id=crop_id, owner_id=current_user.id)
     if crop is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Crop not found")
-    return update_crop(db, crop, payload)
+    try:
+        return update_crop(db, crop, payload)
+    except LookupError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
 
 
 @router.delete("/crops/{crop_id}", status_code=status.HTTP_204_NO_CONTENT)
