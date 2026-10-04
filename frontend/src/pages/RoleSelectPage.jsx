@@ -69,21 +69,23 @@ export default function RoleSelectPage() {
       alignItems: 'center', justifyContent: 'center',
       background: 'var(--bg)', padding: '24px',
     }}>
-      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <div style={{ fontSize: '48px', marginBottom: '12px' }}>🌿</div>
+      <div className="role-hero" style={{ textAlign: 'center', marginBottom: '32px' }}>
+        <div className="role-hero__logo" style={{ fontSize: '48px', marginBottom: '12px' }}>🌿</div>
         <h1 style={{ fontSize: '26px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t.title}</h1>
         <p style={{ color: 'var(--muted)', marginTop: '8px', fontSize: '17px' }}>{t.sub}</p>
       </div>
 
       <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '640px', width: '100%' }}>
-        {roles.map((role) => {
+        {roles.map((role, i) => {
           const cfg = ROLE_CONFIG[role];
           if (!cfg) return null;
           return (
             <button
               key={role}
               onClick={() => handleSelect(role)}
+              className="role-card"
               style={{
+                '--i': i,
                 flex: '1 1 260px', display: 'flex', flexDirection: 'column', alignItems: 'center',
                 gap: '12px', padding: '32px 24px', borderRadius: '16px',
                 border: '2px solid var(--border)', background: 'var(--card)',
@@ -92,10 +94,10 @@ export default function RoleSelectPage() {
               onMouseEnter={e => { e.currentTarget.style.borderColor = cfg.color; e.currentTarget.style.boxShadow = `0 4px 20px ${cfg.color}22`; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
             >
-              <div style={{ fontSize: '48px' }}>{cfg.icon}</div>
+              <div className="role-card__icon" style={{ fontSize: '48px' }}>{cfg.icon}</div>
               <div style={{ fontWeight: 700, fontSize: '19px', color: 'var(--text)' }}>{t[cfg.labelKey]}</div>
               <div style={{ color: 'var(--muted)', fontSize: '16px', textAlign: 'center', lineHeight: '1.5' }}>{t[cfg.descKey]}</div>
-              <div style={{
+              <div className="role-card__cta" style={{
                 marginTop: '8px', padding: '8px 24px', borderRadius: '8px',
                 background: cfg.color, color: '#fff', fontSize: '16px', fontWeight: 600,
               }}>

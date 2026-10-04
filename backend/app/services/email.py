@@ -3,12 +3,18 @@ Email sending service.
 When EMAIL_ENABLED=false (or SMTP vars not set), emails are printed to the console
 so the feature works in local dev without a real SMTP account.
 """
+import logging
 import os
 import smtplib
 import ssl
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from html import escape
+
+
+logger = logging.getLogger(__name__)
+
+SMTP_TIMEOUT_SECONDS = 15
 
 
 def _is_enabled() -> bool:
@@ -34,7 +40,7 @@ def _send(to_email: str, subject: str, html_body: str, otp_code: str | None = No
     from_email = os.getenv("EMAILS_FROM_EMAIL", user)
 
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
+    msg["Subject"] = " ".join(subject.split())  # user text (crop names) must not add header lines
     msg["From"] = f"{from_name} <{from_email}>"
     msg["To"] = to_email
     if reply_to:
@@ -42,7 +48,7 @@ def _send(to_email: str, subject: str, html_body: str, otp_code: str | None = No
     msg.attach(MIMEText(html_body, "html"))
 
     context = ssl.create_default_context()
-    with smtplib.SMTP(host, port) as server:
+    with smtplib.SMTP(host, port, timeout=SMTP_TIMEOUT_SECONDS) as server:
         server.ehlo()
         server.starttls(context=context)
         server.login(user, password)
@@ -51,6 +57,14 @@ def _send(to_email: str, subject: str, html_body: str, otp_code: str | None = No
 
 def _frontend_url() -> str:
     return os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+
+
+def send_quietly(send_func, *args) -> None:
+    """Background-task wrapper: a mail failure is logged, never raised."""
+    try:
+        send_func(*args)
+    except Exception:
+        logger.warning("%s failed", getattr(send_func, "__name__", "email send"), exc_info=True)
 
 
 def send_verification_email(to_email: str, full_name: str, code: str) -> None:
@@ -62,7 +76,7 @@ def send_verification_email(to_email: str, full_name: str, code: str) -> None:
           <span style="font-size:32px">🌿</span>
           <h2 style="color:#1a7a4a;margin:8px 0 0">SmartAgri</h2>
         </div>
-        <h3 style="color:#111;margin-bottom:8px">Hi {full_name},</h3>
+        <h3 style="color:#111;margin-bottom:8px">Hi {escape(full_name)},</h3>
         <p style="color:#555;line-height:1.6">
           Welcome to SmartAgri! Use the code below to verify your email address.
         </p>
@@ -88,10 +102,7 @@ def send_verification_email(to_email: str, full_name: str, code: str) -> None:
 
 def send_order_event_email_quietly(to_email: str, full_name: str, event: str, crop_name: str, order_link: str) -> None:
     """Background-task wrapper: an email failure must never affect the order action that triggered it."""
-    try:
-        send_order_event_email(to_email, full_name, event, crop_name, order_link)
-    except Exception:
-        pass
+    send_quietly(send_order_event_email, to_email, full_name, event, crop_name, order_link)
 
 
 def send_order_event_email(to_email: str, full_name: str, event: str, crop_name: str, order_link: str) -> None:
@@ -114,9 +125,9 @@ def send_order_event_email(to_email: str, full_name: str, event: str, crop_name:
           <span style="font-size:32px">🌿</span>
           <h2 style="color:#1a7a4a;margin:8px 0 0">SmartAgri</h2>
         </div>
-        <h3 style="color:#111;margin-bottom:8px">Hi {full_name},</h3>
+        <h3 style="color:#111;margin-bottom:8px">Hi {escape(full_name)},</h3>
         <p style="color:#555;line-height:1.6">{body_text}</p>
-        <p style="color:#555;line-height:1.6"><strong>Item:</strong> {crop_name}</p>
+        <p style="color:#555;line-height:1.6"><strong>Item:</strong> {escape(crop_name)}</p>
         <div style="text-align:center;margin:28px 0">
           <a href="{url}"
              style="background:#1a7a4a;color:#fff;padding:13px 32px;border-radius:7px;
@@ -142,7 +153,7 @@ def send_password_reset_email(to_email: str, full_name: str, token: str) -> None
           <span style="font-size:32px">🌿</span>
           <h2 style="color:#1a7a4a;margin:8px 0 0">SmartAgri</h2>
         </div>
-        <h3 style="color:#111;margin-bottom:8px">Hi {full_name},</h3>
+        <h3 style="color:#111;margin-bottom:8px">Hi {escape(full_name)},</h3>
         <p style="color:#555;line-height:1.6">
           We received a request to reset your SmartAgri password. Click the button below to choose a new password.
           This link expires in <strong>1 hour</strong>.

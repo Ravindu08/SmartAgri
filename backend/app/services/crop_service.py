@@ -50,6 +50,20 @@ def get_crops_by_farm(db: Session, farm_id: UUID, owner_id: int) -> list[Crop]:
 
 
 def update_crop(db: Session, crop: Crop, payload: CropUpdate) -> Crop:
+    if payload.farm_id is not None and payload.farm_id != crop.farm_id:
+        farm = db.execute(
+            select(Farm).where(Farm.id == payload.farm_id, Farm.owner_id == crop.owner_id)
+        ).scalar_one_or_none()
+        if farm is None:
+            raise LookupError("Farm not found or does not belong to the logged-in user")
+
+    # The schema can only compare the two dates when both are in the request;
+    # a one-date patch has to be checked against the stored value.
+    planting = payload.planting_date or crop.planting_date
+    harvest = payload.expected_harvest_date or crop.expected_harvest_date
+    if harvest <= planting:
+        raise ValueError("Expected harvest date must be after planting date")
+
     if payload.farm_id is not None:
         crop.farm_id = payload.farm_id
     if payload.crop_name is not None:

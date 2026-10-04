@@ -5,6 +5,9 @@ import { fetchBackendHealth, getAuthSession } from '../services/api';
 import { useApp } from '../context/AppContext';
 import SpotlightTour from '../components/tour/SpotlightTour';
 import HelpButton from '../components/tour/HelpButton';
+import { ALL_CROPS, CROP_EMOJI, getCropLabel } from '../data/cropData';
+import heroBg from '../assets/hero-bg.jpeg';
+import '../styles/home.css';
 
 function useCountUp(target, duration = 1800, start = false) {
   const [count, setCount] = useState(0);
@@ -236,6 +239,41 @@ const HOME_TOUR_T = {
   },
 };
 
+// Headline words animate in one at a time; --w is each word's place in the sequence.
+function SplitWords({ text, start = 0 }) {
+  return text.trim().split(/\s+/).map((word, i) => (
+    <span key={i}><span className="home-word" style={{ '--w': start + i }}>{word}</span>{' '}</span>
+  ));
+}
+
+const wordCount = (text) => text.trim().split(/\s+/).length;
+
+// Cards tilt toward the pointer and light up under it (see home.css).
+function tiltHandlers(maxDeg = 7) {
+  return {
+    onPointerMove(e) {
+      if (e.pointerType && e.pointerType !== 'mouse') return;
+      const el = e.currentTarget;
+      const r = el.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width;
+      const y = (e.clientY - r.top) / r.height;
+      el.style.setProperty('--ry', `${(x - 0.5) * 2 * maxDeg}deg`);
+      el.style.setProperty('--rx', `${(0.5 - y) * 2 * maxDeg}deg`);
+      el.style.setProperty('--px', `${x * 100}%`);
+      el.style.setProperty('--py', `${y * 100}%`);
+    },
+    onPointerLeave(e) {
+      e.currentTarget.style.setProperty('--rx', '0deg');
+      e.currentTarget.style.setProperty('--ry', '0deg');
+    },
+  };
+}
+
+const TILT = tiltHandlers();
+const SOFT_TILT = tiltHandlers(4);
+const MOTES = Array.from({ length: 15 }, (_, i) => ({ '--i': i, '--s': (i * 7) % 4 }));
+const CTA_CROPS = ['🌾', '🌽', '🍅', '🥕', '🌶️', '🍆', '🥬', '🍃'];
+
 function StatCardAnimated({ num, suffix, label, delay, inView }) {
   const target = parseInt(num, 10);
   const animated = useCountUp(target, 1600, inView);
@@ -256,7 +294,11 @@ export default function HomePage() {
   const [connectionState, setConnectionState] = useState('checking');
   const [statsInView, setStatsInView] = useState(false);
   const statsRef = useRef(null);
+  const heroRef = useRef(null);
   const [tourOpen, setTourOpen] = useState(false);
+  const soilScore = useCountUp(82, 1600, true);
+  const line1Words = wordCount(t.titleLine1);
+  const line2Words = wordCount(t.titleLine2);
 
   useEffect(() => {
     let isMounted = true;
@@ -280,17 +322,52 @@ export default function HomePage() {
     return () => observer.disconnect();
   }, []);
 
+  // Hero parallax: the photo scrolls slower than the page, and the scroll cue fades out.
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined;
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const y = Math.min(window.scrollY, hero.offsetHeight);
+        hero.style.setProperty('--hero-scroll', `${y * 0.28}px`);
+        hero.style.setProperty('--hero-fade', Math.min(y / 160, 1));
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => { window.removeEventListener('scroll', onScroll); if (frame) cancelAnimationFrame(frame); };
+  }, []);
+
+  // The floating cards lean toward the pointer: --mx/--my run from -1 to 1 across the hero.
+  function onHeroPointerMove(e) {
+    if (e.pointerType && e.pointerType !== 'mouse') return;
+    const r = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.style.setProperty('--mx', (((e.clientX - r.left) / r.width) * 2 - 1).toFixed(3));
+    e.currentTarget.style.setProperty('--my', (((e.clientY - r.top) / r.height) * 2 - 1).toFixed(3));
+  }
+  function onHeroPointerLeave(e) {
+    e.currentTarget.style.setProperty('--mx', 0);
+    e.currentTarget.style.setProperty('--my', 0);
+  }
+
   return (
     <main className="home-page">
 
       {/* ── Hero ── */}
-      <section className="home-hero">
+      <section className="home-hero" ref={heroRef} onPointerMove={onHeroPointerMove} onPointerLeave={onHeroPointerLeave}>
+        <div className="home-hero__bg" style={{ backgroundImage: `url(${heroBg})` }} />
         <div className="home-hero__overlay" />
+        <div className="home-hero__motes" aria-hidden="true">
+          {MOTES.map((style, i) => <span key={i} style={style} />)}
+        </div>
         <div className="home-hero__content">
           <div className="home-hero__badge">🤖 {t.badge}</div>
           <h1 className="home-hero__title">
-            {t.titleLine1}<br />
-            {t.titleLine2}<span className="home-hero__highlight">{t.highlight}</span>
+            <SplitWords text={t.titleLine1} /><br />
+            <SplitWords text={t.titleLine2} start={line1Words} />
+            <span className="home-hero__highlight" style={{ '--w': line1Words + line2Words }}>{t.highlight}</span>
           </h1>
           <p className="home-hero__text">{t.desc}</p>
           <div className={`connection-badge connection-badge--${connectionState}`}>
@@ -307,7 +384,8 @@ export default function HomePage() {
             <div className="home-float-card__icon home-float-card__icon--green">🌱</div>
             <div>
               <div className="home-float-card__label">{t.cardSoilLabel}</div>
-              <div className="home-float-card__value">82<span>/100</span></div>
+              <div className="home-float-card__value">{soilScore}<span>/100</span></div>
+              <div className="home-float-card__meter" aria-hidden="true"><i /></div>
               <div className="home-float-card__status">{t.cardSoilStatus}</div>
             </div>
           </div>
@@ -316,7 +394,7 @@ export default function HomePage() {
             <div>
               <div className="home-float-card__label">{t.cardWeatherLabel}</div>
               <div className="home-float-card__value">{t.cardWeatherVal}</div>
-              <div className="home-float-card__status">{t.cardWeatherStatus}</div>
+              <div className="home-float-card__status home-float-card__status--live">{t.cardWeatherStatus}</div>
             </div>
           </div>
           <div className="home-float-card">
@@ -328,7 +406,18 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+        <div className="home-hero__scroll" aria-hidden="true" />
       </section>
+
+      {/* ── Crop ticker: every crop the tools cover ── */}
+      <div className="home-ticker" aria-hidden="true">
+        <div className="home-ticker__track">
+          {/* rendered twice so the loop is seamless */}
+          {[...ALL_CROPS, ...ALL_CROPS].map((crop, i) => (
+            <div key={i} className="home-ticker__item"><span>{CROP_EMOJI[crop] || '🌱'}</span>{getCropLabel(crop, lang)}</div>
+          ))}
+        </div>
+      </div>
 
       {/* ── About strip ── */}
       <section className="home-about reveal">
@@ -341,7 +430,7 @@ export default function HomePage() {
         <div className="home-about__right">
           <p className="section__label">{t.featLabel}</p>
           <div className="home-features-grid">
-            {t.features.map(f => <FeatureCard key={f.icon} title={f.title} description={f.description} icon={f.icon} />)}
+            {t.features.map(f => <FeatureCard key={f.icon} title={f.title} description={f.description} icon={f.icon} {...SOFT_TILT} />)}
           </div>
         </div>
       </section>
@@ -369,7 +458,7 @@ export default function HomePage() {
           </div>
           <div className="home-how-steps">
             {t.steps.map((step, i) => (
-              <div key={i} className="home-how-step" style={{ animationDelay: `${i * 0.12}s` }}>
+              <div key={i} className="home-how-step" style={{ '--step': i }}>
                 <div className="home-how-step-bubble">{step.num}</div>
                 <div className="home-how-step-icon">{step.icon}</div>
                 <h3 className="home-how-step-title">{step.title}</h3>
@@ -390,7 +479,7 @@ export default function HomePage() {
           </div>
           <div className="home-tools-grid">
             {t.tools.map((tool, i) => (
-              <div key={i} className={`home-tool-card home-tool-card--${tool.color}`} style={{ animationDelay: `${i * 0.1}s` }}>
+              <div key={i} className={`home-tool-card home-tool-card--${tool.color}`} style={{ animationDelay: `${i * 0.1}s` }} {...TILT}>
                 <div className="home-tool-icon">{tool.icon}</div>
                 <h3 className="home-tool-title">{tool.title}</h3>
                 <p className="home-tool-desc">{tool.desc}</p>
@@ -404,6 +493,9 @@ export default function HomePage() {
       {/* ── CTA Banner ── */}
       <section className="home-cta">
         <div className="home-cta-glow" />
+        <div className="home-cta__crops" aria-hidden="true">
+          {CTA_CROPS.map((crop, i) => <span key={i} style={{ '--i': i, '--s': (i * 3) % 4 }}>{crop}</span>)}
+        </div>
         <div className="home-cta-inner">
           <h2 className="home-cta-title">{t.ctaTitle}</h2>
           <p className="home-cta-sub">{t.ctaSub}</p>

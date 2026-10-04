@@ -69,7 +69,7 @@ export default function AdminUserCreate() {
   return (
     <div style={{ padding: '28px', maxWidth: '520px' }}>
       <h2 style={{ margin: '0 0 24px', color: 'var(--text)' }}>{t.title}</h2>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', padding: '28px' }}>
+      <form onSubmit={handleSubmit} className="fx-card fx-form" style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', padding: '28px' }}>
         {field(t.labelFullName, 'full_name')}
         {field(t.labelEmail, 'email', 'email')}
         {field(t.labelPassword, 'password', 'password', { minLength: 8 })}

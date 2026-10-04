@@ -1,0 +1,596 @@
+/* Home page — motion and interaction.
+   Layered on top of the base .home-* rules in styles.css; imported by HomePage.jsx.
+   Uses translate / scale / rotate (not transform) so it composes with the
+   existing hover transforms. Everything is disabled under reduced motion. */
+
+/* ── Hero background: slow zoom + scroll parallax ───────────────────────── */
+.home-hero {
+  /* the photo moves to .home-hero__bg so it can animate independently */
+  background: #020617;
+  isolation: isolate;
+  --mx: 0;
+  --my: 0;
+  --hero-scroll: 0px;
+}
+
+.home-hero__bg {
+  position: absolute;
+  inset: -6% -4%;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  translate: 0 var(--hero-scroll);
+  animation: home-kenburns 26s ease-in-out infinite alternate;
+  will-change: scale, translate;
+}
+
+.home-hero__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, rgba(2, 6, 23, 0.86) 0%, rgba(2, 6, 23, 0.66) 45%, rgba(2, 6, 23, 0.5) 100%);
+}
+
+@keyframes home-kenburns {
+  from { scale: 1; }
+  to   { scale: 1.09; }
+}
+
+/* the two decorative discs drift instead of sitting still */
+.home-hero::before { animation: home-drift 16s ease-in-out infinite alternate; }
+.home-hero::after  { animation: home-drift 20s ease-in-out infinite alternate-reverse; }
+
+@keyframes home-drift {
+  from { translate: 0 0; }
+  to   { translate: 40px 30px; }
+}
+
+/* ── Fireflies drifting up through the hero ─────────────────────────────── */
+.home-hero__motes {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.home-hero__motes span {
+  position: absolute;
+  bottom: -12px;
+  left: calc(var(--i) * 6.4% + 2%);
+  width: calc(3px + var(--s) * 1px);
+  height: calc(3px + var(--s) * 1px);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff7c2 0%, rgba(251, 192, 45, 0.85) 45%, transparent 72%);
+  box-shadow: 0 0 10px 2px rgba(251, 192, 45, 0.45);
+  opacity: 0;
+  animation: home-mote calc(9s + var(--s) * 2.4s) linear infinite;
+  animation-delay: calc(var(--i) * -1.37s);
+}
+
+@keyframes home-mote {
+  0%   { translate: 0 0;        opacity: 0; }
+  10%  { opacity: 0.9; }
+  50%  { translate: 34px -52vh; opacity: 0.7; }
+  90%  { opacity: 0.5; }
+  100% { translate: -22px -104vh; opacity: 0; }
+}
+
+/* ── Headline: words rise out of a blur, one after another ──────────────── */
+.home-hero__content { animation: none; }
+
+.home-word {
+  display: inline-block;
+  opacity: 0;
+  animation: home-word-in 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(0.15s + var(--w) * 0.11s);
+}
+
+@keyframes home-word-in {
+  from { opacity: 0; translate: 0 0.6em; filter: blur(10px); }
+  to   { opacity: 1; translate: 0 0;     filter: blur(0); }
+}
+
+.home-hero__highlight {
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(100deg, #FBC02D 0%, #fff3b0 35%, #F9A825 55%, #FBC02D 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation:
+    home-word-in 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) both,
+    home-shimmer 5s linear 1.4s infinite;
+  animation-delay: calc(0.15s + var(--w) * 0.11s), 1.6s;
+}
+
+.home-hero__highlight::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.08em;
+  height: 0.09em;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #FBC02D, #7cc576);
+  transform-origin: left center;
+  scale: 0 1;
+  animation: home-underline 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 1.25s forwards;
+}
+
+@keyframes home-shimmer {
+  to { background-position: -220% 0; }
+}
+
+@keyframes home-underline {
+  to { scale: 1 1; }
+}
+
+/* the rest of the hero copy follows the headline in */
+.home-hero__badge,
+.home-hero__text,
+.home-hero .connection-badge,
+.home-hero__actions {
+  animation: home-rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.home-hero__badge              { animation-delay: 0.05s; }
+.home-hero__text               { animation-delay: 0.75s; }
+.home-hero .connection-badge   { animation-delay: 0.9s; }
+.home-hero__actions            { animation-delay: 1.05s; }
+
+@keyframes home-rise {
+  from { opacity: 0; translate: 0 18px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+.home-hero__badge { position: relative; overflow: hidden; }
+
+.home-hero__badge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.35) 50%, transparent 65%);
+  translate: -120% 0;
+  animation: home-badge-sweep 4.5s ease-in-out 1.8s infinite;
+}
+
+@keyframes home-badge-sweep {
+  0%, 70% { translate: -120% 0; }
+  100%    { translate: 120% 0; }
+}
+
+/* primary button: glow that breathes, arrow that leans in on hover */
+.home-btn--primary {
+  position: relative;
+  animation: home-btn-glow 2.8s ease-in-out infinite;
+}
+
+@keyframes home-btn-glow {
+  0%, 100% { box-shadow: 0 6px 22px rgba(251, 192, 45, 0.28), 0 0 0 0 rgba(251, 192, 45, 0.45); }
+  50%      { box-shadow: 0 8px 30px rgba(251, 192, 45, 0.42), 0 0 0 12px rgba(251, 192, 45, 0); }
+}
+
+/* ── Floating data cards: bob, tilt toward the pointer, show live values ── */
+.home-hero__cards {
+  perspective: 900px;
+  translate: calc(var(--mx) * -16px) calc(var(--my) * -12px);
+  transition: translate 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.home-float-card {
+  animation: home-float 6s ease-in-out infinite;
+  rotate: 0 1 0 calc(var(--mx) * 9deg);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, rotate 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.home-float-card:nth-child(1) { margin-left: 0; }
+.home-float-card:nth-child(2) { margin-left: 44px; animation-duration: 7s; animation-delay: -2.2s; }
+.home-float-card:nth-child(3) { margin-left: 14px; animation-duration: 6.4s; animation-delay: -4.1s; }
+
+@keyframes home-float {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -12px; }
+}
+
+.home-float-card__icon { animation: home-icon-bob 3.6s ease-in-out infinite; }
+
+@keyframes home-icon-bob {
+  0%, 100% { rotate: -4deg; scale: 1; }
+  50%      { rotate: 5deg;  scale: 1.08; }
+}
+
+.home-float-card__meter {
+  margin-top: 8px;
+  height: 5px;
+  width: 132px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+}
+
+.home-float-card__meter i {
+  display: block;
+  height: 100%;
+  width: 82%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7cc576, #FBC02D);
+  transform-origin: left center;
+  scale: 0 1;
+  animation: home-meter 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.9s forwards;
+}
+
+@keyframes home-meter {
+  to { scale: 1 1; }
+}
+
+.home-float-card__status--live::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #7cc576;
+  animation: home-live 1.8s ease-out infinite;
+}
+
+@keyframes home-live {
+  0%   { box-shadow: 0 0 0 0 rgba(124, 197, 118, 0.7); }
+  100% { box-shadow: 0 0 0 9px rgba(124, 197, 118, 0); }
+}
+
+/* ── Scroll cue ─────────────────────────────────────────────────────────── */
+.home-hero__scroll {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  z-index: 1;
+  translate: -50% 0;
+  width: 26px;
+  height: 42px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 999px;
+  opacity: calc(1 - var(--hero-fade, 0));
+  pointer-events: none;
+}
+
+.home-hero__scroll::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 7px;
+  width: 4px;
+  height: 8px;
+  margin-left: -2px;
+  border-radius: 999px;
+  background: var(--yellow-accent);
+  animation: home-scroll-dot 1.8s ease-in-out infinite;
+}
+
+@keyframes home-scroll-dot {
+  0%   { translate: 0 0;    opacity: 1; }
+  70%  { translate: 0 16px; opacity: 0; }
+  100% { translate: 0 0;    opacity: 0; }
+}
+
+/* ── Crop ticker ────────────────────────────────────────────────────────── */
+.home-ticker {
+  position: relative;
+  overflow: hidden;
+  padding: 14px 0;
+  background: var(--card);
+  border-block: 1px solid var(--border);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.home-ticker__track {
+  display: flex;
+  width: max-content;
+  gap: 12px;
+  animation: home-ticker 60s linear infinite;
+}
+
+.home-ticker:hover .home-ticker__track { animation-play-state: paused; }
+
+.home-ticker__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: translate 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+}
+
+.home-ticker__item:hover {
+  translate: 0 -3px;
+  border-color: var(--accent);
+  background: var(--surface-hover);
+}
+
+.home-ticker__item span { font-size: 1.15rem; }
+
+@keyframes home-ticker {
+  to { translate: -50% 0; }
+}
+
+/* ── Cards that follow the pointer: tilt + a light under the cursor ─────── */
+.home-tools-grid,
+.home-features-grid { perspective: 1100px; }
+
+.home-tool-card,
+.home-page .feature-card {
+  --rx: 0deg;
+  --ry: 0deg;
+  --px: 50%;
+  --py: 50%;
+  position: relative;
+  isolation: isolate;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform 0.18s ease-out, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.home-tool-card:hover,
+.home-page .feature-card:hover {
+  transform: rotateX(var(--rx)) rotateY(var(--ry)) translateY(-5px);
+}
+
+.home-tool-card::after,
+.home-page .feature-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(260px circle at var(--px) var(--py), color-mix(in srgb, var(--spot, var(--green-mid)) 22%, transparent), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.home-tool-card:hover::after,
+.home-page .feature-card:hover::after { opacity: 1; }
+
+.home-tool-card--green  { --spot: #22c55e; }
+.home-tool-card--blue   { --spot: #3b82f6; }
+.home-tool-card--purple { --spot: #a78bfa; }
+.home-tool-card--orange { --spot: #fb923c; }
+
+.home-tool-icon {
+  display: inline-block;
+  width: fit-content;
+  transition: scale 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), rotate 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.home-tool-card:hover .home-tool-icon {
+  scale: 1.25;
+  rotate: -8deg;
+}
+
+.home-page .feature-card__icon {
+  transition: scale 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), rotate 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.home-page .feature-card:hover .feature-card__icon {
+  scale: 1.15;
+  rotate: 8deg;
+}
+
+.home-tool-cta,
+.home-about__link {
+  display: inline-block;
+  transition: translate 0.25s ease, color 0.2s ease;
+}
+
+.home-tool-card:hover .home-tool-cta,
+.home-about__link:hover { translate: 6px 0; }
+
+/* ── Stats ribbon ───────────────────────────────────────────────────────── */
+.home-stats::before { animation: home-drift 18s ease-in-out infinite alternate; }
+
+.home-stat-card { position: relative; overflow: hidden; }
+
+.home-stat-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.16) 50%, transparent 65%);
+  translate: -120% 0;
+  pointer-events: none;
+}
+
+.home-stat-card:hover::after {
+  translate: 120% 0;
+  transition: translate 0.8s ease;
+}
+
+/* ── How it works: the line draws itself, then each step pops in ────────── */
+.home-how-steps::before {
+  transform-origin: left center;
+  scale: 0 1;
+  transition: scale 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s;
+}
+
+.home-how.reveal--visible .home-how-steps::before { scale: 1 1; }
+
+.home-how-step { animation: none; }
+
+.home-how-step-bubble {
+  scale: 0;
+  transition: scale 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-delay: calc(0.25s + var(--step) * 0.32s);
+}
+
+.home-how.reveal--visible .home-how-step-bubble { scale: 1; }
+
+.home-how-step-bubble::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--green-mid);
+  opacity: 0;
+}
+
+.home-how.reveal--visible .home-how-step-bubble::after {
+  animation: home-ring 2.6s ease-out infinite;
+  animation-delay: calc(1.6s + var(--step) * 0.65s);
+}
+
+@keyframes home-ring {
+  0%   { scale: 1;   opacity: 0.7; }
+  70%  { scale: 1.9; opacity: 0; }
+  100% { scale: 1.9; opacity: 0; }
+}
+
+.home-how-step-icon,
+.home-how-step-title,
+.home-how-step-desc {
+  opacity: 0;
+  translate: 0 14px;
+  transition: opacity 0.6s ease, translate 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition-delay: calc(0.45s + var(--step) * 0.32s);
+}
+
+.home-how.reveal--visible .home-how-step-icon,
+.home-how.reveal--visible .home-how-step-title,
+.home-how.reveal--visible .home-how-step-desc {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.home-how-step-icon { display: inline-block; }
+
+.home-how-step:hover .home-how-step-icon {
+  animation: home-hop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes home-hop {
+  0%, 100% { translate: 0 0;    rotate: 0deg; }
+  40%      { translate: 0 -10px; rotate: -10deg; }
+  70%      { translate: 0 0;    rotate: 6deg; }
+}
+
+/* ── Section headings slide in when their section arrives ───────────────── */
+.home-page .reveal .section__label,
+.home-page .reveal h2,
+.home-page .reveal .home-how-sub,
+.home-page .reveal .home-tools-sub,
+.home-about.reveal .home-about__left > p:not(.section__label),
+.home-about.reveal .home-about__link {
+  opacity: 0;
+  translate: 0 20px;
+  transition: opacity 0.7s ease, translate 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.home-page .reveal h2                         { transition-delay: 0.08s; }
+.home-page .reveal .home-how-sub,
+.home-page .reveal .home-tools-sub,
+.home-about.reveal .home-about__left > p:not(.section__label) { transition-delay: 0.16s; }
+.home-about.reveal .home-about__link          { transition-delay: 0.24s; }
+
+.home-page .reveal--visible .section__label,
+.home-page .reveal--visible h2,
+.home-page .reveal--visible .home-how-sub,
+.home-page .reveal--visible .home-tools-sub,
+.home-about.reveal--visible .home-about__left > p:not(.section__label),
+.home-about.reveal--visible .home-about__link {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* ── Closing call to action ─────────────────────────────────────────────── */
+.home-cta-glow { animation: home-cta-pulse 5s ease-in-out infinite; }
+
+@keyframes home-cta-pulse {
+  0%, 100% { scale: 1;    opacity: 0.8; }
+  50%      { scale: 1.18; opacity: 1; }
+}
+
+.home-cta { position: relative; overflow: hidden; }
+
+.home-cta__crops {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.home-cta__crops span {
+  position: absolute;
+  bottom: -40px;
+  left: calc(var(--i) * 11% + 4%);
+  font-size: calc(18px + var(--s) * 5px);
+  opacity: 0;
+  animation: home-crop-rise calc(11s + var(--s) * 2s) linear infinite;
+  animation-delay: calc(var(--i) * -1.9s);
+}
+
+@keyframes home-crop-rise {
+  0%   { translate: 0 0;        rotate: 0deg;   opacity: 0; }
+  12%  { opacity: 0.35; }
+  100% { translate: 30px -420px; rotate: 50deg; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero__bg,
+  .home-hero::before,
+  .home-hero::after,
+  .home-hero__motes span,
+  .home-word,
+  .home-hero__highlight,
+  .home-hero__highlight::after,
+  .home-hero__badge,
+  .home-hero__badge::after,
+  .home-hero__text,
+  .home-hero .connection-badge,
+  .home-hero__actions,
+  .home-btn--primary,
+  .home-float-card,
+  .home-float-card__icon,
+  .home-float-card__meter i,
+  .home-float-card__status--live::before,
+  .home-hero__scroll::after,
+  .home-ticker__track,
+  .home-stats::before,
+  .home-how-step-bubble::after,
+  .home-cta-glow,
+  .home-cta__crops span {
+    animation: none !important;
+  }
+
+  .home-word,
+  .home-hero__highlight { opacity: 1; }
+  .home-hero__highlight::after,
+  .home-float-card__meter i,
+  .home-how-steps::before { scale: 1 1; }
+  .home-how-step-bubble { scale: 1; }
+
+  .home-hero__motes,
+  .home-cta__crops { display: none; }
+
+  .home-hero__cards,
+  .home-float-card { translate: none; rotate: none; }
+
+  .home-tool-card,
+  .home-page .feature-card { transform: none; }
+
+  .home-how-step-icon,
+  .home-how-step-title,
+  .home-how-step-desc,
+  .home-page .reveal .section__label,
+  .home-page .reveal h2,
+  .home-page .reveal .home-how-sub,
+  .home-page .reveal .home-tools-sub,
+  .home-about.reveal .home-about__left > p:not(.section__label),
+  .home-about.reveal .home-about__link {
+    opacity: 1;
+    translate: none;
+    transition: none;
+  }
+}

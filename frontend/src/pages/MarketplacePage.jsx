@@ -2,20 +2,25 @@
  * SmartAgri — Marketplace  (Real DB-backed via /api/marketplace/*)
  * ================================================================================== */
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useOutletContext } from 'react-router-dom';
 import useSWR, { mutate } from 'swr';
 import CustomSelect from '../components/CustomSelect';
 import PayDialog from '../components/PayDialog';
 import { SkeletonListingGrid, SkeletonRows } from '../components/Skeleton';
 import { relativeTime } from '../utils/relativeTime';
+import { celebrate } from '../utils/celebrate';
+import { tiltHandlers } from '../utils/tilt';
+import { CROP_EMOJI } from '../data/cropData';
 import { request, getAuthSession, getActiveRole, setActiveRole, getUserRoles } from '../services/api';
 import {
   Leaf, Tractor, Store, User, Sprout, Plus, Package, MapPin,
   ShoppingCart, Send, Check, X, MessageSquare, Package2,
-  ArrowRight, CheckCircle2, History, Trash2,
+  ArrowRight, CheckCircle2, History, Trash2, Archive, ArchiveRestore,
 } from 'lucide-react';
 import '../styles/marketplace.css';
+import '../styles/marketplace-motion.css';
 import SpotlightTour   from '../components/tour/SpotlightTour';
 import HelpButton      from '../components/tour/HelpButton';
 
@@ -67,6 +72,7 @@ const M = {
     yourNote: 'Your note…', yourCounter: 'Counter price (optional)',
     saving: 'Saving…', save: 'Send',
     deleteListing: 'Delete', deleteConfirm: 'Delete this listing? This cannot be undone.',
+    archiveListing: 'Archive', restoreListing: 'Restore', archivedToast: 'archived — hidden from buyers.', restoredToast: 'is live on the marketplace again.',
     accept: 'Accept', reject: 'Reject', cancel: 'Cancel',
     switchRole: 'Switch Role',
     pendingStatus: 'Pending', confirmedStatus: 'Confirmed',
@@ -117,6 +123,7 @@ const M = {
     yourNote: 'ඔබේ සටහන…', yourCounter: 'Counter මිල (අවශ්‍ය නොවේ)',
     saving: 'සුරකිමින්…', save: 'යවන්න',
     deleteListing: 'මකන්න', deleteConfirm: 'ලැයිස්තු මකන්නද?',
+    archiveListing: 'සංරක්ෂණය', restoreListing: 'නැවත සක්‍රිය කරන්න', archivedToast: 'සංරක්ෂණය කළා — ගැනුම්කරුවන්ට නොපෙනේ.', restoredToast: 'නැවත වෙළඳපොළේ සක්‍රියයි.',
     accept: 'පිළිගන්න', reject: 'ප්‍රතික්ෂේප', cancel: 'අවලංගු',
     switchRole: 'භූමිකාව මාරු',
     pendingStatus: 'අපේක්ෂිත', confirmedStatus: 'තහවුරු',
@@ -167,6 +174,7 @@ const M = {
     yourNote: 'உங்கள் குறிப்பு…', yourCounter: 'எதிர் விலை (விருப்பமான)',
     saving: 'சேமிக்கிறது…', save: 'அனுப்பு',
     deleteListing: 'நீக்கு', deleteConfirm: 'பட்டியலை நீக்கவா?',
+    archiveListing: 'காப்பகப்படுத்து', restoreListing: 'மீட்டமை', archivedToast: 'காப்பகப்படுத்தப்பட்டது — வாங்குபவர்களுக்குத் தெரியாது.', restoredToast: 'மீண்டும் சந்தையில் செயலில் உள்ளது.',
     accept: 'ஒப்பு', reject: 'நிராகரி', cancel: 'ரத்து',
     switchRole: 'பங்கை மாற்று',
     pendingStatus: 'நிலுவை', confirmedStatus: 'உறுதி',
@@ -412,10 +420,13 @@ function Modal({ open, onClose, title, desc, children }) {
     return () => document.removeEventListener('keydown', h);
   }, [open, onClose]);
   if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-foreground/40" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-lg rounded-xl border bg-card p-6 shadow-xl grid gap-4">
+  // Rendered into <body>: a card that is transformed (hover lift, entrance
+  // animation) becomes the containing block for position:fixed, which used to
+  // squeeze this dialog inside the card that opened it.
+  return createPortal(
+    <div className="marketplace-sprint fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" style={{ animation: 'none' }}>
+      <div className="mkt-modal__backdrop absolute inset-0" onClick={onClose} />
+      <div className="mkt-modal__panel relative z-10 w-full max-w-lg rounded-xl border bg-card p-6 shadow-xl grid gap-4">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h3 className="text-lg font-semibold text-foreground">{title}</h3>
@@ -425,15 +436,33 @@ function Modal({ open, onClose, title, desc, children }) {
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
 function Tabs({ tabs, value, onChange }) {
+  const wrapRef = useRef(null);
+  const [pill, setPill] = useState(null);
+  // The highlight is one element that slides to whichever tab is active, so
+  // it has to be measured rather than styled per button.
+  useLayoutEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return undefined;
+    const measure = () => {
+      const btn = wrap.querySelector('[data-active="true"]');
+      if (btn) setPill({ left: btn.offsetLeft, top: btn.offsetTop, width: btn.offsetWidth, height: btn.offsetHeight });
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [value, tabs.map(t => t.label).join('|')]);
+
   return (
-    <div className="inline-flex flex-wrap gap-1 rounded-lg bg-muted p-1">
+    <div ref={wrapRef} className="mkt-tabs inline-flex flex-wrap gap-1 rounded-lg bg-muted p-1">
+      {pill && <span className="mkt-tabs__pill" style={pill} aria-hidden="true" />}
       {tabs.map(t => (
-        <button key={t.value} onClick={() => onChange(t.value)}
+        <button key={t.value} data-active={value === t.value} onClick={() => onChange(t.value)}
           className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${value === t.value ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
           {t.label}
         </button>
@@ -441,6 +470,18 @@ function Tabs({ tabs, value, onChange }) {
     </div>
   );
 }
+
+// Banner shown on a listing that has no photo.
+const CATEGORY_EMOJI = { vegetable: '🥬', fruit: '🍎', grain: '🌾', cereal: '🌾', spice: '🌶️', pulse: '🫘', seed: '🌰', fertil: '🧪', tool: '🛠️', equip: '🚜' };
+function listingEmoji(listing) {
+  if (CROP_EMOJI[listing.crop_name]) return CROP_EMOJI[listing.crop_name];
+  const type = (listing.crop_type || '').toLowerCase();
+  const key = Object.keys(CATEGORY_EMOJI).find(k => type.includes(k));
+  return key ? CATEGORY_EMOJI[key] : listing.listing_type === 'product' ? '🧺' : '🌱';
+}
+
+const CARD_TILT = tiltHandlers(5);
+const HERO_PRODUCE = ['🍅', '🌽', '🥕', '🌶️', '🍆', '🥬', '🌾', '🍍', '🥥', '🍌'];
 
 // ── Status helpers ─────────────────────────────────────────────────────────────
 function statusColor(s) {
@@ -676,6 +717,30 @@ function OrderDialog({ listing, currentUserId, m }) {
   );
 }
 
+// ── Archive / restore listing ──────────────────────────────────────────────────
+// A listing with orders can't be deleted (it would erase the buyers' order
+// history), so archiving is how a seller takes it off the marketplace.
+function ArchiveButton({ listing, m }) {
+  const [busy, setBusy] = useState(false);
+  const archived = listing.status === 'Archived';
+  if (!archived && listing.status !== 'Active') return null; // Sold/Reserved are managed by orders
+  async function toggle() {
+    setBusy(true);
+    try {
+      await apiPost(`/api/marketplace/listings/${listing.id}`, { status: archived ? 'Active' : 'Archived' }, 'PUT');
+      toast.success(`"${listing.crop_name}" ${archived ? m.restoredToast : m.archivedToast}`);
+      refreshListings();
+    } catch (err) { toast.error(err.message); }
+    finally { setBusy(false); }
+  }
+  return (
+    <Btn variant="outline" size="sm" onClick={toggle} disabled={busy} title={archived ? m.restoreListing : m.archiveListing}>
+      {archived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
+      {busy ? '…' : archived ? m.restoreListing : m.archiveListing}
+    </Btn>
+  );
+}
+
 // ── Delete listing dialog ──────────────────────────────────────────────────────
 function DeleteDialog({ listingId, cropName, m }) {
   const [open, setOpen] = useState(false);
@@ -752,11 +817,13 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
   const isOwn = listing.owner_id === currentUserId;
 
   return (
-    <Card className="flex flex-col overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-      {listing.image && (
-        <div className="h-40 w-full overflow-hidden">
-          <img src={listing.image} alt={listing.crop_name} className="h-full w-full object-cover transition-transform duration-300 hover:scale-105" />
+    <Card className="mkt-card flex flex-col overflow-hidden" {...CARD_TILT}>
+      {listing.image ? (
+        <div className="mkt-card__img h-40 w-full">
+          <img src={listing.image} alt={listing.crop_name} className="h-full w-full object-cover" />
         </div>
+      ) : (
+        <div className="mkt-card__ph" aria-hidden="true"><span>{listingEmoji(listing)}</span></div>
       )}
       <div className="p-5 pb-3 flex flex-col flex-1">
         <div className="flex items-start justify-between gap-2 mb-1">
@@ -792,7 +859,7 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
 
         <div className="mt-auto flex gap-2">
           {showDelete && isOwn
-            ? <DeleteDialog listingId={listing.id} cropName={listing.crop_name} m={m} />
+            ? <><ArchiveButton listing={listing} m={m} /><DeleteDialog listingId={listing.id} cropName={listing.crop_name} m={m} /></>
             : null
           }
           {isAuthenticated && !isOwn
@@ -902,7 +969,7 @@ function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDele
           ? <Card><div className="py-12 text-center text-sm text-muted-foreground">
               {listingType === 'crop' ? (showDelete ? m.noListingsOwner : m.noListingsTrader) : (showDelete ? m.noProductsTrader : m.noProductsOwner)}
             </div></Card>
-          : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          : <div className="mkt-grid grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {listings.map(l => (
                 <ListingCard key={l.id} listing={l} currentUserId={currentUserId} isAuthenticated={isAuthenticated} m={m} showDelete={showDelete} />
               ))}
@@ -922,10 +989,10 @@ function MyListingsGrid({ listingType, currentUserId, m }) {
     return <Card><div className="py-12 text-center text-sm text-muted-foreground">{listingType === 'crop' ? m.noListingsOwner : m.noProductsTrader}</div></Card>;
   }
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="mkt-grid grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {listings.map(l => (
-        <Card key={l.id} className="flex flex-col overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-          {l.image && <div className="h-36 w-full overflow-hidden"><img src={l.image} alt={l.crop_name} className="h-full w-full object-cover transition-transform duration-300 hover:scale-105" /></div>}
+        <Card key={l.id} className="mkt-card flex flex-col overflow-hidden" {...CARD_TILT}>
+          {l.image && <div className="mkt-card__img h-36 w-full"><img src={l.image} alt={l.crop_name} className="h-full w-full object-cover" /></div>}
           <div className="p-4 flex flex-col flex-1">
             <div className="flex items-start justify-between gap-2 mb-1">
               <h3 className="font-semibold text-foreground">{l.crop_name}</h3>
@@ -941,7 +1008,8 @@ function MyListingsGrid({ listingType, currentUserId, m }) {
               {l.location && <span className="flex items-center gap-1"><MapPin size={10} />{l.location}</span>}
             </div>
             <div className="text-xl font-bold text-primary mb-1">Rs. {Number(l.price_per_unit).toLocaleString()}<span className="text-xs font-normal text-muted-foreground">/{l.unit}</span></div>
-            <div className="mt-auto pt-2 flex justify-end">
+            <div className="mt-auto pt-2 flex justify-end gap-2">
+              <ArchiveButton listing={l} m={m} />
               <DeleteDialog listingId={l.id} cropName={l.crop_name} m={m} />
             </div>
           </div>
@@ -1117,6 +1185,7 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
     try {
       await apiPost(`/api/marketplace/orders/${order.id}/status`, { status: newStatus }, 'PUT');
       toast.success(`Order marked as ${newStatus}`);
+      if (newStatus === 'Completed') celebrate();
       refreshOrders();
     } catch (err) { toast.error(err.message); }
     finally { setBusy(false); }
@@ -1325,6 +1394,9 @@ export default function MarketplacePage() {
 
       {/* Hero */}
       <div className="marketplace-hero">
+        <div className="mkt-hero-produce" aria-hidden="true">
+          {HERO_PRODUCE.map((item, i) => <span key={i} style={{ '--i': i, '--s': (i * 3) % 4 }}>{item}</span>)}
+        </div>
         <div className="marketplace-hero-inner">
           <div className="marketplace-hero-badge">{m.badge}</div>
           <h1 className="marketplace-hero-title">{m.title}</h1>

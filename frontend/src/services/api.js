@@ -8,7 +8,16 @@ export async function fetchBackendHealth() {
   return response.json();
 }
 
-let _isRefreshing = false;
+// One refresh at a time: every request that gets a 401 while a refresh is in
+// flight waits for that same refresh instead of logging the user out.
+let _refreshPromise = null;
+
+function _refreshOnce() {
+  if (!_refreshPromise) {
+    _refreshPromise = _doRefresh().finally(() => { _refreshPromise = null; });
+  }
+  return _refreshPromise;
+}
 
 async function _doRefresh() {
   const refreshToken = localStorage.getItem('smartagri_refresh');
@@ -29,9 +38,10 @@ async function _doRefresh() {
   }
 }
 
-async function request(path, options = {}, _retry = true) {
+// Authenticated request against either service (main backend or ML service).
+async function requestTo(baseUrl, path, options = {}, _retry = true) {
   const { token } = getAuthSession();
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(`${baseUrl}${path}`, {
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -44,11 +54,8 @@ async function request(path, options = {}, _retry = true) {
 
   if (response.status === 401) {
     // Try to refresh once before giving up
-    if (_retry && !_isRefreshing && path !== '/auth/refresh') {
-      _isRefreshing = true;
-      const refreshed = await _doRefresh();
-      _isRefreshing = false;
-      if (refreshed) return request(path, options, false);
+    if (_retry && path !== '/auth/refresh') {
+      if (await _refreshOnce()) return requestTo(baseUrl, path, options, false);
     }
     const msg = data?.detail ?? data?.message ?? 'Session expired. Please log in again.';
     if (window.location.pathname !== '/login') {
@@ -67,7 +74,11 @@ async function request(path, options = {}, _retry = true) {
   return data;
 }
 
-export { request };
+function request(path, options = {}) {
+  return requestTo(API_BASE_URL, path, options);
+}
+
+export { request, requestTo };
 
 export function saveAuthSession({ access_token: accessToken, refresh_token: refreshToken, user }) {
   localStorage.setItem('smartagri_token', accessToken);
