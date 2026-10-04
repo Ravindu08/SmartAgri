@@ -493,7 +493,7 @@ const CG2 = {
     nowT: "Where you are now", dayOf: "Day {0} of {1}", stageOf: "Stage {0} of {1}",
     next: "Coming up next", daysLeft: "Days left in this stage",
     notStarted: "Not planted yet", finished: "Past the harvest window",
-    duration: "Duration", spacing: "Spacing", propagation: "Propagation", today: "Today",
+    duration: "Duration", spacing: "Spacing", propagation: "Propagation", today: "Today", more: "Read more", less: "Show less",
     fitT: "Weather fit", fitS: "How today's weather affects this crop", fitNone: "Pick your district to see weather alerts for this crop.",
     fitOk: "No weather alerts for this crop right now.", temp: "Season temp", hum: "Humidity", rain2d: "Rain, next 2 days",
   },
@@ -506,7 +506,7 @@ const CG2 = {
     nowT: "ඔබ දැන් සිටින තැන", dayOf: "දින {1}න් {0} වන දිනය", stageOf: "අදියර {1}න් {0}",
     next: "ඊළඟට එන දේ", daysLeft: "මෙම අදියරේ ඉතිරි දින",
     notStarted: "තවම සිටුවා නැත", finished: "අස්වනු කාලය ඉක්මවා ඇත",
-    duration: "කාලසීමාව", spacing: "පරතරය", propagation: "ප්‍රචාරණය", today: "අද",
+    duration: "කාලසීමාව", spacing: "පරතරය", propagation: "ප්‍රචාරණය", today: "අද", more: "තව කියවන්න", less: "අඩුවෙන් පෙන්වන්න",
     fitT: "කාලගුණ ගැළපීම", fitS: "අද කාලගුණය මෙම බෝගයට බලපාන ආකාරය", fitNone: "මෙම බෝගය සඳහා කාලගුණ ඇඟවීම් බැලීමට ඔබේ දිස්ත්‍රික්කය තෝරන්න.",
     fitOk: "මෙම බෝගය සඳහා දැනට කාලගුණ ඇඟවීම් නැත.", temp: "කන්නයේ උෂ්ණත්වය", hum: "ආර්ද්‍රතාවය", rain2d: "ඉදිරි දින 2 වර්ෂාව",
   },
@@ -519,7 +519,7 @@ const CG2 = {
     nowT: "நீங்கள் இப்போது இருக்கும் இடம்", dayOf: "{1} நாட்களில் {0}வது நாள்", stageOf: "{1} நிலைகளில் {0}",
     next: "அடுத்து வருபவை", daysLeft: "இந்த நிலையில் மீதமுள்ள நாட்கள்",
     notStarted: "இன்னும் நடவு செய்யப்படவில்லை", finished: "அறுவடைக் காலம் கடந்துவிட்டது",
-    duration: "காலம்", spacing: "இடைவெளி", propagation: "இனப்பெருக்கம்", today: "இன்று",
+    duration: "காலம்", spacing: "இடைவெளி", propagation: "இனப்பெருக்கம்", today: "இன்று", more: "மேலும் படிக்க", less: "குறைவாகக் காட்டு",
     fitT: "வானிலை பொருத்தம்", fitS: "இன்றைய வானிலை இந்தப் பயிரை எவ்வாறு பாதிக்கிறது", fitNone: "இந்தப் பயிருக்கான வானிலை எச்சரிக்கைகளைக் காண உங்கள் மாவட்டத்தைத் தேர்ந்தெடுங்கள்.",
     fitOk: "இந்தப் பயிருக்கு தற்போது வானிலை எச்சரிக்கைகள் இல்லை.", temp: "பருவ வெப்பநிலை", hum: "ஈரப்பதம்", rain2d: "அடுத்த 2 நாட்கள் மழை",
   },
@@ -571,6 +571,7 @@ function GuidanceDetail({ cropName, plantingDate, onDateChange, t, lang, onBack,
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab]         = useState("growthStages");
+  const [moreOverview, setMoreOverview] = useState(false);
   const daysSince = daysSincePlanting(plantingDate);
 
   useEffect(() => {
@@ -692,7 +693,14 @@ function GuidanceDetail({ cropName, plantingDate, onDateChange, t, lang, onBack,
             {lang === 'en' && data.local_name && <small> · {data.local_name}</small>}
           </h1>
           {data.scientific_name && <em>{data.scientific_name}{data.family ? ` · ${data.family}` : ""}</em>}
-          {data.overview && <p>{tF(data, "overview", lang)}</p>}
+          {data.overview && (
+            <>
+              <p className={moreOverview ? "" : "cg2-clamp"}>{tF(data, "overview", lang)}</p>
+              <button type="button" className="cg2-more" onClick={() => setMoreOverview(m => !m)}>
+                {moreOverview ? c.less : c.more}
+              </button>
+            </>
+          )}
           <div className="cg2-facts">
             {data.duration && <div><small>{c.duration}</small><b>{data.duration.min}–{data.duration.max} {t.noDays}</b></div>}
             {data.spacing && <div><small>{c.spacing}</small><b>{data.spacing.row_cm} × {data.spacing.plant_cm} cm</b></div>}

@@ -72,9 +72,9 @@
 .cg2-alerts button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid color-mix(in srgb, var(--tu-gold) 45%, transparent); cursor: pointer; padding: 7px 12px; border-radius: 999px; font: 600 14px/1.3 var(--ff); text-align: left; color: var(--tu-text); background: color-mix(in srgb, var(--tu-gold) 14%, transparent); }
 .cg2-ok { display: flex; gap: 8px; align-items: center; font-size: 15px; color: var(--tu-green); font-weight: 600; }
 
-.cg2-tabs { position: sticky; top: var(--nav-h); z-index: 5; display: flex; gap: 8px; overflow-x: auto; padding: 12px 0; margin-bottom: 4px; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px); scrollbar-width: none; }
+.cg2-tabs { position: sticky; top: calc(var(--nav-h) + 8px); z-index: 5; display: flex; gap: 8px; overflow-x: auto; padding: 8px; margin-bottom: 14px; border-radius: 999px; background: var(--tu-card); border: 1px solid var(--tu-line); box-shadow: var(--tu-shadow); scrollbar-width: none; }
 .cg2-tabs::-webkit-scrollbar { display: none; }
-.cg2-tab { display: flex; align-items: center; gap: 8px; white-space: nowrap; cursor: pointer; padding: 10px 16px; border-radius: 999px; font: 600 15.5px/1.2 var(--ff); color: var(--tu-muted); background: var(--tu-card); border: 1px solid var(--tu-line); transition: transform .15s; }
+.cg2-tab { display: flex; align-items: center; gap: 8px; white-space: nowrap; cursor: pointer; padding: 10px 16px; border-radius: 999px; flex: none; font: 600 15.5px/1.2 var(--ff); color: var(--tu-muted); background: none; border: 1px solid transparent; transition: transform .15s; }
 .cg2-tab:hover { transform: translateY(-2px); color: var(--tu-text); border-color: var(--tone); }
 .cg2-tab[aria-pressed="true"] { color: #fff; border-color: transparent; background: var(--tone-g); }
 .cg2-tab em { font-style: normal; font-size: 13px; padding: 2px 7px; border-radius: 999px; background: rgba(0, 0, 0, .22); color: inherit; }
@@ -96,3 +96,16 @@
   .cg2-date { grid-template-columns: 1fr; }
   .cg2-modes { display: grid; }
 }
+
+.cg2-clamp { display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.cg2-more { margin-top: 6px; padding: 0; border: 0; background: none; cursor: pointer; font: 600 15px/1.3 var(--ff); color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Guide tab content comes from the older stylesheet. These bring its frames and
+   header colours in line with the page: one teal accent, neutral surfaces. */
+.cg2-content :is(.guidance-stage, .fert-card, .threat-card, .harvest-block, .irrig-item) { border-color: var(--tu-line); }
+.cg2-content .guidance-stage-header { background: var(--tu-card2); }
+.cg2-content .guidance-stage-header.active-stage { background: color-mix(in srgb, var(--tu-teal) 16%, var(--tu-card2)); }
+.cg2-content .guidance-stage-body { background: var(--tu-card); border-top-color: var(--tu-line); }
+.cg2-content .fert-header { background: color-mix(in srgb, var(--tu-teal) 14%, var(--tu-card2)); border-bottom-color: var(--tu-line); color: var(--tu-text); }
+.cg2-content .fert-header * { color: var(--tu-text); }
+.cg2-content .fert-header .fert-day { color: var(--tu-teal); }

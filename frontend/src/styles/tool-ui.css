@@ -80,7 +80,7 @@
 
 .snav__tools { position: relative; }
 .snav__mega {
-  position: absolute; top: calc(100% + 12px); left: -8px; width: min(580px, 92vw);
+  position: absolute; top: calc(100% + 12px); left: -8px; width: min(680px, 92vw);
   display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px;
   background: var(--tu-card); border: 1px solid var(--tu-line); border-radius: 20px; box-shadow: var(--tu-shadow);
   opacity: 0; visibility: hidden; transform: translateY(-6px);
@@ -208,7 +208,12 @@
 .tu-linkbtn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 13px; border: 0; border-radius: 14px; cursor: pointer; text-decoration: none; font: 600 15.5px/1.2 var(--ff); color: #fff; background: var(--tone-g); transition: transform .15s; }
 .tu-linkbtn:hover { transform: translateY(-2px); }
 .tu-linkbtn--plain { color: var(--tu-text); background: var(--tu-card2); border: 1px solid var(--tu-line); }
-.tu-rise { animation: tu-rise .45s cubic-bezier(.2, .8, .2, 1) both; }
+/* fill-mode is "backwards", not "both": a finished animation that still holds
+   transform/opacity keeps the card in its own stacking context, and an open
+   dropdown inside it then gets painted over by the next card. */
+.tu-rise { animation: tu-rise .45s cubic-bezier(.2, .8, .2, 1) backwards; }
+/* Whichever block holds an open dropdown is lifted above its neighbours. */
+.tu-page :is(.tu-card, .tu-sec, section, aside):has(.csel--open) { position: relative; z-index: 40; }
 @keyframes tu-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .tu-rise { animation: none; } .tu-switch a, .tu-pill, .tu-cta, .tu-linkbtn { transition: none; } }
 
@@ -243,3 +248,12 @@
   .snav__btn { padding: 9px 13px; font-size: 15px; }
   .snav__brand { margin-right: 4px; }
 }
+
+.snav__tool b, .tu-switch b { white-space: nowrap; }
+.snav__tool span:last-child { min-width: 0; }
+
+/* The shared dropdown, matched to the tool pages' own inputs. */
+.tu-page .csel__btn { padding: 11px 14px; border-radius: 13px; font: 600 16px/1.4 var(--ff); color: var(--tu-text); background: var(--tu-card2); border: 1px solid var(--tu-line); }
+.tu-page .csel__btn--ph { color: var(--tu-dim); font-weight: 500; }
+.tu-page .csel--open .csel__btn, .tu-page .csel__btn:focus-visible { outline: 2px solid var(--tone, var(--tu-green)); outline-offset: 1px; }
+.tu-page .csel__list { border-radius: 14px; border: 1px solid var(--tu-line); background: var(--tu-card); box-shadow: var(--tu-shadow); font-size: 16px; }
