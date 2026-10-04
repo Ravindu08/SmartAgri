@@ -71,7 +71,7 @@
 .wx2-source a { color: var(--tu-sky); }
 
 @media (max-width: 1050px) {
-  .wx2-top, .wx2-two { grid-template-columns: 1fr; }
+  .wx2-top, .wx2-two { grid-template-columns: minmax(0, 1fr); }
   .wx2-detail { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 800px) {
