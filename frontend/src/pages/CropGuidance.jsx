@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { ML_BASE_URL } from "../services/api";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import CultivationTracker from "../components/CultivationTracker";
 import WeatherLocationPicker from "../components/WeatherLocationPicker";
 import CustomSelect from "../components/CustomSelect";

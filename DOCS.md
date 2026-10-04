@@ -75,10 +75,10 @@ SmartAgri is an AI-powered agribusiness platform built for Sri Lanka. It has two
 |---|---|---|
 | **React** | 18.3.1 | UI framework — component tree, state management |
 | **React DOM** | 18.3.1 | Renders React to the browser |
-| **React Router** | 6.26.0 | Client-side routing — 30+ routes across public, auth, ML-tool, landowner, trader, and admin pages |
+| **React Router** | 7.18.4 | Client-side routing — 30+ routes across public, auth, ML-tool, landowner, trader, and admin pages |
 | **SWR** | ≥2.4.1 | Data-fetching hooks used in selected components |
 | **lucide-react** | ≥1.21.0 | Icon library |
-| **Vite** | 5.4.0 | Build tool and dev server — proxies `/auth`, `/api` to port 8000 and ML routes to port 8001 |
+| **Vite** | 8.3.2 | Build tool and dev server — proxies `/auth`, `/api` to port 8000 and ML routes to port 8001 |
 
 **Notable: no external UI component library, no state management library.** All components are hand-written. Tailwind CSS is installed as a dev dependency but styles are primarily plain CSS with variables in `globals.css`.
 
@@ -302,7 +302,7 @@ SmartAgri/
 ### Prerequisites
 
 - Python 3.10+
-- Node.js 18+
+- Node.js 22+
 - PostgreSQL — database `smartagri` must exist
 
 ### Environment variables
@@ -591,7 +591,7 @@ Full-featured FastAPI app with PostgreSQL persistence. At startup it runs Alembi
 
 ### Routing
 
-All routes are defined in `App.jsx` using React Router v6:
+All routes are defined in `App.jsx` using React Router v7:
 
 | Path | Component | Auth required |
 |---|---|---|

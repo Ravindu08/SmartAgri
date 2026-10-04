@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router';
 import { getCrop, deleteCrop } from '../../services/cropService';
 import { listCultivations, abandonCultivation, findSessionForCrop } from '../../utils/cultivationApi';
 import { getAuthSession } from '../../services/api';
