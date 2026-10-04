@@ -66,7 +66,8 @@ export default function AdminActivity() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
           {pageActivity.map((a, i) => (
-            <div key={a.id} style={{
+            <div key={a.id} className="dash-row" style={{
+              '--i': Math.min(i, 12),
               display: 'flex', gap: '16px', padding: '14px 0',
               borderBottom: i < pageActivity.length - 1 ? '1px solid var(--border)' : 'none',
               alignItems: 'flex-start',

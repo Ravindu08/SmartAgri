@@ -1,0 +1,385 @@
+/* Signed-in pages — motion and interaction.
+   Land Owner (farms, crops, cultivations, tracker), Trader (requests, orders,
+   history), Admin tables and lists, Help, the getting-started checklist and
+   the role picker. Imported once by MotionLayer. Entrance animations use
+   fill-mode `backwards`; everything is still under prefers-reduced-motion. */
+
+@keyframes am-rise {
+  from { opacity: 0; translate: 0 16px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+@keyframes am-slide {
+  from { opacity: 0; translate: -16px 0; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+@keyframes am-pop {
+  from { opacity: 0; scale: 0.86; }
+  to   { opacity: 1; scale: 1; }
+}
+
+@keyframes am-grow {
+  from { scale: 0 1; }
+  to   { scale: 1 1; }
+}
+
+@keyframes am-wiggle {
+  0%   { rotate: 0deg;   scale: 1; }
+  35%  { rotate: -12deg; scale: 1.2; }
+  70%  { rotate: 8deg;   scale: 1.08; }
+  100% { rotate: 0deg;   scale: 1; }
+}
+
+@keyframes am-bob {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -7px; }
+}
+
+@keyframes am-pulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--am-tone, var(--green-mid)) 55%, transparent); }
+  100% { box-shadow: 0 0 0 9px transparent; }
+}
+
+@keyframes am-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes am-shine {
+  0%, 60% { translate: -120% 0; }
+  100%    { translate: 220% 0; }
+}
+
+/* ══ Generic hook for pages styled inline (Trader, Admin) ═════════════════
+   `fx-card` is added to their card containers; MotionLayer gives anything
+   with "card" in its class an entrance, this adds the hover response. */
+.fx-card {
+  transition: translate 0.22s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+}
+
+.fx-card:not(:has(table)):hover {
+  translate: 0 -3px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border)) !important;
+}
+
+/* list rows on inline-styled pages (activity log) */
+.dash-row {
+  animation: am-slide 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 0.05s);
+}
+
+.fx-form:hover { translate: none !important; }
+
+/* ══ Tables (Admin lists) ═════════════════════════════════════════════════ */
+.lo-content table tbody tr {
+  animation: am-slide 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  transition: background-color 0.18s ease;
+}
+
+.lo-content table tbody tr:nth-child(2)  { animation-delay: 0.03s; }
+.lo-content table tbody tr:nth-child(3)  { animation-delay: 0.06s; }
+.lo-content table tbody tr:nth-child(4)  { animation-delay: 0.09s; }
+.lo-content table tbody tr:nth-child(5)  { animation-delay: 0.12s; }
+.lo-content table tbody tr:nth-child(6)  { animation-delay: 0.15s; }
+.lo-content table tbody tr:nth-child(7)  { animation-delay: 0.18s; }
+.lo-content table tbody tr:nth-child(8)  { animation-delay: 0.21s; }
+.lo-content table tbody tr:nth-child(9)  { animation-delay: 0.24s; }
+.lo-content table tbody tr:nth-child(n + 10) { animation-delay: 0.27s; }
+
+.lo-content table tbody tr:hover { background-color: var(--surface-hover); }
+
+/* ══ Order step tracker (Trader orders) ═══════════════════════════════════ */
+.trk-line--done {
+  transform-origin: left center;
+  animation: am-grow 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  animation-delay: calc(var(--i) * 0.22s);
+}
+
+.trk-dot {
+  animation: am-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  animation-delay: calc(0.1s + var(--i) * 0.22s);
+}
+
+.trk-dot--active {
+  --am-tone: var(--accent);
+  animation: am-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) backwards, am-pulse 1.8s ease-out 1s infinite;
+  animation-delay: calc(0.1s + var(--i) * 0.22s), 1.2s;
+}
+
+/* ══ Role picker ══════════════════════════════════════════════════════════ */
+.role-card {
+  animation: am-pop 0.55s cubic-bezier(0.34, 1.4, 0.64, 1) backwards;
+  animation-delay: calc(0.15s + var(--i) * 0.12s);
+}
+
+.role-card:hover { translate: 0 -8px; }
+
+.role-card__icon { display: inline-block; animation: am-bob 3.4s ease-in-out infinite; }
+.role-card:nth-child(2) .role-card__icon { animation-delay: -1.6s; }
+.role-card:hover .role-card__icon { animation: am-wiggle 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+.role-card__cta { transition: translate 0.2s ease, letter-spacing 0.2s ease; }
+.role-card:hover .role-card__cta { translate: 0 -2px; letter-spacing: 0.3px; }
+
+.role-hero { animation: am-rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+.role-hero__logo { display: inline-block; animation: am-bob 3s ease-in-out infinite; }
+
+/* ══ Farms ════════════════════════════════════════════════════════════════ */
+.farm-card__image,
+.farm-card__photo { overflow: hidden; }
+
+.farm-card__image img,
+.farm-card__photo img { transition: scale 0.7s cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+.farm-card:hover .farm-card__image img,
+.farm-card:hover .farm-card__photo img { scale: 1.08; }
+
+.farm-card__image-placeholder { display: inline-block; animation: am-bob 4s ease-in-out infinite; }
+
+.farm-card__district-badge,
+.farm-card__season-badge { transition: translate 0.25s ease; }
+.farm-card:hover .farm-card__district-badge,
+.farm-card:hover .farm-card__season-badge { translate: 0 -2px; }
+
+.farm-search,
+.crop-search,
+.help-search { transition: border-color 0.2s ease, box-shadow 0.25s ease, translate 0.2s ease; }
+
+.farm-search:focus,
+.crop-search:focus,
+.help-search:focus,
+.farm-search:focus-within,
+.crop-search:focus-within,
+.help-search:focus-within {
+  translate: 0 -1px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.farm-empty__icon,
+.crop-empty > :first-child,
+.cult-empty > :first-child { display: inline-block; animation: am-bob 3.4s ease-in-out infinite; }
+
+.farm-page__header,
+.crop-page__header { animation: am-rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+
+/* farm / crop detail pages */
+.farm-detail-header,
+.crop-detail-header { animation: am-rise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+
+.detail-row {
+  animation: am-slide 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  transition: background-color 0.2s ease, padding-left 0.2s ease;
+}
+
+.detail-row:nth-child(2) { animation-delay: 0.05s; }
+.detail-row:nth-child(3) { animation-delay: 0.10s; }
+.detail-row:nth-child(4) { animation-delay: 0.15s; }
+.detail-row:nth-child(5) { animation-delay: 0.20s; }
+.detail-row:nth-child(n + 6) { animation-delay: 0.25s; }
+
+.farm-detail-crop-chip {
+  animation: am-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  transition: translate 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.farm-detail-crop-chip:hover { translate: 0 -2px; }
+
+.farm-detail-back,
+.crop-detail-back { transition: translate 0.2s ease, color 0.2s ease; }
+.farm-detail-back:hover,
+.crop-detail-back:hover { translate: -4px 0; }
+
+.farm-detail-track-btn { transition: translate 0.2s ease, box-shadow 0.25s ease; }
+.farm-detail-track-btn:hover { translate: 0 -2px; }
+
+/* ══ Crops ════════════════════════════════════════════════════════════════ */
+.crop-card__emoji,
+.cult-crop-card__emoji {
+  display: inline-block;
+  transition: scale 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), rotate 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.crop-card:hover .crop-card__emoji,
+.cult-crop-card:hover .cult-crop-card__emoji {
+  scale: 1.25;
+  rotate: -10deg;
+}
+
+.crop-status-tab {
+  transition: translate 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, scale 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.crop-status-tab:hover { translate: 0 -2px; }
+.crop-status-tab__icon { display: inline-block; transition: scale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.crop-status-tab:hover .crop-status-tab__icon { scale: 1.2; }
+.crop-status-tab__count { transition: scale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.crop-status-tab:hover .crop-status-tab__count { scale: 1.12; }
+
+/* every progress bar fills from empty, with a light running along it */
+.crop-card__cult-fill,
+.cult-progress-fill,
+.getting-started-card__progress-fill {
+  position: relative;
+  overflow: hidden;
+  transform-origin: left center;
+  animation: am-grow 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s backwards;
+}
+
+.crop-card__cult-fill::after,
+.cult-progress-fill::after,
+.getting-started-card__progress-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.5) 50%, transparent 70%);
+  translate: -120% 0;
+  animation: am-shine 3s ease-in-out 1.4s infinite;
+}
+
+.crop-card__cult-overdue,
+.cult-overdue-badge,
+.cult-chip-badge--overdue { --am-tone: var(--danger, #dc2626); animation: am-pulse 2s ease-out infinite; }
+
+.crop-card__status-badge,
+.cult-status-badge { transition: scale 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.crop-card:hover .crop-card__status-badge,
+.cult-crop-card:hover .cult-status-badge { scale: 1.06; }
+
+/* ══ Cultivations + tracker ═══════════════════════════════════════════════ */
+.cult-crop-card {
+  transition: translate 0.22s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+}
+
+.cult-crop-card:hover { translate: 0 -3px; }
+
+.cult-btn { transition: translate 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, scale 0.18s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.cult-btn:hover:not(:disabled) { translate: 0 -2px; }
+
+.cult-dash-header { animation: am-rise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+
+.cult-stage-seg {
+  transform-origin: left center;
+  animation: am-grow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+.cult-stage-seg:nth-child(2) { animation-delay: 0.10s; }
+.cult-stage-seg:nth-child(3) { animation-delay: 0.20s; }
+.cult-stage-seg:nth-child(4) { animation-delay: 0.30s; }
+.cult-stage-seg:nth-child(n + 5) { animation-delay: 0.40s; }
+
+.cult-stage-marker { animation: am-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s backwards; }
+
+.cult-week-col { animation: am-rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+.cult-week-col:nth-child(2) { animation-delay: 0.04s; }
+.cult-week-col:nth-child(3) { animation-delay: 0.08s; }
+.cult-week-col:nth-child(4) { animation-delay: 0.12s; }
+.cult-week-col:nth-child(5) { animation-delay: 0.16s; }
+.cult-week-col:nth-child(6) { animation-delay: 0.20s; }
+.cult-week-col:nth-child(7) { animation-delay: 0.24s; }
+
+.cult-task-chip { transition: translate 0.18s ease, box-shadow 0.2s ease, filter 0.2s ease; }
+.cult-task-chip:hover { translate: 0 -2px; filter: brightness(1.12); }
+
+.cult-chip-icon { display: inline-block; transition: scale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.cult-task-chip:hover .cult-chip-icon { scale: 1.25; }
+
+.cult-chip-badge--done { animation: am-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+
+.cult-cal-nav-btn,
+.cult-cal-today-btn { transition: translate 0.2s ease, background-color 0.2s ease; }
+.cult-cal-nav-btn:hover,
+.cult-cal-today-btn:hover { translate: 0 -2px; }
+
+.cult-modal-overlay,
+.modal-overlay { animation: am-fade 0.25s ease backwards; }
+
+.cult-modal {
+  animation: am-modal 0.38s cubic-bezier(0.34, 1.4, 0.64, 1) backwards;
+}
+
+@keyframes am-modal {
+  from { opacity: 0; scale: 0.9; translate: 0 22px; }
+  to   { opacity: 1; scale: 1;   translate: 0 0; }
+}
+
+.cult-modal-icon { display: inline-block; animation: am-wiggle 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards; }
+
+.cult-modal-photo-add { transition: translate 0.2s ease, border-color 0.2s ease, background-color 0.2s ease; }
+.cult-modal-photo-add:hover { translate: 0 -2px; border-color: var(--accent); }
+
+.cult-modal-photo-preview { animation: am-pop 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) backwards; }
+
+/* ══ Getting-started checklist ════════════════════════════════════════════ */
+.getting-started-card__item {
+  animation: am-slide 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  transition: translate 0.2s ease, background-color 0.2s ease;
+}
+
+.getting-started-card__item:nth-child(2) { animation-delay: 0.07s; }
+.getting-started-card__item:nth-child(3) { animation-delay: 0.14s; }
+.getting-started-card__item:nth-child(n + 4) { animation-delay: 0.21s; }
+.getting-started-card__item:hover { translate: 4px 0; }
+
+.getting-started-card__item-icon { display: inline-grid; animation: am-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s backwards; }
+
+.getting-started-card__dismiss { transition: rotate 0.3s ease, color 0.2s ease; }
+.getting-started-card__dismiss:hover { rotate: 90deg; }
+
+/* ══ Help & support ═══════════════════════════════════════════════════════ */
+.help-hero { animation: am-rise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+
+.help-quicklink,
+.help-contact-card {
+  animation: am-pop 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) backwards;
+  transition: translate 0.22s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+}
+
+.help-quicklink:nth-child(2), .help-contact-card:nth-child(2) { animation-delay: 0.06s; }
+.help-quicklink:nth-child(3), .help-contact-card:nth-child(3) { animation-delay: 0.12s; }
+.help-quicklink:nth-child(n + 4), .help-contact-card:nth-child(n + 4) { animation-delay: 0.18s; }
+
+.help-quicklink:hover,
+.help-contact-card:hover { translate: 0 -4px; }
+
+.help-contact-icon { display: inline-block; }
+.help-contact-card:hover .help-contact-icon { animation: am-wiggle 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+.help-faq-item { transition: background-color 0.2s ease, border-color 0.2s ease; }
+.help-faq-q { transition: color 0.2s ease, padding-left 0.2s ease; }
+.help-faq-q:hover { padding-left: 6px; }
+
+.help-faq-a { animation: am-unfold 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+
+@keyframes am-unfold {
+  from { opacity: 0; translate: 0 -8px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+.help-no-results { animation: am-rise 0.4s ease backwards; }
+
+/* ══ Settings ═════════════════════════════════════════════════════════════ */
+.settings-info-row { transition: background-color 0.2s ease, padding-left 0.2s ease; }
+
+.settings-user-meta { animation: am-rise 0.5s ease 0.1s backwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lo-content table tbody tr,
+  .trk-line--done, .trk-dot, .trk-dot--active,
+  .role-card, .role-card__icon, .role-hero, .role-hero__logo,
+  .farm-card__image-placeholder, .farm-empty__icon,
+  .crop-empty > :first-child, .cult-empty > :first-child,
+  .farm-page__header, .crop-page__header, .farm-detail-header, .crop-detail-header,
+  .detail-row, .farm-detail-crop-chip,
+  .crop-card__cult-fill, .cult-progress-fill, .getting-started-card__progress-fill,
+  .crop-card__cult-fill::after, .cult-progress-fill::after, .getting-started-card__progress-fill::after,
+  .crop-card__cult-overdue, .cult-overdue-badge, .cult-chip-badge--overdue, .cult-chip-badge--done,
+  .cult-dash-header, .cult-stage-seg, .cult-stage-marker, .cult-week-col,
+  .cult-modal-overlay, .modal-overlay, .cult-modal, .cult-modal-icon, .cult-modal-photo-preview,
+  .getting-started-card__item, .getting-started-card__item-icon,
+  .help-hero, .help-quicklink, .help-contact-card, .help-faq-a, .help-no-results,
+  .settings-user-meta {
+    animation: none !important;
+  }
+}
