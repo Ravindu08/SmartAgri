@@ -67,6 +67,7 @@ const AdminHarvestForecast = lazy(() => import('./pages/admin/AdminHarvestForeca
 import { T } from './data/translations';
 import './styles/globals.css';
 import './styles.css';
+import './styles/tool-ui.css';
 
 // ── 404 Not Found ─────────────────────────────────────────────────────────────
 const NOT_FOUND_T = {
