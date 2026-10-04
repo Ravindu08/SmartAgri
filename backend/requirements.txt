@@ -1,22 +1,25 @@
-# ── ML Service (port 8000) ────────────────────────────────────────────────────
-fastapi==0.115.0
-uvicorn[standard]>=0.30.0
-pydantic==2.7.0
+# Exact pins — the same versions run on the dev PC, in Docker and in CI.
+# The ML model was trained with these; change them together and retest.
+
+# ── ML Service (port 8001) ────────────────────────────────────────────────────
+fastapi==0.136.1
+uvicorn[standard]==0.50.0
+pydantic==2.13.3
 httpx==0.27.0
-python-dotenv>=1.0.1
+python-dotenv==1.2.2
 
 # ML — inference
 xgboost==3.2.0
-scikit-learn==1.5.0
-joblib==1.4.2
-numpy==1.26.4
+scikit-learn==1.8.0
+joblib==1.5.3
+numpy==2.4.4
 
 # ── Auth / Farm / Crop Service (port 8000) ────────────────────────────────────
-SQLAlchemy>=2.0.0
-psycopg2-binary>=2.9.9
-python-jose[cryptography]>=3.3.0
-passlib>=1.7.4                  # pbkdf2_sha256 scheme — bcrypt extra incompatible with Python 3.14+
-alembic>=1.13.0
-email-validator>=2.2.0
-slowapi>=0.1.9
-Pillow>=10.0.0
+SQLAlchemy==2.0.49
+psycopg2-binary==2.9.12
+python-jose[cryptography]==3.5.0
+passlib==1.7.4                  # pbkdf2_sha256 scheme — bcrypt extra incompatible with Python 3.14+
+alembic==1.18.4
+email-validator==2.3.0
+slowapi==0.1.10
+Pillow==12.2.0
