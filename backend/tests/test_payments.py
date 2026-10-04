@@ -3,11 +3,8 @@ SmartAgri payment tests — run with: pytest backend/tests/test_payments.py -v
 Requires the conftest.py in this directory to run first (sets env + patches dotenv).
 """
 import pytest
-from sqlalchemy import create_engine, func, select
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy import func, select
 
-from app.db.database import Base
 from app.core.security import hash_password
 from app.models.marketplace import MarketplaceListing, MarketplaceOrder, MarketplaceOrderStatus, OrderPaymentStatus
 from app.models.payment import Payment, PaymentStatus
@@ -16,13 +13,7 @@ from app.schemas.marketplace import MarketplaceOrderStatusUpdate
 from app.services.marketplace_service import update_order_status
 from app.services.payment_service import simulate_payment
 
-_engine = create_engine(
-    "sqlite:///:memory:",
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
-Base.metadata.create_all(bind=_engine)
+from tests.db import TestingSessionLocal
 
 
 _order_seq = 0

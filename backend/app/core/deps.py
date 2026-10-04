@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-from app.core.security import ALGORITHM, SECRET_KEY
+from app.core.security import ALGORITHM, SECRET_KEY, token_is_current
 from app.db.database import SessionLocal
 from app.models.user import User, UserRole
 
@@ -44,7 +44,7 @@ def get_current_user(
         raise credentials_exception from exc
 
     user = db.get(User, user_id)
-    if user is None:
+    if user is None or not token_is_current(payload, user):
         raise credentials_exception
     if user.is_suspended:
         raise HTTPException(

@@ -5,24 +5,13 @@ Requires the conftest.py in this directory to run first (sets env + patches dote
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
-# ── SQLite in-memory engine (all tables created from ORM metadata) ────────────
-from app.db.database import Base
 from app.core.deps import get_db
 from app.core.security import create_access_token, hash_password
 from app.models.user import User, UserRole
 from app.main import app
 
-_engine = create_engine(
-    "sqlite:///:memory:",
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
-Base.metadata.create_all(bind=_engine)
+from tests.db import TestingSessionLocal
 
 
 def _override_get_db():
