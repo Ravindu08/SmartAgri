@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
 import { ArrowRight, BookOpen, ChartLine, Check, CloudSun, Info, MapPin, Printer, Sparkles, Sprout, TriangleAlert } from "lucide-react";
 import { ML_BASE_URL } from "../services/api";
 import { celebrate } from "../utils/celebrate";
@@ -341,6 +342,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
   const [showGuide,  setShowGuide]  = useState(false);
   const [history,    setHistory]    = useState(() => loadHistory());
   const resRef = useRef(null);
+  const navigate = useNavigate();
   const crTourT = CR_TOUR_T[lang] || CR_TOUR_T.en;
   const [tourOpen, setTourOpen] = useState(false);
 
@@ -943,8 +945,8 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
                   </>
                 )}
                 <div className="cr2-acts">
-                  <button className="tu-linkbtn tu-tone-teal" onClick={() => setPage?.("crop-guidance")}><BookOpen size={16} />{c2.guide}</button>
-                  <button className="tu-linkbtn tu-tone-amber" onClick={() => setPage?.("yield-price")}><ChartLine size={16} />{c2.yield}</button>
+                  <button className="tu-linkbtn tu-tone-teal" onClick={() => navigate(`/crop-guidance?crop=${encodeURIComponent(result.recommended_crop)}`)}><BookOpen size={16} />{c2.guide}</button>
+                  <button className="tu-linkbtn tu-tone-amber" onClick={() => navigate("/yield-price")}><ChartLine size={16} />{c2.yield}</button>
                 </div>
               </div>
             </>

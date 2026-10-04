@@ -48,7 +48,7 @@
 .yp2-note { font-size: 12px; color: var(--tu-dim); line-height: 1.5; }
 
 @media (max-width: 1050px) {
-  .yp2-grid { grid-template-columns: 1fr; }
+  .yp2-grid { grid-template-columns: minmax(0, 1fr); }
   .yp2-out { position: static; }
 }
 @media (max-width: 640px) {

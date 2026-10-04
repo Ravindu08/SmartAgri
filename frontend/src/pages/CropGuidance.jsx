@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { ML_BASE_URL } from "../services/api";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import CultivationTracker from "../components/CultivationTracker";
 import WeatherLocationPicker from "../components/WeatherLocationPicker";
-import CustomSelect from "../components/CustomSelect";
 import { getAuthSession } from "../services/api";
 import "../styles/CropGuidance.css";
-import { getCropLabel } from "../data/cropData";
+import "../styles/tool-cg.css";
+import { ArrowLeft, BookOpen, Bug, CalendarDays, Check, CloudSun, Droplets, FlaskConical, Lock, Search, ShieldAlert, ShoppingBasket, Sprout, TriangleAlert } from "lucide-react";
+import ToolSwitcher from "../components/ToolSwitcher";
+import { getCropLabel, CROP_EMOJI } from "../data/cropData";
 import { ZONE_LABELS, FERT_TIMING_LABELS, STAGE_NAME_LABELS, PROPAGATION_LABELS } from "../data/translations";
 import SpotlightTour   from "../components/tour/SpotlightTour";
 import HelpButton      from "../components/tour/HelpButton";
@@ -79,16 +81,6 @@ const ACT_KEY = {
 const SEV_ICONS = { high: "🔴", medium: "🟡", low: "🟢" };
 const RISK_ICONS = { weather: "🌦️", soil: "🪨", pest: "🐛", market: "📈" };
 const TABS = ["growthStages","fertilization","irrigationGuide","diseaseMgmt","pestMgmt","riskFactors","harvestGuide"];
-
-const TAB_ICONS = {
-  growthStages:    "🌿",
-  fertilization:   "🧪",
-  irrigationGuide: "💧",
-  diseaseMgmt:     "🦠",
-  pestMgmt:        "🐛",
-  riskFactors:     "⚠️",
-  harvestGuide:    "🧺",
-};
 
 // Substitutes {0}, {1}, ... in a translation string with provided values
 function tpl(str, ...vals) {
@@ -476,91 +468,67 @@ const GUIDE_TABS_INFO = [
     desc_ta: "எப்போது, எவ்வாறு அறுவடை செய்வது மற்றும் சிறந்த தரத்திற்காக அறுவடைக்கு பிந்தைய கையாளுதலை அறியுங்கள்." },
 ];
 
-const POPULAR_CROPS = [
-  { name: "Tomato",    emoji: "🍅" },
-  { name: "Chilli",    emoji: "🌶️" },
-  { name: "Cabbage",   emoji: "🥬" },
-  { name: "Carrot",    emoji: "🥕" },
-  { name: "Brinjal (Eggplant)", emoji: "🍆" },
-  { name: "Okra",      emoji: "🥒" },
-  { name: "Maize",     emoji: "🌽" },
-  { name: "Cowpea",    emoji: "🫘" },
-];
+// Icon and colour for each guide tab, shared by the tab bar and the
+// "what every guide includes" tiles.
+const TAB_LOOK = {
+  growthStages:    { Icon: Sprout,         tone: "teal"   },
+  fertilization:   { Icon: FlaskConical,   tone: "green"  },
+  irrigationGuide: { Icon: Droplets,       tone: "sky"    },
+  diseaseMgmt:     { Icon: ShieldAlert,    tone: "red"    },
+  pestMgmt:        { Icon: Bug,            tone: "violet" },
+  riskFactors:     { Icon: TriangleAlert,  tone: "amber"  },
+  harvestGuide:    { Icon: ShoppingBasket, tone: "amber"  },
+};
+// GUIDE_TABS_INFO lists six of the tabs, in this order.
+const INFO_TABS = ["growthStages", "fertilization", "irrigationGuide", "diseaseMgmt", "pestMgmt", "harvestGuide"];
 
-function GuidanceEmptyInfo({ lang }) {
-  return (
-    <div className="guidance-info-state">
+const CG2 = {
+  en: {
+    pickT: "Pick a crop", pickS: "crops with full growing guides", search: "Search crops", none: "No crop matches that search.",
+    dateL: "Planting date (optional)", dateH: "Add it to see which stage your crop is in today.",
+    wxT: "District for weather alerts",
+    getsT: "What every guide includes", getsS: "Six sections, from planting to harvest",
+    journey: "The growing journey", journeyS: "Tap a stage to read it",
+    nowT: "Where you are now", dayOf: "Day {0} of {1}", stageOf: "Stage {0} of {1}",
+    next: "Coming up next", daysLeft: "Days left in this stage",
+    notStarted: "Not planted yet", finished: "Past the harvest window",
+    duration: "Duration", spacing: "Spacing", propagation: "Propagation", today: "Today",
+    fitT: "Weather fit", fitS: "How today's weather affects this crop", fitNone: "Pick your district to see weather alerts for this crop.",
+    fitOk: "No weather alerts for this crop right now.", temp: "Season temp", hum: "Humidity", rain2d: "Rain, next 2 days",
+  },
+  si: {
+    pickT: "බෝගයක් තෝරන්න", pickS: "බෝග සඳහා සම්පූර්ණ වගා මාර්ගෝපදේශ", search: "බෝග සොයන්න", none: "එම සෙවුමට ගැලපෙන බෝගයක් නැත.",
+    dateL: "සිටුවූ දිනය (විකල්ප)", dateH: "ඔබේ බෝගය අද කුමන අදියරේද යන්න බැලීමට එය එක් කරන්න.",
+    wxT: "කාලගුණ ඇඟවීම් සඳහා දිස්ත්‍රික්කය",
+    getsT: "සෑම මාර්ගෝපදේශයකම ඇතුළත් දේ", getsS: "සිටුවීමේ සිට අස්වැන්න දක්වා කොටස් හයක්",
+    journey: "වගා ගමන", journeyS: "කියවීමට අදියරක් තට්ටු කරන්න",
+    nowT: "ඔබ දැන් සිටින තැන", dayOf: "දින {1}න් {0} වන දිනය", stageOf: "අදියර {1}න් {0}",
+    next: "ඊළඟට එන දේ", daysLeft: "මෙම අදියරේ ඉතිරි දින",
+    notStarted: "තවම සිටුවා නැත", finished: "අස්වනු කාලය ඉක්මවා ඇත",
+    duration: "කාලසීමාව", spacing: "පරතරය", propagation: "ප්‍රචාරණය", today: "අද",
+    fitT: "කාලගුණ ගැළපීම", fitS: "අද කාලගුණය මෙම බෝගයට බලපාන ආකාරය", fitNone: "මෙම බෝගය සඳහා කාලගුණ ඇඟවීම් බැලීමට ඔබේ දිස්ත්‍රික්කය තෝරන්න.",
+    fitOk: "මෙම බෝගය සඳහා දැනට කාලගුණ ඇඟවීම් නැත.", temp: "කන්නයේ උෂ්ණත්වය", hum: "ආර්ද්‍රතාවය", rain2d: "ඉදිරි දින 2 වර්ෂාව",
+  },
+  ta: {
+    pickT: "ஒரு பயிரைத் தேர்ந்தெடுங்கள்", pickS: "பயிர்களுக்கு முழுமையான வளர்ப்பு வழிகாட்டிகள்", search: "பயிர்களைத் தேடுங்கள்", none: "அந்தத் தேடலுக்குப் பொருந்தும் பயிர் இல்லை.",
+    dateL: "நடவு தேதி (விருப்பம்)", dateH: "உங்கள் பயிர் இன்று எந்த நிலையில் உள்ளது என்பதைக் காண இதைச் சேர்க்கவும்.",
+    wxT: "வானிலை எச்சரிக்கைகளுக்கான மாவட்டம்",
+    getsT: "ஒவ்வொரு வழிகாட்டியிலும் உள்ளவை", getsS: "நடவு முதல் அறுவடை வரை ஆறு பிரிவுகள்",
+    journey: "வளர்ச்சிப் பயணம்", journeyS: "படிக்க ஒரு நிலையைத் தட்டவும்",
+    nowT: "நீங்கள் இப்போது இருக்கும் இடம்", dayOf: "{1} நாட்களில் {0}வது நாள்", stageOf: "{1} நிலைகளில் {0}",
+    next: "அடுத்து வருபவை", daysLeft: "இந்த நிலையில் மீதமுள்ள நாட்கள்",
+    notStarted: "இன்னும் நடவு செய்யப்படவில்லை", finished: "அறுவடைக் காலம் கடந்துவிட்டது",
+    duration: "காலம்", spacing: "இடைவெளி", propagation: "இனப்பெருக்கம்", today: "இன்று",
+    fitT: "வானிலை பொருத்தம்", fitS: "இன்றைய வானிலை இந்தப் பயிரை எவ்வாறு பாதிக்கிறது", fitNone: "இந்தப் பயிருக்கான வானிலை எச்சரிக்கைகளைக் காண உங்கள் மாவட்டத்தைத் தேர்ந்தெடுங்கள்.",
+    fitOk: "இந்தப் பயிருக்கு தற்போது வானிலை எச்சரிக்கைகள் இல்லை.", temp: "பருவ வெப்பநிலை", hum: "ஈரப்பதம்", rain2d: "அடுத்த 2 நாட்கள் மழை",
+  },
+};
 
-      {/* What the guide includes */}
-      <div className="guidance-info-header">
-        <div className="guidance-info-label">
-          {lang === "si" ? "ඔබට ලැබෙන දේ" : lang === "ta" ? "நீங்கள் பெறுவது" : "WHAT YOU'LL GET"}
-        </div>
-        <h2 className="guidance-info-title">
-          {lang === "si" ? "ඔබේ සම්පූර්ණ ගොවිතැන් මාර්ගෝපදේශය" :
-           lang === "ta" ? "உங்கள் முழுமையான விவசாய வழிகாட்டி" :
-           "Your complete crop growing guide"}
-        </h2>
-        <p className="guidance-info-sub">
-          {lang === "si" ? "ඔබේ බෝගය සහ රෝපණ දිනය තෝරා ගෙන, බිත්තරයේ සිට අස්වනු නෙළීම දක්වා අනුගත වීමට ඔබට ගැලපෙන සම්පූර්ණ ගොවිතැන් සැලැස්මක් ලබා ගන්න." :
-           lang === "ta" ? "உங்கள் பயிரை தேர்ந்தெடுத்து நடவு தேதியை உள்ளிட்டு, நடவு முதல் அறுவடை வரை உங்களுக்கு தனிப்பயனாக்கப்பட்ட விவசாய திட்டத்தை பெறுங்கள்." :
-           "Select your crop and planting date above to get a personalised, day-by-day farming plan from sowing to harvest."}
-        </p>
-      </div>
-
-      <div className="guidance-tabs-preview">
-        {GUIDE_TABS_INFO.map((tab, i) => (
-          <div key={i} className="guidance-tab-preview-card">
-            <div className="guidance-tab-preview-icon">{tab.icon}</div>
-            <div className="guidance-tab-preview-title">{tab[lang] || tab.en}</div>
-            <div className="guidance-tab-preview-desc">{tab[`desc_${lang}`] || tab.desc_en}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Popular crops quick strip */}
-      <div className="guidance-popular-section">
-        <div className="guidance-info-label" style={{marginBottom:"12px"}}>
-          {lang === "si" ? "ජනප්‍රිය බෝග" : lang === "ta" ? "பிரபலமான பயிர்கள்" : "POPULAR CROPS"}
-        </div>
-        <div className="guidance-popular-crops">
-          {POPULAR_CROPS.map(({ name, emoji }) => (
-            <div key={name} className="guidance-popular-chip">
-              <span>{emoji}</span> {getCropLabel(name, lang)}
-            </div>
-          ))}
-        </div>
-        <p className="guidance-popular-hint">
-          {lang === "si" ? "ඉහත ක්ෂේත්‍රයෙන් ඕනෑම බෝගයක් සොයා ගෙන ඔබේ මාර්ගෝපදේශය ජනනය කරන්න." :
-           lang === "ta" ? "மேலே உள்ள தேர்வு பட்டியலில் இருந்து எந்த பயிரையும் தேர்ந்தெடுத்து உங்கள் வழிகாட்டியை உருவாக்குங்கள்." :
-           "Find any of these and more in the crop dropdown above — then generate your guide."}
-        </p>
-      </div>
-
-      {/* How it works strip */}
-      <div className="guidance-how-strip">
-        {[
-          { step: "1", icon: "🌾", en: "Select your crop", si: "ඔබේ බෝගය තෝරන්න", ta: "உங்கள் பயிரை தேர்ந்தெடுங்கள்" },
-          { step: "2", icon: "📅", en: "Enter planting date", si: "රෝපණ දිනය ඇතුළත් කරන්න", ta: "நடவு தேதியை உள்ளிடுங்கள்" },
-          { step: "3", icon: "✨", en: "Generate your guide", si: "ඔබේ මාර්ගෝපදේශය ජනනය කරන්න", ta: "உங்கள் வழிகாட்டியை உருவாக்குங்கள்" },
-          { step: "4", icon: "📋", en: "Follow the daily plan", si: "දෛනික සැලැස්ම අනුගමනය කරන්න", ta: "தினசரி திட்டத்தை பின்பற்றுங்கள்" },
-        ].map(({ step, icon, en, si, ta }) => (
-          <div key={step} className="guidance-how-step">
-            <div className="guidance-how-num">{step}</div>
-            <div className="guidance-how-icon">{icon}</div>
-            <div className="guidance-how-text">{lang === "si" ? si : lang === "ta" ? ta : en}</div>
-          </div>
-        ))}
-      </div>
-
-    </div>
-  );
-}
-
-// ── Selector screen ────────────────────────────────────────────────────────
-function GuidanceSelector({ t, lang, onSelect }) {
-  const [crops,    setCrops]    = useState([]);
-  const [selected, setSelected] = useState("");
+// ── Crop picker ────────────────────────────────────────────────────────────
+function GuideCropPicker({ lang, onSelect }) {
+  const c = CG2[lang] || CG2.en;
+  const [crops, setCrops] = useState([]);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     fetch(`${API_BASE}/guidance`)
@@ -569,48 +537,36 @@ function GuidanceSelector({ t, lang, onSelect }) {
       .catch(() => {});
   }, []);
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (!selected) return;
-    onSelect(selected, null);
-  }
+  // Matches the English name as well as the translated one.
+  const q = query.trim().toLowerCase();
+  const shown = q
+    ? crops.filter(name => name.toLowerCase().includes(q) || getCropLabel(name, lang).toLowerCase().includes(q))
+    : crops;
 
   return (
-    <form className="guidance-selector" onSubmit={handleSubmit}>
-      <div className="guidance-selector-header">
-        <div className="guidance-selector-icon">📖</div>
-        <div>
-          <h2>{t.guidanceTitle}</h2>
-          <p>{t.guidanceSub}</p>
-        </div>
+    <section className="tu-card tu-rise">
+      <div className="tu-head">
+        <span className="tu-ic tu-ic--sm"><Search size={18} /></span>
+        <div><h2>{c.pickT}</h2><small>{crops.length} {c.pickS}</small></div>
       </div>
-      <div className="guidance-selector-body">
-        <div className="guidance-selector-row guidance-selector-row--single">
-          <div>
-            <label>{t.selectCrop}</label>
-            <CustomSelect
-              name="crop"
-              value={selected}
-              onChange={e => setSelected(e.target.value)}
-              data-tour="cg-crop-select"
-            >
-              <option value="">{t.selectCropPh}</option>
-              {crops.map(c => (
-                <option key={c} value={c}>{getCropLabel(c, lang)}</option>
-              ))}
-            </CustomSelect>
-          </div>
-        </div>
-        <button className="guidance-generate-btn" type="submit" disabled={!selected} data-tour="cg-generate-btn">
-          🌱 {t.generateGuide}
-        </button>
+      <div className="cg2-search">
+        <Search size={16} />
+        <input className="tu-input" type="search" placeholder={c.search} value={query} onChange={e => setQuery(e.target.value)} aria-label={c.search} />
       </div>
-    </form>
+      <div className="cg2-crops" data-tour="cg-crop-select">
+        {shown.map(name => (
+          <button key={name} type="button" className="cg2-crop" onClick={() => onSelect(name)}>
+            <span aria-hidden="true">{CROP_EMOJI[name] || "🌱"}</span>{getCropLabel(name, lang)}
+          </button>
+        ))}
+      </div>
+      {crops.length > 0 && shown.length === 0 && <p className="cg2-none">{c.none}</p>}
+    </section>
   );
 }
 
 // ── Detail screen ──────────────────────────────────────────────────────────
-function GuidanceDetail({ cropName, plantingDate, t, lang, onBack, weather }) {
+function GuidanceDetail({ cropName, plantingDate, onDateChange, t, lang, onBack, weather, setWeather }) {
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab]         = useState("growthStages");
@@ -628,8 +584,13 @@ function GuidanceDetail({ cropName, plantingDate, t, lang, onBack, weather }) {
     return () => { cancelled = true; };
   }, [cropName]);
 
-  if (loading) return <div className="guidance-empty"><p>{t.guidanceLoading}</p></div>;
-  if (!data)   return <div className="guidance-empty"><p>{t.guidanceNotFound}</p></div>;
+  if (loading) return <div className="tu-card cg2-state">{t.guidanceLoading}</div>;
+  if (!data)   return (
+    <div>
+      <button className="cg2-back" onClick={onBack}><ArrowLeft size={15} />{t.backToCrops}</button>
+      <div className="tu-card cg2-state">{t.guidanceNotFound}</div>
+    </div>
+  );
 
   const tabContent = () => {
     switch (tab) {
@@ -687,88 +648,175 @@ function GuidanceDetail({ cropName, plantingDate, t, lang, onBack, weather }) {
     }
   };
 
+  const c = CG2[lang] || CG2.en;
+  const stages = data.stages || [];
+  const lastDay = stages.length ? stages[stages.length - 1].day_end : 0;
+  const currentIdx = daysSince === null ? -1 : stages.findIndex(st => daysSince >= st.day_start && daysSince <= st.day_end);
+  const current = currentIdx >= 0 ? stages[currentIdx] : null;
+  const upcoming = current
+    ? (current.activities || []).filter(a => a.day >= daysSince).sort((a, b) => a.day - b.day).slice(0, 4)
+    : [];
+
+  const openTab = (key) => {
+    setTab(key);
+    document.getElementById("cg2-content")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  // The same weather rules the tabs use for their banners, gathered in one place
+  // so the crop's weather risks are visible before opening a tab.
+  const wxAlerts = [];
+  let wxTemp = null, wxHum = null, rain2d = 0;
+  if (weather) {
+    wxTemp = weather.season_avg_temp     ?? weather.current.temperature;
+    wxHum  = weather.season_avg_humidity ?? weather.current.humidity;
+    rain2d = weather.forecast?.slice(0, 2).reduce((sum, d) => sum + (d.rain_mm ?? 0), 0) ?? 0;
+    if (wxHum > 80)                    wxAlerts.push({ title: t.wxDiseaseFungalTitle, tab: "diseaseMgmt" });
+    if (wxTemp > 30 && wxHum > 70)     wxAlerts.push({ title: t.wxWarmHumidPathTitle, tab: "diseaseMgmt" });
+    if (weather.current.wind_kph > 30) wxAlerts.push({ title: t.wxHighWindTitle,      tab: "pestMgmt" });
+    if (rain2d > 5)                    wxAlerts.push({ title: t.wxRainDelayPestTitle, tab: "pestMgmt" });
+    if (wxTemp > 32 && wxHum > 70)     wxAlerts.push({ title: t.wxPestActivityTitle,  tab: "pestMgmt" });
+  }
+
   return (
     <div>
-      <button className="guidance-back-btn" onClick={onBack}>← {t.backToCrops}</button>
+      <button className="cg2-back" onClick={onBack}><ArrowLeft size={15} />{t.backToCrops}</button>
 
       {/* Crop header */}
-      <div className="guidance-crop-header">
-        <h1>
-          {getCropLabel(cropName, lang)}
-          {lang === 'en' && data.local_name && <span className="crop-local-name"> · {data.local_name}</span>}
-        </h1>
-        {data.scientific_name && <p className="sci-name"><em>{data.scientific_name}</em>{data.family ? ` · ${data.family}` : ""}</p>}
-        <div className="guidance-crop-meta">
-          {data.duration && (
-            <span>⏱ {data.duration.min}–{data.duration.max} {t.noDays}</span>
-          )}
-          {data.spacing && (
-            <span>📐 {data.spacing.row_cm}×{data.spacing.plant_cm} cm</span>
-          )}
-          {data.propagation && <span>🌱 {PROPAGATION_LABELS[lang]?.[data.propagation] || data.propagation}</span>}
-          {plantingDate && daysSince !== null && (
-            <span>📅 {t.stageDay} {daysSince} {t.noDays}</span>
+      <section className="cg2-hero tu-rise">
+        <div className="cg2-hero__e" aria-hidden="true">{CROP_EMOJI[cropName] || "🌱"}</div>
+        <div>
+          <span className="tu-eyebrow"><BookOpen size={14} />{t.guidanceTitle}</span>
+          <h1>
+            {getCropLabel(cropName, lang)}
+            {lang === 'en' && data.local_name && <small> · {data.local_name}</small>}
+          </h1>
+          {data.scientific_name && <em>{data.scientific_name}{data.family ? ` · ${data.family}` : ""}</em>}
+          {data.overview && <p>{tF(data, "overview", lang)}</p>}
+          <div className="cg2-facts">
+            {data.duration && <div><small>{c.duration}</small><b>{data.duration.min}–{data.duration.max} {t.noDays}</b></div>}
+            {data.spacing && <div><small>{c.spacing}</small><b>{data.spacing.row_cm} × {data.spacing.plant_cm} cm</b></div>}
+            {data.propagation && <div><small>{c.propagation}</small><b>{PROPAGATION_LABELS[lang]?.[data.propagation] || data.propagation}</b></div>}
+            {daysSince !== null && <div><small>{c.today}</small><b>{t.stageDay} {daysSince}</b></div>}
+          </div>
+          {data.zones?.length > 0 && (
+            <div className="cg2-zones" data-tour="cg-zones">
+              {t.suitableZones}
+              {data.zones.map(z => <span key={z}>{ZONE_LABELS[lang]?.[z] || z}</span>)}
+            </div>
           )}
         </div>
+      </section>
+
+      <div className="cg2-two">
+        {/* Stage timeline */}
+        {stages.length > 0 && (
+          <section className="tu-card tu-rise">
+            <div className="tu-head">
+              <span className="tu-ic tu-ic--sm"><CalendarDays size={18} /></span>
+              <div>
+                <h2>{daysSince !== null ? c.nowT : c.journey}</h2>
+                <small>
+                  {daysSince === null ? c.journeyS
+                    : daysSince < stages[0].day_start ? c.notStarted
+                    : daysSince > lastDay ? c.finished
+                    : tpl(c.dayOf, daysSince, lastDay)}
+                </small>
+              </div>
+              {current && <span className="tu-tag tu-tone-amber tu-head__end">{tpl(c.stageOf, currentIdx + 1, stages.length)}</span>}
+            </div>
+            <div className="cg2-tl" style={{ "--n": stages.length }}>
+              {stages.map((st, i) => {
+                const cls = stageBadge(st, daysSince, t)?.cls || "";
+                return (
+                  <button key={st.id} type="button" className={`cg2-st ${cls}`} onClick={() => openTab("growthStages")}>
+                    <i>{cls === "done" ? <Check size={20} strokeWidth={3} /> : st.icon || i + 1}</i>
+                    <b>{STAGE_NAME_LABELS[lang]?.[st.name] || st.name}</b>
+                    <small>{st.day_start < 0
+                      ? `${Math.abs(st.day_start)} ${t.noDays} ${t.beforePlanting}`
+                      : `${t.stageDay} ${st.day_start}–${st.day_end}`}</small>
+                  </button>
+                );
+              })}
+            </div>
+            {current && (
+              <div className="cg2-stage">
+                <div>
+                  <h3>{STAGE_NAME_LABELS[lang]?.[current.name] || current.name}</h3>
+                  {current.description && <p>{tF(current, "description", lang)}</p>}
+                  <div className="tu-tile"><small>{c.daysLeft}</small><b style={{ color: "var(--tu-gold)" }}>{current.day_end - daysSince}</b></div>
+                </div>
+                {upcoming.length > 0 && (
+                  <div>
+                    <span className="tu-label">{c.next}</span>
+                    {upcoming.map((a, i) => (
+                      <div className="cg2-todo" key={i}>
+                        <i><Check size={14} strokeWidth={3} /></i>
+                        <span>{tF(a, "title", lang)}<small>{activityDayLabel(a.day, daysSince, t)}</small></span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            <label className="cg2-date">
+              <span>{c.dateL} — {c.dateH}</span>
+              <input className="tu-input" type="date" value={plantingDate || ""} max={new Date().toISOString().slice(0, 10)}
+                onChange={e => onDateChange(e.target.value || null)} />
+            </label>
+          </section>
+        )}
+
+        {/* Weather fit */}
+        <section className="tu-card tu-rise tu-tone-sky">
+          <div className="tu-head">
+            <span className="tu-ic tu-ic--sm"><CloudSun size={18} /></span>
+            <div><h2>{c.fitT}</h2><small>{c.fitS}</small></div>
+          </div>
+          {weather ? (
+            <>
+              <div className="cg2-wx">
+                <div className="tu-tile"><small>{c.temp}</small><b style={{ color: "var(--tu-coral)" }}>{Number(wxTemp).toFixed(1)}°</b></div>
+                <div className="tu-tile"><small>{c.hum}</small><b style={{ color: "var(--tu-teal)" }}>{Math.round(wxHum)}%</b></div>
+                <div className="tu-tile"><small>{c.rain2d}</small><b style={{ color: "var(--tu-sky)" }}>{rain2d.toFixed(0)} mm</b></div>
+              </div>
+              {wxAlerts.length > 0 ? (
+                <div className="cg2-alerts">
+                  {wxAlerts.map((a, i) => (
+                    <button key={i} type="button" onClick={() => openTab(a.tab)}><TriangleAlert size={14} color="var(--tu-gold)" />{a.title}</button>
+                  ))}
+                </div>
+              ) : (
+                <div className="cg2-ok"><Check size={16} strokeWidth={3} />{c.fitOk}</div>
+              )}
+            </>
+          ) : (
+            <p className="cg2-hint" style={{ marginBottom: 12 }}>{c.fitNone}</p>
+          )}
+          <div style={{ marginTop: 14 }}>
+            <WeatherLocationPicker weather={weather} onWeatherFetched={setWeather} t={t} lang={lang} />
+          </div>
+        </section>
       </div>
 
-      {/* Overview */}
-      {data.overview && (
-        <div className="guidance-overview">{tF(data, "overview", lang)}</div>
-      )}
-
-      {/* Zones */}
-      {data.zones?.length > 0 && (
-        <div className="guidance-zones-row" data-tour="cg-zones">
-          <span className="guidance-zones-label">🗺 {t.suitableZones}</span>
-          <div className="guidance-zone-chips">
-            {data.zones.map(z => (
-              <span key={z} className="guidance-zone-chip" title="Suitable growing zone for this crop">{ZONE_LABELS[lang]?.[z] || z}</span>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Tab navigation */}
-      <div className="guidance-tabs" data-tour="cg-tab-nav">
+      <div className="cg2-tabs" data-tour="cg-tab-nav">
         {TABS.map(key => {
           const count =
             key === "diseaseMgmt" ? (data.diseases || []).length :
             key === "pestMgmt"    ? (data.pests    || []).length :
             key === "riskFactors" ? (data.risks    || []).length : 0;
+          const { Icon, tone } = TAB_LOOK[key];
           return (
-            <button
-              key={key}
-              className={`guidance-tab-btn${tab === key ? " active" : ""}`}
-              onClick={() => setTab(key)}
-            >
-              <span className="tab-btn-icon">{TAB_ICONS[key]}</span>
-              <span className="tab-btn-label">{t[key] || key}</span>
-              {count > 0 && <span className="tab-count-badge">{count}</span>}
+            <button key={key} type="button" className={`cg2-tab tu-tone-${tone}`} aria-pressed={tab === key} onClick={() => setTab(key)}>
+              <Icon size={16} />{t[key] || key}{count > 0 && <em>{count}</em>}
             </button>
           );
         })}
       </div>
 
       {/* Tab content */}
-      <div className="guidance-section" data-tour="cg-tab-content">
-        <div className="guidance-section-hdr">
-          <span className="guidance-section-hdr-icon">
-            {{
-              growthStages:   "📅",
-              fertilization:  "🌿",
-              irrigationGuide:"💧",
-              diseaseMgmt:    "🦠",
-              pestMgmt:       "🐛",
-              riskFactors:    "⚠️",
-              harvestGuide:   "🧺",
-            }[tab]}
-          </span>
-          <span className="guidance-section-hdr-text">{t[tab]}</span>
-        </div>
-        <div className="guidance-section-body">
-          {tabContent()}
-        </div>
+      <div className="tu-card cg2-content" id="cg2-content" data-tour="cg-tab-content">
+        {tabContent()}
       </div>
     </div>
   );
@@ -777,63 +825,92 @@ function GuidanceDetail({ cropName, plantingDate, t, lang, onBack, weather }) {
 // ── Main export ────────────────────────────────────────────────────────────
 export default function CropGuidance({ lang, t, weather, setWeather }) {
   const [mode, setMode]                 = useState("guide");   // guide | cultivations
-  const [selected, setSelected]         = useState(null);
-  const [plantingDate, setPlantingDate] = useState(null);
+  // /crop-guidance?crop=Tomato&date=2026-08-30 opens straight on that guide, so
+  // the recommendation page can link to the crop it suggested.
+  const [params] = useSearchParams();
+  const [selected, setSelected]         = useState(() => params.get("crop") || null);
+  const [plantingDate, setPlantingDate] = useState(() => (/^\d{4}-\d{2}-\d{2}$/.test(params.get("date") || "") ? params.get("date") : null));
   const { user } = getAuthSession();
   const isLandOwner = user?.role === 'Land Owner';
 
-  const handleSelect = useCallback((crop, date) => {
+  // The planting date is kept when switching crops; it belongs to the farmer's
+  // season, not to one crop's guide.
+  const handleSelect = useCallback((crop) => {
     setSelected(crop);
-    setPlantingDate(date);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  const handleBack = useCallback(() => {
-    setSelected(null);
-    setPlantingDate(null);
-  }, []);
+  const handleBack = useCallback(() => setSelected(null), []);
 
   const cgTourT = CG_TOUR_T[lang] || CG_TOUR_T.en;
   const [tourOpen, setTourOpen] = useState(false);
 
+  const c = CG2[lang] || CG2.en;
+
   return (
-    <div className="page-wrapper">
-    <div className="guidance-hero">
-      <div className="guidance-hero-inner">
-        <div className="guidance-hero-badge">
-          {lang === "si" ? "📖 බෝග මාර්ගෝපදේශය" : lang === "ta" ? "📖 பயிர் வழிகாட்டி" : "📖 CROP GUIDANCE"}
-        </div>
-        <h1 className="guidance-hero-title">{t.guidanceTitle}</h1>
-        <p className="guidance-hero-sub">{t.guidanceSub}</p>
-      </div>
-    </div>
-    <div className="guidance-page">
-      <WeatherLocationPicker weather={weather} onWeatherFetched={setWeather} t={t} lang={lang} />
+    <div className="tu-page tu-tone-teal">
+      <ToolSwitcher />
 
       {/* Top-level mode switcher — hidden when viewing crop detail to reduce visual clutter */}
       {!selected && (
-        <div className="guidance-mode-tabs" data-tour="cg-mode-tabs">
-          <button
-            className={`guidance-mode-tab${mode === "guide" ? " active" : ""}`}
-            onClick={() => setMode("guide")}
-          >
-            📖 {t.cropGuideTab}
+        <div className="cg2-modes" data-tour="cg-mode-tabs">
+          <button type="button" aria-pressed={mode === "guide"} onClick={() => setMode("guide")}>
+            <BookOpen size={16} />{t.cropGuideTab}
           </button>
-          <button
-            className={`guidance-mode-tab${mode === "cultivations" ? " active" : ""}`}
-            onClick={() => setMode("cultivations")}
-          >
-            🌱 {t.myCultivations}{!isLandOwner ? " 🔒" : ""}
+          <button type="button" aria-pressed={mode === "cultivations"} onClick={() => setMode("cultivations")}>
+            <Sprout size={16} />{t.myCultivations}{!isLandOwner && <Lock size={13} />}
           </button>
         </div>
       )}
 
       {mode === "guide" ? (
-        !selected
-          ? <>
-              <GuidanceSelector t={t} lang={lang} onSelect={handleSelect} />
-              <GuidanceEmptyInfo lang={lang} />
-            </>
-          : <GuidanceDetail   cropName={selected} plantingDate={plantingDate} t={t} lang={lang} onBack={handleBack} weather={weather} />
+        !selected ? (
+          <>
+            <section className="tu-hero tu-rise">
+              <span className="tu-eyebrow"><BookOpen size={14} />{t.cropGuideTab}</span>
+              <h1>{t.guidanceTitle}</h1>
+              <p>{t.guidanceSub}</p>
+            </section>
+
+            <div className="cg2-pick">
+              <GuideCropPicker lang={lang} onSelect={handleSelect} />
+              <aside className="cg2-side">
+                <div className="tu-card">
+                  <label className="tu-label" htmlFor="cg2-date">{c.dateL}</label>
+                  <input id="cg2-date" className="tu-input" type="date" value={plantingDate || ""} max={new Date().toISOString().slice(0, 10)}
+                    onChange={e => setPlantingDate(e.target.value || null)} />
+                  <span className="cg2-hint">{c.dateH}</span>
+                </div>
+                <div className="tu-card tu-tone-sky">
+                  <span className="tu-label">{c.wxT}</span>
+                  <WeatherLocationPicker weather={weather} onWeatherFetched={setWeather} t={t} lang={lang} />
+                </div>
+              </aside>
+            </div>
+
+            <section className="tu-sec">
+              <div className="tu-head">
+                <span className="tu-ic tu-ic--sm"><BookOpen size={18} /></span>
+                <div><h2>{c.getsT}</h2><small>{c.getsS}</small></div>
+              </div>
+              <div className="cg2-gets">
+                {GUIDE_TABS_INFO.map((info, i) => {
+                  const { Icon, tone } = TAB_LOOK[INFO_TABS[i]];
+                  return (
+                    <div className={`cg2-get tu-tone-${tone}`} key={i}>
+                      <Icon size={24} />
+                      <b>{info[lang] || info.en}</b>
+                      <p>{info[`desc_${lang}`] || info.desc_en}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          </>
+        ) : (
+          <GuidanceDetail cropName={selected} plantingDate={plantingDate} onDateChange={setPlantingDate}
+            t={t} lang={lang} onBack={handleBack} weather={weather} setWeather={setWeather} />
+        )
       ) : !isLandOwner ? (
         <div className="cult-auth-wall">
           <div className="cult-auth-wall__icon">🔒</div>
@@ -847,15 +924,14 @@ export default function CropGuidance({ lang, t, weather, setWeather }) {
       ) : (
         <CultivationTracker t={t} lang={lang} userId={String(user.id)} />
       )}
-    </div>
 
-    <HelpButton label={cgTourT.needHelp} ariaLabel={cgTourT.helpAria} onClick={() => setTourOpen(true)} />
-    <SpotlightTour
-      steps={cgTourT.steps}
-      open={tourOpen}
-      onClose={() => setTourOpen(false)}
-      labels={{ next: cgTourT.next, back: cgTourT.back, skip: cgTourT.skip, done: cgTourT.done }}
-    />
+      <HelpButton label={cgTourT.needHelp} ariaLabel={cgTourT.helpAria} onClick={() => setTourOpen(true)} />
+      <SpotlightTour
+        steps={cgTourT.steps}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        labels={{ next: cgTourT.next, back: cgTourT.back, skip: cgTourT.skip, done: cgTourT.done }}
+      />
     </div>
   );
 }
