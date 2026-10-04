@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from sqlalchemy import delete, func, select
@@ -27,6 +27,9 @@ from app.services.notification_service import create_notification
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
+
+# Upper bound on rows a list endpoint returns in one call; page with ?offset=.
+MAX_PAGE = 500
 
 
 # ── Pydantic schemas (admin-local) ────────────────────────────────────────────
@@ -130,6 +133,8 @@ def list_users(
     search: Optional[str] = None,
     role: Optional[str] = None,
     suspended: Optional[bool] = None,
+    limit: int = Query(MAX_PAGE, ge=1, le=MAX_PAGE),
+    offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _: User = Depends(require_admin),
 ):
@@ -154,6 +159,8 @@ def list_users(
     # so dual-role users are included regardless of which role is their primary.
     if role_val:
         users = [u for u in users if role_val in (u.roles or [u.role.value])]
+    # Paged after the role filter, which runs in Python (roles is a JSON column).
+    users = users[offset:offset + limit]
 
     rows = []
     for u in users:
@@ -266,8 +273,15 @@ def admin_delete_user(
 # ── Marketplace oversight ─────────────────────────────────────────────────────
 
 @router.get("/marketplace/listings")
-def admin_list_listings(db: Session = Depends(get_db), _: User = Depends(require_admin)):
-    listings = db.execute(select(MarketplaceListing).order_by(MarketplaceListing.created_at.desc())).scalars().all()
+def admin_list_listings(
+    limit: int = Query(MAX_PAGE, ge=1, le=MAX_PAGE),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    listings = db.execute(
+        select(MarketplaceListing).order_by(MarketplaceListing.created_at.desc()).limit(limit).offset(offset)
+    ).scalars().all()
     return [
         {
             "id": str(l.id),
@@ -305,8 +319,15 @@ def admin_archive_listing(
 
 
 @router.get("/marketplace/orders")
-def admin_list_orders(db: Session = Depends(get_db), _: User = Depends(require_admin)):
-    orders = db.execute(select(MarketplaceOrder).order_by(MarketplaceOrder.created_at.desc())).scalars().all()
+def admin_list_orders(
+    limit: int = Query(MAX_PAGE, ge=1, le=MAX_PAGE),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    orders = db.execute(
+        select(MarketplaceOrder).order_by(MarketplaceOrder.created_at.desc()).limit(limit).offset(offset)
+    ).scalars().all()
     return [
         {
             "id": str(o.id),
@@ -326,8 +347,15 @@ def admin_list_orders(db: Session = Depends(get_db), _: User = Depends(require_a
 # ── Farm oversight ────────────────────────────────────────────────────────────
 
 @router.get("/farms")
-def admin_list_farms(db: Session = Depends(get_db), _: User = Depends(require_admin)):
-    farms = db.execute(select(Farm).order_by(Farm.created_at.desc())).scalars().all()
+def admin_list_farms(
+    limit: int = Query(MAX_PAGE, ge=1, le=MAX_PAGE),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    farms = db.execute(
+        select(Farm).order_by(Farm.created_at.desc()).limit(limit).offset(offset)
+    ).scalars().all()
     return [
         {
             "id": str(f.id),
@@ -502,6 +530,18 @@ def admin_resend_verification(
 
 # ── CSV Exports ────────────────────────────────────────────────────────────────
 
+def _csv_safe(value):
+    """Stop a spreadsheet running user-entered text as a formula.
+
+    Excel and Sheets evaluate a cell that starts with = + - or @, so a farm
+    named "=HYPERLINK(...)" would execute when an admin opens the export. A
+    leading quote makes the cell plain text.
+    """
+    if isinstance(value, str) and value[:1] in ("=", "+", "-", "@", "\t", "\r"):
+        return "'" + value
+    return value
+
+
 def _csv_response(rows: list[dict], filename: str) -> StreamingResponse:
     if not rows:
         content = ""
@@ -509,7 +549,7 @@ def _csv_response(rows: list[dict], filename: str) -> StreamingResponse:
         buf = io.StringIO()
         writer = csv.DictWriter(buf, fieldnames=rows[0].keys())
         writer.writeheader()
-        writer.writerows(rows)
+        writer.writerows({k: _csv_safe(v) for k, v in row.items()} for row in rows)
         content = buf.getvalue()
     return StreamingResponse(
         iter([content]),
@@ -595,16 +635,18 @@ def admin_bulk_create_users(
             skipped += 1
             continue
         try:
-            user = User(
-                full_name=row.full_name,
-                email=email_str,
-                hashed_password=hash_password(payload.default_password),
-                role=role_enum,
-                roles=[payload.role],
-                is_verified=True,
-            )
-            db.add(user)
-            db.flush()
+            # Savepoint per row: a bad row rolls back alone instead of leaving
+            # the session unusable for every row after it.
+            with db.begin_nested():
+                db.add(User(
+                    full_name=row.full_name,
+                    email=email_str,
+                    hashed_password=hash_password(payload.default_password),
+                    role=role_enum,
+                    roles=[payload.role],
+                    is_verified=True,
+                ))
+                db.flush()
             created += 1
         except Exception as e:
             errors.append({"email": email_str, "error": str(e)})
@@ -627,35 +669,40 @@ def admin_bulk_import_farms(
     for row in payload.farms:
         email_str = str(row.email)
         try:
-            user = db.execute(select(User).where(User.email == email_str)).scalar_one_or_none()
-            if not user:
-                user = User(
-                    full_name=row.farmer_name,
-                    email=email_str,
-                    hashed_password=hash_password(payload.default_password),
-                    role=UserRole.LAND_OWNER,
-                    roles=["Land Owner"],
-                    is_verified=True,
-                )
-                db.add(user)
+            # Savepoint per row: a bad row rolls back alone (its new user too)
+            # instead of leaving the session unusable for every row after it.
+            with db.begin_nested():
+                user = db.execute(select(User).where(User.email == email_str)).scalar_one_or_none()
+                is_new_user = user is None
+                if is_new_user:
+                    user = User(
+                        full_name=row.farmer_name,
+                        email=email_str,
+                        hashed_password=hash_password(payload.default_password),
+                        role=UserRole.LAND_OWNER,
+                        roles=["Land Owner"],
+                        is_verified=True,
+                    )
+                    db.add(user)
+                    db.flush()
+
+                db.add(Farm(
+                    farm_name=row.farm_name,
+                    district=row.district,
+                    soil_type=row.soil_type,
+                    farm_size=row.size,
+                    size_unit=row.size_unit,
+                    irrigation_type=row.irrigation_type,
+                    owner_id=user.id,
+                    location=row.district,
+                    season="Maha",
+                ))
                 db.flush()
+            # Counted only once the row's savepoint has been released.
+            if is_new_user:
                 created_users += 1
             else:
                 skipped += 1
-
-            farm = Farm(
-                farm_name=row.farm_name,
-                district=row.district,
-                soil_type=row.soil_type,
-                farm_size=row.size,
-                size_unit=row.size_unit,
-                irrigation_type=row.irrigation_type,
-                owner_id=user.id,
-                location=row.district,
-                season="Maha",
-            )
-            db.add(farm)
-            db.flush()
             created_farms += 1
         except Exception as e:
             errors.append({"email": email_str, "error": str(e)})
