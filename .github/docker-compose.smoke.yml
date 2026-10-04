@@ -1,0 +1,12 @@
+# CI-only override for the container smoke test (see scripts/smoke.sh).
+# backend/.env.docker ships a placeholder SECRET_KEY that the app refuses to
+# start with, so the job passes a throwaway one in.
+services:
+  backend:
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY}
+  ml:
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY}
+  frontend:
+    volumes: !override []
