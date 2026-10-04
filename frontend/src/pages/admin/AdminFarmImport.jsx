@@ -153,12 +153,12 @@ export default function AdminFarmImport() {
       </button>
       <h2 style={{ margin: '0 0 24px', color: 'var(--text)' }}>{t.title}</h2>
 
-      <div style={card}>
+      <div className="fx-card" style={card}>
         <p style={{ margin: '0 0 6px', fontSize: '16px', color: 'var(--text)' }}>{t.instructions}</p>
         <p style={{ margin: 0, fontSize: '14px', color: 'var(--muted)', fontFamily: 'monospace', wordBreak: 'break-all' }}>{t.sampleRow}</p>
       </div>
 
-      <div style={card}>
+      <div className="fx-card" style={card}>
         <input ref={fileRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={handleFile} />
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
           <button type="button" onClick={() => fileRef.current.click()}
@@ -210,7 +210,7 @@ export default function AdminFarmImport() {
         </div>
       )}
 
-      <div style={card}>
+      <div className="fx-card" style={card}>
         <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
           <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--muted)' }}>{t.defaultPassword}</span>
           <input type="password" value={password} onChange={e => setPassword(e.target.value)} minLength={8}

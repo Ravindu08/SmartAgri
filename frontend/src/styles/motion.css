@@ -1,0 +1,292 @@
+/* SmartAgri — motion layer
+   App-wide animation and interaction feedback, driven by components/MotionLayer.jsx.
+
+   Everything here uses the individual `translate` / `scale` / `rotate`
+   properties instead of `transform`, so it composes with the hover transforms
+   the page stylesheets already define rather than fighting them.
+   All of it is switched off under prefers-reduced-motion (bottom of file). */
+
+:root {
+  --fx-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --fx-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --fx-x: 50vw;
+  --fx-y: 50vh;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* ── Entrance cascade + scroll reveal ───────────────────────────────────────
+   MotionLayer tags card-like blocks: "hide" while waiting, "in" while
+   animating, then removes the attribute so the element's own transitions
+   (hover etc.) are back in charge. */
+[data-fx="hide"] {
+  opacity: 0;
+  translate: 0 22px;
+  scale: 0.985;
+}
+
+[data-fx="in"] {
+  opacity: 1;
+  translate: 0 0;
+  scale: 1;
+  transition:
+    opacity 0.55s var(--fx-ease-out) var(--fx-delay, 0ms),
+    translate 0.6s var(--fx-ease-out) var(--fx-delay, 0ms),
+    scale 0.6s var(--fx-ease-out) var(--fx-delay, 0ms);
+}
+
+/* ── Route-change progress bar ──────────────────────────────────────────── */
+.fx-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 3px;
+  z-index: 2000;
+  pointer-events: none;
+  transform-origin: left center;
+  transform: scaleX(0);
+  opacity: 0;
+  background: linear-gradient(90deg, var(--green-mid), var(--yellow-accent), var(--green-mid));
+  background-size: 200% 100%;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--yellow-accent) 60%, transparent);
+}
+
+.fx-progress--run {
+  animation: fx-progress 0.7s var(--fx-ease-out), fx-shine 0.7s linear;
+}
+
+@keyframes fx-progress {
+  0%   { transform: scaleX(0);    opacity: 1; }
+  60%  { transform: scaleX(0.85); opacity: 1; }
+  90%  { transform: scaleX(1);    opacity: 1; }
+  100% { transform: scaleX(1);    opacity: 0; }
+}
+
+@keyframes fx-shine {
+  to { background-position: -200% 0; }
+}
+
+/* ── Cursor aura — a soft light that follows the pointer ────────────────── */
+.fx-aura {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 520px;
+  height: 520px;
+  margin: -260px 0 0 -260px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  translate: var(--fx-aura-x, -999px) var(--fx-aura-y, -999px);
+  background: radial-gradient(circle, color-mix(in srgb, var(--green-mid) 10%, transparent) 0%, color-mix(in srgb, var(--green-mid) 3%, transparent) 40%, transparent 70%);
+  transition: opacity 0.4s ease;
+  will-change: translate;
+}
+
+[data-theme="dark"] .fx-aura {
+  background: radial-gradient(circle, rgba(124, 197, 118, 0.075) 0%, rgba(124, 197, 118, 0.03) 35%, rgba(124, 197, 118, 0.008) 55%, transparent 70%);
+  mix-blend-mode: screen;
+}
+
+.fx-aura--on {
+  opacity: 1;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .fx-aura { display: none; }
+}
+
+/* ── Press + hover feedback ─────────────────────────────────────────────── */
+:where(button, .button, [role="button"], a[class*="btn"], a[class*="button"]) {
+  transition: scale 0.18s var(--fx-ease-spring);
+}
+
+:where(button, .button, [role="button"], a[class*="btn"], a[class*="button"]):not(:disabled):active {
+  scale: 0.95;
+}
+
+/* Primary actions get a light sweep on hover */
+.button--primary,
+.auth-submit-btn,
+.navbar__farm-link {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.button--primary::after,
+.auth-submit-btn::after,
+.navbar__farm-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.28) 50%, transparent 70%);
+  translate: -120% 0;
+  pointer-events: none;
+}
+
+.button--primary:hover::after,
+.auth-submit-btn:hover::after,
+.navbar__farm-link:hover::after {
+  translate: 120% 0;
+  transition: translate 0.7s var(--fx-ease-out);
+}
+
+/* Anything card-like that you can click lifts toward you */
+:where(a, button)[class*="card"],
+[class*="-stat"]:not([class*="__"]),
+.contact-info-card {
+  transition:
+    transform 0.25s var(--fx-ease-out),
+    translate 0.25s var(--fx-ease-out),
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+:where(a, button)[class*="card"]:hover,
+[class*="-stat"]:not([class*="__"]):hover,
+.contact-info-card:hover {
+  translate: 0 -4px;
+}
+
+/* Stat icons give a little bounce when their tile is hovered */
+[class*="-stat"]:hover [class*="-stat__icon"] {
+  animation: fx-wiggle 0.5s var(--fx-ease-spring);
+}
+
+/* ── Sidebars and nav ───────────────────────────────────────────────────── */
+.lo-sidebar__link {
+  transition:
+    translate 0.2s var(--fx-ease-out),
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.lo-sidebar__link:hover {
+  translate: 4px 0;
+}
+
+.lo-sidebar__link-icon {
+  display: inline-block;
+  transition: scale 0.25s var(--fx-ease-spring), rotate 0.25s var(--fx-ease-spring);
+}
+
+.lo-sidebar__link:hover .lo-sidebar__link-icon {
+  scale: 1.22;
+  rotate: -8deg;
+}
+
+.navbar__logo {
+  display: inline-block;
+  transition: rotate 0.5s var(--fx-ease-spring), scale 0.5s var(--fx-ease-spring);
+}
+
+.navbar__brand:hover .navbar__logo {
+  rotate: -14deg;
+  scale: 1.15;
+}
+
+.navbar__theme-toggle {
+  transition: rotate 0.5s var(--fx-ease-spring), scale 0.2s var(--fx-ease-spring);
+}
+
+.navbar__theme-toggle:hover {
+  rotate: 40deg;
+}
+
+/* ── Inputs ─────────────────────────────────────────────────────────────── */
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea) {
+  transition: border-color 0.2s ease, box-shadow 0.25s ease, background-color 0.2s ease;
+}
+
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea):focus-visible {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+/* ── Dialogs and toasts spring in ───────────────────────────────────────── */
+.modal-panel,
+[role="dialog"] {
+  animation: fx-pop 0.32s var(--fx-ease-spring);
+}
+
+.toast {
+  animation: fx-toast-in 0.45s var(--fx-ease-spring);
+}
+
+@keyframes fx-pop {
+  from { opacity: 0; scale: 0.92; translate: 0 10px; }
+  to   { opacity: 1; scale: 1;    translate: 0 0; }
+}
+
+@keyframes fx-toast-in {
+  from { opacity: 0; translate: 0 24px; scale: 0.9; }
+  to   { opacity: 1; translate: 0 0;    scale: 1; }
+}
+
+@keyframes fx-wiggle {
+  0%   { rotate: 0deg;   scale: 1; }
+  35%  { rotate: -12deg; scale: 1.18; }
+  70%  { rotate: 8deg;   scale: 1.08; }
+  100% { rotate: 0deg;   scale: 1; }
+}
+
+/* ── Theme switch: the new theme grows out of the toggle you clicked ────── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  z-index: 1;
+  animation: fx-theme-reveal 0.6s var(--fx-ease-out);
+}
+
+@keyframes fx-theme-reveal {
+  from { clip-path: circle(0 at var(--fx-x) var(--fx-y)); }
+  to   { clip-path: circle(150vmax at var(--fx-x) var(--fx-y)); }
+}
+
+/* ── Confetti canvas (utils/celebrate.js) ───────────────────────────────── */
+.fx-confetti {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 3000;
+}
+
+/* ── Reduced motion: everything above goes still ────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  [data-fx="hide"],
+  [data-fx="in"] {
+    opacity: 1;
+    translate: none;
+    scale: none;
+    transition: none;
+  }
+
+  .fx-aura,
+  .fx-progress,
+  .fx-confetti { display: none; }
+
+  .modal-panel,
+  [role="dialog"],
+  .toast,
+  [class*="-stat"]:hover [class*="-stat__icon"] { animation: none; }
+
+  ::view-transition-new(root) { animation: none; }
+
+  :where(button, .button, [role="button"], a[class*="btn"], a[class*="button"]):active { scale: none; }
+}

@@ -87,7 +87,7 @@ export default function AdminFeedback() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {items.map(item => (
-            <div key={item.id} style={{ background: 'var(--card)', borderRadius: '12px', border: '1px solid var(--border)', padding: '18px' }}>
+            <div key={item.id} className="fx-card" style={{ background: 'var(--card)', borderRadius: '12px', border: '1px solid var(--border)', padding: '18px' }}>
               <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                 <span style={{ fontSize: '24px' }}>{TYPE_ICON[item.type] || '💬'}</span>
                 <div style={{ flex: 1 }}>
@@ -123,7 +123,7 @@ export default function AdminFeedback() {
       {/* Reply modal */}
       {selected && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setSelected(null)}>
-          <div style={{ background: 'var(--card)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
+          <div className="fx-card" style={{ background: 'var(--card)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
             <h3 style={{ margin: '0 0 8px', color: 'var(--text)' }}>{t.replyTo} {selected.subject}</h3>
             <p style={{ fontSize: '15px', color: 'var(--muted)', margin: '0 0 16px' }}>{selected.message}</p>
             <form onSubmit={handleReply} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

@@ -186,10 +186,11 @@ export default function TraderLayout() {
   }, [apiNotifs]);
 
   if (!user) return <Navigate to="/login" replace />;
-  const activeRole = getActiveRole();
-  if (activeRole && activeRole !== 'Trader') return <Navigate to="/login" replace />;
-  const userRoles = user.roles || [user.role];
+  const userRoles = user.roles?.length ? user.roles : [user.role];
   if (!userRoles.includes('Trader')) return <Navigate to="/login" replace />;
+  // They hold this role but are acting as another one (or, for a dual-role
+  // account, haven't picked yet) — that's a role choice, not a login problem.
+  if (getActiveRole() !== 'Trader') return <Navigate to="/role-select" replace />;
 
   const handleLogout = () => { clearAuthSession(); navigate('/login'); };
 
