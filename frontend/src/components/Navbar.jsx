@@ -3,12 +3,11 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import { ChevronDown, LayoutDashboard, LayoutGrid, Leaf, LogOut, Menu, Moon, Sun, X } from 'lucide-react';
 import { clearAuthSession, getAuthSession, getActiveRole, ACTIVE_ROLE_EVENT } from '../services/api';
 import { useApp } from '../context/AppContext';
-import { TOOLS, toolText } from '../data/tools';
+import { TOOLS, toolText, toolUi } from '../data/tools';
 
 const NAV_T = {
   en: {
     home: 'Home',
-    tools: 'AI Tools',
     aboutUs: 'About',
     contactUs: 'Contact',
     marketplace: 'Marketplace',
@@ -23,7 +22,6 @@ const NAV_T = {
   },
   si: {
     home: 'මුල් පිටුව',
-    tools: 'AI මෙවලම්',
     aboutUs: 'අප ගැන',
     contactUs: 'සම්බන්ධ කරගන්න',
     marketplace: 'වෙළඳසැල',
@@ -38,7 +36,6 @@ const NAV_T = {
   },
   ta: {
     home: 'முகப்பு',
-    tools: 'AI கருவிகள்',
     aboutUs: 'எங்களை பற்றி',
     contactUs: 'தொடர்பு',
     marketplace: 'சந்தை',
@@ -89,6 +86,7 @@ export default function Navbar() {
   }, [toolsOpen]);
 
   const t = NAV_T[lang] || NAV_T.en;
+  const ui = toolUi(lang);
   const isActive = (path) => (path === '/' ? location.pathname === '/' : location.pathname.startsWith(path));
   const onTool = TOOLS.some(tool => isActive(tool.path));
   const dashboard = isSignedIn ? DASHBOARDS[activeRole] : null;
@@ -107,7 +105,7 @@ export default function Navbar() {
       <Link key={tool.key} to={tool.path} data-tour={tool.tour}
         className={`snav__tool tu-tone-${tool.tone}${isActive(tool.path) ? ' snav__tool--on' : ''}`}>
         <span className="tu-ic"><tool.Icon size={22} /></span>
-        <span><b>{text.name}</b><small>{text.desc}</small></span>
+        <span><b>{text.name}{tool.ai && <em className="tu-ai">{ui.ai}</em>}</b><small>{text.desc}</small></span>
       </Link>
     );
   });
@@ -159,7 +157,7 @@ export default function Navbar() {
             onMouseEnter={() => setToolsOpen(true)} onMouseLeave={() => setToolsOpen(false)}>
             <button type="button" className={`snav__link${onTool || toolsOpen ? ' snav__link--tools' : ''}`} data-tour="nav-tools"
               aria-haspopup="true" aria-expanded={toolsOpen} onClick={() => setToolsOpen(o => !o)}>
-              <LayoutGrid size={16} />{t.tools}<ChevronDown className="snav__chev" size={14} />
+              <LayoutGrid size={17} />{ui.group}<ChevronDown className="snav__chev" size={15} />
             </button>
             <div className="snav__mega">{toolLinks}</div>
           </div>
@@ -170,8 +168,6 @@ export default function Navbar() {
             <Link to={dashboard} className="snav__link snav__link--dash"><LayoutDashboard size={16} />{t.myDashboard}</Link>
           )}
         </nav>
-
-        <span className="snav__sp" />
 
         <div className="snav__ctl">
           {langSwitch}
@@ -190,7 +186,7 @@ export default function Navbar() {
           all move into this panel, so nothing becomes unreachable on a phone. */}
       {menuOpen && (
         <div className="snav__panel">
-          <h6>{t.tools}</h6>
+          <h6>{ui.group}</h6>
           {toolLinks}
           <h6>{t.more}</h6>
           <Link to="/" className={linkClass('/')}>{t.home}</Link>

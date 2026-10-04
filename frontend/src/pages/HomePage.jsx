@@ -191,7 +191,7 @@ const HOME_T = {
 const HOME_TOUR_T = {
   en: {
     steps: [
-      { target: 'nav-tools', title: 'AI Tools', body: 'Four tools in one menu: crop recommendation, crop guidance, yield and price estimation, and live weather advice.' },
+      { target: 'nav-tools', title: 'Farm Tools', body: 'Four tools: AI crop recommendation, step-by-step crop guidance, a yield and price calculator, and live weather advice.' },
       { target: 'nav-about', title: 'About SmartAgri', body: 'A smart agriculture platform connecting Sri Lankan farmers, land owners, and traders — with AI-powered crop planning, a live marketplace, and full administrative oversight.' },
       { target: 'nav-contact', title: 'Contact Us', body: "Have a question, feedback, or collaboration idea? We'd love to hear from you." },
       { target: 'nav-marketplace', title: 'Marketplace', body: 'Browse produce from real farmers and traders across Sri Lanka.' },
@@ -204,7 +204,7 @@ const HOME_TOUR_T = {
   },
   si: {
     steps: [
-      { target: 'nav-tools', title: 'AI මෙවලම්', body: 'එක් මෙනුවක මෙවලම් හතරක්: බෝග නිර්දේශ, බෝග මාර්ගෝපදේශ, අස්වැන්න සහ මිල ඇස්තමේන්තු, සහ සජීවී කාලගුණ උපදෙස්.' },
+      { target: 'nav-tools', title: 'ගොවි මෙවලම්', body: 'මෙවලම් හතරක්: AI බෝග නිර්දේශ, පියවරෙන් පියවර බෝග මාර්ගෝපදේශ, අස්වැන්න සහ මිල ගණක යන්ත්‍රය, සහ සජීවී කාලගුණ උපදෙස්.' },
       { target: 'nav-about', title: 'SmartAgri ගැන', body: 'ශ්‍රී ලාංකික ගොවීන්, ඉඩම් හිමියන් සහ වෙළෙඳුන් සම්බන්ධ කරන AI-ශක්‍ය ගොවිතැන් වේදිකාව.' },
       { target: 'nav-contact', title: 'සම්බන්ධ කරගන්න', body: 'ප්‍රශ්නයක්, ප්‍රතිපෝෂණයක්, හෝ සහයෝගිතා අදහසක් ඇතිද? ඔබෙන් ඇසීමට සතුටු වෙමු.' },
       { target: 'nav-marketplace', title: 'වෙළඳසැල', body: 'ශ්‍රී ලංකාව පුරා සැබෑ ගොවීන් සහ ව්‍යාපාරිකයන්ගේ නිෂ්පාදන පිරික්සන්න.' },
@@ -217,7 +217,7 @@ const HOME_TOUR_T = {
   },
   ta: {
     steps: [
-      { target: 'nav-tools', title: 'AI கருவிகள்', body: 'ஒரே பட்டியில் நான்கு கருவிகள்: பயிர் பரிந்துரை, பயிர் வழிகாட்டி, மகசூல் மற்றும் விலை மதிப்பீடு, நேரடி வானிலை ஆலோசனை.' },
+      { target: 'nav-tools', title: 'பண்ணை கருவிகள்', body: 'நான்கு கருவிகள்: AI பயிர் பரிந்துரை, படிப்படியான பயிர் வழிகாட்டி, மகசூல் மற்றும் விலை கணிப்பான், நேரடி வானிலை ஆலோசனை.' },
       { target: 'nav-about', title: 'SmartAgri பற்றி', body: 'இலங்கை விவசாயிகள், நில உரிமையாளர்கள் மற்றும் வர்த்தகர்களை இணைக்கும் AI-இயக்கப்படும் விவசாய தளம்.' },
       { target: 'nav-contact', title: 'தொடர்பு கொள்ளுங்கள்', body: 'கேள்வி, கருத்து அல்லது ஒத்துழைப்பு யோசனை உள்ளதா? உங்களிடமிருந்து கேட்க மகிழ்ச்சியாக இருக்கிறோம்.' },
       { target: 'nav-marketplace', title: 'சந்தை', body: 'இலங்கை முழுவதும் உள்ள உண்மையான விவசாயிகள் மற்றும் வணிகர்களின் விளைபொருட்களை பாருங்கள்.' },
