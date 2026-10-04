@@ -11,10 +11,9 @@ import ToolIntro from "../components/ToolIntro";
 import { T, DISTRICT_LABELS, ZONE_LABELS, IRR_LABELS, SEA_LABELS, SEA_DESC } from "../data/translations";
 import { DISTRICT_TO_ZONES }                                         from "../data/districtZones";
 import { SOIL_TYPES, CROP_EMOJI, SOIL_GUIDE_ROWS,
-         getSoilLabel, getCropLabel, getSuitability }                from "../data/cropData";
+         getSoilLabel, getCropLabel, getSuitability, xaiSentence }   from "../data/cropData";
 
 import SuitBar        from "../components/SuitBar";
-import XAIFeatureCard from "../components/XAIFeatureCard";
 import CalendarCard   from "../components/CalendarCard";
 import CompareCard    from "../components/CompareCard";
 import HistoryPanel, { saveToHistory, loadHistory, clearHistory }
@@ -655,7 +654,8 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
         <div className="cr2-alert tu-tone-amber">
           <TriangleAlert size={18} />
           <span>
-            <b>{t.warningsTitle}</b>
+            {/* The shared title starts with a warning emoji; the icon beside it already says that. */}
+            <b>{t.warningsTitle.replace(/^[^\p{L}]+/u, "")}</b>
             {result.warnings.map((w, i) => (
               <div key={i}>• {lang === "si" ? w.message_si : lang === "ta" ? w.message_ta : w.message_en}</div>
             ))}
@@ -921,16 +921,18 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
                     )}
                     {result.xai_features.map((f, i) => {
                       const negative = f.direction === "negative";
+                      const neutral = f.direction === "neutral";
+                      const why = xaiSentence(f, lang);
                       return (
                         <div className="cr2-factor" key={i}>
-                          <span>{xaiLabel(f)}</span>
+                          <span>{xaiLabel(f)}{why && <small>{why}</small>}</span>
                           <div className="tu-bar">
                             <i style={{
                               width: `${Math.max(6, (f.score / maxScore) * 100)}%`,
-                              background: negative ? "var(--tu-g-red)" : f.direction === "neutral" ? "var(--tu-dim)" : "var(--tu-g-green)",
+                              background: negative ? "var(--tu-g-red)" : neutral ? "var(--tu-dim)" : "var(--tu-g-green)",
                             }} />
                           </div>
-                          <b style={{ color: negative ? "var(--tu-coral)" : "var(--tu-green)" }}>{negative ? "−" : "+"}{Math.round(f.score * 100)}</b>
+                          <b style={{ color: negative ? "var(--tu-coral)" : neutral ? "var(--tu-muted)" : "var(--tu-green)" }}>{negative ? "−" : "+"}{Math.round(f.score * 100)}</b>
                         </div>
                       );
                     })}
@@ -954,20 +956,6 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
             <div><h2>{c2.details}</h2><small>{c2.detailsSub}</small></div>
           </div>
           <div className="cr2-details">
-            {result.xai_features?.length > 0 && (
-              <div className="xai-card cr2-wide">
-                <div className="xai-inner">
-                  <div className="xai-body">
-                    <div className="xai-grid">
-                      {result.xai_features.map((f, i) => (
-                        <XAIFeatureCard key={i} feat={f} maxScore={maxScore} lang={lang} t={t} />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {result.planting_calendar && (
               <CalendarCard cal={result.planting_calendar} season={season} lang={lang} t={t} />
             )}
