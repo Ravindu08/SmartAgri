@@ -71,8 +71,8 @@ python -m pytest backend/tests/test_main_api.py backend/tests/test_payments.py b
 
 ## CI/CD
 
-- **CI** (`.github/workflows/ci.yml`) runs on every push to any branch and on every pull request into `main`: backend pytest suite, frontend vitest suite, and a production `vite build`.
-- **CD** (`.github/workflows/cd.yml`) runs on every push to `main` (i.e. after a PR merges): builds `backend/Dockerfile` and `frontend/Dockerfile` and publishes them to GitHub Container Registry, tagged `latest` and `sha-<commit>`. No hosting target is wired up yet — this stops at "image published."
+- **CI** (`.github/workflows/ci.yml`) runs on every push to any branch and on every pull request into `main`: backend pytest suite, frontend vitest suite, a production `vite build`, and a Docker smoke test that starts the whole `docker-compose.yml` stack and registers and logs in a user through nginx (`.github/scripts/smoke.sh`).
+- **CD** (`.github/workflows/cd.yml`) runs after CI passes on a push to `main` (i.e. after a PR merges), and never when CI fails: downloads the trained model from the GitHub Release named by `MODEL_RELEASE` in `cd.yml` (the `.pkl` files are git-ignored), then builds `backend/Dockerfile` and `frontend/Dockerfile` and publishes them to GitHub Container Registry, tagged `latest` and `sha-<commit>`. No hosting target is wired up yet — this stops at "image published."
 
 Pull an image manually:
 ```bash
