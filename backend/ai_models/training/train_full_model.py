@@ -162,10 +162,11 @@ def train_full_model():
     print("  T<1: ensemble was underconfident -> sharpens predictions")
     print("  T>1: ensemble was overconfident  -> softens predictions")
 
-    # Save artefacts
+    # Save artefacts. compress=3 is lossless and takes the model from ~750 MB
+    # to ~55 MB, small enough to ship as a GitHub Release asset (see cd.yml).
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
-    joblib.dump(ensemble, MODELS_DIR / "crop_model_full.pkl")
-    joblib.dump(le,       MODELS_DIR / "label_encoder_full.pkl")
+    joblib.dump(ensemble, MODELS_DIR / "crop_model_full.pkl",    compress=3)
+    joblib.dump(le,       MODELS_DIR / "label_encoder_full.pkl", compress=3)
 
     model_info = {
         "mode":                "full",
@@ -191,7 +192,7 @@ def train_full_model():
             "xgb": {"n_estimators": 300, "max_depth": 6, "learning_rate": 0.1},
         },
     }
-    joblib.dump(model_info, MODELS_DIR / "model_info_full.pkl")
+    joblib.dump(model_info, MODELS_DIR / "model_info_full.pkl", compress=3)
 
     print(f"\n{'='*65}")
     print("Saved: crop_model_full.pkl  |  label_encoder_full.pkl  |  model_info_full.pkl")
