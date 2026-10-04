@@ -139,7 +139,7 @@ def test_meta_ranges_match_validator():
 
 # ── Cultivation input validation ─────────────────────────────────────────────
 
-VALID_CULTIVATION = {"user_id": "pytest-user", "crop": "Tomato", "planting_date": "2026-10-01"}
+VALID_CULTIVATION = {"user_id": "test-user-ml", "crop": "Tomato", "planting_date": "2026-10-01"}
 
 @pytest.mark.parametrize("bad_date", ["not-a-date", "", "2026-13-01", "01-10-2026", "1850-01-01", "3000-01-01"])
 def test_cultivation_rejects_bad_planting_date(bad_date):

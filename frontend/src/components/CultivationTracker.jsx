@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ML_BASE_URL } from "../services/api";
 import * as API from "../utils/cultivationApi";
+import { celebrate } from "../utils/celebrate";
 import { getFarms, getFarm } from "../services/farmService";
 import { createCrop, deleteCrop, updateCrop } from "../services/cropService";
 import { useApp } from "../context/AppContext";
@@ -769,6 +770,7 @@ export default function CultivationTracker({ t, userId, initialSessionId, initia
       const { task, sessionStatus } = await API.updateTask(userId, sessionId, taskId, status, photo);
       const session = sessions.find(s => s.id === sessionId);
       const justFinished = sessionStatus === "completed" && session?.status !== "completed";
+      if (justFinished) celebrate();
 
       setSessions(prev => prev.map(s => {
         if (s.id !== sessionId) return s;

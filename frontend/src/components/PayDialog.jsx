@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { request } from '../services/api';
+import { celebrate } from '../utils/celebrate';
 
 const T = {
   en: {
@@ -38,6 +39,7 @@ export default function PayDialog({ order, onClose, onSuccess }) {
     try {
       await new Promise(r => setTimeout(r, 1500)); // simulated processing delay
       await request(`/api/marketplace/orders/${order.id}/payment/simulate`, { method: 'POST', body: JSON.stringify({}) });
+      celebrate();
       onSuccess();
     } catch (err) {
       setError(err.message);

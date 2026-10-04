@@ -162,7 +162,7 @@ export default function AdminUsers() {
       {loading ? (
         <SkeletonTable rows={6} cols={5} />
       ) : (
-        <div style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', overflowX: 'auto' }}>
+        <div className="fx-card" style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', overflowX: 'auto' }}>
           <table style={{ width: '100%', minWidth: '760px', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>

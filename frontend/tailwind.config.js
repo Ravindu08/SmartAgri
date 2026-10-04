@@ -1,6 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./src/pages/MarketplacePage.jsx'],
+  // Follow the app's own theme toggle (data-theme on <html>), not the OS
+  // setting — otherwise `dark:` colours show up in light mode on a dark-mode PC.
+  darkMode: ['selector', '[data-theme="dark"]'],
   corePlugins: {
     preflight: false,
   },
