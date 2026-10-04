@@ -1,17 +1,12 @@
-// Cultivation endpoints live on the ML service (port 8001).
-// Use an empty base so Vite's dev-server proxy forwards /cultivation → port 8001.
-const BASE = "";
+import { ML_BASE_URL, requestTo } from "../services/api";
 
-async function req(method, path, body) {
-  const opts = { method, headers: { "Content-Type": "application/json" } };
+// Cultivation endpoints live on the ML service (port 8001) and require the
+// logged-in user's token, so they go through the shared authenticated request.
+// ML_BASE_URL is empty in dev, so Vite's proxy forwards /cultivation → port 8001.
+function req(method, path, body) {
+  const opts = { method };
   if (body !== undefined) opts.body = JSON.stringify(body);
-  const r = await fetch(BASE + path, opts);
-  if (!r.ok) {
-    const msg = await r.text().catch(() => r.statusText);
-    throw new Error(msg);
-  }
-  if (r.status === 204) return null;
-  return r.json();
+  return requestTo(ML_BASE_URL, path, opts);
 }
 
 export const startCultivation = (userId, crop, plantingDate, district, cropId, farmId) =>
