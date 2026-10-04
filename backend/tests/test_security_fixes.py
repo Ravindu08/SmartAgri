@@ -3,27 +3,19 @@ Regression tests for the marketplace, auth and upload bugs found in the
 2026-10 audit — run with: pytest backend/tests/test_security_fixes.py -v
 Requires the conftest.py in this directory to run first (sets env + patches dotenv).
 """
+from datetime import datetime, timedelta, timezone
+
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from app.core.deps import get_db
 from app.core.limiter import limiter
 from app.core.security import hash_password
-from app.db.database import Base
 from app.main import app
 from app.models.user import User, UserRole
 from app.utils.image_storage import InvalidImageError, store_image
 
-_engine = create_engine(
-    "sqlite:///:memory:",
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
-Base.metadata.create_all(bind=_engine)
+from tests.db import TestingSessionLocal
 
 PASSWORD = "Password123!"
 
@@ -282,6 +274,155 @@ def test_placeholder_secret_keys_are_refused(placeholder, monkeypatch):
     finally:
         monkeypatch.setenv("SECRET_KEY", good)
         importlib.reload(security)
+
+
+# ── A password change signs out every other device ───────────────────────────
+
+def _login(email: str, password: str = PASSWORD) -> dict:
+    r = client.post("/auth/login", json={"email": email, "password": password})
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+def test_password_change_invalidates_other_sessions_but_not_this_one():
+    this_device = _login_new(UserRole.TRADER)
+    other_device = _login(this_device["user"]["email"])
+    assert client.get("/auth/me", headers=_h(other_device)).status_code == 200
+
+    r = client.put("/auth/me/password", headers=_h(this_device),
+                   json={"current_password": PASSWORD, "new_password": "NewPassword456!"})
+    assert r.status_code == 200, r.text
+    fresh = r.json()
+
+    # Old tokens are dead on both devices, access and refresh alike.
+    assert client.get("/auth/me", headers=_h(other_device)).status_code == 401
+    assert client.get("/auth/me", headers=_h(this_device)).status_code == 401
+    assert client.post("/auth/refresh",
+                       json={"refresh_token": other_device["refresh_token"]}).status_code == 401
+
+    # The pair returned by the change keeps this device logged in.
+    assert client.get("/auth/me", headers=_h(fresh)).status_code == 200
+    refreshed = client.post("/auth/refresh", json={"refresh_token": fresh["refresh_token"]})
+    assert refreshed.status_code == 200
+    assert client.get("/auth/me", headers=_h(refreshed.json())).status_code == 200
+
+
+def test_password_reset_invalidates_existing_sessions():
+    session = _login_new(UserRole.TRADER)
+    db = TestingSessionLocal()
+    user = db.get(User, session["user"]["id"])
+    user.reset_token = "reset-token-for-test"
+    user.reset_token_expires = datetime.now(timezone.utc) + timedelta(hours=1)
+    db.commit()
+    db.close()
+
+    r = client.post("/auth/reset-password",
+                    json={"token": "reset-token-for-test", "new_password": "ResetPassword789!"})
+    assert r.status_code == 200, r.text
+
+    assert client.get("/auth/me", headers=_h(session)).status_code == 401
+    assert client.post("/auth/refresh",
+                       json={"refresh_token": session["refresh_token"]}).status_code == 401
+    again = _login(session["user"]["email"], "ResetPassword789!")
+    assert client.get("/auth/me", headers=_h(again)).status_code == 200
+
+
+def test_token_without_version_claim_still_works_until_password_changes():
+    # Tokens issued before the "ver" claim existed must not all break on deploy.
+    from app.core.security import create_access_token
+
+    session = _login_new(UserRole.TRADER)
+    legacy = {"access_token": create_access_token({"sub": str(session["user"]["id"])})}
+    assert client.get("/auth/me", headers=_h(legacy)).status_code == 200
+
+    client.put("/auth/me/password", headers=_h(session),
+               json={"current_password": PASSWORD, "new_password": "NewPassword456!"})
+    assert client.get("/auth/me", headers=_h(legacy)).status_code == 401
+
+
+# ── Admin: CSV exports, list paging, bulk import ─────────────────────────────
+
+def test_csv_export_neutralises_formula_cells():
+    from app.routers.admin import _csv_safe
+
+    for risky in ("=1+1", "+1", "-1", "@SUM(A1)", "\tx", "\rx"):
+        assert _csv_safe(risky) == "'" + risky
+    assert _csv_safe("Kandy Farm") == "Kandy Farm"
+    assert _csv_safe(42) == 42
+    assert _csv_safe(None) is None
+
+    admin = _login_new(UserRole.ADMIN)
+    db = TestingSessionLocal()
+    db.add(User(full_name='=HYPERLINK("http://evil.example","x")', email="formula@fixes-smartagri.com",
+                hashed_password=hash_password(PASSWORD), role=UserRole.TRADER,
+                roles=[UserRole.TRADER.value], is_verified=True))
+    db.commit()
+    db.close()
+
+    r = client.get("/api/admin/export/users.csv", headers=_h(admin))
+    assert r.status_code == 200
+    line = next(l for l in r.text.splitlines() if "formula@fixes-smartagri.com" in l)
+    assert "'=HYPERLINK" in line
+    assert ",=HYPERLINK" not in line and ',"=HYPERLINK' not in line
+
+
+def test_admin_user_list_is_paged():
+    admin = _login_new(UserRole.ADMIN)
+    for _ in range(3):
+        _login_new(UserRole.TRADER)
+
+    everyone = client.get("/api/admin/users", headers=_h(admin)).json()
+    assert len(everyone) >= 4
+
+    first = client.get("/api/admin/users", headers=_h(admin), params={"limit": 2}).json()
+    second = client.get("/api/admin/users", headers=_h(admin), params={"limit": 2, "offset": 2}).json()
+    assert len(first) == 2 and len(second) == 2
+    assert [u["id"] for u in first + second] == [u["id"] for u in everyone[:4]]
+
+    assert client.get("/api/admin/users", headers=_h(admin), params={"limit": 0}).status_code == 422
+    assert client.get("/api/admin/users", headers=_h(admin), params={"limit": 100000}).status_code == 422
+    for path in ("farms", "marketplace/listings", "marketplace/orders"):
+        assert client.get(f"/api/admin/{path}", headers=_h(admin), params={"limit": 1}).status_code == 200
+
+
+def test_bulk_import_keeps_going_after_a_bad_row():
+    # A 300-character name overflows VARCHAR(255) on PostgreSQL. Before the
+    # per-row savepoint that error poisoned the session, so every later row
+    # failed too. (SQLite ignores the length, so there all three are created.)
+    admin = _login_new(UserRole.ADMIN)
+    r = client.post("/api/admin/users/bulk", headers=_h(admin), json={
+        "default_password": PASSWORD,
+        "role": "Trader",
+        "users": [
+            {"full_name": "Good Before", "email": "bulk-before@fixes-smartagri.com"},
+            {"full_name": "x" * 300, "email": "bulk-bad@fixes-smartagri.com"},
+            {"full_name": "Good After", "email": "bulk-after@fixes-smartagri.com"},
+        ],
+    })
+    assert r.status_code == 201, r.text
+    body = r.json()
+    assert body["created"] + len(body["errors"]) == 3
+    assert all(e["email"] == "bulk-bad@fixes-smartagri.com" for e in body["errors"])
+
+    for email in ("bulk-before@fixes-smartagri.com", "bulk-after@fixes-smartagri.com"):
+        assert client.post("/auth/login", json={"email": email, "password": PASSWORD}).status_code == 200
+
+    r = client.post("/api/admin/farms/bulk", headers=_h(admin), json={
+        "default_password": PASSWORD,
+        "farms": [
+            {"farmer_name": "y" * 300, "email": "farm-bad@fixes-smartagri.com", "district": "Kandy",
+             "farm_name": "Bad Farm", "soil_type": "Loam", "size": 2},
+            {"farmer_name": "Good Farmer", "email": "farm-good@fixes-smartagri.com", "district": "Kandy",
+             "farm_name": "Good Farm", "soil_type": "Loam", "size": 2},
+        ],
+    })
+    assert r.status_code == 201, r.text
+    body = r.json()
+    assert body["created_farms"] + len(body["errors"]) == 2
+    assert body["created_farms"] >= 1
+    assert all(e["email"] == "farm-bad@fixes-smartagri.com" for e in body["errors"])
+    assert client.post("/auth/login", json={"email": "farm-good@fixes-smartagri.com",
+                                            "password": PASSWORD}).status_code == 200
 
 
 # ── Cultivation tracker (ML service) requires the owner's token ───────────────

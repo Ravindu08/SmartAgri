@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr
@@ -7,11 +7,10 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db
 from app.core.security import (
-    ACCESS_TOKEN_EXPIRE_MINUTES,
-    create_access_token,
-    create_refresh_token,
     decode_token,
     hash_password,
+    issue_token_pair,
+    token_is_current,
     verify_password,
 )
 from app.models.user import User, UserRole
@@ -162,11 +161,7 @@ def login_user(request: Request, payload: UserLogin, db: Session = Depends(get_d
             detail="Your account has been suspended. Please contact support.",
         )
 
-    access_token = create_access_token(
-        data={"sub": str(user.id)},
-        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
-    )
-    refresh_token = create_refresh_token(data={"sub": str(user.id)})
+    access_token, refresh_token = issue_token_pair(user)
     return AuthResponse(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -205,12 +200,10 @@ def refresh_token(payload: RefreshRequest, db: Session = Depends(get_db)) -> Ref
         user = None
     if user is None or user.is_suspended:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or suspended")
+    if not token_is_current(data, user):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired refresh token")
 
-    new_access = create_access_token(
-        data={"sub": str(user.id)},
-        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
-    )
-    new_refresh = create_refresh_token(data={"sub": str(user.id)})
+    new_access, new_refresh = issue_token_pair(user)
     return RefreshResponse(access_token=new_access, refresh_token=new_refresh)
 
 
@@ -256,13 +249,17 @@ def reset_password(request: Request, payload: ResetPasswordRequest, db: Session 
             detail="Invalid or expired reset link.",
         )
 
-    if datetime.now(timezone.utc) > user.reset_token_expires:
+    expires = user.reset_token_expires
+    if expires.tzinfo is None:  # SQLite (tests) drops the timezone; PostgreSQL keeps it
+        expires = expires.replace(tzinfo=timezone.utc)
+    if datetime.now(timezone.utc) > expires:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="This reset link has expired. Please request a new one.",
         )
 
     user.hashed_password = hash_password(payload.new_password)
+    user.token_version += 1  # signs out every device still holding an old token
     user.reset_token = None
     user.reset_token_expires = None
     db.commit()
@@ -302,18 +299,32 @@ def update_profile(
     return UserRead.model_validate(current_user)
 
 
-@router.put("/me/password", response_model=UserRead)
+class PasswordChangeResponse(UserRead):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+
+@router.put("/me/password", response_model=PasswordChangeResponse)
 def change_password(
     payload: PasswordChange,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> UserRead:
+) -> PasswordChangeResponse:
     if not verify_password(payload.current_password, current_user.hashed_password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect")
     current_user.hashed_password = hash_password(payload.new_password)
+    # Signs out every other device. This one gets a fresh pair in the response
+    # so it stays logged in.
+    current_user.token_version += 1
     db.commit()
     db.refresh(current_user)
-    return UserRead.model_validate(current_user)
+    access_token, refresh_token = issue_token_pair(current_user)
+    return PasswordChangeResponse(
+        **UserRead.model_validate(current_user).model_dump(),
+        access_token=access_token,
+        refresh_token=refresh_token,
+    )
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)

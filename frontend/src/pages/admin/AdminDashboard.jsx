@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { adminRequest } from '../../services/api';
 import { useApp } from '../../context/AppContext';
 import { SkeletonStatCards } from '../../components/Skeleton';

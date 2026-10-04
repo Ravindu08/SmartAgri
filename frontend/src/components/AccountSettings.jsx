@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import {
   getAuthSession,
   getActiveRole,
@@ -7,6 +7,7 @@ import {
   changePassword,
   deleteAccount,
   clearAuthSession,
+  saveAuthSession,
   updateUserInSession,
   updateUserAvatar,
 } from '../services/api';
@@ -121,10 +122,13 @@ export default function AccountSettings() {
     }
     setPwSaving(true);
     try {
-      await changePassword({
+      const res = await changePassword({
         current_password: pwForm.current_password,
         new_password:     pwForm.new_password,
       });
+      // The change invalidates every existing token, this device's included;
+      // the response carries a fresh pair so only the other devices sign out.
+      saveAuthSession({ access_token: res.access_token, refresh_token: res.refresh_token, user: getAuthSession().user });
       setPwForm({ current_password: '', new_password: '', confirm_password: '' });
       setToast({ type: 'success', message: t.settingsToastPwChanged });
     } catch (err) {

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import useSWR, { mutate } from 'swr';
 import PayDialog from '../../components/PayDialog';
 import { SkeletonRows } from '../../components/Skeleton';
