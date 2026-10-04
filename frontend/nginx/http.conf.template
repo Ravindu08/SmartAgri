@@ -1,0 +1,8 @@
+# Plain-HTTP mode — used when DOMAIN is unset or has no certificate yet
+# (local `docker compose up`, or a fresh server before certbot has run).
+server {
+    listen 80 default_server;
+    server_name _;
+
+    include /etc/nginx/smartagri/locations.conf;
+}

@@ -61,3 +61,6 @@ frontend/public/test-login.html
 data/
 *.docx
 *.xlsx
+
+# Database dumps contain user e-mails, phone numbers and password hashes
+*.sql
