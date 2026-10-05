@@ -8,6 +8,44 @@ Full-stack web application for Sri Lankan agribusiness. Farmers get AI-driven cr
 
 ---
 
+## Screenshots
+
+**Home**
+
+![SmartAgri home page](screenshots/home.jpg)
+
+**AI crop recommendation** — top-3 crops with an explanation of why each was chosen
+
+![Crop recommendation result with explainable AI breakdown](screenshots/crop-recommendation.jpg)
+
+**Weather & farm advisory** — live conditions and a 7-day forecast for all 25 districts
+
+![Weather forecast for a district](screenshots/weather.jpg)
+
+**Marketplace** — crop and farm-supply listings with seller ratings
+
+![Marketplace listings](screenshots/marketplace-landowner-browse.jpg)
+
+**Land Owner dashboard** — farms, active crops, harvest alerts and weather advisories
+
+![Land Owner dashboard](screenshots/landowner-dashboard.jpg)
+
+**My Farms**
+
+![My Farms page](screenshots/my-farms.jpg)
+
+**Trader dashboard** — order pipeline and quick actions
+
+![Trader dashboard](screenshots/trader-dashboard.jpg)
+
+**Admin dashboard** — platform stats, user management, marketplace moderation and reports
+
+![Admin dashboard](screenshots/admin-dashboard.jpg)
+
+**More:** crop guidance, yield & price estimation, crop tracking, account settings, help & support, light/dark mode, Sinhala/Tamil/English, and every Land Owner, Trader and Admin page are in the **[full screenshot gallery](SCREENSHOTS.md)**.
+
+---
+
 ## Quick Start
 
 ### One command (recommended)
@@ -72,7 +110,7 @@ python -m pytest backend/tests/test_main_api.py backend/tests/test_payments.py b
 ## CI/CD
 
 - **CI** (`.github/workflows/ci.yml`) runs on every push to any branch and on every pull request into `main`: backend pytest suite, frontend vitest suite, a production `vite build`, and a Docker smoke test that starts the whole `docker-compose.yml` stack and registers and logs in a user through nginx (`.github/scripts/smoke.sh`).
-- **CD** (`.github/workflows/cd.yml`) runs after CI passes on a push to `main` (i.e. after a PR merges), and never when CI fails: downloads the trained model from the GitHub Release named by `MODEL_RELEASE` in `cd.yml` (the `.pkl` files are git-ignored), then builds `backend/Dockerfile` and `frontend/Dockerfile` and publishes them to GitHub Container Registry, tagged `latest` and `sha-<commit>`. No hosting target is wired up yet — this stops at "image published."
+- **CD** (`.github/workflows/cd.yml`) runs after CI passes on a push to `main` (i.e. after a PR merges), and never when CI fails: downloads the trained model from the GitHub Release named by `MODEL_RELEASE` in `cd.yml` (the `.pkl` files are git-ignored), then builds `backend/Dockerfile` and `frontend/Dockerfile` and publishes them to GitHub Container Registry, tagged `latest` and `sha-<commit>`. It stops at "image published" and does not deploy; the live Azure VM is updated by hand (see the live deployment note below).
 
 Pull an image manually:
 ```bash
