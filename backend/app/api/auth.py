@@ -19,16 +19,23 @@ from app.schemas.user import PasswordChange, UserRead, UserUpdate
 from app.services.auth import (
     authenticate_user,
     create_user,
+    delete_user_and_data,
     generate_reset_token,
     generate_verification_token,
     get_redirect_path,
     get_user_by_email,
+    normalize_email,
 )
 from app.services.email import send_password_reset_email, send_quietly, send_verification_email
 from app.core.limiter import limiter
 from app.utils.image_storage import ImageTooLargeError, InvalidImageError, store_image
 
 router = APIRouter()
+
+
+def _as_utc(value: datetime) -> datetime:
+    """SQLite (tests) drops the timezone; PostgreSQL keeps it."""
+    return value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
 
 
 # ── Registration ─────────────────────────────────────────────────────────────
@@ -123,7 +130,7 @@ def verify_email(request: Request, payload: VerifyEmailRequest, db: Session = De
         or user.is_verified
         or user.email_verification_token != payload.code.strip()
         or user.email_code_expires is None
-        or datetime.now(timezone.utc) > user.email_code_expires
+        or datetime.now(timezone.utc) > _as_utc(user.email_code_expires)
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -249,10 +256,7 @@ def reset_password(request: Request, payload: ResetPasswordRequest, db: Session 
             detail="Invalid or expired reset link.",
         )
 
-    expires = user.reset_token_expires
-    if expires.tzinfo is None:  # SQLite (tests) drops the timezone; PostgreSQL keeps it
-        expires = expires.replace(tzinfo=timezone.utc)
-    if datetime.now(timezone.utc) > expires:
+    if datetime.now(timezone.utc) > _as_utc(user.reset_token_expires):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="This reset link has expired. Please request a new one.",
@@ -281,10 +285,12 @@ def update_profile(
 ) -> UserRead:
     if payload.full_name is not None:
         current_user.full_name = payload.full_name
-    if payload.email is not None and payload.email != current_user.email:
-        if get_user_by_email(db, str(payload.email)) is not None:
+    new_email = normalize_email(payload.email) if payload.email is not None else None
+    if new_email is not None and new_email != current_user.email:
+        existing = get_user_by_email(db, new_email)
+        if existing is not None and existing.id != current_user.id:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email is already in use")
-        current_user.email = str(payload.email)
+        current_user.email = new_email
     if "profile_image" in payload.model_fields_set:
         try:
             current_user.profile_image = store_image(payload.profile_image)
@@ -313,6 +319,9 @@ def change_password(
 ) -> PasswordChangeResponse:
     if not verify_password(payload.current_password, current_user.hashed_password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect")
+    if payload.new_password == payload.current_password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="The new password must be different from the current one")
     current_user.hashed_password = hash_password(payload.new_password)
     # Signs out every other device. This one gets a fresh pair in the response
     # so it stays logged in.
@@ -332,21 +341,12 @@ def delete_account(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> None:
-    from sqlalchemy import delete as sql_delete
-    from app.models.marketplace import MarketplaceListing, MarketplaceOrder
-    from app.models.farm import Farm
-    from app.models.cultivation import CultivationSession
-
-    # delete orders first (Rating.order_id has CASCADE so ratings go automatically)
-    db.execute(sql_delete(MarketplaceOrder).where(
-        (MarketplaceOrder.buyer_id == current_user.id) | (MarketplaceOrder.seller_id == current_user.id)
-    ))
-    # delete listings (no FK child constraints beyond orders already cleared)
-    db.execute(sql_delete(MarketplaceListing).where(MarketplaceListing.owner_id == current_user.id))
-    # delete farms (Crop.farm_id has CASCADE so crops go automatically)
-    db.execute(sql_delete(Farm).where(Farm.owner_id == current_user.id))
-    # delete cultivation sessions (user_id is a plain String column, no FK cascade)
-    db.execute(sql_delete(CultivationSession).where(CultivationSession.user_id == str(current_user.id)))
-    # delete user — Notification cascades, Feedback/UserActivity set NULL
-    db.delete(current_user)
+    # The startup hook recreates a missing admin with the default password,
+    # so an admin deleting themselves would quietly reset the admin login.
+    if current_user.role == UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The administrator account cannot be deleted",
+        )
+    delete_user_and_data(db, current_user)
     db.commit()

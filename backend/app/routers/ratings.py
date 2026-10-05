@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -88,7 +88,7 @@ def submit_rating(
         type="rating_received",
         title=f"You received a {payload.score}★ rating",
         body=payload.comment or "",
-        link="/landowner/settings",
+        link="/marketplace",
     )
     db.commit()
     db.refresh(rating)
@@ -127,7 +127,7 @@ def get_user_avg_rating(
 @router.get("/users/{user_id}/reviews", response_model=list[ReviewRead])
 def list_user_reviews(
     user_id: int,
-    limit: int = 20,
+    limit: int = Query(20, ge=1, le=50),
     db: Session = Depends(get_db),
 ):
     """Public review list (with comments) for a seller/trader — shown in the
@@ -138,7 +138,7 @@ def list_user_reviews(
         .join(User, User.id == Rating.rater_id)
         .where(Rating.ratee_id == user_id)
         .order_by(Rating.created_at.desc())
-        .limit(min(limit, 50))
+        .limit(limit)
     ).all()
     return [
         ReviewRead(

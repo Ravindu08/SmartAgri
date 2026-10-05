@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import useDialogDismiss from '../../hooks/useDialogDismiss';
 import { Link, useNavigate, useParams } from 'react-router';
 import { getCrop, deleteCrop } from '../../services/cropService';
 import { listCultivations, abandonCultivation, findSessionForCrop } from '../../utils/cultivationApi';
@@ -28,6 +29,7 @@ export default function CropDetails() {
   const [cultSession,   setCultSession]   = useState(null);
   const [isLoading,     setIsLoading]     = useState(true);
   const [showAbandon,   setShowAbandon]   = useState(false);
+  useDialogDismiss(showAbandon, () => setShowAbandon(false));
   const [isAbandoning,  setIsAbandoning]  = useState(false);
   const [toast,         setToast]         = useState({ type: 'success', message: '' });
 

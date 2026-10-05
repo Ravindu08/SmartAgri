@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router";
+import { BookOpen, CalendarDays, Check, CloudRain, Droplets, Info, MapPin, ShieldAlert, Sparkles, Thermometer, TriangleAlert, Wind } from "lucide-react";
 import { ML_BASE_URL } from "../services/api";
 import { DISTRICTS } from "../data/districtZones";
-import { DISTRICT_LABELS } from "../data/translations";
-import CustomSelect from "../components/CustomSelect";
-import "../styles/Weather.css";
+import { DISTRICT_LABELS, SEA_LABELS } from "../data/translations";
+import ToolSwitcher from "../components/ToolSwitcher";
+import ToolIntro from "../components/ToolIntro";
+import "../styles/tool-wx.css";
 import SpotlightTour   from "../components/tour/SpotlightTour";
 import HelpButton      from "../components/tour/HelpButton";
 
@@ -214,79 +217,99 @@ const WX_TOUR_T = {
   },
 };
 
-function StatCard({ icon, label, value, unit, highlight }) {
-  return (
-    <div className={`wx-stat-card${highlight ? " wx-stat-highlight" : ""}`}>
-      <div className="wx-stat-icon">{icon}</div>
-      <div className="wx-stat-body">
-        <div className="wx-stat-label">{label}</div>
-        <div className="wx-stat-value">
-          {value}<span className="wx-stat-unit">{unit}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
+// Text for the redesigned layout; the rest still comes from WT above.
+const WX2 = {
+  en: {
+    pickTitle: "Choose your district", pickSub: "Tap a district to load its live weather",
+    live: "Live", today: "Today", rainToday: "Rain today", rainTomorrow: "Rain tomorrow",
+    points: ["Live conditions", "7-day forecast", "Farm advice", "Season rainfall"],
+    daysSub: "Tap a day for its details · bars show rainfall",
+    rainChance: "Rain chance", high: "High", low: "Low",
+    adviceSub: "Most urgent first",
+    tags: { danger: "Urgent", warning: "Warning", risk: "Risk", action: "Do this", info: "Good to know" },
+    seasonTitle: "season so far", seasonSub: "Compared with a normal season in",
+    rainSoFar: "Rain so far", normalTotal: "Normal total", ofNormal: "Of normal rain",
+    avgTemp: "Average temp", avgHum: "Avg humidity",
+    refTitle: "Know your zone and season", refSub: "Your district's zone and the current season are highlighted",
+    yourZone: "Your zone", zone: "Zone", now: "Now",
+  },
+  si: {
+    pickTitle: "ඔබේ දිස්ත්‍රික්කය තෝරන්න", pickSub: "සජීවී කාලගුණය බැලීමට දිස්ත්‍රික්කයක් තට්ටු කරන්න",
+    live: "සජීවී", today: "අද", rainToday: "අද වර්ෂාව", rainTomorrow: "හෙට වර්ෂාව",
+    points: ["සජීවී තත්ත්ව", "දින 7 අනාවැකිය", "ගොවි උපදෙස්", "කන්නයේ වර්ෂාපතනය"],
+    daysSub: "විස්තර සඳහා දිනයක් තට්ටු කරන්න · තීරු වර්ෂාපතනය පෙන්වයි",
+    rainChance: "වැසි සම්භාවිතාව", high: "උපරිම", low: "අවම",
+    adviceSub: "හදිසිම දේ පළමුව",
+    tags: { danger: "හදිසි", warning: "අවවාදයයි", risk: "අවදානම", action: "මෙය කරන්න", info: "දැනගන්න" },
+    seasonTitle: "කන්නය මේ දක්වා", seasonSub: "සාමාන්‍ය කන්නයක් සමඟ සසඳා —",
+    rainSoFar: "මේ දක්වා වර්ෂාව", normalTotal: "සාමාන්‍ය මුළු අගය", ofNormal: "සාමාන්‍ය වර්ෂාවෙන්",
+    avgTemp: "සාමාන්‍ය උෂ්ණත්වය", avgHum: "සාමාන්‍ය ආර්ද්‍රතාව",
+    refTitle: "ඔබේ කලාපය සහ කන්නය දැනගන්න", refSub: "ඔබේ දිස්ත්‍රික්කයේ කලාපය සහ වත්මන් කන්නය උද්දීපනය කර ඇත",
+    yourZone: "ඔබේ කලාපය", zone: "කලාපය", now: "දැන්",
+  },
+  ta: {
+    pickTitle: "உங்கள் மாவட்டத்தைத் தேர்ந்தெடுங்கள்", pickSub: "நேரடி வானிலையைக் காண ஒரு மாவட்டத்தைத் தட்டவும்",
+    live: "நேரடி", today: "இன்று", rainToday: "இன்றைய மழை", rainTomorrow: "நாளைய மழை",
+    points: ["நேரடி நிலைமைகள்", "7 நாள் முன்னறிவிப்பு", "பண்ணை ஆலோசனை", "பருவ மழைவீழ்ச்சி"],
+    daysSub: "விவரங்களுக்கு ஒரு நாளைத் தட்டவும் · பட்டைகள் மழையைக் காட்டுகின்றன",
+    rainChance: "மழை வாய்ப்பு", high: "அதிகபட்சம்", low: "குறைந்தபட்சம்",
+    adviceSub: "மிக அவசரமானது முதலில்",
+    tags: { danger: "அவசரம்", warning: "எச்சரிக்கை", risk: "அபாயம்", action: "இதைச் செய்யுங்கள்", info: "தெரிந்துகொள்ளுங்கள்" },
+    seasonTitle: "பருவம் இதுவரை", seasonSub: "சாதாரண பருவத்துடன் ஒப்பீடு —",
+    rainSoFar: "இதுவரை மழை", normalTotal: "சாதாரண மொத்தம்", ofNormal: "சாதாரண மழையில்",
+    avgTemp: "சராசரி வெப்பநிலை", avgHum: "சராசரி ஈரப்பதம்",
+    refTitle: "உங்கள் மண்டலத்தையும் பருவத்தையும் அறியுங்கள்", refSub: "உங்கள் மாவட்டத்தின் மண்டலமும் தற்போதைய பருவமும் சிறப்பித்துக் காட்டப்படுகின்றன",
+    yourZone: "உங்கள் மண்டலம்", zone: "மண்டலம்", now: "இப்போது",
+  },
+};
 
-function AdviceCard({ item }) {
-  const cls = {
-    warning: "wx-advice-warning",
-    risk:    "wx-advice-risk",
-    danger:  "wx-advice-danger",
-    action:  "wx-advice-action",
-    info:    "wx-advice-info",
-  }[item.type] || "wx-advice-info";
+// A district's broad climate zone. Listed by hand because a district's
+// agro-ecological zones (districtZones.js) often span more than one of these;
+// this is the zone most of the district falls in, matching the cards below.
+const WET = ["Colombo", "Gampaha", "Kalutara", "Galle", "Matara", "Ratnapura", "Kegalle", "Kandy", "Nuwara Eliya"];
+const INTERMEDIATE = ["Kurunegala", "Matale", "Badulla", "Monaragala"];
+const zoneGroup = d => (WET.includes(d) ? "wet" : INTERMEDIATE.includes(d) ? "inter" : "dry");
+const GROUPS = [
+  { key: "wet",   dot: "#38bdf8", nameKey: "zone1Name" },
+  { key: "dry",   dot: "#f59e0b", nameKey: "zone2Name" },
+  { key: "inter", dot: "#22c55e", nameKey: "zone3Name" },
+];
 
-  return (
-    <div className={`wx-advice-card ${cls}`}>
-      <div className="wx-advice-icon">{item.icon}</div>
-      <div className="wx-advice-body">
-        <div className="wx-advice-title">{item.title}</div>
-        <div className="wx-advice-detail">{item.detail}</div>
-      </div>
-    </div>
-  );
-}
+// How each kind of advice is shown, and the order it is listed in.
+const ADVICE_LOOK = {
+  danger:  { tone: "red",    Icon: TriangleAlert, rank: 0 },
+  warning: { tone: "amber",  Icon: ShieldAlert,   rank: 1 },
+  risk:    { tone: "violet", Icon: ShieldAlert,   rank: 2 },
+  action:  { tone: "green",  Icon: Check,         rank: 3 },
+  info:    { tone: "sky",    Icon: Info,          rank: 4 },
+};
 
-function ForecastRow({ day, t }) {
-  const date = new Date(day.date);
-  const dayName = date.toLocaleDateString("en-LK", { weekday: "short", month: "short", day: "numeric" });
-  return (
-    <div className="wx-forecast-row">
-      <div className="wx-fc-date">{dayName}</div>
-      <div className="wx-fc-icon">{day.icon}</div>
-      <div className="wx-fc-cond">{day.condition}</div>
-      <div className="wx-fc-temps">
-        <span className="wx-fc-max">{day.max_temp?.toFixed(1)}°</span>
-        <span className="wx-fc-sep">/</span>
-        <span className="wx-fc-min">{day.min_temp?.toFixed(1)}°</span>
-      </div>
-      <div className="wx-fc-rain">
-        {day.rain_mm > 0 ? `💧 ${day.rain_mm?.toFixed(1)} mm` : "—"}
-        {day.precip_prob > 0 && (
-          <span className="wx-fc-prob"> ({Math.round(day.precip_prob)}%)</span>
-        )}
-      </div>
-    </div>
-  );
-}
+// WMO weather code -> the colour mood of the "now" card.
+const skyMood = code => (code >= 95 ? "storm" : code >= 51 ? "rain" : code >= 2 ? "cloud" : "clear");
+
+const LOCALE = { en: "en-GB", si: "si-LK", ta: "ta-LK" };
+const num = (v, d = 0) => (v == null ? "–" : Number(v).toFixed(d));
 
 const API_BASE = ML_BASE_URL;
 
 export default function Weather({ lang, onWeatherFetched }) {
   const t = WT[lang] || WT.en;
+  const x = WX2[lang] || WX2.en;
+  const dl = DISTRICT_LABELS[lang] || {};
   const wxTourT = WX_TOUR_T[lang] || WX_TOUR_T.en;
   const [tourOpen, setTourOpen] = useState(false);
   const [district, setDistrict] = useState("");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [dayIndex, setDayIndex] = useState(0);
 
   const fetchWeather = async (d) => {
     if (!d) return;
     setLoading(true);
     setError(null);
     setData(null);
+    setDayIndex(0);
     try {
       const res = await fetch(`${API_BASE}/weather?district=${encodeURIComponent(d)}&lang=${lang}`);
       if (!res.ok) {
@@ -303,213 +326,211 @@ export default function Weather({ lang, onWeatherFetched }) {
     }
   };
 
-  const handleSelect = (e) => {
-    const val = e.target.value;
-    setDistrict(val);
-    setData(null);
-    setError(null);
-    if (val) fetchWeather(val);
+  const pick = (d) => {
+    setDistrict(d);
+    fetchWeather(d);
   };
 
+  // /wx?district=Kandy opens with that district loaded, so other tools can link
+  // straight to a district's weather.
+  const [params] = useSearchParams();
+  useEffect(() => {
+    const d = params.get("district");
+    if (d && DISTRICTS.includes(d)) pick(d);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const locale = LOCALE[lang] || LOCALE.en;
+  const dayName = (iso, i) => (i === 0 ? x.today : new Date(iso).toLocaleDateString(locale, { weekday: "short" }));
+  const forecast = data?.forecast || [];
+  const maxRain = Math.max(1, ...forecast.map(d => d.rain_mm || 0));
+  const day = forecast[dayIndex];
+  const tomorrow = forecast[1];
+  const advice = [...(data?.advice || [])].sort(
+    (a, b) => (ADVICE_LOOK[a.type]?.rank ?? 9) - (ADVICE_LOOK[b.type]?.rank ?? 9));
+
+  const seasonKey = data?.season_name;
+  const normal = data?.seasonal_rainfall?.[seasonKey];
+  const soFar = data?.season_actual_mm;
+  const pctOfNormal = normal && soFar != null ? Math.round((soFar / normal) * 100) : null;
+  const myGroup = district ? zoneGroup(district) : null;
+
+  const ZONES = [
+    { key: "wet",   dot: "#38bdf8", name: t.zone1Name, desc: t.zone1Desc, list: t.zone1Districts },
+    { key: "dry",   dot: "#f59e0b", name: t.zone2Name, desc: t.zone2Desc, list: t.zone2Districts },
+    { key: "inter", dot: "#22c55e", name: t.zone3Name, desc: t.zone3Desc, list: t.zone3Districts },
+  ];
+  const SEASONS = [
+    { key: "Maha",       dot: "var(--tu-sky)", name: t.sea1Name, months: t.sea1Months, desc: t.sea1Desc },
+    { key: "Yala",       dot: "var(--tu-sky)", name: t.sea2Name, months: t.sea2Months, desc: t.sea2Desc },
+    { key: "Year-round", dot: "var(--tu-sky)", name: t.sea3Name, months: t.sea3Months, desc: t.sea3Desc },
+  ];
+
   return (
-    <div className="page-wrapper">
-    <div className="wx-page">
-      {/* Hero */}
-      <div className="wx-hero">
-        <div className="wx-hero-inner">
-          <div className="wx-hero-badge">{t.liveWeatherBadge}</div>
-          <h1 className="wx-hero-title">{t.title}</h1>
-          <p className="wx-hero-sub">{t.subtitle}</p>
-        </div>
-      </div>
+    <div className="tu-page tu-tone-sky">
+      <ToolSwitcher />
+      <ToolIntro tool="wx" />
 
-      <div className="wx-body">
-        {/* District selector */}
-        <div className="wx-selector-card">
-          <label className="wx-selector-label">📍 {t.selectDistrict}</label>
-          <div className="wx-selector-row">
-            <CustomSelect name="district" value={district} onChange={handleSelect} data-tour="wx-district-select">
-              <option value="">{t.selectPrompt}</option>
-              {DISTRICTS.map(d => (
-                <option key={d} value={d}>{DISTRICT_LABELS[lang]?.[d] || d}</option>
-              ))}
-            </CustomSelect>
-            <button
-              className="wx-fetch-btn"
-              disabled={!district || loading}
-              onClick={() => fetchWeather(district)}
-            >
-              {loading ? "⏳" : "🔍"} {t.fetchBtn}
-            </button>
-          </div>
-        </div>
-
-        {/* Loading */}
-        {loading && (
-          <div className="wx-loading">
-            <div className="wx-spinner" />
-            <p>{t.loading}</p>
-          </div>
-        )}
-
-        {/* Error */}
-        {error && (
-          <div className="wx-error-card">
-            <div className="wx-error-icon">⚠️</div>
+      <div className={data ? "wx2-top" : "wx2-top wx2-top--solo"}>
+        {/* ── Now, or the intro before a district is picked ── */}
+        {data ? (
+          <section className={`wx2-now wx2-now--${skyMood(data.current.weather_code)} tu-rise`} data-tour="wx-current">
             <div>
-              <div className="wx-error-title">{t.errorTitle}</div>
-              <div className="wx-error-detail">{error}</div>
+              <span className="tu-eyebrow"><MapPin size={14} />{dl[data.district] || data.district} · {x.live}</span>
+              <div className="wx2-temp">
+                <b>{num(data.current.temperature)}°</b>
+                <span className="wx2-glyph" aria-hidden="true">{data.current.condition_icon}</span>
+                <span>{data.current.condition}
+                  <small>{new Date().toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" })}</small>
+                </span>
+              </div>
             </div>
-            <button className="wx-retry-btn" onClick={() => fetchWeather(district)}>
-              {t.retry}
-            </button>
+            <div className="wx2-stats">
+              <div><small><Droplets size={14} />{t.humidity}</small><b>{num(data.current.humidity)}%</b></div>
+              <div><small><Wind size={14} />{t.wind}</small><b>{num(data.current.wind_kph, 1)} km/h</b></div>
+              <div><small><CloudRain size={14} />{x.rainToday}</small><b>{num(data.current.rainfall_mm, 1)} mm</b></div>
+              <div><small><TriangleAlert size={14} />{x.rainTomorrow}</small><b>{tomorrow ? `${Math.round(tomorrow.precip_prob || 0)}%` : "–"}</b></div>
+            </div>
+          </section>
+        ) : null}
+
+        {/* ── District picker ── */}
+        <section className="tu-card wx2-pick tu-rise" data-tour="wx-district-select">
+          <div className="tu-head" style={{ marginBottom: 2 }}>
+            <span className="tu-ic tu-ic--sm"><MapPin size={18} /></span>
+            <div><h2>{x.pickTitle}</h2><small>{x.pickSub}</small></div>
           </div>
-        )}
-
-        {/* Empty state — shown before any weather is fetched */}
-        {!loading && !data && !error && (
-          <div className="wx-info-state">
-            <div className="wx-info-header">
-              <div className="wx-info-label">{t.emptyLabel}</div>
-              <h2 className="wx-info-title">{t.emptyTitle}</h2>
-              <p className="wx-info-sub">{t.emptySub}</p>
-            </div>
-
-            <div className="wx-preview-grid">
-              <div className="wx-preview-card">
-                <div className="wx-preview-icon">🌡️</div>
-                <div className="wx-preview-title">{t.prev1Title}</div>
-                <div className="wx-preview-desc">{t.prev1Desc}</div>
-                <div className="wx-preview-tags">
-                  {t.prev1Tags.map(tag => <span key={tag}>{tag}</span>)}
-                </div>
-              </div>
-              <div className="wx-preview-card">
-                <div className="wx-preview-icon">📅</div>
-                <div className="wx-preview-title">{t.prev2Title}</div>
-                <div className="wx-preview-desc">{t.prev2Desc}</div>
-                <div className="wx-preview-tags">
-                  {t.prev2Tags.map(tag => <span key={tag}>{tag}</span>)}
-                </div>
-              </div>
-              <div className="wx-preview-card">
-                <div className="wx-preview-icon">🌾</div>
-                <div className="wx-preview-title">{t.prev3Title}</div>
-                <div className="wx-preview-desc">{t.prev3Desc}</div>
-                <div className="wx-preview-tags">
-                  {t.prev3Tags.map(tag => <span key={tag}>{tag}</span>)}
-                </div>
-              </div>
-            </div>
-
-            {/* Climate zones info */}
-            <div className="wx-zones-section" data-tour="wx-empty-zones">
-              <div className="wx-info-label" style={{marginBottom:"12px"}}>{t.zonesLabel}</div>
-              <div className="wx-zones-grid">
-                <div className="wx-zone-card wx-zone-wet">
-                  <div className="wx-zone-icon">🌧️</div>
-                  <div className="wx-zone-name">{t.zone1Name}</div>
-                  <div className="wx-zone-desc">{t.zone1Desc}</div>
-                  <div className="wx-zone-districts">{t.zone1Districts}</div>
-                </div>
-                <div className="wx-zone-card wx-zone-dry">
-                  <div className="wx-zone-icon">☀️</div>
-                  <div className="wx-zone-name">{t.zone2Name}</div>
-                  <div className="wx-zone-desc">{t.zone2Desc}</div>
-                  <div className="wx-zone-districts">{t.zone2Districts}</div>
-                </div>
-                <div className="wx-zone-card wx-zone-inter">
-                  <div className="wx-zone-icon">🌤️</div>
-                  <div className="wx-zone-name">{t.zone3Name}</div>
-                  <div className="wx-zone-desc">{t.zone3Desc}</div>
-                  <div className="wx-zone-districts">{t.zone3Districts}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Farming calendar strip */}
-            <div className="wx-season-strip">
-              <div className="wx-info-label" style={{marginBottom:"12px"}}>{t.seasonsLabel}</div>
-              <div className="wx-season-grid">
-                <div className="wx-season-card">
-                  <div className="wx-season-icon">🌱</div>
-                  <div className="wx-season-name">{t.sea1Name}</div>
-                  <div className="wx-season-months">{t.sea1Months}</div>
-                  <div className="wx-season-desc">{t.sea1Desc}</div>
-                </div>
-                <div className="wx-season-card">
-                  <div className="wx-season-icon">☀️</div>
-                  <div className="wx-season-name">{t.sea2Name}</div>
-                  <div className="wx-season-months">{t.sea2Months}</div>
-                  <div className="wx-season-desc">{t.sea2Desc}</div>
-                </div>
-                <div className="wx-season-card">
-                  <div className="wx-season-icon">🥬</div>
-                  <div className="wx-season-name">{t.sea3Name}</div>
-                  <div className="wx-season-months">{t.sea3Months}</div>
-                  <div className="wx-season-desc">{t.sea3Desc}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Results */}
-        {data && (
-          <>
-            {/* Current conditions */}
-            <section className="wx-section" data-tour="wx-current">
-              <h2 className="wx-section-title">
-                {data.current.condition_icon} {t.current} — {data.district}
-              </h2>
-              <div className="wx-stats-grid">
-                <StatCard icon="🌡️" label={t.temp}     value={data.current.temperature?.toFixed(1)} unit="°C" highlight={data.current.temperature > 35} />
-                <StatCard icon="💧" label={t.humidity} value={data.current.humidity}                unit="%" highlight={data.current.humidity > 80} />
-                <StatCard icon="💨" label={t.wind}     value={data.current.wind_kph?.toFixed(1)}   unit=" km/h" highlight={data.current.wind_kph > 30} />
-                <StatCard icon="🌧️" label={t.rainfall} value={data.current.rainfall_mm?.toFixed(1)} unit=" mm" />
-                <div className="wx-stat-card wx-stat-wide">
-                  <div className="wx-stat-icon">{data.current.condition_icon}</div>
-                  <div className="wx-stat-body">
-                    <div className="wx-stat-label">{t.condition}</div>
-                    <div className="wx-stat-value">{data.current.condition}</div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Farming advice */}
-            <section className="wx-section" data-tour="wx-advice">
-              <h2 className="wx-section-title">🌾 {t.advice}</h2>
-              <div className="wx-advice-list">
-                {data.advice.map((item, i) => (
-                  <AdviceCard key={i} item={item} />
+          {GROUPS.map(g => (
+            <div className="wx2-group" key={g.key} style={{ "--dot": g.dot }}>
+              <span className="tu-label"><i />{t[g.nameKey]}</span>
+              <div className="tu-pills">
+                {DISTRICTS.filter(d => zoneGroup(d) === g.key).map(d => (
+                  <button key={d} type="button" className="tu-pill" aria-pressed={district === d} disabled={loading} onClick={() => pick(d)}>
+                    {dl[d] || d}
+                  </button>
                 ))}
               </div>
-            </section>
-
-            {/* 7-day forecast */}
-            <section className="wx-section" data-tour="wx-forecast">
-              <h2 className="wx-section-title">📅 {t.forecast}</h2>
-              <div className="wx-forecast-table">
-                <div className="wx-forecast-header">
-                  <div>{t.date}</div>
-                  <div></div>
-                  <div>{t.condition}</div>
-                  <div>{t.max} / {t.min}</div>
-                  <div>{t.rain}</div>
-                </div>
-                {data.forecast.map((day, i) => (
-                  <ForecastRow key={i} day={day} t={t} />
-                ))}
-              </div>
-            </section>
-
-            <p className="wx-source">
-              {t.source}: <a href="https://open-meteo.com" target="_blank" rel="noreferrer">{data.source}</a>
-            </p>
-          </>
-        )}
+            </div>
+          ))}
+        </section>
       </div>
+
+      {loading && (
+        <div className="tu-card tu-sec wx2-state"><span className="wx2-spin" />{t.loading}</div>
+      )}
+
+      {error && (
+        <div className="tu-card tu-sec wx2-state tu-tone-red">
+          <TriangleAlert size={22} color="var(--tu-red)" />
+          <span><b style={{ color: "var(--tu-text)" }}>{t.errorTitle}</b><br />{error}</span>
+          <button className="wx2-retry" onClick={() => fetchWeather(district)}>{t.retry}</button>
+        </div>
+      )}
+
+      {data && (
+        <>
+          {/* ── 7 days ── */}
+          <section className="tu-sec tu-rise" data-tour="wx-forecast">
+            <div className="tu-head">
+              <span className="tu-ic tu-ic--sm"><CalendarDays size={18} /></span>
+              <div><h2>{t.forecast}</h2><small>{x.daysSub}</small></div>
+            </div>
+            <div className="wx2-days">
+              {forecast.map((d, i) => (
+                <button key={d.date} type="button" className="wx2-day" aria-pressed={dayIndex === i} onClick={() => setDayIndex(i)}>
+                  <small>{dayName(d.date, i)}</small>
+                  <span className="wx2-day__ic" aria-hidden="true">{d.icon}</span>
+                  <b>{num(d.max_temp)}°</b>
+                  <div className="wx2-rng"><span>{num(d.min_temp)}°</span><i /><span>{num(d.max_temp)}°</span></div>
+                  <div className="wx2-rain"><i style={{ height: `${Math.round(((d.rain_mm || 0) / maxRain) * 100)}%` }} /></div>
+                  <em>{num(d.rain_mm, 1)} mm · {Math.round(d.precip_prob || 0)}%</em>
+                </button>
+              ))}
+            </div>
+            {day && (
+              <div className="wx2-detail">
+                <div className="tu-tile"><small>{t.condition}</small><b>{day.condition}</b></div>
+                <div className="tu-tile"><small>{x.high}</small><b>{num(day.max_temp, 1)}°C</b></div>
+                <div className="tu-tile"><small>{x.low}</small><b>{num(day.min_temp, 1)}°C</b></div>
+                <div className="tu-tile"><small>{t.rainfall}</small><b>{num(day.rain_mm, 1)} mm</b></div>
+                <div className="tu-tile"><small>{x.rainChance}</small><b>{Math.round(day.precip_prob || 0)}%</b></div>
+                <div className="tu-tile"><small>{t.humidity}</small><b>{num(day.humidity)}%</b></div>
+              </div>
+            )}
+          </section>
+
+          <div className="wx2-two tu-sec">
+            {/* ── Advice ── */}
+            <section className="tu-card tu-rise" data-tour="wx-advice">
+              <div className="tu-head">
+                <span className="tu-ic tu-ic--sm"><Sparkles size={18} /></span>
+                <div><h2>{t.advice}</h2><small>{x.adviceSub}</small></div>
+              </div>
+              {advice.map((item, i) => {
+                const look = ADVICE_LOOK[item.type] || ADVICE_LOOK.info;
+                return (
+                  <div className={`wx2-adv tu-tone-${look.tone}`} key={i}>
+                    <span className="tu-ic"><look.Icon size={20} /></span>
+                    <div><b>{item.title}</b><p>{item.detail}</p></div>
+                    <span className="tu-tag">{x.tags[item.type] || x.tags.info}</span>
+                  </div>
+                );
+              })}
+            </section>
+
+            {/* ── Season so far ── */}
+            <section className="tu-card tu-rise">
+              <div className="tu-head">
+                <span className="tu-ic tu-ic--sm"><Thermometer size={18} /></span>
+                <div>
+                  <h2>{SEA_LABELS[lang]?.[seasonKey] || seasonKey} · {x.seasonTitle}</h2>
+                  <small>{x.seasonSub} {dl[data.district] || data.district}</small>
+                </div>
+              </div>
+              <div className="wx2-cmp">
+                <span>{x.rainSoFar}</span>
+                <div className="tu-bar"><i style={{ width: `${Math.min(100, pctOfNormal ?? 0)}%`, background: "linear-gradient(90deg,#2563eb,#67e8f9)" }} /></div>
+                <b>{num(soFar)} mm</b>
+              </div>
+              <div className="wx2-cmp">
+                <span>{x.normalTotal}</span>
+                <div className="tu-bar"><i style={{ width: "100%", background: "var(--tu-dim)" }} /></div>
+                <b>{normal != null ? `${normal} mm` : "–"}</b>
+              </div>
+              <div className="wx2-tiles">
+                <div className="tu-tile"><small>{x.ofNormal}</small><b>{pctOfNormal != null ? `${pctOfNormal}%` : "–"}</b></div>
+                <div className="tu-tile"><small>{x.avgTemp}</small><b>{num(data.season_avg_temp, 1)}°</b></div>
+                <div className="tu-tile"><small>{x.avgHum}</small><b>{num(data.season_avg_humidity)}%</b></div>
+              </div>
+            </section>
+          </div>
+        </>
+      )}
+
+      {/* ── Zones and seasons: always shown, highlighted once there is data ── */}
+      <section className="tu-sec" data-tour="wx-empty-zones">
+        <div className="tu-head">
+          <span className="tu-ic tu-ic--sm"><BookOpen size={18} /></span>
+          <div><h2>{x.refTitle}</h2><small>{x.refSub}</small></div>
+        </div>
+        <div className="wx2-refs">
+          {ZONES.map(z => (
+            <div key={z.key} className={`wx2-ref${myGroup === z.key ? " wx2-ref--on" : ""}`} style={{ "--dot": z.dot }}>
+              <span>{myGroup === z.key ? x.yourZone : x.zone}</span>
+              <h3>{z.name}</h3><p>{z.desc}</p><small>{z.list}</small>
+            </div>
+          ))}
+          {SEASONS.map(se => (
+            <div key={se.key} className={`wx2-ref${seasonKey === se.key ? " wx2-ref--on" : ""}`} style={{ "--dot": se.dot }}>
+              <span>{seasonKey === se.key ? `${x.now} · ${se.months}` : se.months}</span>
+              <h3>{se.name}</h3><p>{se.desc}</p>
+            </div>
+          ))}
+        </div>
+        {data && (
+          <p className="wx2-source">{t.source}: <a href="https://open-meteo.com" target="_blank" rel="noreferrer">{data.source}</a></p>
+        )}
+      </section>
 
       <HelpButton label={wxTourT.needHelp} ariaLabel={wxTourT.helpAria} onClick={() => setTourOpen(true)} />
       <SpotlightTour
@@ -518,7 +539,6 @@ export default function Weather({ lang, onWeatherFetched }) {
         onClose={() => setTourOpen(false)}
         labels={{ next: wxTourT.next, back: wxTourT.back, skip: wxTourT.skip, done: wxTourT.done }}
       />
-    </div>
     </div>
   );
 }

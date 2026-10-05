@@ -93,7 +93,7 @@ export default function AdminReports() {
   if (!data)   return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>{t.failedLoad}</div>;
 
   return (
-    <div style={{ padding: '28px', maxWidth: '860px' }}>
+    <div style={{ padding: '28px', maxWidth: '1600px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <h2 style={{ margin: 0, color: 'var(--text)' }}>{t.title}</h2>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -129,7 +129,7 @@ export default function AdminReports() {
         </div>
       </Section>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 320px))', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
         <Section title={t.farms}>
           <div style={{ fontSize: '36px', fontWeight: 700, color: '#f57c00', marginBottom: '4px' }}>{data.farms.total}</div>
           <div style={{ fontSize: '15px', color: 'var(--muted)' }}>{t.totalFarmsReg}</div>

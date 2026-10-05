@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { ML_BASE_URL } from "../services/api";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import CultivationTracker from "../components/CultivationTracker";
-import WeatherLocationPicker from "../components/WeatherLocationPicker";
-import CustomSelect from "../components/CustomSelect";
-import { getAuthSession } from "../services/api";
+import { getActiveRole, getAuthSession } from "../services/api";
 import "../styles/CropGuidance.css";
-import { getCropLabel } from "../data/cropData";
+import "../styles/tool-cg.css";
+import { ArrowLeft, BookOpen, Bug, CalendarDays, Check, Droplets, FlaskConical, Lock, Search, ShieldAlert, ShoppingBasket, Sprout, TriangleAlert } from "lucide-react";
+import ToolSwitcher from "../components/ToolSwitcher";
+import ToolIntro from "../components/ToolIntro";
+import { getCropLabel, CROP_EMOJI } from "../data/cropData";
 import { ZONE_LABELS, FERT_TIMING_LABELS, STAGE_NAME_LABELS, PROPAGATION_LABELS } from "../data/translations";
 import SpotlightTour   from "../components/tour/SpotlightTour";
 import HelpButton      from "../components/tour/HelpButton";
@@ -17,33 +19,36 @@ const CG_TOUR_T = {
   en: {
     steps: [
       { target: 'cg-mode-tabs', title: 'Two modes', body: 'Switch between browsing the crop guide and tracking your own cultivations.' },
-      { target: 'cg-crop-select', title: 'Pick a crop', body: 'Choose any of the 41 supported crops to see its full growing guide.' },
-      { target: 'cg-generate-btn', title: 'Generate the guide', body: 'This opens a stage-by-stage plan — fertilisation, irrigation, pest control and harvest tips.' },
+      { target: 'cg-crop-select', title: "Pick a crop", body: "Search or tap any of the 41 crops. Its full growing guide opens straight away." },
+      { target: 'cg-date', title: "Planting date (optional)", body: "Add the day you planted and the guide shows which stage your crop is in today." },
       { target: 'cg-zones', title: 'Suitable growing zones', body: "See at a glance whether your area's agro-climatic zone matches this crop." },
-      { target: 'cg-tab-nav', title: 'Explore each stage', body: 'Once a guide is open, use these tabs to jump between growth stages, fertilization, irrigation, and more.' },
-      { target: 'cg-tab-content', title: 'One panel, many topics', body: 'This panel updates with the tab you pick — fertiliser schedule, irrigation timing, pest and disease alerts, or harvest readiness.' },
+      { target: 'cg-timeline', title: "Where you are now", body: "The crop's stages from land preparation to harvest. With a planting date, the current stage and what comes next are highlighted." },
+      { target: 'cg-tab-nav', title: "Explore each topic", body: "Jump between growth stages, fertilization, irrigation, diseases, pests, risks and harvest." },
+      { target: 'cg-tab-content', title: "One panel, many topics", body: "This panel shows the tab you picked: what to do at each stage, the fertiliser schedule, irrigation timing, how to handle diseases and pests, or when to harvest." },
     ],
     next: 'Next →', back: '← Back', skip: 'Skip tour', done: 'Got it', helpAria: 'Replay the guided tour', needHelp: 'Need Help',
   },
   si: {
     steps: [
       { target: 'cg-mode-tabs', title: 'ප්‍රකාර දෙකක්', body: 'බෝග මාර්ගෝපදේශය පිරික්සීම සහ ඔබේම වගාවන් නිරීක්ෂණය කිරීම අතර මාරු වන්න.' },
-      { target: 'cg-crop-select', title: 'බෝගයක් තෝරන්න', body: 'සම්පූර්ණ වගා මාර්ගෝපදේශය බැලීමට සහාය දක්වන බෝග 41න් ඕනෑම එකක් තෝරන්න.' },
-      { target: 'cg-generate-btn', title: 'මාර්ගෝපදේශය ජනනය කරන්න', body: 'මෙය අදියරෙන් අදියර සැලැස්මක් විවෘත කරයි — පොහොර, ජලය, පළිබෝධ පාලනය සහ අස්වනු ඉඟි.' },
+      { target: 'cg-crop-select', title: "බෝගයක් තෝරන්න", body: "බෝග 41න් ඕනෑම එකක් සොයන්න හෝ තට්ටු කරන්න. එහි සම්පූර්ණ වගා මාර්ගෝපදේශය එසැණින් විවෘත වේ." },
+      { target: 'cg-date', title: "සිටුවූ දිනය (අත්‍යවශ්‍ය නොවේ)", body: "ඔබ සිටුවූ දිනය එක් කළ විට, ඔබේ බෝගය අද සිටින අදියර මාර්ගෝපදේශය පෙන්වයි." },
       { target: 'cg-zones', title: 'සුදුසු වගා කලාප', body: 'ඔබේ ප්‍රදේශයේ කෘෂි-දේශගුණික කලාපය මෙම බෝගයට ගැලපෙනවාදැයි එක් බැල්මකින් බලන්න.' },
-      { target: 'cg-tab-nav', title: 'සෑම අදියරක්ම ගවේෂණය කරන්න', body: 'මාර්ගෝපදේශයක් විවෘත වූ පසු, වර්ධන අදියර, පොහොර යෙදීම, ජලය සහ තවත් දේ අතර මාරු වීමට මෙම ටැබ් භාවිතා කරන්න.' },
-      { target: 'cg-tab-content', title: 'එක් පැනලයක්, මාතෘකා රැසක්', body: 'ඔබ තෝරන ටැබය අනුව මෙම පැනලය යාවත්කාලීන වේ — පොහොර කාලසටහන, ජලය දීමේ වේලාව, පළිබෝධ සහ රෝග ඇඟවීම්, හෝ අස්වනු නෙළීමේ සූදානම.' },
+      { target: 'cg-timeline', title: "ඔබ දැන් සිටින තැන", body: "බිම් සැකසීමේ සිට අස්වැන්න දක්වා බෝගයේ අදියර. සිටුවූ දිනයක් ඇති විට, වත්මන් අදියර සහ ඊළඟට එන දේ උද්දීපනය වේ." },
+      { target: 'cg-tab-nav', title: "සෑම මාතෘකාවක්ම බලන්න", body: "වර්ධන අදියර, පොහොර, ජලය, රෝග, පළිබෝධ, අවදානම් සහ අස්වැන්න අතර මාරු වන්න." },
+      { target: 'cg-tab-content', title: "එක් පුවරුවක්, මාතෘකා රැසක්", body: "මෙම පුවරුව ඔබ තෝරාගත් ටැබය පෙන්වයි: එක් එක් අදියරේ කළ යුතු දේ, පොහොර කාලසටහන, ජල සැපයුම, රෝග සහ පළිබෝධ පාලනය, හෝ අස්වැන්න නෙළන කාලය." },
     ],
     next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
   },
   ta: {
     steps: [
       { target: 'cg-mode-tabs', title: 'இரண்டு பயன்முறைகள்', body: 'பயிர் வழிகாட்டியை உலாவுவதற்கும் உங்கள் சொந்த சாகுபடிகளை கண்காணிப்பதற்கும் இடையே மாறவும்.' },
-      { target: 'cg-crop-select', title: 'ஒரு பயிரைத் தேர்வு செய்யுங்கள்', body: 'ஆதரிக்கப்படும் 41 பயிர்களில் ஏதேனும் ஒன்றைத் தேர்ந்தெடுத்து அதன் முழு வளர்ப்பு வழிகாட்டியைப் பாருங்கள்.' },
-      { target: 'cg-generate-btn', title: 'வழிகாட்டியை உருவாக்குங்கள்', body: 'இது நிலைவாரியான திட்டத்தைத் திறக்கும் — உரமிடுதல், நீர்ப்பாசனம், பூச்சி கட்டுப்பாடு மற்றும் அறுவடை குறிப்புகள்.' },
+      { target: 'cg-crop-select', title: "ஒரு பயிரைத் தேர்ந்தெடுங்கள்", body: "41 பயிர்களில் எதையும் தேடுங்கள் அல்லது தட்டுங்கள். அதன் முழு வளர்ப்பு வழிகாட்டி உடனே திறக்கும்." },
+      { target: 'cg-date', title: "நடவு தேதி (விருப்பம்)", body: "நீங்கள் நட்ட நாளைச் சேர்த்தால், உங்கள் பயிர் இன்று எந்த நிலையில் உள்ளது என்பதை வழிகாட்டி காட்டும்." },
       { target: 'cg-zones', title: 'பொருத்தமான வளர்ப்பு மண்டலங்கள்', body: 'உங்கள் பகுதியின் வேளாண்-காலநிலை மண்டலம் இந்த பயிருக்குப் பொருந்துகிறதா என்பதை ஒரே பார்வையில் பாருங்கள்.' },
-      { target: 'cg-tab-nav', title: 'ஒவ்வொரு நிலையையும் ஆராயுங்கள்', body: 'ஒரு வழிகாட்டி திறந்தவுடன், வளர்ச்சி நிலைகள், உரமிடுதல், நீர்ப்பாசனம் மற்றும் பலவற்றுக்கு இடையே செல்ல இந்த தாவல்களைப் பயன்படுத்துங்கள்.' },
-      { target: 'cg-tab-content', title: 'ஒரு பலகம், பல தலைப்புகள்', body: 'நீங்கள் தேர்ந்தெடுக்கும் தாவலுக்கு ஏற்ப இந்த பலகம் புதுப்பிக்கப்படும் — உர அட்டவணை, நீர்ப்பாசன நேரம், பூச்சி மற்றும் நோய் எச்சரிக்கைகள், அல்லது அறுவடை தயார்நிலை.' },
+      { target: 'cg-timeline', title: "நீங்கள் இப்போது இருக்கும் இடம்", body: "நிலம் தயாரிப்பு முதல் அறுவடை வரை பயிரின் நிலைகள். நடவு தேதி இருந்தால், தற்போதைய நிலையும் அடுத்து வருவதும் சிறப்பித்துக் காட்டப்படும்." },
+      { target: 'cg-tab-nav', title: "ஒவ்வொரு தலைப்பையும் பாருங்கள்", body: "வளர்ச்சி நிலைகள், உரமிடல், நீர்ப்பாசனம், நோய்கள், பூச்சிகள், அபாயங்கள் மற்றும் அறுவடை இடையே மாறுங்கள்." },
+      { target: 'cg-tab-content', title: "ஒரு பலகை, பல தலைப்புகள்", body: "நீங்கள் தேர்ந்த தாவலை இந்தப் பலகை காட்டுகிறது: ஒவ்வொரு நிலையிலும் செய்ய வேண்டியவை, உர அட்டவணை, நீர்ப்பாசன நேரம், நோய் மற்றும் பூச்சி மேலாண்மை, அல்லது அறுவடை நேரம்." },
     ],
     next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
   },
@@ -79,16 +84,6 @@ const ACT_KEY = {
 const SEV_ICONS = { high: "🔴", medium: "🟡", low: "🟢" };
 const RISK_ICONS = { weather: "🌦️", soil: "🪨", pest: "🐛", market: "📈" };
 const TABS = ["growthStages","fertilization","irrigationGuide","diseaseMgmt","pestMgmt","riskFactors","harvestGuide"];
-
-const TAB_ICONS = {
-  growthStages:    "🌿",
-  fertilization:   "🧪",
-  irrigationGuide: "💧",
-  diseaseMgmt:     "🦠",
-  pestMgmt:        "🐛",
-  riskFactors:     "⚠️",
-  harvestGuide:    "🧺",
-};
 
 // Substitutes {0}, {1}, ... in a translation string with provided values
 function tpl(str, ...vals) {
@@ -212,37 +207,9 @@ function StagesTab({ stages, daysSince, t, lang }) {
   );
 }
 
-// ── Weather banner for guidance tabs ──────────────────────────────────────
-function WeatherTabBanner({ alerts }) {
-  if (!alerts || alerts.length === 0) return null;
-  return (
-    <div className="guidance-wx-banners">
-      {alerts.map((a, i) => (
-        <div key={i} className={`guidance-wx-alert guidance-wx-${a.type}`}>
-          <span className="guidance-wx-icon">{a.icon}</span>
-          <div>
-            <div className="guidance-wx-title">{a.title}</div>
-            <div className="guidance-wx-detail">{a.detail}</div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function FertTab({ fertilization, t, weather, lang }) {
-  const alerts = [];
-  if (weather) {
-    const rain7d   = weather.forecast?.slice(0, 2).reduce((s, d) => s + (d.rain_mm ?? 0), 0) ?? 0;
-    const humidity = weather.season_avg_humidity ?? weather.current.humidity;
-    if (rain7d > 5)
-      alerts.push({ type: "warning", icon: "🚫", title: t.wxAvoidFertTitle, detail: tpl(t.wxAvoidFertDetail, rain7d.toFixed(0)) });
-    if (humidity > 80)
-      alerts.push({ type: "risk", icon: "💧", title: t.wxHighHumFoliarTitle, detail: tpl(t.wxHighHumFoliarDetail, humidity) });
-  }
+function FertTab({ fertilization, t, lang }) {
   return (
     <div>
-      <WeatherTabBanner alerts={alerts} />
       <div className="fert-list">
         {fertilization.map((f, i) => (
           <div className="fert-card" key={i}>
@@ -269,24 +236,9 @@ function FertTab({ fertilization, t, weather, lang }) {
   );
 }
 
-function IrrigTab({ irrigation, t, weather, lang }) {
-  const alerts = [];
-  if (weather) {
-    const temperature = weather.season_avg_temp     ?? weather.current.temperature;
-    const humidity    = weather.season_avg_humidity  ?? weather.current.humidity;
-    const rain7d      = weather.forecast?.reduce((s, d) => s + (d.rain_mm ?? 0), 0) ?? 0;
-    if (temperature > 35)
-      alerts.push({ type: "action", icon: "🌡️", title: t.wxHeatStressTitle, detail: tpl(t.wxHeatStressDetail, temperature.toFixed(1)) });
-    if (rain7d > 50)
-      alerts.push({ type: "info", icon: "🌧️", title: t.wxHeavyRainTitle, detail: tpl(t.wxHeavyRainDetail, rain7d.toFixed(0)) });
-    if (rain7d < 5)
-      alerts.push({ type: "warning", icon: "☀️", title: t.wxDryWeekTitle, detail: tpl(t.wxDryWeekDetail, rain7d.toFixed(0)) });
-    if (humidity > 85)
-      alerts.push({ type: "risk", icon: "💦", title: t.wxHighHumWaterlogTitle, detail: tpl(t.wxHighHumWaterlogDetail, humidity) });
-  }
+function IrrigTab({ irrigation, t, lang }) {
   return (
     <div>
-      <WeatherTabBanner alerts={alerts} />
       <div className="irrigation-grid">
         <div className="irrig-item">
           <label>{t.irrigFreq}</label>
@@ -476,91 +428,58 @@ const GUIDE_TABS_INFO = [
     desc_ta: "எப்போது, எவ்வாறு அறுவடை செய்வது மற்றும் சிறந்த தரத்திற்காக அறுவடைக்கு பிந்தைய கையாளுதலை அறியுங்கள்." },
 ];
 
-const POPULAR_CROPS = [
-  { name: "Tomato",    emoji: "🍅" },
-  { name: "Chilli",    emoji: "🌶️" },
-  { name: "Cabbage",   emoji: "🥬" },
-  { name: "Carrot",    emoji: "🥕" },
-  { name: "Brinjal (Eggplant)", emoji: "🍆" },
-  { name: "Okra",      emoji: "🥒" },
-  { name: "Maize",     emoji: "🌽" },
-  { name: "Cowpea",    emoji: "🫘" },
-];
+// Icon for each guide tab, shared by the tab bar and the "what every guide
+// includes" tiles.
+const TAB_LOOK = {
+  growthStages:    { Icon: Sprout, },
+  fertilization:   { Icon: FlaskConical, },
+  irrigationGuide: { Icon: Droplets, },
+  diseaseMgmt:     { Icon: ShieldAlert, },
+  pestMgmt:        { Icon: Bug, },
+  riskFactors:     { Icon: TriangleAlert, },
+  harvestGuide:    { Icon: ShoppingBasket, },
+};
+// GUIDE_TABS_INFO lists six of the tabs, in this order.
+const INFO_TABS = ["growthStages", "fertilization", "irrigationGuide", "diseaseMgmt", "pestMgmt", "harvestGuide"];
 
-function GuidanceEmptyInfo({ lang }) {
-  return (
-    <div className="guidance-info-state">
+const CG2 = {
+  en: {
+    pickT: "Pick a crop", pickS: "crops with full growing guides", search: "Search crops", none: "No crop matches that search.",
+    dateL: "Planting date (optional)", dateH: "Add it to see which stage your crop is in today.",
+    getsT: "What every guide includes", getsS: "Six sections, from planting to harvest",
+    journey: "The growing journey", journeyS: "Tap a stage to read it",
+    nowT: "Where you are now", dayOf: "Day {0} of {1}", stageOf: "Stage {0} of {1}",
+    next: "Coming up next", daysLeft: "Days left in this stage",
+    notStarted: "Not planted yet", finished: "Past the harvest window",
+    duration: "Duration", spacing: "Spacing", propagation: "Propagation", today: "Today", more: "Read more", less: "Show less",
+  },
+  si: {
+    pickT: "බෝගයක් තෝරන්න", pickS: "බෝග සඳහා සම්පූර්ණ වගා මාර්ගෝපදේශ", search: "බෝග සොයන්න", none: "එම සෙවුමට ගැලපෙන බෝගයක් නැත.",
+    dateL: "සිටුවූ දිනය (විකල්ප)", dateH: "ඔබේ බෝගය අද කුමන අදියරේද යන්න බැලීමට එය එක් කරන්න.",
+    getsT: "සෑම මාර්ගෝපදේශයකම ඇතුළත් දේ", getsS: "සිටුවීමේ සිට අස්වැන්න දක්වා කොටස් හයක්",
+    journey: "වගා ගමන", journeyS: "කියවීමට අදියරක් තට්ටු කරන්න",
+    nowT: "ඔබ දැන් සිටින තැන", dayOf: "දින {1}න් {0} වන දිනය", stageOf: "අදියර {1}න් {0}",
+    next: "ඊළඟට එන දේ", daysLeft: "මෙම අදියරේ ඉතිරි දින",
+    notStarted: "තවම සිටුවා නැත", finished: "අස්වනු කාලය ඉක්මවා ඇත",
+    duration: "කාලසීමාව", spacing: "පරතරය", propagation: "ප්‍රචාරණය", today: "අද", more: "තව කියවන්න", less: "අඩුවෙන් පෙන්වන්න",
+  },
+  ta: {
+    pickT: "ஒரு பயிரைத் தேர்ந்தெடுங்கள்", pickS: "பயிர்களுக்கு முழுமையான வளர்ப்பு வழிகாட்டிகள்", search: "பயிர்களைத் தேடுங்கள்", none: "அந்தத் தேடலுக்குப் பொருந்தும் பயிர் இல்லை.",
+    dateL: "நடவு தேதி (விருப்பம்)", dateH: "உங்கள் பயிர் இன்று எந்த நிலையில் உள்ளது என்பதைக் காண இதைச் சேர்க்கவும்.",
+    getsT: "ஒவ்வொரு வழிகாட்டியிலும் உள்ளவை", getsS: "நடவு முதல் அறுவடை வரை ஆறு பிரிவுகள்",
+    journey: "வளர்ச்சிப் பயணம்", journeyS: "படிக்க ஒரு நிலையைத் தட்டவும்",
+    nowT: "நீங்கள் இப்போது இருக்கும் இடம்", dayOf: "{1} நாட்களில் {0}வது நாள்", stageOf: "{1} நிலைகளில் {0}",
+    next: "அடுத்து வருபவை", daysLeft: "இந்த நிலையில் மீதமுள்ள நாட்கள்",
+    notStarted: "இன்னும் நடவு செய்யப்படவில்லை", finished: "அறுவடைக் காலம் கடந்துவிட்டது",
+    duration: "காலம்", spacing: "இடைவெளி", propagation: "இனப்பெருக்கம்", today: "இன்று", more: "மேலும் படிக்க", less: "குறைவாகக் காட்டு",
+  },
+};
 
-      {/* What the guide includes */}
-      <div className="guidance-info-header">
-        <div className="guidance-info-label">
-          {lang === "si" ? "ඔබට ලැබෙන දේ" : lang === "ta" ? "நீங்கள் பெறுவது" : "WHAT YOU'LL GET"}
-        </div>
-        <h2 className="guidance-info-title">
-          {lang === "si" ? "ඔබේ සම්පූර්ණ ගොවිතැන් මාර්ගෝපදේශය" :
-           lang === "ta" ? "உங்கள் முழுமையான விவசாய வழிகாட்டி" :
-           "Your complete crop growing guide"}
-        </h2>
-        <p className="guidance-info-sub">
-          {lang === "si" ? "ඔබේ බෝගය සහ රෝපණ දිනය තෝරා ගෙන, බිත්තරයේ සිට අස්වනු නෙළීම දක්වා අනුගත වීමට ඔබට ගැලපෙන සම්පූර්ණ ගොවිතැන් සැලැස්මක් ලබා ගන්න." :
-           lang === "ta" ? "உங்கள் பயிரை தேர்ந்தெடுத்து நடவு தேதியை உள்ளிட்டு, நடவு முதல் அறுவடை வரை உங்களுக்கு தனிப்பயனாக்கப்பட்ட விவசாய திட்டத்தை பெறுங்கள்." :
-           "Select your crop and planting date above to get a personalised, day-by-day farming plan from sowing to harvest."}
-        </p>
-      </div>
-
-      <div className="guidance-tabs-preview">
-        {GUIDE_TABS_INFO.map((tab, i) => (
-          <div key={i} className="guidance-tab-preview-card">
-            <div className="guidance-tab-preview-icon">{tab.icon}</div>
-            <div className="guidance-tab-preview-title">{tab[lang] || tab.en}</div>
-            <div className="guidance-tab-preview-desc">{tab[`desc_${lang}`] || tab.desc_en}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Popular crops quick strip */}
-      <div className="guidance-popular-section">
-        <div className="guidance-info-label" style={{marginBottom:"12px"}}>
-          {lang === "si" ? "ජනප්‍රිය බෝග" : lang === "ta" ? "பிரபலமான பயிர்கள்" : "POPULAR CROPS"}
-        </div>
-        <div className="guidance-popular-crops">
-          {POPULAR_CROPS.map(({ name, emoji }) => (
-            <div key={name} className="guidance-popular-chip">
-              <span>{emoji}</span> {getCropLabel(name, lang)}
-            </div>
-          ))}
-        </div>
-        <p className="guidance-popular-hint">
-          {lang === "si" ? "ඉහත ක්ෂේත්‍රයෙන් ඕනෑම බෝගයක් සොයා ගෙන ඔබේ මාර්ගෝපදේශය ජනනය කරන්න." :
-           lang === "ta" ? "மேலே உள்ள தேர்வு பட்டியலில் இருந்து எந்த பயிரையும் தேர்ந்தெடுத்து உங்கள் வழிகாட்டியை உருவாக்குங்கள்." :
-           "Find any of these and more in the crop dropdown above — then generate your guide."}
-        </p>
-      </div>
-
-      {/* How it works strip */}
-      <div className="guidance-how-strip">
-        {[
-          { step: "1", icon: "🌾", en: "Select your crop", si: "ඔබේ බෝගය තෝරන්න", ta: "உங்கள் பயிரை தேர்ந்தெடுங்கள்" },
-          { step: "2", icon: "📅", en: "Enter planting date", si: "රෝපණ දිනය ඇතුළත් කරන්න", ta: "நடவு தேதியை உள்ளிடுங்கள்" },
-          { step: "3", icon: "✨", en: "Generate your guide", si: "ඔබේ මාර්ගෝපදේශය ජනනය කරන්න", ta: "உங்கள் வழிகாட்டியை உருவாக்குங்கள்" },
-          { step: "4", icon: "📋", en: "Follow the daily plan", si: "දෛනික සැලැස්ම අනුගමනය කරන්න", ta: "தினசரி திட்டத்தை பின்பற்றுங்கள்" },
-        ].map(({ step, icon, en, si, ta }) => (
-          <div key={step} className="guidance-how-step">
-            <div className="guidance-how-num">{step}</div>
-            <div className="guidance-how-icon">{icon}</div>
-            <div className="guidance-how-text">{lang === "si" ? si : lang === "ta" ? ta : en}</div>
-          </div>
-        ))}
-      </div>
-
-    </div>
-  );
-}
-
-// ── Selector screen ────────────────────────────────────────────────────────
-function GuidanceSelector({ t, lang, onSelect }) {
-  const [crops,    setCrops]    = useState([]);
-  const [selected, setSelected] = useState("");
+// ── Crop picker ────────────────────────────────────────────────────────────
+function GuideCropPicker({ lang, onSelect }) {
+  const c = CG2[lang] || CG2.en;
+  const [crops, setCrops] = useState([]);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     fetch(`${API_BASE}/guidance`)
@@ -569,51 +488,40 @@ function GuidanceSelector({ t, lang, onSelect }) {
       .catch(() => {});
   }, []);
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (!selected) return;
-    onSelect(selected, null);
-  }
+  // Matches the English name as well as the translated one.
+  const q = query.trim().toLowerCase();
+  const shown = q
+    ? crops.filter(name => name.toLowerCase().includes(q) || getCropLabel(name, lang).toLowerCase().includes(q))
+    : crops;
 
   return (
-    <form className="guidance-selector" onSubmit={handleSubmit}>
-      <div className="guidance-selector-header">
-        <div className="guidance-selector-icon">📖</div>
-        <div>
-          <h2>{t.guidanceTitle}</h2>
-          <p>{t.guidanceSub}</p>
-        </div>
+    <section className="tu-card tu-rise">
+      <div className="tu-head">
+        <span className="tu-ic tu-ic--sm"><Search size={18} /></span>
+        <div><h2>{c.pickT}</h2><small>{crops.length} {c.pickS}</small></div>
       </div>
-      <div className="guidance-selector-body">
-        <div className="guidance-selector-row guidance-selector-row--single">
-          <div>
-            <label>{t.selectCrop}</label>
-            <CustomSelect
-              name="crop"
-              value={selected}
-              onChange={e => setSelected(e.target.value)}
-              data-tour="cg-crop-select"
-            >
-              <option value="">{t.selectCropPh}</option>
-              {crops.map(c => (
-                <option key={c} value={c}>{getCropLabel(c, lang)}</option>
-              ))}
-            </CustomSelect>
-          </div>
-        </div>
-        <button className="guidance-generate-btn" type="submit" disabled={!selected} data-tour="cg-generate-btn">
-          🌱 {t.generateGuide}
-        </button>
+      <div className="cg2-search">
+        <Search size={16} />
+        <input className="tu-input" type="search" placeholder={c.search} value={query} onChange={e => setQuery(e.target.value)} aria-label={c.search} />
       </div>
-    </form>
+      <div className="cg2-crops" data-tour="cg-crop-select">
+        {shown.map(name => (
+          <button key={name} type="button" className="cg2-crop" onClick={() => onSelect(name)}>
+            <span aria-hidden="true">{CROP_EMOJI[name] || "🌱"}</span>{getCropLabel(name, lang)}
+          </button>
+        ))}
+      </div>
+      {crops.length > 0 && shown.length === 0 && <p className="cg2-none">{c.none}</p>}
+    </section>
   );
 }
 
 // ── Detail screen ──────────────────────────────────────────────────────────
-function GuidanceDetail({ cropName, plantingDate, t, lang, onBack, weather }) {
+function GuidanceDetail({ cropName, plantingDate, onDateChange, t, lang, onBack }) {
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab]         = useState("growthStages");
+  const [moreOverview, setMoreOverview] = useState(false);
   const daysSince = daysSincePlanting(plantingDate);
 
   useEffect(() => {
@@ -628,55 +536,29 @@ function GuidanceDetail({ cropName, plantingDate, t, lang, onBack, weather }) {
     return () => { cancelled = true; };
   }, [cropName]);
 
-  if (loading) return <div className="guidance-empty"><p>{t.guidanceLoading}</p></div>;
-  if (!data)   return <div className="guidance-empty"><p>{t.guidanceNotFound}</p></div>;
+  if (loading) return <div className="tu-card cg2-state">{t.guidanceLoading}</div>;
+  if (!data)   return (
+    <div>
+      <button className="cg2-back" onClick={onBack}><ArrowLeft size={15} />{t.backToCrops}</button>
+      <div className="tu-card cg2-state">{t.guidanceNotFound}</div>
+    </div>
+  );
 
   const tabContent = () => {
     switch (tab) {
       case "growthStages":   return <StagesTab stages={data.stages || []} daysSince={daysSince} t={t} lang={lang} />;
-      case "fertilization":  return <FertTab   fertilization={data.fertilization || []} t={t} weather={weather} lang={lang} />;
-      case "irrigationGuide":return <IrrigTab  irrigation={data.irrigation || {}} t={t} weather={weather} lang={lang} />;
-      case "diseaseMgmt": {
-        const diseaseAlerts = [];
-        if (weather) {
-          const dTemp = weather.season_avg_temp     ?? weather.current.temperature;
-          const dHum  = weather.season_avg_humidity  ?? weather.current.humidity;
-          if (dHum > 80)
-            diseaseAlerts.push({ type: "risk", icon: "🦠", title: t.wxDiseaseFungalTitle, detail: tpl(t.wxDiseaseFungalDetail, dHum) });
-          if (dTemp > 30 && dHum > 70)
-            diseaseAlerts.push({ type: "warning", icon: "🌡️", title: t.wxWarmHumidPathTitle, detail: tpl(t.wxWarmHumidPathDetail, dTemp.toFixed(1)) });
-        }
-        return (
-          <div>
-            <WeatherTabBanner alerts={diseaseAlerts} />
-            <div className="threat-list">
-              {(data.diseases || []).map((d, i) => <ThreatCard key={i} item={d} type="disease" t={t} lang={lang} />)}
-            </div>
-          </div>
-        );
-      }
-      case "pestMgmt": {
-        const pestAlerts = [];
-        if (weather) {
-          const pTemp = weather.season_avg_temp     ?? weather.current.temperature;
-          const pHum  = weather.season_avg_humidity  ?? weather.current.humidity;
-          if (weather.current.wind_kph > 30)
-            pestAlerts.push({ type: "warning", icon: "💨", title: t.wxHighWindTitle, detail: tpl(t.wxHighWindDetail, weather.current.wind_kph.toFixed(0)) });
-          const rain2d = weather.forecast?.slice(0, 2).reduce((s, d) => s + (d.rain_mm ?? 0), 0) ?? 0;
-          if (rain2d > 5)
-            pestAlerts.push({ type: "warning", icon: "🌧️", title: t.wxRainDelayPestTitle, detail: tpl(t.wxRainDelayPestDetail, rain2d.toFixed(0)) });
-          if (pTemp > 32 && pHum > 70)
-            pestAlerts.push({ type: "risk", icon: "🐛", title: t.wxPestActivityTitle, detail: tpl(t.wxPestActivityDetail, pTemp.toFixed(1), pHum) });
-        }
-        return (
-          <div>
-            <WeatherTabBanner alerts={pestAlerts} />
-            <div className="threat-list">
-              {(data.pests || []).map((p, i) => <ThreatCard key={i} item={p} type="pest" t={t} lang={lang} />)}
-            </div>
-          </div>
-        );
-      }
+      case "fertilization":  return <FertTab   fertilization={data.fertilization || []} t={t} lang={lang} />;
+      case "irrigationGuide":return <IrrigTab  irrigation={data.irrigation || {}} t={t} lang={lang} />;
+      case "diseaseMgmt":    return (
+        <div className="threat-list">
+          {(data.diseases || []).map((d, i) => <ThreatCard key={i} item={d} type="disease" t={t} lang={lang} />)}
+        </div>
+      );
+      case "pestMgmt":       return (
+        <div className="threat-list">
+          {(data.pests || []).map((p, i) => <ThreatCard key={i} item={p} type="pest" t={t} lang={lang} />)}
+        </div>
+      );
       case "riskFactors":    return (
         <div className="threat-list">
           {(data.risks || []).map((r, i) => <ThreatCard key={i} item={r} type="risk" t={t} lang={lang} />)}
@@ -687,153 +569,225 @@ function GuidanceDetail({ cropName, plantingDate, t, lang, onBack, weather }) {
     }
   };
 
+  const c = CG2[lang] || CG2.en;
+  const stages = data.stages || [];
+  const lastDay = stages.length ? stages[stages.length - 1].day_end : 0;
+  const currentIdx = daysSince === null ? -1 : stages.findIndex(st => daysSince >= st.day_start && daysSince <= st.day_end);
+  const current = currentIdx >= 0 ? stages[currentIdx] : null;
+  const upcoming = current
+    ? (current.activities || []).filter(a => a.day >= daysSince).sort((a, b) => a.day - b.day).slice(0, 4)
+    : [];
+
+  const openTab = (key) => {
+    setTab(key);
+    document.getElementById("cg2-content")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <div>
-      <button className="guidance-back-btn" onClick={onBack}>← {t.backToCrops}</button>
+      <button className="cg2-back" onClick={onBack}><ArrowLeft size={15} />{t.backToCrops}</button>
 
       {/* Crop header */}
-      <div className="guidance-crop-header">
-        <h1>
-          {getCropLabel(cropName, lang)}
-          {lang === 'en' && data.local_name && <span className="crop-local-name"> · {data.local_name}</span>}
-        </h1>
-        {data.scientific_name && <p className="sci-name"><em>{data.scientific_name}</em>{data.family ? ` · ${data.family}` : ""}</p>}
-        <div className="guidance-crop-meta">
-          {data.duration && (
-            <span>⏱ {data.duration.min}–{data.duration.max} {t.noDays}</span>
+      <section className="cg2-hero tu-rise">
+        <div className="cg2-hero__e" aria-hidden="true">{CROP_EMOJI[cropName] || "🌱"}</div>
+        <div>
+          <span className="tu-eyebrow"><BookOpen size={14} />{t.guidanceTitle}</span>
+          <h1>
+            {getCropLabel(cropName, lang)}
+            {lang === 'en' && data.local_name && <small> · {data.local_name}</small>}
+          </h1>
+          {data.scientific_name && <em>{data.scientific_name}{data.family ? ` · ${data.family}` : ""}</em>}
+          {data.overview && (
+            <>
+              <p className={moreOverview ? "" : "cg2-clamp"}>{tF(data, "overview", lang)}</p>
+              <button type="button" className="cg2-more" onClick={() => setMoreOverview(m => !m)}>
+                {moreOverview ? c.less : c.more}
+              </button>
+            </>
           )}
-          {data.spacing && (
-            <span>📐 {data.spacing.row_cm}×{data.spacing.plant_cm} cm</span>
-          )}
-          {data.propagation && <span>🌱 {PROPAGATION_LABELS[lang]?.[data.propagation] || data.propagation}</span>}
-          {plantingDate && daysSince !== null && (
-            <span>📅 {t.stageDay} {daysSince} {t.noDays}</span>
+          <div className="cg2-facts">
+            {data.duration && <div><small>{c.duration}</small><b>{data.duration.min}–{data.duration.max} {t.noDays}</b></div>}
+            {data.spacing && <div><small>{c.spacing}</small><b>{data.spacing.row_cm} × {data.spacing.plant_cm} cm</b></div>}
+            {data.propagation && <div><small>{c.propagation}</small><b>{PROPAGATION_LABELS[lang]?.[data.propagation] || data.propagation}</b></div>}
+            {daysSince !== null && <div><small>{c.today}</small><b>{t.stageDay} {daysSince}</b></div>}
+          </div>
+          {data.zones?.length > 0 && (
+            <div className="cg2-zones" data-tour="cg-zones">
+              {t.suitableZones}
+              {data.zones.map(z => <span key={z}>{ZONE_LABELS[lang]?.[z] || z}</span>)}
+            </div>
           )}
         </div>
+      </section>
+
+      <div className="cg2-two cg2-two--solo">
+        {/* Stage timeline */}
+        {stages.length > 0 && (
+          <section className="tu-card tu-rise" data-tour="cg-timeline">
+            <div className="tu-head">
+              <span className="tu-ic tu-ic--sm"><CalendarDays size={18} /></span>
+              <div>
+                <h2>{daysSince !== null ? c.nowT : c.journey}</h2>
+                <small>
+                  {daysSince === null ? c.journeyS
+                    : daysSince < stages[0].day_start ? c.notStarted
+                    : daysSince > lastDay ? c.finished
+                    : tpl(c.dayOf, daysSince, lastDay)}
+                </small>
+              </div>
+              {current && <span className="tu-tag tu-tone-amber tu-head__end">{tpl(c.stageOf, currentIdx + 1, stages.length)}</span>}
+            </div>
+            <div className="cg2-tl" style={{ "--n": stages.length }}>
+              {stages.map((st, i) => {
+                const cls = stageBadge(st, daysSince, t)?.cls || "";
+                return (
+                  <button key={st.id} type="button" className={`cg2-st ${cls}`} onClick={() => openTab("growthStages")}>
+                    <i>{cls === "done" ? <Check size={20} strokeWidth={3} /> : st.icon || i + 1}</i>
+                    <b>{STAGE_NAME_LABELS[lang]?.[st.name] || st.name}</b>
+                    <small>{st.day_start < 0
+                      ? `${Math.abs(st.day_start)} ${t.noDays} ${t.beforePlanting}`
+                      : `${t.stageDay} ${st.day_start}–${st.day_end}`}</small>
+                  </button>
+                );
+              })}
+            </div>
+            {current && (
+              <div className="cg2-stage">
+                <div>
+                  <h3>{STAGE_NAME_LABELS[lang]?.[current.name] || current.name}</h3>
+                  {current.description && <p>{tF(current, "description", lang)}</p>}
+                  <div className="tu-tile"><small>{c.daysLeft}</small><b>{current.day_end - daysSince}</b></div>
+                </div>
+                {upcoming.length > 0 && (
+                  <div>
+                    <span className="tu-label">{c.next}</span>
+                    {upcoming.map((a, i) => (
+                      <div className="cg2-todo" key={i}>
+                        <i><Check size={14} strokeWidth={3} /></i>
+                        <span>{tF(a, "title", lang)}<small>{activityDayLabel(a.day, daysSince, t)}</small></span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            <label className="cg2-date">
+              <span>{c.dateL} — {c.dateH}</span>
+              <input className="tu-input" type="date" value={plantingDate || ""} max={new Date().toISOString().slice(0, 10)}
+                onChange={e => onDateChange(e.target.value || null)} />
+            </label>
+          </section>
+        )}
+
       </div>
 
-      {/* Overview */}
-      {data.overview && (
-        <div className="guidance-overview">{tF(data, "overview", lang)}</div>
-      )}
-
-      {/* Zones */}
-      {data.zones?.length > 0 && (
-        <div className="guidance-zones-row" data-tour="cg-zones">
-          <span className="guidance-zones-label">🗺 {t.suitableZones}</span>
-          <div className="guidance-zone-chips">
-            {data.zones.map(z => (
-              <span key={z} className="guidance-zone-chip" title="Suitable growing zone for this crop">{ZONE_LABELS[lang]?.[z] || z}</span>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Tab navigation */}
-      <div className="guidance-tabs" data-tour="cg-tab-nav">
+      <div className="cg2-tabs" data-tour="cg-tab-nav">
         {TABS.map(key => {
           const count =
             key === "diseaseMgmt" ? (data.diseases || []).length :
             key === "pestMgmt"    ? (data.pests    || []).length :
             key === "riskFactors" ? (data.risks    || []).length : 0;
+          const { Icon } = TAB_LOOK[key];
           return (
-            <button
-              key={key}
-              className={`guidance-tab-btn${tab === key ? " active" : ""}`}
-              onClick={() => setTab(key)}
-            >
-              <span className="tab-btn-icon">{TAB_ICONS[key]}</span>
-              <span className="tab-btn-label">{t[key] || key}</span>
-              {count > 0 && <span className="tab-count-badge">{count}</span>}
+            <button key={key} type="button" className="cg2-tab" aria-pressed={tab === key} onClick={() => setTab(key)}>
+              <Icon size={16} />{t[key] || key}{count > 0 && <em>{count}</em>}
             </button>
           );
         })}
       </div>
 
       {/* Tab content */}
-      <div className="guidance-section" data-tour="cg-tab-content">
-        <div className="guidance-section-hdr">
-          <span className="guidance-section-hdr-icon">
-            {{
-              growthStages:   "📅",
-              fertilization:  "🌿",
-              irrigationGuide:"💧",
-              diseaseMgmt:    "🦠",
-              pestMgmt:       "🐛",
-              riskFactors:    "⚠️",
-              harvestGuide:   "🧺",
-            }[tab]}
-          </span>
-          <span className="guidance-section-hdr-text">{t[tab]}</span>
-        </div>
-        <div className="guidance-section-body">
-          {tabContent()}
-        </div>
+      <div className="tu-card cg2-content" id="cg2-content" data-tour="cg-tab-content">
+        {tabContent()}
       </div>
     </div>
   );
 }
 
 // ── Main export ────────────────────────────────────────────────────────────
-export default function CropGuidance({ lang, t, weather, setWeather }) {
+export default function CropGuidance({ lang, t }) {
   const [mode, setMode]                 = useState("guide");   // guide | cultivations
-  const [selected, setSelected]         = useState(null);
-  const [plantingDate, setPlantingDate] = useState(null);
+  // /crop-guidance?crop=Tomato&date=2026-08-30 opens straight on that guide, so
+  // the recommendation page can link to the crop it suggested.
+  const [params] = useSearchParams();
+  const [selected, setSelected]         = useState(() => params.get("crop") || null);
+  const [plantingDate, setPlantingDate] = useState(() => (/^\d{4}-\d{2}-\d{2}$/.test(params.get("date") || "") ? params.get("date") : null));
   const { user } = getAuthSession();
-  const isLandOwner = user?.role === 'Land Owner';
+  // The role the user is acting as, not the account's primary role: a dual-role
+  // account keeps one primary role whichever side it is using.
+  const isLandOwner = Boolean(user) && getActiveRole() === 'Land Owner';
 
-  const handleSelect = useCallback((crop, date) => {
+  // The planting date is kept when switching crops; it belongs to the farmer's
+  // season, not to one crop's guide.
+  const handleSelect = useCallback((crop) => {
     setSelected(crop);
-    setPlantingDate(date);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  const handleBack = useCallback(() => {
-    setSelected(null);
-    setPlantingDate(null);
-  }, []);
+  const handleBack = useCallback(() => setSelected(null), []);
 
   const cgTourT = CG_TOUR_T[lang] || CG_TOUR_T.en;
   const [tourOpen, setTourOpen] = useState(false);
 
+  const c = CG2[lang] || CG2.en;
+
   return (
-    <div className="page-wrapper">
-    <div className="guidance-hero">
-      <div className="guidance-hero-inner">
-        <div className="guidance-hero-badge">
-          {lang === "si" ? "📖 බෝග මාර්ගෝපදේශය" : lang === "ta" ? "📖 பயிர் வழிகாட்டி" : "📖 CROP GUIDANCE"}
-        </div>
-        <h1 className="guidance-hero-title">{t.guidanceTitle}</h1>
-        <p className="guidance-hero-sub">{t.guidanceSub}</p>
-      </div>
-    </div>
-    <div className="guidance-page">
-      <WeatherLocationPicker weather={weather} onWeatherFetched={setWeather} t={t} lang={lang} />
+    <div className="tu-page tu-tone-teal">
+      <ToolSwitcher />
 
       {/* Top-level mode switcher — hidden when viewing crop detail to reduce visual clutter */}
       {!selected && (
-        <div className="guidance-mode-tabs" data-tour="cg-mode-tabs">
-          <button
-            className={`guidance-mode-tab${mode === "guide" ? " active" : ""}`}
-            onClick={() => setMode("guide")}
-          >
-            📖 {t.cropGuideTab}
+        <div className="cg2-modes" data-tour="cg-mode-tabs">
+          <button type="button" aria-pressed={mode === "guide"} onClick={() => setMode("guide")}>
+            <BookOpen size={16} />{t.cropGuideTab}
           </button>
-          <button
-            className={`guidance-mode-tab${mode === "cultivations" ? " active" : ""}`}
-            onClick={() => setMode("cultivations")}
-          >
-            🌱 {t.myCultivations}{!isLandOwner ? " 🔒" : ""}
+          <button type="button" aria-pressed={mode === "cultivations"} onClick={() => setMode("cultivations")}>
+            <Sprout size={16} />{t.myCultivations}{!isLandOwner && <Lock size={13} />}
           </button>
         </div>
       )}
 
       {mode === "guide" ? (
-        !selected
-          ? <>
-              <GuidanceSelector t={t} lang={lang} onSelect={handleSelect} />
-              <GuidanceEmptyInfo lang={lang} />
-            </>
-          : <GuidanceDetail   cropName={selected} plantingDate={plantingDate} t={t} lang={lang} onBack={handleBack} weather={weather} />
+        !selected ? (
+          <>
+            <ToolIntro tool="guide" />
+
+            <div className="cg2-pick">
+              <GuideCropPicker lang={lang} onSelect={handleSelect} />
+              <aside className="cg2-side">
+                <div className="tu-card" data-tour="cg-date">
+                  <label className="tu-label" htmlFor="cg2-date">{c.dateL}</label>
+                  <input id="cg2-date" className="tu-input" type="date" value={plantingDate || ""} max={new Date().toISOString().slice(0, 10)}
+                    onChange={e => setPlantingDate(e.target.value || null)} />
+                  <span className="cg2-hint">{c.dateH}</span>
+                </div>
+              </aside>
+            </div>
+
+            <section className="tu-sec">
+              <div className="tu-head">
+                <span className="tu-ic tu-ic--sm"><BookOpen size={18} /></span>
+                <div><h2>{c.getsT}</h2><small>{c.getsS}</small></div>
+              </div>
+              <div className="cg2-gets">
+                {GUIDE_TABS_INFO.map((info, i) => {
+                  const { Icon } = TAB_LOOK[INFO_TABS[i]];
+                  return (
+                    <div className="cg2-get" key={i}>
+                      <Icon size={24} />
+                      <b>{info[lang] || info.en}</b>
+                      <p>{info[`desc_${lang}`] || info.desc_en}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          </>
+        ) : (
+          <GuidanceDetail cropName={selected} plantingDate={plantingDate} onDateChange={setPlantingDate}
+            t={t} lang={lang} onBack={handleBack} />
+        )
       ) : !isLandOwner ? (
         <div className="cult-auth-wall">
           <div className="cult-auth-wall__icon">🔒</div>
@@ -847,15 +801,14 @@ export default function CropGuidance({ lang, t, weather, setWeather }) {
       ) : (
         <CultivationTracker t={t} lang={lang} userId={String(user.id)} />
       )}
-    </div>
 
-    <HelpButton label={cgTourT.needHelp} ariaLabel={cgTourT.helpAria} onClick={() => setTourOpen(true)} />
-    <SpotlightTour
-      steps={cgTourT.steps}
-      open={tourOpen}
-      onClose={() => setTourOpen(false)}
-      labels={{ next: cgTourT.next, back: cgTourT.back, skip: cgTourT.skip, done: cgTourT.done }}
-    />
+      <HelpButton label={cgTourT.needHelp} ariaLabel={cgTourT.helpAria} onClick={() => setTourOpen(true)} />
+      <SpotlightTour
+        steps={cgTourT.steps}
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        labels={{ next: cgTourT.next, back: cgTourT.back, skip: cgTourT.skip, done: cgTourT.done }}
+      />
     </div>
   );
 }

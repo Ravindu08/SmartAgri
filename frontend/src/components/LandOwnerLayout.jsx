@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import useDialogDismiss from '../hooks/useDialogDismiss';
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router';
 import Navbar from './Navbar';
 import CustomSelect from './CustomSelect';
@@ -54,17 +55,25 @@ const LO_LAYOUT_T = {
 };
 
 function FeedbackModal({ t, onClose }) {
+  useDialogDismiss(true, onClose);
   const [fbData, setFbData] = useState({ type: 'feedback', subject: '', message: '' });
   const [status, setStatus] = useState('idle');
 
+  const [error, setError] = useState('');
+
   const handleSend = async (e) => {
     e.preventDefault();
+    const subject = fbData.subject.trim();
+    const message = fbData.message.trim();
+    if (!subject || !message) return;
     setStatus('sending');
+    setError('');
     try {
-      await submitFeedback(fbData);
+      await submitFeedback({ ...fbData, subject, message });
       setStatus('sent');
       setTimeout(onClose, 1500);
-    } catch {
+    } catch (err) {
+      setError(err.message || 'Could not send. Please try again.');
       setStatus('idle');
     }
   };
@@ -88,8 +97,7 @@ function FeedbackModal({ t, onClose }) {
           <form onSubmit={handleSend} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '16px', color: 'var(--muted)' }}>
               {t.fbType}
-              <CustomSelect name="type" value={fbData.type} onChange={e => setFbData(d => ({ ...d, type: e.target.value }))}
-                style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '16px' }}>
+              <CustomSelect name="type" value={fbData.type} onChange={e => setFbData(d => ({ ...d, type: e.target.value }))}>
                 <option value="feedback">{t.fbTypes.feedback}</option>
                 <option value="complaint">{t.fbTypes.complaint}</option>
                 <option value="bug">{t.fbTypes.bug}</option>
@@ -97,15 +105,16 @@ function FeedbackModal({ t, onClose }) {
             </label>
             <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '16px', color: 'var(--muted)' }}>
               {t.fbSubject}
-              <input required value={fbData.subject} onChange={e => setFbData(d => ({ ...d, subject: e.target.value }))}
+              <input required maxLength={255} value={fbData.subject} onChange={e => setFbData(d => ({ ...d, subject: e.target.value }))}
                 style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '16px' }} />
             </label>
             <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '16px', color: 'var(--muted)' }}>
               {t.fbMessage}
-              <textarea required rows={4} value={fbData.message} onChange={e => setFbData(d => ({ ...d, message: e.target.value }))}
-                style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '16px', resize: 'vertical' }} />
+              <textarea required rows={4} maxLength={5000} value={fbData.message} onChange={e => setFbData(d => ({ ...d, message: e.target.value }))}
+                style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '16px', fontFamily: 'inherit', resize: 'vertical' }} />
             </label>
-            <button type="submit" disabled={status === 'sending'}
+            {error && <div className="auth-error" role="alert">⚠️ {error}</div>}
+            <button type="submit" disabled={status === 'sending' || !fbData.subject.trim() || !fbData.message.trim()}
               style={{ padding: '10px', borderRadius: '8px', border: 'none', background: 'var(--green-primary)', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '16px' }}>
               {status === 'sending' ? t.fbSending : t.fbSend}
             </button>
@@ -396,9 +405,7 @@ export default function LandOwnerLayout() {
                 onClick={() => { setNotifOpen(o => !o); setProfileOpen(false); }}
                 aria-label={t.notifications}>
                 <span className={bellShaking ? 'bell-shake' : undefined}>🔔</span>
-                {unseenCount > 0
-                  ? <span className="lo-topbar__notif-badge">{unseenCount}</span>
-                  : <span className="lo-topbar__notif-dot" />}
+                {unseenCount > 0 && <span className="lo-topbar__notif-badge">{unseenCount}</span>}
               </button>
               {notifOpen && (
                 <div className="lo-topbar__notif-panel">

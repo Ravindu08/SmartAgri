@@ -89,7 +89,7 @@ export default function RegisterPage() {
       const response = await registerUser({ ...formData, roles: selectedRoles });
       // Role-add on existing account, or auto-verified (EMAIL_ENABLED=false) — go straight to login
       if (response.message?.includes('Role added') || response.message?.includes('now log in')) {
-        navigate('/login', { replace: true, state: { registered: true } });
+        navigate('/login', { replace: true, state: { registered: true, email: formData.email } });
         return;
       }
       // New registration — email verification required
@@ -140,7 +140,7 @@ export default function RegisterPage() {
               <span>{t.nameLabel}</span>
               <div className="auth-field__input-wrap">
                 <span className="auth-field__icon">👤</span>
-                <input type="text" name="full_name" value={formData.full_name} onChange={handleChange} placeholder={t.namePlaceholder} required />
+                <input type="text" name="full_name" value={formData.full_name} onChange={handleChange} placeholder={t.namePlaceholder} minLength={2} maxLength={255} required />
               </div>
             </label>
             <label className="auth-field">

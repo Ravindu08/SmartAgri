@@ -1,5 +1,5 @@
 from fastapi import APIRouter, BackgroundTasks, Request, status
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.core.limiter import limiter
 from app.services.email import send_contact_message_email, send_quietly
@@ -8,6 +8,8 @@ router = APIRouter(prefix="/api/contact", tags=["contact"])
 
 
 class ContactMessage(BaseModel):
+    # Trimmed first, so a field of spaces fails the minimum length.
+    model_config = ConfigDict(str_strip_whitespace=True)
     name: str = Field(min_length=1, max_length=120)
     email: EmailStr
     subject: str = Field(min_length=1, max_length=200)

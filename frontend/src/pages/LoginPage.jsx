@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { loginUser, saveAuthSession, resendVerificationEmail } from '../services/api';
 import { useApp } from '../context/AppContext';
 
@@ -21,6 +21,10 @@ const LOGIN_T = {
     register: 'Register',
     backHome: 'Back to Home',
     errLoginFailed: 'Incorrect email or password',
+    errSuspended: 'Your account has been suspended. Please contact support.',
+    errTooMany: 'Too many attempts. Please wait a minute and try again.',
+    errNetwork: 'Could not reach the server. Check your connection and try again.',
+    registeredOk: 'Account created. You can log in now.',
     errNotVerified: 'Please verify your email before logging in. Check your inbox.',
     resendVerification: 'Resend verification email',
     resendOk: 'Verification email resent!',
@@ -42,6 +46,10 @@ const LOGIN_T = {
     register: 'ලියාපදිංචිය',
     backHome: 'ආරම්භ පිටුවට',
     errLoginFailed: 'ඊ-තැපැල් ලිපිනය හෝ මුරපදය වැරදිය',
+    errSuspended: 'ඔබගේ ගිණුම අත්හිටුවා ඇත. කරුණාකර සහාය අමතන්න.',
+    errTooMany: 'උත්සාහයන් වැඩියි. විනාඩියක් රැඳී නැවත උත්සාහ කරන්න.',
+    errNetwork: 'සේවාදායකයට සම්බන්ධ විය නොහැක. ඔබගේ සම්බන්ධතාව පරීක්ෂා කර නැවත උත්සාහ කරන්න.',
+    registeredOk: 'ගිණුම සාදන ලදී. දැන් ඔබට ලොග් විය හැක.',
     errNotVerified: 'ලොගින් වීමට පෙර ඔබේ ඊ-තැපෑල සත්‍යාපනය කරන්න.',
     resendVerification: 'සත්‍යාපන ඊ-තැපෑල නැවත යවන්න',
     resendOk: 'සත්‍යාපන ඊ-තැපෑල නැවත යැව්වා!',
@@ -63,6 +71,10 @@ const LOGIN_T = {
     register: 'பதிவு செய்க',
     backHome: 'முகப்பு பக்கத்திற்கு',
     errLoginFailed: 'மின்னஞ்சல் முகவரி அல்லது கடவுச்சொல் தவறானது',
+    errSuspended: 'உங்கள் கணக்கு இடைநிறுத்தப்பட்டுள்ளது. ஆதரவைத் தொடர்பு கொள்ளவும்.',
+    errTooMany: 'அதிக முயற்சிகள். ஒரு நிமிடம் காத்திருந்து மீண்டும் முயற்சிக்கவும்.',
+    errNetwork: 'சேவையகத்தை அணுக முடியவில்லை. இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.',
+    registeredOk: 'கணக்கு உருவாக்கப்பட்டது. இப்போது உள்நுழையலாம்.',
     errNotVerified: 'உள்நுழைவதற்கு முன் உங்கள் மின்னஞ்சலை சரிபாருங்கள்.',
     resendVerification: 'சரிபார்ப்பு மின்னஞ்சலை மீண்டும் அனுப்பு',
     resendOk: 'சரிபார்ப்பு மின்னஞ்சல் மீண்டும் அனுப்பப்பட்டது!',
@@ -71,9 +83,12 @@ const LOGIN_T = {
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { lang } = useApp();
   const t = LOGIN_T[lang] || LOGIN_T.en;
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  // Arriving from a finished registration: confirm it and carry the e-mail over.
+  const justRegistered = Boolean(location.state?.registered);
+  const [formData, setFormData] = useState({ email: location.state?.email || '', password: '' });
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [isNotVerified, setIsNotVerified] = useState(false);
@@ -98,8 +113,16 @@ export default function LoginPage() {
       saveAuthSession(response);
       navigate(response.redirect_to, { replace: true });
     } catch (err) {
-      if (err.message === 'EMAIL_NOT_VERIFIED') {
+      const msg = err.message || '';
+      if (msg === 'EMAIL_NOT_VERIFIED') {
         setIsNotVerified(true);
+      } else if (/suspended/i.test(msg)) {
+        setError(t.errSuspended);
+      } else if (/rate limit|too many/i.test(msg)) {
+        setError(t.errTooMany);
+      } else if (err instanceof TypeError) {
+        // fetch() throws a TypeError when the server cannot be reached at all
+        setError(t.errNetwork);
       } else {
         setError(t.errLoginFailed);
       }
@@ -184,6 +207,12 @@ export default function LoginPage() {
                 </button>
               </div>
             </label>
+
+            {justRegistered && !error && !isNotVerified && (
+              <div className="auth-error" role="status" style={{ background: 'rgba(34,197,94,0.12)', borderColor: 'rgba(34,197,94,0.45)', color: 'var(--green-primary)' }}>
+                ✓ {t.registeredOk}
+              </div>
+            )}
 
             {error && <div className="auth-error">⚠️ {error}</div>}
 

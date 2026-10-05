@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import useDialogDismiss from '../hooks/useDialogDismiss';
 import { request } from '../services/api';
 import { celebrate } from '../utils/celebrate';
 
@@ -21,6 +22,8 @@ function totalFor(order) {
 export default function PayDialog({ order, onClose, onSuccess }) {
   const [form, setForm] = useState({ cardholder: '', number: '', expiry: '', cvv: '' });
   const [status, setStatus] = useState('form'); // form | processing | error
+  // Not while the payment is going through: closing then would hide its result.
+  useDialogDismiss(true, () => { if (status !== 'processing') onClose(); });
   const [error, setError] = useState('');
   const t = T.en;
   const total = totalFor(order);
@@ -29,6 +32,7 @@ export default function PayDialog({ order, onClose, onSuccess }) {
 
   function update(field, value) {
     setForm(f => ({ ...f, [field]: value }));
+    if (status !== 'processing') setError('');
   }
 
   async function submit(e) {
