@@ -54,6 +54,11 @@ def get_current_user(
     return user
 
 
+def has_role(user: User, role: UserRole) -> bool:
+    """True when the account holds the role, as primary role or in its role list."""
+    return user.role == role or role.value in (user.roles or [])
+
+
 def get_current_land_owner(
     current_user: User = Depends(get_current_user),
 ) -> User:

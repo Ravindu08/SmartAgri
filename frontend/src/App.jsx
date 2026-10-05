@@ -11,6 +11,7 @@ import TraderLayout from './components/TraderLayout';
 import AdminLayout from './components/AdminLayout';
 import PageLoader from './components/PageLoader';
 import MotionLayer from './components/MotionLayer';
+import PageTitle from './components/PageTitle';
 
 // ── Auth / public pages ───────────────────────────────────────────────────────
 const HomePage          = lazy(() => import('./pages/HomePage'));
@@ -67,6 +68,7 @@ const AdminHarvestForecast = lazy(() => import('./pages/admin/AdminHarvestForeca
 import { T } from './data/translations';
 import './styles/globals.css';
 import './styles.css';
+import './styles/tool-ui.css';
 
 // ── 404 Not Found ─────────────────────────────────────────────────────────────
 const NOT_FOUND_T = {
@@ -98,8 +100,8 @@ function CropRecommendationPage() {
   return <CropRecommendation lang={lang} setLang={setLang} setPage={setPage} weather={weather} setWeather={setWeather} />;
 }
 function CropGuidancePage() {
-  const { lang, weather, setWeather } = useOutletContext();
-  return <CropGuidance lang={lang} t={T[lang] || T.en} weather={weather} setWeather={setWeather} />;
+  const { lang } = useOutletContext();
+  return <CropGuidance lang={lang} t={T[lang] || T.en} />;
 }
 function WeatherPage() {
   const { lang, setWeather } = useOutletContext();
@@ -196,6 +198,7 @@ export default function App() {
     <BrowserRouter>
       <AppProvider>
         <MotionLayer />
+        <PageTitle />
         <Suspense fallback={<PageLoader />}>
           <AppRoutes />
         </Suspense>

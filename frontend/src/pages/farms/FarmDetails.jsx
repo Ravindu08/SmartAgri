@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import useDialogDismiss from '../../hooks/useDialogDismiss';
 import { ML_BASE_URL } from '../../services/api';
 import { Link, useNavigate, useParams } from 'react-router';
 import { getFarm } from '../../services/farmService';
@@ -26,6 +27,7 @@ export default function FarmDetails() {
   const [toast, setToast] = useState({ type: 'success', message: '' });
 
   const [showModal, setShowModal] = useState(false);
+  useDialogDismiss(showModal, () => setShowModal(false));
   const [modalForm, setModalForm] = useState({ crop_name: '', planting_date: '' });
   const [isStarting, setIsStarting] = useState(false);
   const [modalError, setModalError] = useState('');
@@ -66,6 +68,7 @@ export default function FarmDetails() {
   const handleModalChange = (e) => {
     const { name, value } = e.target;
     setModalForm(prev => ({ ...prev, [name]: value }));
+    setModalError('');
   };
 
   const handleStartCultivating = async (e) => {

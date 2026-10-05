@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import useDialogDismiss from '../../hooks/useDialogDismiss';
 import { useLocation } from 'react-router';
 import { getCrops, deleteCrop } from '../../services/cropService';
 import { listCultivations, abandonCultivation, findSessionForCrop } from '../../utils/cultivationApi';
@@ -10,6 +11,8 @@ import CultivationTracker from '../../components/CultivationTracker';
 import Toast from '../../components/Toast';
 import SpotlightTour   from '../../components/tour/SpotlightTour';
 import HelpButton      from '../../components/tour/HelpButton';
+
+const EXPORT_T = { en: 'Export PDF', si: 'PDF බාගන්න', ta: 'PDF பதிவிறக்கு' };
 
 const MCV_TOUR_T = {
   en: {
@@ -114,6 +117,7 @@ export default function MyCultivations() {
   const [sessions,          setSessions]          = useState([]);
   const [isLoading,         setIsLoading]         = useState(true);
   const [abandonTarget,     setAbandonTarget]     = useState(null);
+  useDialogDismiss(Boolean(abandonTarget), () => setAbandonTarget(null));
   const [isAbandoning,      setIsAbandoning]      = useState(false);
   const [toast,             setToast]             = useState({ type: 'success', message: '' });
   const mcvTourT = MCV_TOUR_T[lang] || MCV_TOUR_T.en;
@@ -286,10 +290,10 @@ export default function MyCultivations() {
                           type="button"
                           style={{ background: 'var(--surface-2)', color: 'var(--text)', fontSize: '14px' }}
                           onClick={() => exportSessionPDF(session, getCropLabel(crop.crop_name, lang))}
-                          title="Export PDF report"
+                          title={EXPORT_T[lang] || EXPORT_T.en}
                           data-tour={i === 0 ? 'cult-export-pdf' : undefined}
                         >
-                          📄 Export PDF
+                          📄 {EXPORT_T[lang] || EXPORT_T.en}
                         </button>
                       </>
                     ) : (

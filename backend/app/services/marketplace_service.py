@@ -13,6 +13,7 @@ from app.models.marketplace import (
     MarketplaceOrderStatus,
     OrderPaymentStatus,
 )
+from app.models.user import User
 from app.schemas.marketplace import (
     MarketplaceListingCreate,
     MarketplaceListingUpdate,
@@ -62,7 +63,12 @@ def list_active_listings(
     max_price: Optional[float] = None,
     district: Optional[str] = None,
 ) -> list[MarketplaceListing]:
-    q = select(MarketplaceListing).where(MarketplaceListing.status == MarketplaceListingStatus.ACTIVE)
+    # A suspended seller cannot answer requests, so their listings are not offered.
+    q = (
+        select(MarketplaceListing)
+        .join(User, User.id == MarketplaceListing.owner_id)
+        .where(MarketplaceListing.status == MarketplaceListingStatus.ACTIVE, User.is_suspended.is_(False))
+    )
     if search:
         q = q.where(MarketplaceListing.crop_name.ilike(f"%{search}%"))
     if crop_type:
@@ -124,7 +130,7 @@ def create_order(db: Session, order_in: MarketplaceOrderCreate, buyer_id: int) -
     ).scalar_one_or_none()
     if listing is None:
         raise ValueError("Listing not found")
-    if listing.status != MarketplaceListingStatus.ACTIVE:
+    if listing.status != MarketplaceListingStatus.ACTIVE or (listing.owner is not None and listing.owner.is_suspended):
         raise ValueError("Listing is not available")
     if order_in.requested_quantity > listing.quantity:
         raise ValueError(f"Requested quantity exceeds available stock ({listing.quantity} {listing.unit} left)")
@@ -145,13 +151,44 @@ def create_order(db: Session, order_in: MarketplaceOrderCreate, buyer_id: int) -
         status=MarketplaceOrderStatus.PENDING,
     )
     db.add(order)
+    if order_in.buyer_note:
+        # The note written with the request opens the negotiation thread;
+        # otherwise the seller would never see it.
+        db.flush()
+        db.add(MarketplaceNegotiationMessage(
+            order_id=order.id,
+            sender_id=buyer_id,
+            message=order_in.buyer_note,
+            proposed_price=order_in.proposed_price,
+        ))
     db.commit()
     db.refresh(order)
     return order
 
 
-def get_order(db: Session, order_id: UUID) -> MarketplaceOrder | None:
-    return db.execute(select(MarketplaceOrder).where(MarketplaceOrder.id == order_id)).scalar_one_or_none()
+def get_order(db: Session, order_id: UUID, *, lock: bool = False) -> MarketplaceOrder | None:
+    q = select(MarketplaceOrder).where(MarketplaceOrder.id == order_id)
+    if lock:
+        # Row lock for anything that changes status or payment: two requests
+        # arriving together would otherwise both pass the same state check
+        # (restoring stock twice, or recording two payments).
+        q = q.with_for_update(of=MarketplaceOrder)
+    return db.execute(q).scalar_one_or_none()
+
+
+def restore_order_stock(db: Session, order: MarketplaceOrder) -> None:
+    """Give an order's quantity back to its listing.
+
+    Only a listing that was marked Sold because stock ran out goes back on
+    sale. One the seller or an admin archived stays archived.
+    """
+    listing = order.listing
+    if listing is None:
+        return
+    listing.quantity += order.requested_quantity
+    if listing.status == MarketplaceListingStatus.SOLD:
+        listing.status = MarketplaceListingStatus.ACTIVE
+    db.add(listing)
 
 
 PENDING_ORDER_MAX_AGE_DAYS = 7
@@ -175,11 +212,8 @@ def expire_stale_pending_orders(db: Session) -> None:
         order.status = MarketplaceOrderStatus.CANCELLED
         order.seller_note = ((order.seller_note + " ") if order.seller_note else "") + \
             f"[Auto-cancelled: no response within {PENDING_ORDER_MAX_AGE_DAYS} days]"
-        order.listing.quantity += order.requested_quantity
-        if order.listing.status != MarketplaceListingStatus.ACTIVE:
-            order.listing.status = MarketplaceListingStatus.ACTIVE
+        restore_order_stock(db, order)
         db.add(order)
-        db.add(order.listing)
     db.commit()
 
 
@@ -239,10 +273,7 @@ def update_order_status(
         # Quantity was already deducted at order-placement; no listing status change needed
     elif new_status == MarketplaceOrderStatus.REJECTED:
         # Restore the deducted quantity and re-activate the listing if it was marked sold
-        order.listing.quantity += order.requested_quantity
-        if order.listing.status != MarketplaceListingStatus.ACTIVE:
-            order.listing.status = MarketplaceListingStatus.ACTIVE
-        db.add(order.listing)
+        restore_order_stock(db, order)
     elif new_status == MarketplaceOrderStatus.DELIVERED:
         order.delivered_at = datetime.now(timezone.utc)
     elif new_status == MarketplaceOrderStatus.COMPLETED:
@@ -252,10 +283,7 @@ def update_order_status(
             order.listing.status = MarketplaceListingStatus.SOLD
     elif new_status == MarketplaceOrderStatus.CANCELLED:
         # Restore quantity for any cancellation (Pending or Confirmed)
-        order.listing.quantity += order.requested_quantity
-        if order.listing.status != MarketplaceListingStatus.ACTIVE:
-            order.listing.status = MarketplaceListingStatus.ACTIVE
-        db.add(order.listing)
+        restore_order_stock(db, order)
 
     db.add(order)
     db.commit()
@@ -270,6 +298,13 @@ def add_negotiation(
     sender_role: str,
     sender_id: int,
 ) -> MarketplaceOrder:
+    if order.status not in (MarketplaceOrderStatus.PENDING, MarketplaceOrderStatus.CONFIRMED):
+        raise ValueError("This order is closed, so no more notes can be added")
+    # The price is fixed once the seller confirms; a later offer would change
+    # what the order shows without changing what is charged.
+    if message.proposed_price is not None and order.status != MarketplaceOrderStatus.PENDING:
+        raise ValueError("The price can only be negotiated while the order is pending")
+
     # Denormalized "current offer" snapshot on the order — this is what
     # update_order_status reads when confirming, so it must stay in sync.
     if sender_role == "Trader":
