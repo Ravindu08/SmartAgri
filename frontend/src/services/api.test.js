@@ -25,6 +25,7 @@ import {
   getActiveRole,
   getUserRoles,
   isDualRole,
+  errorMessage,
 } from './api.js';
 
 beforeEach(() => localStorage.clear());
@@ -134,5 +135,35 @@ describe('isDualRole', () => {
     const u = { id: 2, role: 'Trader', roles: ['Trader'] };
     localStorage.setItem('smartagri_user', JSON.stringify(u));
     expect(isDualRole()).toBe(false);
+  });
+});
+
+// ── errorMessage ───────────────────────────────────────────────────────────────
+
+describe('errorMessage', () => {
+  it('passes a plain string through', () => {
+    expect(errorMessage('Email is already registered')).toBe('Email is already registered');
+  });
+
+  it('turns a validation error list into readable text', () => {
+    const detail = [
+      { loc: ['body', 'price_per_unit'], msg: 'Input should be greater than 0' },
+      { loc: ['body', 'crop_name'], msg: 'String should have at least 1 character' },
+    ];
+    expect(errorMessage(detail)).toBe(
+      'price per unit: Input should be greater than 0; crop name: String should have at least 1 character',
+    );
+  });
+
+  it('falls back when there is nothing to show', () => {
+    expect(errorMessage(undefined)).toBe('Request failed');
+    expect(errorMessage([])).toBe('Request failed');
+  });
+});
+
+describe('getAuthSession with damaged storage', () => {
+  it('returns no user instead of throwing', () => {
+    localStorage.setItem('smartagri_user', '{not json');
+    expect(getAuthSession().user).toBeNull();
   });
 });

@@ -36,7 +36,10 @@ export default function AdminUserCreate() {
   const toggleRole = (role) => {
     setForm(f => {
       const has = f.roles.includes(role);
-      const next = has ? f.roles.filter(r => r !== role) : [...f.roles, role];
+      // Admin stands alone: an administrator is not also a land owner or trader.
+      if (role === 'Admin') return { ...f, roles: has ? f.roles : ['Admin'] };
+      const others = f.roles.filter(r => r !== 'Admin');
+      const next = has ? others.filter(r => r !== role) : [...others, role];
       return { ...f, roles: next.length ? next : f.roles };
     });
   };
@@ -67,10 +70,10 @@ export default function AdminUserCreate() {
   );
 
   return (
-    <div style={{ padding: '28px', maxWidth: '520px' }}>
+    <div style={{ padding: '28px', maxWidth: '760px' }}>
       <h2 style={{ margin: '0 0 24px', color: 'var(--text)' }}>{t.title}</h2>
       <form onSubmit={handleSubmit} className="fx-card fx-form" style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', padding: '28px' }}>
-        {field(t.labelFullName, 'full_name')}
+        {field(t.labelFullName, 'full_name', 'text', { minLength: 2, maxLength: 255 })}
         {field(t.labelEmail, 'email', 'email')}
         {field(t.labelPassword, 'password', 'password', { minLength: 8 })}
 
@@ -82,12 +85,12 @@ export default function AdminUserCreate() {
               const colors = { 'Land Owner': '#2d6a4f', 'Trader': '#1565c0', 'Admin': '#7c3aed' };
               const c = colors[role];
               return (
-                <button key={role} type="button" onClick={() => toggleRole(role)}
+                <button key={role} type="button" aria-pressed={active} onClick={() => toggleRole(role)}
                   style={{
                     padding: '6px 16px', borderRadius: '8px', fontSize: '15px', fontWeight: 600, cursor: 'pointer',
-                    border: `1px solid ${active ? c : 'var(--border)'}`,
-                    background: active ? c + '18' : 'none', color: active ? c : 'var(--muted)',
-                  }}>{role}</button>
+                    border: `2px solid ${active ? c : 'var(--border)'}`,
+                    background: active ? c + '40' : 'none', color: active ? 'var(--text)' : 'var(--muted)',
+                  }}>{active ? '✓ ' : ''}{role}</button>
               );
             })}
           </div>

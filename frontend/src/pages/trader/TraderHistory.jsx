@@ -34,12 +34,18 @@ const TRH_TOUR_T = {
   },
 };
 
+const RATE_T = {
+  en: { rate: 'Rate the seller', rated: 'Rated' },
+  si: { rate: 'විකුණුම්කරු ඇගයීම', rated: 'ඇගයීම් කළා' },
+  ta: { rate: 'விற்பனையாளரை மதிப்பிடு', rated: 'மதிப்பிடப்பட்டது' },
+};
+
 const T = {
   en: {
     title: 'Transaction History', subtitle: 'A record of all your completed and cancelled transactions',
     noHistory: 'No transaction history yet.', noHistorySub: 'Completed and cancelled orders will appear here.',
     goToMarket: 'Browse Marketplace',
-    crop: 'Crop', qty: 'Quantity', price: 'Price / kg', totalSpent: 'Total Spent',
+    crop: 'Crop', qty: 'Quantity', price: 'Unit price', totalSpent: 'Total Spent',
     seller: 'Seller', orderedOn: 'Date', status: 'Status',
     Completed: 'Completed', Cancelled: 'Cancelled', Rejected: 'Rejected',
     filterAll: 'All', filterCompleted: 'Completed', filterCancelled: 'Cancelled',
@@ -50,7 +56,7 @@ const T = {
     title: 'ගනුදෙනු ඉතිහාසය', subtitle: 'ඔබේ සම්පූර්ණ ගනුදෙනු වාර්තාව',
     noHistory: 'ගනුදෙනු ඉතිහාසය නොමැත.', noHistorySub: 'සම්පූර්ණ ඇණවුම් මෙහිදී දිස් වේ.',
     goToMarket: 'වෙළඳසැල බලන්න',
-    crop: 'බෝගය', qty: 'ප්‍රමාණය', price: 'මිල / kg', totalSpent: 'මුළු වියදම',
+    crop: 'බෝගය', qty: 'ප්‍රමාණය', price: 'ඒකක මිල', totalSpent: 'මුළු වියදම',
     seller: 'විකුණුම්කරු', orderedOn: 'දිනය', status: 'තත්ත්වය',
     Completed: 'සම්පූර්ණ', Cancelled: 'අවලංගු', Rejected: 'ප්‍රතික්ෂේප',
     filterAll: 'සියල්ල', filterCompleted: 'සම්පූර්ණ', filterCancelled: 'අවලංගු',
@@ -61,7 +67,7 @@ const T = {
     title: 'பரிவர்த்தனை வரலாறு', subtitle: 'உங்கள் அனைத்து பரிவர்த்தனைகளின் பதிவு',
     noHistory: 'பரிவர்த்தனை வரலாறு இல்லை.', noHistorySub: 'முடிந்த மற்றும் ரத்தான ஆர்டர்கள் இங்கே தோன்றும்.',
     goToMarket: 'சந்தையை உலாவுக',
-    crop: 'பயிர்', qty: 'அளவு', price: 'விலை / kg', totalSpent: 'மொத்த செலவு',
+    crop: 'பயிர்', qty: 'அளவு', price: 'அலகு விலை', totalSpent: 'மொத்த செலவு',
     seller: 'விற்பனையாளர்', orderedOn: 'தேதி', status: 'நிலை',
     Completed: 'முடிந்தது', Cancelled: 'ரத்து', Rejected: 'நிராகரிக்கப்பட்டது',
     filterAll: 'அனைத்தும்', filterCompleted: 'முடிந்தவை', filterCancelled: 'ரத்தானவை',
@@ -134,7 +140,7 @@ export default function TraderHistory() {
 
       {/* Summary cards */}
       {historyOrders.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 240px))', gap: '12px' }} data-tour="tr-hist-summary">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }} data-tour="tr-hist-summary">
           <div className="fx-card" style={{
             background: 'var(--card)', border: '1px solid var(--border)',
             borderRadius: '10px', padding: '16px',
@@ -147,7 +153,7 @@ export default function TraderHistory() {
             borderRadius: '10px', padding: '16px',
           }}>
             <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--green)' }}>
-              Rs. {totalValue.toFixed(2)}
+              Rs. {totalValue.toLocaleString()}
             </div>
             <div style={{ fontSize: '15px', color: 'var(--muted)', marginTop: '4px' }}>{t.totalValue}</div>
           </div>
@@ -156,7 +162,7 @@ export default function TraderHistory() {
             borderRadius: '10px', padding: '16px',
           }}>
             <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--green)' }}>{completedOrders.length}</div>
-            <div style={{ fontSize: '15px', color: 'var(--muted)', marginTop: '4px' }}>{t.completed}</div>
+            <div style={{ fontSize: '15px', color: 'var(--muted)', marginTop: '4px' }}>{t.Completed}</div>
           </div>
         </div>
       )}
@@ -232,7 +238,7 @@ export default function TraderHistory() {
           {filtered.map((order, i) => {
             const stStyle = STATUS_STYLE[order.status] || STATUS_STYLE.Completed;
             const price   = order.agreed_price || order.proposed_price || 0;
-            const total   = (price * (order.requested_quantity || 0)).toFixed(2);
+            const total   = (price * (order.requested_quantity || 0)).toLocaleString();
             return (
               <div key={order.id} style={{
                 display: 'grid',
@@ -253,10 +259,18 @@ export default function TraderHistory() {
                       ? new Date(order.created_at).toLocaleDateString()
                       : '—'}
                   </div>
+                  {/* Rating and the receipt live on the marketplace's history tab */}
+                  {order.status === 'Completed' && (
+                    order.rated
+                      ? <div style={{ fontSize: '14px', color: 'var(--muted)', marginTop: '4px' }}>⭐ {RATE_T[lang]?.rated || RATE_T.en.rated}</div>
+                      : <Link to="/marketplace?tab=history" style={{ display: 'inline-block', fontSize: '14px', fontWeight: 600, color: 'var(--accent)', marginTop: '4px', textDecoration: 'none' }}>
+                          ⭐ {RATE_T[lang]?.rate || RATE_T.en.rate} →
+                        </Link>
+                  )}
                 </div>
-                <div style={{ fontSize: '16px', color: 'var(--text)' }}>{order.requested_quantity} kg</div>
+                <div style={{ fontSize: '16px', color: 'var(--text)' }}>{order.requested_quantity} {order.unit ?? 'kg'}</div>
                 <div style={{ fontSize: '16px', color: 'var(--text)' }}>
-                  {price ? `Rs. ${price}${t.perKg}` : '—'}
+                  {price ? `Rs. ${price}/${order.unit ?? 'kg'}` : '—'}
                 </div>
                 <div style={{ fontSize: '16px', fontWeight: 600, color: order.status === 'Completed' ? 'var(--green)' : 'var(--muted)' }}>
                   {order.status === 'Completed' ? `Rs. ${total}` : '—'}

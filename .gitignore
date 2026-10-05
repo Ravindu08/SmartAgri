@@ -59,6 +59,8 @@ frontend/public/test-login.html
 
 # Dataset exports and Office documents (reference material, not code)
 data/
+# ...but the frontend's own data modules are source code.
+!frontend/src/data/
 *.docx
 *.xlsx
 
