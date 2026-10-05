@@ -7,6 +7,21 @@ server {
     return 301 https://${DOMAIN}$request_uri;
 }
 
+# HTTPS by any other name — the bare IP, or an old hostname — goes to the
+# domain too. Without this block nginx serves the site for whatever name was
+# asked for, so the address bar keeps the IP. (The browser still warns once on
+# https://<ip>, because the certificate is for the domain; that cannot be
+# avoided, but after it the visitor lands on the right address.)
+server {
+    listen 443 ssl default_server;
+    server_name _;
+
+    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+
+    return 301 https://${DOMAIN}$request_uri;
+}
+
 server {
     listen 443 ssl;
     server_name ${DOMAIN};
