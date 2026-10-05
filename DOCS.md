@@ -214,7 +214,6 @@ SmartAgri/
         │   ├── CropPicker.jsx          # Shared crop selector
         │   ├── FeatureCard.jsx         # Feature card used on the landing page
         │   ├── SuitBar.jsx             # Parameter suitability bar (N/P/K/pH etc. vs ideal range)
-        │   ├── XAIFeatureCard.jsx      # Feature contribution bars for XAI section
         │   ├── CalendarCard.jsx        # Planting/harvest calendar card
         │   ├── CompareCard.jsx         # Top-3 crops comparison table
         │   ├── HistoryPanel.jsx        # Prediction history (localStorage)
@@ -1115,7 +1114,6 @@ Once `payment_status=Paid`, the order's `Confirmed → Delivered` transition (bl
 - **Fixed a marketplace migration bug that could wipe a fresh database:** the migration created its ENUM types both explicitly and via `op.create_table()`'s automatic type creation, causing a `DuplicateObject` error that rolled back the entire migration transaction — including the `users` table — on first run against an empty database. Only surfaced now because local dev never re-runs migrations from empty.
 - Added `.dockerignore` to `backend/` and `frontend/` so `.env` secrets don't get baked into built images.
 - Fixed three separate nginx trailing-slash infinite-redirect loops (`/guidance`, `/predict`, `/cultivation`) that silently broke the crop-guidance dropdown and the "Start Growing" cultivation tracker; proxied `/health` through nginx so the homepage's "Platform Ready" connectivity check works.
-- Added `DEPLOY_GCP.md`, a Compute Engine + docker-compose deployment runbook.
 
 **Guided tours**
 - Removed auto-open-on-first-visit everywhere; the "Need Help" pill button (replacing the old bare "?" icon) is now the sole way to open a tour. Deleted the now-unused `useAutoOpenOnce` hook.
