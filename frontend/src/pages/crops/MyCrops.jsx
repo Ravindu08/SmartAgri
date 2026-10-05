@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import useDialogDismiss from '../../hooks/useDialogDismiss';
 import { Link, useNavigate } from 'react-router';
 import { getCrops, deleteCrop } from '../../services/cropService';
 import { listCultivations, abandonCultivation, findSessionForCrop } from '../../utils/cultivationApi';
@@ -62,6 +63,7 @@ export default function MyCrops() {
   const [statusFilter, setStatusFilter] = useState('Active');
   const [toast,        setToast]        = useState({ type: 'success', message: '' });
   const [abandonTarget, setAbandonTarget] = useState(null);
+  useDialogDismiss(Boolean(abandonTarget), () => setAbandonTarget(null));
   const [isAbandoning,  setIsAbandoning]  = useState(false);
   const mcTourT = MC_TOUR_T[lang] || MC_TOUR_T.en;
   const [tourOpen, setTourOpen] = useState(false);

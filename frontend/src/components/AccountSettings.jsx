@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import useDialogDismiss from '../hooks/useDialogDismiss';
 import { useNavigate } from 'react-router';
 import {
   getAuthSession,
@@ -16,6 +17,12 @@ import { LAND_T } from '../data/translations';
 import Toast from './Toast';
 import SpotlightTour   from './tour/SpotlightTour';
 import HelpButton      from './tour/HelpButton';
+
+const PHONE_T = {
+  en: { label: 'Phone Number', hint: 'Shared with the other party once an order is confirmed.', invalid: 'Enter a valid phone number, for example +94 77 123 4567.' },
+  si: { label: 'දුරකථන අංකය', hint: 'ඇණවුමක් තහවුරු වූ පසු අනෙක් පාර්ශවයට පෙන්වයි.', invalid: 'වලංගු දුරකථන අංකයක් ඇතුළත් කරන්න, උදා: +94 77 123 4567.' },
+  ta: { label: 'தொலைபேசி எண்', hint: 'ஆர்டர் உறுதியான பிறகு மறு தரப்புக்குக் காட்டப்படும்.', invalid: 'சரியான தொலைபேசி எண்ணை உள்ளிடவும், எ.கா. +94 77 123 4567.' },
+};
 
 const AS_TOUR_T = {
   en: {
@@ -82,6 +89,11 @@ export default function AccountSettings() {
     if (!profileForm.full_name.trim()) {
       setToast({ type: 'error', message: t.settingsToastNameRequired }); return;
     }
+    const phone = profileForm.phone_number.trim();
+    const phoneDigits = phone.replace(/\D/g, '');
+    if (phone && (!/^\+?[0-9][0-9 ()-]*$/.test(phone) || phoneDigits.length < 7 || phoneDigits.length > 15)) {
+      setToast({ type: 'error', message: PHONE_T[lang]?.invalid || PHONE_T.en.invalid }); return;
+    }
     setProfileSaving(true);
     try {
       const updated = await updateUserProfile({
@@ -142,6 +154,7 @@ export default function AccountSettings() {
   const [deleteConfirm, setDeleteConfirm]   = useState('');
   const [deleteLoading, setDeleteLoading]   = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  useDialogDismiss(showDeleteModal, () => setShowDeleteModal(false));
 
   const handleDelete = async () => {
     if (deleteConfirm.toLowerCase() !== 'delete') {
@@ -286,7 +299,7 @@ export default function AccountSettings() {
               />
             </div>
             <div className="settings-field">
-              <label htmlFor="phone_number">Phone Number</label>
+              <label htmlFor="phone_number">{PHONE_T[lang]?.label || PHONE_T.en.label}</label>
               <input
                 id="phone_number"
                 name="phone_number"
@@ -296,7 +309,7 @@ export default function AccountSettings() {
                 placeholder="+94 77 123 4567"
                 maxLength={20}
               />
-              <span className="settings-field__hint">Visible to buyers/sellers so they can contact you to negotiate.</span>
+              <span className="settings-field__hint">{PHONE_T[lang]?.hint || PHONE_T.en.hint}</span>
             </div>
             <div className="settings-field settings-field--readonly">
               <label>{t.settingsRole}</label>

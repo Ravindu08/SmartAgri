@@ -94,7 +94,7 @@ export default function AdminHarvestForecast() {
   const headers = [t.colFarm, t.colFarmer, t.colDistrict, t.colCrop, t.colPlanted, t.colHarvest, t.colSize];
 
   return (
-    <div style={{ padding: '28px', maxWidth: '1100px' }}>
+    <div style={{ padding: '28px', maxWidth: '1600px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <h2 style={{ margin: 0, color: 'var(--text)' }}>
           {t.title}

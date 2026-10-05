@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { request } from '../services/api';
+import { getAuthSession, request } from '../services/api';
 import '../styles/Contact.css';
 
 const CONTACT_T = {
@@ -75,7 +75,11 @@ const CONTACT_T = {
 export default function ContactPage() {
   const { lang } = useApp();
   const t = CONTACT_T[lang] || CONTACT_T.en;
-  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+  // A signed-in visitor doesn't have to type who they are again.
+  const [form, setForm] = useState(() => {
+    const { user } = getAuthSession();
+    return { name: user?.full_name || '', email: user?.email || '', subject: '', message: '' };
+  });
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
@@ -84,16 +88,19 @@ export default function ContactPage() {
 
   const handleSubmit = async e => {
     e.preventDefault();
+    const name = form.name.trim();
+    const message = form.message.trim();
+    if (!name || !message) { setError(t.errorMsg); return; }
     setSending(true);
     setError('');
     try {
       await request('/api/contact', {
         method: 'POST',
         body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          subject: form.subject || 'SmartAgri Contact',
-          message: form.message,
+          name,
+          email: form.email.trim(),
+          subject: form.subject.trim() || 'SmartAgri Contact',
+          message,
         }),
       });
       setSent(true);

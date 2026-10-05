@@ -119,7 +119,7 @@ export default function EditFarm() {
         season: formData.season,
         image_data: formData.image_data || null,
       });
-      navigate('/landowner/farms', { replace: true });
+      navigate('/landowner/farms', { replace: true, state: { saved: true } });
     } catch (error) {
       setToast({ type: 'error', message: error.message });
     } finally {

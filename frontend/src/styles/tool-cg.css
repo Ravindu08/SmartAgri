@@ -47,6 +47,7 @@
 .cg2-zones { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; font-size: 14.5px; }
 .cg2-zones span { padding: 4px 10px; border-radius: 999px; background: rgba(255, 255, 255, .2); border: 1px solid rgba(255, 255, 255, .3); font-weight: 500; }
 
+.cg2-two--solo { grid-template-columns: minmax(0, 1fr) !important; }
 .cg2-two { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 22px; align-items: start; margin-bottom: 22px; }
 .cg2-tl { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); margin: 6px 0 18px; }
 .cg2-st { position: relative; border: 0; background: none; cursor: pointer; padding: 0 4px; text-align: center; font-family: var(--ff); color: var(--tu-text); }

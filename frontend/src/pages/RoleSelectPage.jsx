@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router';
+import { Navigate, useNavigate } from 'react-router';
 import { getAuthSession, setActiveRole, getUserRoles, clearAuthSession } from '../services/api';
 import { useApp } from '../context/AppContext';
 
@@ -47,9 +47,12 @@ export default function RoleSelectPage() {
   const { user } = getAuthSession();
   const roles = getUserRoles();
 
-  if (!user) {
-    navigate('/login', { replace: true });
-    return null;
+  // Redirects are rendered: calling navigate() while rendering is ignored, which left this page blank.
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role === 'Admin') return <Navigate to="/admin/dashboard" replace />;
+  // Nothing to choose with a single role.
+  if (roles.length === 1 && ROLE_CONFIG[roles[0]]) {
+    return <Navigate to={ROLE_CONFIG[roles[0]].path} replace />;
   }
 
   const handleSelect = (role) => {

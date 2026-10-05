@@ -1505,8 +1505,9 @@
 .toast {
   position: fixed;
   right: 1.5rem;
-  bottom: 1.5rem;
-  z-index: 60;
+  /* Sits above the floating "Need Help" button instead of under it. */
+  bottom: 5.25rem;
+  z-index: 1200;
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
@@ -1532,13 +1533,13 @@
 }
 
 [data-theme="dark"] .toast--success {
-  background: rgba(124, 197, 118, 0.14);
+  background: #14291c;
   border-color: rgba(124, 197, 118, 0.28);
   color: #d9f8e4;
 }
 
 [data-theme="dark"] .toast--error {
-  background: rgba(244, 114, 182, 0.12);
+  background: #2e1620;
   border-color: rgba(244, 114, 182, 0.22);
   color: #ffe4ee;
 }
@@ -3896,6 +3897,12 @@
   color: var(--text);
 }
 
+/* The photo drop zone is a label too; keep its stacked, centred layout. */
+.farm-form label.farm-form__image-drop {
+  display: flex;
+  text-align: center;
+}
+
 .farm-form label>input,
 .farm-form label>select,
 .farm-form label>textarea,
@@ -4122,7 +4129,7 @@
 /* Farm/Crop detail pages */
 .farm-detail-page,
 .crop-detail-page {
-  max-width: 900px;
+  max-width: 1400px;
   animation: fadeInUp 0.35s ease;
 }
 
@@ -4185,7 +4192,7 @@
 .crop-detail-body {
   padding: 28px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: 24px;
 }
 
@@ -4472,7 +4479,8 @@
   transition: background-color var(--tr);
 }
 
-.csel__opt:hover {
+.csel__opt:hover,
+.csel__opt--active {
   background: var(--surface-2);
 }
 
@@ -5420,7 +5428,7 @@
 
 /* ── Settings page ────────────────────────────────────────────────────────── */
 .settings-page {
-  max-width: 640px;
+  max-width: 980px;
   padding: 24px 0;
   display: flex;
   flex-direction: column;
@@ -5518,9 +5526,15 @@
 }
 
 .settings-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 16px 20px;
+  align-items: start;
+}
+
+/* The save button row always spans the form */
+.settings-form .settings-actions {
+  grid-column: 1 / -1;
 }
 
 .settings-field {

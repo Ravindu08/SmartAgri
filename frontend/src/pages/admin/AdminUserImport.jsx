@@ -128,7 +128,7 @@ export default function AdminUserImport() {
   };
 
   return (
-    <div style={{ padding: '28px', maxWidth: '780px' }}>
+    <div style={{ padding: '28px', maxWidth: '1200px' }}>
       <button onClick={() => navigate('/admin/users')} type="button"
         style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '15px', marginBottom: '16px', padding: 0 }}>
         {t.back}

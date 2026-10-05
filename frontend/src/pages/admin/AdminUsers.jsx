@@ -95,9 +95,13 @@ export default function AdminUsers() {
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 2500); };
 
   const handleSuspend = async (u) => {
-    await adminRequest(`/users/${u.id}`, { method: 'PATCH', body: JSON.stringify({ is_suspended: !u.is_suspended }) });
-    showToast(u.is_suspended ? t.toastUnsuspended(u.full_name) : t.toastSuspended(u.full_name));
-    loadUsers();
+    try {
+      await adminRequest(`/users/${u.id}`, { method: 'PATCH', body: JSON.stringify({ is_suspended: !u.is_suspended }) });
+      showToast(u.is_suspended ? t.toastUnsuspended(u.full_name) : t.toastSuspended(u.full_name));
+      loadUsers();
+    } catch (err) {
+      showToast(`Error: ${err.message}`);
+    }
   };
 
   const handleDelete = async (u) => {
@@ -114,7 +118,7 @@ export default function AdminUsers() {
   const headers = [t.colName, t.colEmail, t.colRoles, t.colJoined, t.colStatus, t.colActions];
 
   return (
-    <div style={{ padding: '28px', maxWidth: '1100px' }}>
+    <div style={{ padding: '28px', maxWidth: '1600px' }}>
       {toast && (
         <div style={{ position: 'fixed', top: '20px', right: '20px', background: '#333', color: '#fff', padding: '10px 18px', borderRadius: '8px', zIndex: 999 }}>{toast}</div>
       )}
@@ -151,7 +155,7 @@ export default function AdminUsers() {
           style={{ flex: '1 1 200px', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '16px' }}
         />
         <CustomSelect name="roleFilter" value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
-          style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '16px' }}>
+          aria-label={t.allRoles} style={{ flex: '0 1 240px' }}>
           <option value="">{t.allRoles}</option>
           <option value="Land Owner">Land Owner</option>
           <option value="Trader">Trader</option>
@@ -200,10 +204,11 @@ export default function AdminUsers() {
                   </td>
                   <td style={{ padding: '12px 16px' }}>
                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                      <button onClick={() => handleSuspend(u)}
+                      {/* An administrator account is not suspended or deleted from here */}
+                      {u.role !== 'Admin' && <button onClick={() => handleSuspend(u)}
                         style={{ fontSize: '14px', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: u.is_suspended ? '#2d6a4f' : '#f57c00' }}>
                         {u.is_suspended ? t.unsuspend : t.suspend}
-                      </button>
+                      </button>}
                       {!u.is_verified && u.role !== 'Admin' && (
                         <button onClick={async () => {
                           try {
