@@ -4,7 +4,7 @@
 
 Full-stack web application for Sri Lankan agribusiness. Farmers get AI-driven crop recommendations and lifecycle guidance; land owners manage farms, crops, and cultivation sessions; traders access their own dashboard and marketplace; admins have full platform oversight.
 
-**Live demo:** https://smartagri-demo.duckdns.org (see [`DEPLOY_GCP.md`](DEPLOY_GCP.md) — the VM may be stopped between demos to avoid billing)
+**Live demo:** https://smartagri.centralindia.cloudapp.azure.com
 
 ---
 
@@ -83,7 +83,7 @@ docker pull ghcr.io/ravindu08/smartagri-frontend:latest
 
 To run the whole stack locally via Docker instead of the manual/one-command dev flow above, see `docker-compose.yml`.
 
-**Live deployment:** the CD pipeline above only publishes images — it doesn't deploy them anywhere automatically. For the actual manual deployment process (a single Google Cloud Compute Engine VM running `docker-compose.yml`), see [`DEPLOY_GCP.md`](DEPLOY_GCP.md).
+**Live deployment:** the CD pipeline above only publishes images — it doesn't deploy them anywhere automatically. The live site runs on a single Azure VM using `docker-compose.yml`.
 
 ---
 
