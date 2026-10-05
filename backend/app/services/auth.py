@@ -1,7 +1,7 @@
 import os
 import secrets
 
-from sqlalchemy import select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password, verify_password
@@ -19,8 +19,55 @@ ROLE_REDIRECT_PATHS = {
 }
 
 
+def normalize_email(email: str) -> str:
+    """E-mails are stored and compared in lower case, so "Name@x.com" and
+    "name@x.com" are one account rather than a failed login or a duplicate."""
+    return str(email).strip().lower()
+
+
 def get_user_by_email(db: Session, email: str) -> User | None:
-    return db.execute(select(User).where(User.email == email)).scalar_one_or_none()
+    return db.execute(
+        select(User).where(func.lower(User.email) == normalize_email(email))
+    ).scalars().first()
+
+
+def delete_user_and_data(db: Session, user: User) -> None:
+    """Delete a user with everything they own. The caller commits.
+
+    The users foreign keys on orders, listings and farms have no ON DELETE
+    rule, so those rows are removed here first; crops, payments, ratings and
+    negotiation messages then cascade in the database.
+    """
+    from app.models.cultivation import CultivationSession
+    from app.models.farm import Farm
+    from app.models.marketplace import (
+        MarketplaceListing,
+        MarketplaceOrder,
+        MarketplaceOrderStatus,
+        OrderPaymentStatus,
+    )
+    from app.services.marketplace_service import restore_order_stock
+
+    # Stock this user was still holding as a buyer goes back to the sellers.
+    held = db.execute(
+        select(MarketplaceOrder).where(
+            MarketplaceOrder.buyer_id == user.id,
+            MarketplaceOrder.status.in_([MarketplaceOrderStatus.PENDING, MarketplaceOrderStatus.CONFIRMED]),
+            MarketplaceOrder.payment_status == OrderPaymentStatus.UNPAID,
+        )
+    ).scalars().all()
+    for order in held:
+        restore_order_stock(db, order)
+    db.flush()
+
+    db.execute(delete(MarketplaceOrder).where(
+        (MarketplaceOrder.buyer_id == user.id) | (MarketplaceOrder.seller_id == user.id)
+    ))
+    db.execute(delete(MarketplaceListing).where(MarketplaceListing.owner_id == user.id))
+    db.execute(delete(Farm).where(Farm.owner_id == user.id))
+    # CultivationSession.user_id is a plain string column, so nothing cascades to it.
+    db.execute(delete(CultivationSession).where(CultivationSession.user_id == str(user.id)))
+    db.delete(user)
 
 
 def _otp_code() -> str:
@@ -40,7 +87,7 @@ def create_user(db: Session, user_in: UserRegister) -> User:
     expires = datetime.now(timezone.utc) + timedelta(minutes=10) if email_enabled else None
     user = User(
         full_name=user_in.full_name,
-        email=user_in.email,
+        email=normalize_email(user_in.email),
         hashed_password=hash_password(user_in.password),
         role=primary_role,
         roles=[r.value for r in valid_roles],
