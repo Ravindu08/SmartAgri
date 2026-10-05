@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -16,7 +16,7 @@ class MarketplaceListingBase(BaseModel):
     description: Optional[str] = Field(default=None, max_length=2000)
     location: Optional[str] = Field(default=None, max_length=255)
     image: Optional[str] = None
-    listing_type: str = Field(default="crop", max_length=32)
+    listing_type: Literal["crop", "product"] = "crop"
     status: MarketplaceListingStatus = MarketplaceListingStatus.ACTIVE
 
 
@@ -33,7 +33,6 @@ class MarketplaceListingUpdate(BaseModel):
     description: Optional[str] = Field(default=None, max_length=2000)
     location: Optional[str] = Field(default=None, max_length=255)
     image: Optional[str] = None
-    listing_type: Optional[str] = Field(default=None, max_length=32)
     status: Optional[MarketplaceListingStatus] = None
 
 
@@ -43,7 +42,6 @@ class MarketplaceListingRead(BaseModel):
     id: UUID
     owner_id: int
     owner_name: str
-    owner_phone: Optional[str] = None
     crop_name: str
     crop_type: str
     quantity: float
@@ -103,6 +101,8 @@ class MarketplaceOrderRead(BaseModel):
     seller_name: str
     seller_phone: Optional[str] = None
     requested_quantity: float
+    unit: str = "units"
+    listing_type: str = "crop"
     proposed_price: Optional[float] = None
     agreed_price: Optional[float] = None
     buyer_note: Optional[str] = None
@@ -116,3 +116,5 @@ class MarketplaceOrderRead(BaseModel):
     completed_at: Optional[datetime] = None
     payment_status: OrderPaymentStatus
     paid_at: Optional[datetime] = None
+    # Filled in by the order-list endpoints: has the buyer already rated this order?
+    rated: bool = False

@@ -2,13 +2,13 @@ import csv
 import io
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Literal, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
-from sqlalchemy import delete, func, select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db, require_admin
@@ -16,10 +16,11 @@ from app.core.security import hash_password
 from app.models.activity import Feedback, UserActivity
 from app.models.cultivation import CultivationSession, CultivationTask
 from app.models.farm import Farm
+from app.schemas.farm import SriLankaDistrict
 from app.models.marketplace import MarketplaceListing, MarketplaceListingStatus, MarketplaceOrder
 from app.models.user import User, UserRole
 from app.schemas.user import UserRead
-from app.services.auth import generate_verification_token
+from app.services.auth import delete_user_and_data, generate_verification_token, get_user_by_email, normalize_email
 from app.services.email import send_feedback_reply_email, send_verification_email
 from app.services.notification_service import create_notification
 
@@ -35,28 +36,31 @@ MAX_PAGE = 500
 # ── Pydantic schemas (admin-local) ────────────────────────────────────────────
 
 class AdminUserCreate(BaseModel):
-    full_name: str
+    full_name: str = Field(min_length=2, max_length=255)
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8, max_length=255)
     role: str = "Land Owner"
     roles: Optional[list[str]] = None
 
 
 class AdminUserPatch(BaseModel):
-    full_name: Optional[str] = None
+    full_name: Optional[str] = Field(default=None, min_length=2, max_length=255)
     email: Optional[EmailStr] = None
     roles: Optional[list[str]] = None
     is_suspended: Optional[bool] = None
 
 
 class FeedbackCreate(BaseModel):
-    type: str = Field(default="feedback", max_length=20)
-    subject: str = Field(max_length=255)
-    message: str = Field(max_length=5000)
+    # Spaces alone are not a subject or a message.
+    model_config = ConfigDict(str_strip_whitespace=True)
+    type: Literal["feedback", "complaint", "bug"] = "feedback"
+    subject: str = Field(min_length=1, max_length=255)
+    message: str = Field(min_length=1, max_length=5000)
 
 
 class FeedbackReply(BaseModel):
-    reply: str = Field(max_length=5000)
+    model_config = ConfigDict(str_strip_whitespace=True)
+    reply: str = Field(min_length=1, max_length=5000)
 
 
 class ActivityRead(BaseModel):
@@ -68,6 +72,8 @@ class ActivityRead(BaseModel):
     entity_type: Optional[str] = None
     details: Optional[str] = None
     created_at: datetime
+    user_name: Optional[str] = None
+    actor_name: Optional[str] = None
 
 
 class FeedbackRead(BaseModel):
@@ -81,6 +87,9 @@ class FeedbackRead(BaseModel):
     admin_reply: Optional[str] = None
     created_at: datetime
     resolved_at: Optional[datetime] = None
+    # Who sent it; empty when the account has since been deleted.
+    user_name: Optional[str] = None
+    user_email: Optional[str] = None
 
 
 class BulkUserRow(BaseModel):
@@ -90,7 +99,7 @@ class BulkUserRow(BaseModel):
 
 class BulkUserImport(BaseModel):
     users: list[BulkUserRow]
-    default_password: str
+    default_password: str = Field(min_length=8, max_length=255)
     role: str = "Land Owner"
 
 
@@ -107,10 +116,32 @@ class BulkFarmRow(BaseModel):
 
 class BulkFarmImport(BaseModel):
     farms: list[BulkFarmRow]
-    default_password: str
+    default_password: str = Field(min_length=8, max_length=255)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _validated_roles(roles: list[str]) -> list[str]:
+    """Role names as stored, without duplicates; 400 on anything that is not a role."""
+    valid = {r.value for r in UserRole}
+    bad = [r for r in roles if r not in valid]
+    if bad:
+        raise HTTPException(status_code=400, detail=f"Invalid role: {bad[0]}")
+    unique = list(dict.fromkeys(roles))
+    # Admin access is decided by the primary role alone, so an account listed
+    # as "Admin" plus something else would look like an admin without being one.
+    if UserRole.ADMIN.value in unique and len(unique) > 1:
+        raise HTTPException(status_code=400, detail="Admin cannot be combined with another role")
+    return unique
+
+
+def _names_by_id(db: Session, ids) -> dict[int, str]:
+    """Full names for a set of user ids, in one query."""
+    ids = {i for i in ids if i is not None}
+    if not ids:
+        return {}
+    return dict(db.execute(select(User.id, User.full_name).where(User.id.in_(ids))).all())
+
 
 def log_activity(db: Session, *, user_id: int | None, actor_id: int | None,
                  action: str, entity_type: str | None = None, details: str | None = None) -> None:
@@ -176,7 +207,7 @@ def admin_create_user(
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ) -> UserRead:
-    if db.execute(select(User).where(User.email == payload.email)).scalar_one_or_none():
+    if get_user_by_email(db, payload.email):
         raise HTTPException(status_code=409, detail="Email already registered")
 
     try:
@@ -184,10 +215,13 @@ def admin_create_user(
     except ValueError:
         raise HTTPException(status_code=400, detail=f"Invalid role: {payload.role}")
 
-    roles_list = payload.roles or [payload.role]
+    roles_list = _validated_roles(payload.roles) if payload.roles else [payload.role]
+    # `role` is what the admin check reads, so it must agree with the list.
+    if role_enum.value not in roles_list or UserRole.ADMIN.value in roles_list:
+        role_enum = UserRole(roles_list[0])
     user = User(
         full_name=payload.full_name,
-        email=str(payload.email),
+        email=normalize_email(payload.email),
         hashed_password=hash_password(payload.password),
         role=role_enum,
         roles=roles_list,
@@ -219,20 +253,22 @@ def admin_patch_user(
         user.full_name = payload.full_name
         changes.append("name")
     if payload.email is not None:
-        existing = db.execute(
-            select(User).where(User.email == str(payload.email), User.id != user.id)
-        ).scalar_one_or_none()
-        if existing:
+        existing = get_user_by_email(db, payload.email)
+        if existing and existing.id != user.id:
             raise HTTPException(status_code=409, detail="Email already in use")
-        user.email = str(payload.email)
+        user.email = normalize_email(payload.email)
         changes.append("email")
     if payload.roles is not None:
-        user.roles = payload.roles
-        if payload.roles:
-            try:
-                user.role = UserRole(payload.roles[0])
-            except ValueError:
-                pass
+        roles = _validated_roles(payload.roles)
+        if not roles:
+            raise HTTPException(status_code=400, detail="A user needs at least one role")
+        # Dropping your own Admin role would lock the panel with nobody left to undo it.
+        if user.id == admin.id and UserRole.ADMIN.value not in roles:
+            raise HTTPException(status_code=400, detail="Cannot remove your own Admin role")
+        user.roles = roles
+        # Keep the primary role when it is still held; it decides admin access.
+        if user.role.value not in roles:
+            user.role = UserRole(roles[0])
         changes.append("roles")
     if payload.is_suspended is not None:
         user.is_suspended = payload.is_suspended
@@ -241,7 +277,7 @@ def admin_patch_user(
     db.commit()
     db.refresh(user)
     log_activity(db, user_id=user.id, actor_id=admin.id, action="admin_edit_user",
-                 entity_type="user", details=", ".join(changes))
+                 entity_type="user", details=f"{user.email}: {', '.join(changes) or 'no changes'}")
     return UserRead.model_validate(user)
 
 
@@ -258,15 +294,7 @@ def admin_delete_user(
         raise HTTPException(status_code=400, detail="Cannot delete yourself")
     log_activity(db, user_id=None, actor_id=admin.id, action="admin_delete_user",
                  entity_type="user", details=f"Deleted {user.email}")
-    # Remove FK-linked records that have no ON DELETE cascade
-    db.execute(delete(MarketplaceOrder).where(
-        (MarketplaceOrder.buyer_id == user.id) | (MarketplaceOrder.seller_id == user.id)
-    ))
-    db.execute(delete(MarketplaceListing).where(MarketplaceListing.owner_id == user.id))
-    db.execute(delete(Farm).where(Farm.owner_id == user.id))
-    # CultivationSession.user_id is a plain String column (no FK cascade), delete manually
-    db.execute(delete(CultivationSession).where(CultivationSession.user_id == str(user.id)))
-    db.delete(user)
+    delete_user_and_data(db, user)
     db.commit()
 
 
@@ -291,7 +319,9 @@ def admin_list_listings(
             "unit": l.unit,
             "price_per_unit": l.price_per_unit,
             "status": l.status.value if hasattr(l.status, 'value') else l.status,
+            "listing_type": l.listing_type,
             "owner_id": l.owner_id,
+            "owner_name": l.owner_name,
             "created_at": l.created_at.isoformat() if l.created_at else None,
         }
         for l in listings
@@ -332,9 +362,14 @@ def admin_list_orders(
         {
             "id": str(o.id),
             "listing_id": str(o.listing_id),
+            "listing_name": o.listing_name,
             "buyer_id": o.buyer_id,
+            "buyer_name": o.buyer_name,
             "seller_id": o.seller_id,
+            "seller_name": o.seller_name,
             "requested_quantity": o.requested_quantity,
+            "unit": o.unit,
+            "payment_status": o.payment_status.value,
             "agreed_price": o.agreed_price,
             "proposed_price": o.proposed_price,
             "status": o.status.value if hasattr(o.status, 'value') else o.status,
@@ -356,6 +391,7 @@ def admin_list_farms(
     farms = db.execute(
         select(Farm).order_by(Farm.created_at.desc()).limit(limit).offset(offset)
     ).scalars().all()
+    owners = _names_by_id(db, {f.owner_id for f in farms})
     return [
         {
             "id": str(f.id),
@@ -364,6 +400,7 @@ def admin_list_farms(
             "size": f.farm_size,
             "size_unit": f.size_unit,
             "owner_id": f.owner_id,
+            "owner_name": owners.get(f.owner_id),
             "created_at": f.created_at.isoformat() if f.created_at else None,
         }
         for f in farms
@@ -374,14 +411,20 @@ def admin_list_farms(
 
 @router.get("/activity", response_model=list[ActivityRead])
 def admin_list_activity(
-    limit: int = 100,
+    limit: int = Query(100, ge=1, le=MAX_PAGE),
     db: Session = Depends(get_db),
     _: User = Depends(require_admin),
 ) -> list[ActivityRead]:
     rows = db.execute(
         select(UserActivity).order_by(UserActivity.created_at.desc()).limit(limit)
     ).scalars().all()
-    return [ActivityRead.model_validate(r) for r in rows]
+    names = _names_by_id(db, {i for r in rows for i in (r.user_id, r.actor_id)})
+    result = []
+    for r in rows:
+        item = ActivityRead.model_validate(r)
+        item.user_name, item.actor_name = names.get(r.user_id), names.get(r.actor_id)
+        result.append(item)
+    return result
 
 
 # ── Feedback ──────────────────────────────────────────────────────────────────
@@ -396,7 +439,19 @@ def admin_list_feedback(
     if feedback_status:
         q = q.where(Feedback.status == feedback_status)
     rows = db.execute(q).scalars().all()
-    return [FeedbackRead.model_validate(r) for r in rows]
+    senders = {
+        u.id: u for u in db.execute(
+            select(User).where(User.id.in_({r.user_id for r in rows if r.user_id}))
+        ).scalars()
+    } if rows else {}
+    result = []
+    for r in rows:
+        item = FeedbackRead.model_validate(r)
+        sender = senders.get(r.user_id)
+        if sender is not None:
+            item.user_name, item.user_email = sender.full_name, sender.email
+        result.append(item)
+    return result
 
 
 @router.delete("/feedback/{feedback_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -522,7 +577,11 @@ def admin_resend_verification(
     if user.is_verified:
         raise HTTPException(status_code=400, detail="User is already verified")
     token = generate_verification_token(db, user)
-    send_verification_email(user.email, user.full_name, token)
+    try:
+        send_verification_email(user.email, user.full_name, token)
+    except Exception:
+        logger.warning("verification e-mail failed for user id=%s", user.id, exc_info=True)
+        raise HTTPException(status_code=502, detail="The verification e-mail could not be sent. Check the mail settings.")
     log_activity(db, user_id=user.id, actor_id=admin.id, action="admin_resend_verification",
                  entity_type="user", details=user.email)
     return {"message": f"Verification email re-sent to {user.email}"}
@@ -630,8 +689,8 @@ def admin_bulk_create_users(
 
     created, skipped, errors = 0, 0, []
     for row in payload.users:
-        email_str = str(row.email)
-        if db.execute(select(User).where(User.email == email_str)).scalar_one_or_none():
+        email_str = normalize_email(row.email)
+        if get_user_by_email(db, email_str):
             skipped += 1
             continue
         try:
@@ -665,18 +724,31 @@ def admin_bulk_import_farms(
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
+    districts = {d.value.lower(): d.value for d in SriLankaDistrict}
     created_users, created_farms, skipped, errors = 0, 0, 0, []
     for row in payload.farms:
-        email_str = str(row.email)
+        email_str = normalize_email(row.email)
+        # Checked per row, so one bad line is reported and the rest still import.
+        district = districts.get(row.district.strip().lower())
+        problem = (
+            "Farm name is required" if not row.farm_name.strip()
+            else "Farmer name is required" if not row.farmer_name.strip()
+            else f"Unknown district: {row.district}" if district is None
+            else "Farm size must be greater than 0" if not row.size > 0
+            else None
+        )
+        if problem:
+            errors.append({"email": email_str, "error": problem})
+            continue
         try:
             # Savepoint per row: a bad row rolls back alone (its new user too)
             # instead of leaving the session unusable for every row after it.
             with db.begin_nested():
-                user = db.execute(select(User).where(User.email == email_str)).scalar_one_or_none()
+                user = get_user_by_email(db, email_str)
                 is_new_user = user is None
                 if is_new_user:
                     user = User(
-                        full_name=row.farmer_name,
+                        full_name=row.farmer_name.strip(),
                         email=email_str,
                         hashed_password=hash_password(payload.default_password),
                         role=UserRole.LAND_OWNER,
@@ -687,14 +759,14 @@ def admin_bulk_import_farms(
                     db.flush()
 
                 db.add(Farm(
-                    farm_name=row.farm_name,
-                    district=row.district,
-                    soil_type=row.soil_type,
+                    farm_name=row.farm_name.strip(),
+                    district=district,
+                    soil_type=row.soil_type.strip(),
                     farm_size=row.size,
                     size_unit=row.size_unit,
                     irrigation_type=row.irrigation_type,
                     owner_id=user.id,
-                    location=row.district,
+                    location=district,
                     season="Maha",
                 ))
                 db.flush()
@@ -794,6 +866,9 @@ def admin_harvest_forecast(
             user = db.get(User, int(session.user_id)) if session.user_id else None
         except (ValueError, TypeError):
             user = None
+        # A session whose owner no longer exists is left-over data, not a harvest to plan for.
+        if user is None:
+            continue
 
         results.append({
             "session_id": str(session.id),
