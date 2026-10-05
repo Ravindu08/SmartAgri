@@ -146,7 +146,7 @@ export default function AdminFarmImport() {
   const previewCols = [t.colFarmer, t.colEmail, t.colDistrict, t.colFarm, t.colSoil, t.colSize];
 
   return (
-    <div style={{ padding: '28px', maxWidth: '900px' }}>
+    <div style={{ padding: '28px', maxWidth: '1200px' }}>
       <button onClick={() => navigate('/admin/farms')} type="button"
         style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '15px', marginBottom: '16px', padding: 0 }}>
         {t.back}

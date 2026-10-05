@@ -265,17 +265,28 @@ export default function TraderOrders() {
                     </div>
                     <div>
                       <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.qty}</div>
-                      <div style={{ fontWeight: 600, color: 'var(--text)' }}>{order.requested_quantity} kg</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text)' }}>{order.requested_quantity} {order.unit ?? 'kg'}</div>
                     </div>
                     {(order.agreed_price || order.proposed_price) && (
                       <div>
                         <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.price}</div>
-                        <div style={{ fontWeight: 600, color: 'var(--text)' }}>Rs. {order.agreed_price || order.proposed_price}/kg</div>
+                        <div style={{ fontWeight: 600, color: 'var(--text)' }}>Rs. {order.agreed_price || order.proposed_price}/{order.unit ?? 'kg'}</div>
+                      </div>
+                    )}
+                    {(order.agreed_price || order.proposed_price) && (
+                      <div>
+                        <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</div>
+                        <div style={{ fontWeight: 700, color: 'var(--text)' }}>
+                          Rs. {((order.agreed_price || order.proposed_price) * order.requested_quantity).toLocaleString()}
+                        </div>
                       </div>
                     )}
                     <div style={{ minWidth: 0, maxWidth: '100%' }}>
                       <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Seller</div>
                       <div style={{ fontWeight: 600, color: 'var(--text)', overflowWrap: 'break-word' }}>{order.seller_name}</div>
+                      {order.seller_phone && (
+                        <a href={`tel:${order.seller_phone}`} style={{ fontSize: '14px', color: 'var(--green-primary)', textDecoration: 'none' }}>📞 {order.seller_phone}</a>
+                      )}
                     </div>
                   </div>
                   <span style={{
@@ -289,6 +300,11 @@ export default function TraderOrders() {
 
                 <div data-tour={i === 0 ? 'tr-orders-status-tracker' : undefined}>
                   <StatusTracker status={order.status} t={t} />
+                </div>
+
+                {/* Where the money stands, so a paid order doesn't look the same as an unpaid one */}
+                <div style={{ marginTop: '10px', fontSize: '15px', fontWeight: 600, color: order.payment_status === 'Paid' ? 'var(--green-primary)' : 'var(--amber)' }}>
+                  {order.payment_status === 'Paid' ? t.paymentPaid : `⏳ ${t.awaitingPayment}`}
                 </div>
 
                 {order.status === 'Confirmed' && order.payment_status !== 'Paid' && (

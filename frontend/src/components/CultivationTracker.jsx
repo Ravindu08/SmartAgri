@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import useDialogDismiss from "../hooks/useDialogDismiss";
 import { ML_BASE_URL } from "../services/api";
 import * as API from "../utils/cultivationApi";
 import { celebrate } from "../utils/celebrate";
@@ -90,6 +91,7 @@ function fmtDate(dateStr) {
 
 // ── TaskModal ─────────────────────────────────────────────────────────────────
 function TaskModal({ task, t, onClose, onUpdate }) {
+  useDialogDismiss(true, onClose);
   const meta   = ACT_META[task.type] || { icon: "📋" };
   const status = effectiveStatus(task);
   const [photoPreview, setPhotoPreview] = useState(task.photo || null);
@@ -238,7 +240,7 @@ function StageProgressBar({ stages, daysElapsed, t, lang }) {
 }
 
 // ── WarningPanel ──────────────────────────────────────────────────────────────
-function WarningPanel({ session, t }) {
+function WarningPanel({ session, t, onTaskClick }) {
   const tasks    = Object.values(session.tasks);
   const today    = todayStr();
   const in3days  = toDateStr(new Date(Date.now() + 3 * 86400000));
@@ -261,8 +263,10 @@ function WarningPanel({ session, t }) {
           <ul>
             {overdue.map(task => (
               <li key={task.id}>
-                {ACT_META[task.type]?.icon || "📋"} {task.title}
-                <span className="cult-warn-date">{fmtDate(task.scheduled_date)}</span>
+                <button type="button" className="cult-warn-task" onClick={() => onTaskClick?.(task)}>
+                  <span>{ACT_META[task.type]?.icon || "📋"} {task.title}</span>
+                  <span className="cult-warn-date">{fmtDate(task.scheduled_date)}</span>
+                </button>
               </li>
             ))}
           </ul>
@@ -274,8 +278,10 @@ function WarningPanel({ session, t }) {
           <ul>
             {dueSoon.map(task => (
               <li key={task.id}>
-                {ACT_META[task.type]?.icon || "📋"} {task.title}
-                <span className="cult-warn-date">{fmtDate(task.scheduled_date)}</span>
+                <button type="button" className="cult-warn-task" onClick={() => onTaskClick?.(task)}>
+                  <span>{ACT_META[task.type]?.icon || "📋"} {task.title}</span>
+                  <span className="cult-warn-date">{fmtDate(task.scheduled_date)}</span>
+                </button>
               </li>
             ))}
           </ul>
@@ -338,6 +344,7 @@ function WeeklyCalendar({ session, t, onTaskClick }) {
                       className={`cult-task-chip status-${st}`}
                       onClick={() => onTaskClick(task)}
                       title={`${task.title} — ${t[`taskStatus_${st}`] || st}`}
+                      aria-label={`${task.title} — ${t[`taskStatus_${st}`] || st}`}
                     >
                       <span className="cult-chip-icon">{meta.icon}</span>
                       {st === "done"    && <span className="cult-chip-badge cult-chip-badge--done">✓</span>}
@@ -432,7 +439,7 @@ function CultivationDashboard({ session, guidanceData, t, onBack, onUpdateTask, 
         </div>
       )}
 
-      <WarningPanel session={session} t={t} />
+      <WarningPanel session={session} t={t} onTaskClick={setActiveTask} />
 
       <div className="cult-section">
         <div className="cult-section-title">📆 {t.weeklyCalendar}</div>
@@ -546,7 +553,8 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
   const [cropList,         setCropList]         = useState([]);
   const [farms,            setFarms]            = useState([]);
   const [crop,             setCrop]             = useState(defaultCrop || "");
-  const [date,             setDate]             = useState(todayStr());
+  // Tracking a crop that is already recorded starts from the date it was planted, not from today.
+  const [date,             setDate]             = useState(() => String(existingCropData?.planting_date || "").slice(0, 10) || todayStr());
   const [farmId,           setFarmId]           = useState(existingCropData?.farm_id ? String(existingCropData.farm_id) : "");
   const [guidanceDuration, setGuidanceDuration] = useState(120);
   const [saving,           setSaving]           = useState(false);

@@ -12,6 +12,13 @@
   padding: 0;
 }
 
+/* Form controls don't inherit the page font by default (a textarea falls back
+   to monospace, an input to the system font). :where() keeps this at zero
+   specificity, so any rule that sets a font still wins. */
+:where(input, textarea, select, button) {
+  font-family: inherit;
+}
+
 /* ═══════════════════════════════════════════════════════════
    LIGHT MODE (default)
 ═══════════════════════════════════════════════════════════ */
