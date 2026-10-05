@@ -9,7 +9,7 @@ const PAGE_SIZE = 15;
 const T = {
   en: {
     title: 'Activity Log', loading: 'Loading…', noActivity: 'No activity recorded yet',
-    user: 'User #', byAdmin: 'by Admin #', searchPlaceholder: 'Search action, details, or user #…',
+    user: 'User #', byAdmin: 'by Admin #', searchPlaceholder: 'Search action, details or user…',
   },
   si: {
     title: 'ක්‍රියාකාරකම් ලොගය', loading: 'පූරණය වෙමින්...', noActivity: 'ක්‍රියාකාරකම් තවම නොමැත',
@@ -46,6 +46,8 @@ export default function AdminActivity() {
     const q = search.toLowerCase();
     return a.action?.toLowerCase().includes(q)
       || a.details?.toLowerCase().includes(q)
+      || a.user_name?.toLowerCase().includes(q)
+      || a.actor_name?.toLowerCase().includes(q)
       || String(a.user_id ?? '').includes(q)
       || String(a.actor_id ?? '').includes(q);
   });
@@ -55,7 +57,7 @@ export default function AdminActivity() {
   if (loading) return <SkeletonTable rows={8} cols={3} />;
 
   return (
-    <div style={{ padding: '28px', maxWidth: '900px' }}>
+    <div style={{ padding: '28px', maxWidth: '1600px' }}>
       <h2 style={{ margin: '0 0 20px', color: 'var(--text)' }}>{t.title}</h2>
 
       <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t.searchPlaceholder}
@@ -90,8 +92,8 @@ export default function AdminActivity() {
                 </div>
                 {a.details && <div style={{ fontSize: '15px', color: 'var(--muted)', marginTop: '2px' }}>{a.details}</div>}
                 <div style={{ fontSize: '14px', color: 'var(--muted)', marginTop: '4px' }}>
-                  {a.user_id && <span>{t.user}{a.user_id}</span>}
-                  {a.actor_id && <span style={{ marginLeft: '8px' }}>{t.byAdmin}{a.actor_id}</span>}
+                  {a.user_id && <span>{a.user_name || `${t.user}${a.user_id}`}</span>}
+                  {a.actor_id && <span style={{ marginLeft: '8px' }}>{a.actor_name ? `· ${a.actor_name}` : `${t.byAdmin}${a.actor_id}`}</span>}
                 </div>
               </div>
             </div>

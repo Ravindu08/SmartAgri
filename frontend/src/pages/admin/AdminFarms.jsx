@@ -56,7 +56,7 @@ export default function AdminFarms() {
   const headers = [t.colFarmName, t.colDistrict, t.colSize, t.colOwner, t.colCreated];
 
   return (
-    <div style={{ padding: '28px', maxWidth: '1100px' }}>
+    <div style={{ padding: '28px', maxWidth: '1600px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <h2 style={{ margin: 0, color: 'var(--text)' }}>{t.title} <span style={{ fontSize: '18px', color: 'var(--muted)', fontWeight: 400 }}>({farms.length})</span></h2>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -84,7 +84,7 @@ export default function AdminFarms() {
                 <td style={{ padding: '12px 16px', fontWeight: 600, fontSize: '16px', color: 'var(--text)' }}>🌾 {f.name}</td>
                 <td style={{ padding: '12px 16px', fontSize: '15px', color: 'var(--muted)' }}>{f.district}</td>
                 <td style={{ padding: '12px 16px', fontSize: '15px' }}>{f.size} {f.size_unit}</td>
-                <td style={{ padding: '12px 16px', fontSize: '15px', color: 'var(--muted)' }}>#{f.owner_id}</td>
+                <td style={{ padding: '12px 16px', fontSize: '15px', color: 'var(--muted)' }}>{f.owner_name || `#${f.owner_id}`}</td>
                 <td style={{ padding: '12px 16px', fontSize: '14px', color: 'var(--muted)' }}>{f.created_at ? new Date(f.created_at).toLocaleDateString() : '—'}</td>
               </tr>
             ))}

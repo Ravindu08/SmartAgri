@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import useDialogDismiss from '../../hooks/useDialogDismiss';
 import { adminRequest } from '../../services/api';
 import { useApp } from '../../context/AppContext';
 import { SkeletonTable } from '../../components/Skeleton';
@@ -11,6 +12,7 @@ const T = {
     replyTo: 'Reply to:', replyPlaceholder: 'Type your reply…',
     cancel: 'Cancel', sending: 'Sending…', sendResolve: 'Send & Resolve',
     resolvedOn: (date) => `Resolved ${date}`,
+    deleteItem: 'Delete', confirmDelete: 'Delete this feedback? This cannot be undone.', deletedUser: 'Deleted account',
   },
   si: {
     title: 'ප්‍රතිපෝෂණ සහ පැමිණිලි', loading: 'පූරණය වෙමින්...', noFeedback: 'ප්‍රතිපෝෂණ නොමැත',
@@ -19,6 +21,7 @@ const T = {
     replyTo: '↩ පිළිතුරු:', replyPlaceholder: 'ඔබේ පිළිතුර ටයිප් කරන්න...',
     cancel: 'අවලංගු කරන්න', sending: 'යවමින්...', sendResolve: 'යවා විසඳන්න',
     resolvedOn: (date) => `විසඳා ඇත ${date}`,
+    deleteItem: 'මකන්න', confirmDelete: 'මෙම ප්‍රතිපෝෂණය මකන්නද? මෙය ආපසු හැරවිය නොහැක.', deletedUser: 'මකා දැමූ ගිණුම',
   },
   ta: {
     title: 'கருத்துக்கள் & புகார்கள்', loading: 'ஏற்றுகிறது...', noFeedback: 'கருத்துக்கள் இல்லை',
@@ -27,6 +30,7 @@ const T = {
     replyTo: '↩ பதில்:', replyPlaceholder: 'உங்கள் பதிலை தட்டவும்...',
     cancel: 'ரத்து செய்', sending: 'அனுப்புகிறது...', sendResolve: 'அனுப்பி தீர்க்கவும்',
     resolvedOn: (date) => `தீர்க்கப்பட்டது ${date}`,
+    deleteItem: 'நீக்கு', confirmDelete: 'இந்தக் கருத்தை நீக்கவா? இதை மாற்ற முடியாது.', deletedUser: 'நீக்கப்பட்ட கணக்கு',
   },
 };
 
@@ -41,6 +45,7 @@ export default function AdminFeedback() {
   const [loading, setLoading]     = useState(true);
   const [filter, setFilter]       = useState('open');
   const [selected, setSelected]   = useState(null);
+  useDialogDismiss(Boolean(selected), () => setSelected(null));
   const [reply, setReply]         = useState('');
   const [replying, setReplying]   = useState(false);
 
@@ -51,14 +56,31 @@ export default function AdminFeedback() {
 
   useEffect(() => { load(); }, [filter]);
 
+  const [error, setError] = useState('');
+
   const handleReply = async (e) => {
     e.preventDefault();
+    if (!reply.trim()) return;
     setReplying(true);
+    setError('');
     try {
-      await adminRequest(`/feedback/${selected.id}/reply`, { method: 'POST', body: JSON.stringify({ reply }) });
+      await adminRequest(`/feedback/${selected.id}/reply`, { method: 'POST', body: JSON.stringify({ reply: reply.trim() }) });
       setSelected(null); setReply('');
       load();
+    } catch (err) {
+      setError(err.message);
     } finally { setReplying(false); }
+  };
+
+  const handleDelete = async (item) => {
+    if (!window.confirm(t.confirmDelete)) return;
+    setError('');
+    try {
+      await adminRequest(`/feedback/${item.id}`, { method: 'DELETE' });
+      setItems(list => list.filter(i => i.id !== item.id));
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   const tabs = [
@@ -68,7 +90,7 @@ export default function AdminFeedback() {
   ];
 
   return (
-    <div style={{ padding: '28px', maxWidth: '900px' }}>
+    <div style={{ padding: '28px', maxWidth: '1600px' }}>
       <h2 style={{ margin: '0 0 20px', color: 'var(--text)' }}>{t.title}</h2>
 
       <div style={{ display: 'flex', gap: '4px', marginBottom: '20px' }}>
@@ -79,6 +101,8 @@ export default function AdminFeedback() {
             }}>{label}</button>
         ))}
       </div>
+
+      {error && <div className="auth-error" role="alert" style={{ marginBottom: '12px' }}>⚠️ {error}</div>}
 
       {loading ? (
         <SkeletonTable rows={5} cols={3} />
@@ -98,7 +122,10 @@ export default function AdminFeedback() {
                   </div>
                   <p style={{ margin: '0 0 8px', color: 'var(--muted)', fontSize: '16px', lineHeight: '1.5' }}>{item.message}</p>
                   <div style={{ fontSize: '14px', color: 'var(--muted)' }}>
-                    User #{item.user_id} · {new Date(item.created_at).toLocaleString()}
+                    {item.user_name
+                      ? <><strong style={{ color: 'var(--text)' }}>{item.user_name}</strong> · {item.user_email}</>
+                      : t.deletedUser}
+                    {' · '}{new Date(item.created_at).toLocaleString()}
                     {item.resolved_at && ` · ${t.resolvedOn(new Date(item.resolved_at).toLocaleDateString())}`}
                   </div>
                   {item.admin_reply && (
@@ -113,6 +140,10 @@ export default function AdminFeedback() {
                       {t.replyResolve}
                     </button>
                   )}
+                  <button onClick={() => handleDelete(item)}
+                    style={{ marginTop: '10px', marginLeft: item.status === 'open' ? '8px' : 0, padding: '6px 14px', borderRadius: '7px', border: '1px solid color-mix(in srgb, var(--red) 50%, var(--border))', background: 'none', cursor: 'pointer', color: 'var(--red)', fontSize: '15px', fontWeight: 600 }}>
+                    {t.deleteItem}
+                  </button>
                 </div>
               </div>
             </div>

@@ -99,6 +99,9 @@ const TR_HERO_T = {
   ta: { tagline: 'இன்று உங்கள் ஆர்டர்களின் நிலை இதோ.', ring: 'முடிந்த ஆர்டர்கள்', ringSub: (c, n) => `${n} இல் ${c}`, pipeline: 'ஆர்டர் நிலை' },
 };
 
+// Orders other people have placed on this trader's own product listings.
+const TR_SALES_T = { en: 'Sales to handle', si: 'හැසිරවිය යුතු විකුණුම්', ta: 'கையாள வேண்டிய விற்பனைகள்' };
+
 const authFetcher = url => request(url);
 
 export default function TraderDashboard() {
@@ -112,6 +115,10 @@ export default function TraderDashboard() {
   const myOrders = useMemo(
     () => allOrders.filter(o => o.buyer_id === user?.id),
     [allOrders, user?.id],
+  );
+
+  const openSales = allOrders.filter(
+    o => o.seller_id === user?.id && ['Pending', 'Confirmed', 'Delivered'].includes(o.status),
   );
 
   const pendingOrders   = myOrders.filter(o => o.status === 'Pending');
@@ -145,7 +152,7 @@ export default function TraderDashboard() {
   const stats = [
     { label: t.statsRequests,  value: pendingOrders.length,   icon: '📋', color: 'var(--amber)' },
     { label: t.statsOrders,    value: activeOrders.length,    icon: '📦', color: 'var(--blue)' },
-    { label: t.statsActive,    value: pendingOrders.length + activeOrders.length, icon: '🔄', color: 'var(--accent)' },
+    { label: TR_SALES_T[lang] || TR_SALES_T.en, value: openSales.length, icon: '🧾', color: 'var(--accent)', to: '/marketplace?tab=incoming' },
     { label: t.statsCompleted, value: completedOrders.length, icon: '✅', color: 'var(--green)' },
   ];
 
@@ -180,12 +187,15 @@ export default function TraderDashboard() {
       />
 
       {/* Stats */}
-      <div data-tour="tr-dash-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 260px))', gap: '16px' }}>
-        {stats.map(s => (
-          <div key={s.label} className="stat-card-hover dash-tile" style={{
+      <div data-tour="tr-dash-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+        {stats.map(s => {
+          const Tile = s.to ? Link : 'div';
+          return (
+          <Tile key={s.label} to={s.to} className="stat-card-hover dash-tile" style={{
             background: 'var(--card)', borderRadius: '12px',
             padding: '20px', border: '1px solid var(--border)',
             display: 'flex', flexDirection: 'column', gap: '8px',
+            textDecoration: 'none',
             '--tone': s.color,
           }}>
             <div className="dash-tile__icon" style={{ fontSize: '28px', width: 'fit-content' }}>{s.icon}</div>
@@ -193,8 +203,9 @@ export default function TraderDashboard() {
               <CountUp value={s.value} />
             </div>
             <div style={{ fontSize: '15px', color: 'var(--muted)', fontWeight: 500 }}>{s.label}</div>
-          </div>
-        ))}
+          </Tile>
+          );
+        })}
       </div>
 
       <PipelineBar title={heroT.pipeline} segments={pipeline} emptyLabel={t.noActivity} />
@@ -204,7 +215,7 @@ export default function TraderDashboard() {
         <h2 style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 600, color: 'var(--text)' }}>
           {t.quickActions}
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 260px))', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
           {quickActions.map(qa => (
             <Link
               key={qa.label}
@@ -271,11 +282,11 @@ export default function TraderDashboard() {
                         {item.listing_name || '—'}
                       </div>
                       <div style={{ fontSize: '14px', color: 'var(--muted)' }}>
-                        {item.requested_quantity} kg
+                        {item.requested_quantity} {item.unit ?? 'kg'}
                         {item.agreed_price
-                          ? ` · Rs. ${item.agreed_price}/kg`
+                          ? ` · Rs. ${item.agreed_price}/${item.unit ?? 'kg'}`
                           : item.proposed_price
-                          ? ` · Rs. ${item.proposed_price}/kg`
+                          ? ` · Rs. ${item.proposed_price}/${item.unit ?? 'kg'}`
                           : ''}
                         {' · from '}{item.seller_name}
                       </div>

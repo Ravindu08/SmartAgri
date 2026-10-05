@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
-import useSWR from 'swr';
+import useSWR, { mutate } from 'swr';
 import { useApp } from '../../context/AppContext';
 import { getAuthSession, request } from '../../services/api';
 import { SkeletonRows } from '../../components/Skeleton';
@@ -38,6 +38,7 @@ const T = {
     noRequests: 'No pending orders.', noRequestsSub: 'Browse the marketplace and place orders on available listings.',
     crop: 'Listing', qty: 'Quantity', offeredPrice: 'Offered Price', seller: 'Seller',
     placedOn: 'Placed on', yourNote: 'Your note',
+    cancelRequest: 'Cancel request', confirmCancel: 'Cancel this request? This cannot be undone.',
     Pending: 'Awaiting Confirmation',
   },
   si: {
@@ -69,6 +70,23 @@ export default function TraderRequests() {
   const allOrders = Array.isArray(rawOrders) ? rawOrders : [];
   const trqTourT = TRQ_TOUR_T[lang] || TRQ_TOUR_T.en;
   const [tourOpen, setTourOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(null);
+  const [cancelError, setCancelError] = useState('');
+
+  // A request the seller has not answered yet can be withdrawn; the stock goes back to the listing.
+  async function cancelRequest(order) {
+    if (!window.confirm(t.confirmCancel || T.en.confirmCancel)) return;
+    setCancelling(order.id);
+    setCancelError('');
+    try {
+      await request(`/api/marketplace/orders/${order.id}/status`, { method: 'PUT', body: JSON.stringify({ status: 'Cancelled' }) });
+      mutate('/api/marketplace/orders');
+    } catch (err) {
+      setCancelError(err.message);
+    } finally {
+      setCancelling(null);
+    }
+  }
 
   const pendingOrders = useMemo(
     () => allOrders
@@ -125,6 +143,7 @@ export default function TraderRequests() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {cancelError && <div className="auth-error" role="alert">⚠️ {cancelError}</div>}
           {pendingOrders.map((order, i) => (
             <div key={order.id} className="fx-card" style={{
               background: 'var(--card)', border: '2px solid color-mix(in srgb, var(--amber) 35%, var(--border))',
@@ -138,12 +157,12 @@ export default function TraderRequests() {
                   </div>
                   <div>
                     <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.qty}</div>
-                    <div style={{ fontWeight: 600, color: 'var(--text)' }}>{order.requested_quantity} kg</div>
+                    <div style={{ fontWeight: 600, color: 'var(--text)' }}>{order.requested_quantity} {order.unit ?? 'kg'}</div>
                   </div>
                   {order.proposed_price && (
                     <div>
                       <div style={{ fontSize: '12.5px', color: 'var(--muted)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.offeredPrice}</div>
-                      <div style={{ fontWeight: 600, color: 'var(--text)' }}>Rs. {order.proposed_price}/kg</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text)' }}>Rs. {order.proposed_price}/{order.unit ?? 'kg'}</div>
                     </div>
                   )}
                   <div style={{ minWidth: 0, maxWidth: '100%' }}>
@@ -171,8 +190,22 @@ export default function TraderRequests() {
                 </div>
               )}
 
-              <div style={{ marginTop: '12px', fontSize: '14px', color: 'var(--muted)' }}>
-                {t.placedOn}: {order.created_at ? new Date(order.created_at).toLocaleDateString() : '—'}
+              <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '14px', color: 'var(--muted)' }}>
+                  {t.placedOn}: {order.created_at ? new Date(order.created_at).toLocaleDateString() : '—'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => cancelRequest(order)}
+                  disabled={cancelling === order.id}
+                  style={{
+                    padding: '6px 14px', borderRadius: '8px', border: '1px solid color-mix(in srgb, var(--red) 45%, var(--border))',
+                    background: 'color-mix(in srgb, var(--red) 12%, transparent)', color: 'var(--red)',
+                    fontWeight: 600, fontSize: '14px', cursor: cancelling === order.id ? 'wait' : 'pointer',
+                  }}
+                >
+                  {cancelling === order.id ? '…' : (t.cancelRequest || T.en.cancelRequest)}
+                </button>
               </div>
             </div>
           ))}

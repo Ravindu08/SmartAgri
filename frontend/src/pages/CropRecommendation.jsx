@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import useDialogDismiss from "../hooks/useDialogDismiss";
 import { useNavigate } from "react-router";
 import { ArrowRight, BookOpen, ChartLine, Check, CloudSun, Info, MapPin, Printer, Sparkles, Sprout, TriangleAlert } from "lucide-react";
 import { ML_BASE_URL } from "../services/api";
@@ -27,12 +28,12 @@ const API_BASE = ML_BASE_URL;
 const CR_TOUR_T = {
   en: {
     steps: [
-      { target: 'cr-history', title: 'Your past predictions', body: 'Every recommendation you run is saved here so you can revisit it later.' },
       { target: 'cr-district-select', title: 'Pick your district', body: 'Your district determines the agro-ecological zone and unlocks live weather auto-fill below.' },
       { target: 'cr-soil-select', title: 'Soil type', body: 'Not sure what soil you have? Use the "Identify my soil" guide next to this field.' },
       { target: 'cr-nutrient-fields', title: 'Soil & climate values', body: 'Enter your N/P/K and climate readings, or let weather auto-fill do it for you once a district is picked.' },
-      { target: 'cr-predict-btn', title: 'Get your recommendation', body: 'Run the full AI analysis — you’ll get a recommended crop, confidence score, and an explanation of why.' },
-      { target: 'cr-result-card', title: 'Your result appears here', body: 'The recommended crop, alternatives, and a planting calendar will show up in this area.' },
+      { target: 'cr-predict-btn', title: "Get your recommendation", body: "Runs the AI model on what you entered. The result opens beside the form: a recommended crop, how well it matches, and why." },
+      { target: 'cr-history', title: "Your past predictions", body: "Every recommendation you run is saved here, so you can open it again later." },
+      { target: 'cr-result-card', title: "Your recommendation", body: "The best crop for your land with its match score, your inputs, and two alternatives to compare." },
       { target: 'cr-xai-card', title: 'Understand why', body: 'See exactly which factors — soil, climate, season — drove this recommendation, and how much each one mattered.' },
       { target: 'cr-crop-info-card', title: 'Full crop profile', body: 'Ideal duration, water needs, and nutrient ranges for the recommended crop — see how your own values compare.' },
       { target: 'cr-compare-card', title: 'Compare top picks', body: 'See how the top 3 recommended crops stack up side by side before you decide.' },
@@ -41,12 +42,12 @@ const CR_TOUR_T = {
   },
   si: {
     steps: [
-      { target: 'cr-history', title: 'ඔබේ පෙර නිර්දේශ', body: 'ඔබ ධාවනය කරන සෑම නිර්දේශයක්ම පසුව නැවත බැලීමට මෙහි සුරැකේ.' },
       { target: 'cr-district-select', title: 'ඔබේ දිස්ත්‍රික්කය තෝරන්න', body: 'ඔබේ දිස්ත්‍රික්කය කෘෂි-පාරිසරික කලාපය තීරණය කර පහත සජීවී කාලගුණ ස්වයං-පිරවීම විවෘත කරයි.' },
       { target: 'cr-soil-select', title: 'පස වර්ගය', body: 'ඔබේ පස කුමක්දැයි විශ්වාස නැද්ද? මෙම ක්ෂේත්‍රය අසල ඇති "මගේ පස හඳුනාගන්න" මාර්ගෝපදේශය භාවිතා කරන්න.' },
       { target: 'cr-nutrient-fields', title: 'පස සහ දේශගුණ අගයන්', body: 'ඔබේ N/P/K සහ දේශගුණ කියැවීම් ඇතුළත් කරන්න, නැතහොත් දිස්ත්‍රික්කයක් තෝරූ පසු කාලගුණ ස්වයං-පිරවීමට ඉඩ දෙන්න.' },
-      { target: 'cr-predict-btn', title: 'ඔබේ නිර්දේශය ලබාගන්න', body: 'සම්පූර්ණ AI විශ්ලේෂණය ධාවනය කරන්න — ඔබට නිර්දේශිත බෝගයක්, විශ්වාස ලකුණු, සහ එය මන්දැයි පැහැදිලි කිරීමක් ලැබෙනු ඇත.' },
-      { target: 'cr-result-card', title: 'ඔබේ ප්‍රතිඵලය මෙහි පෙන්වයි', body: 'නිර්දේශිත බෝගය, විකල්ප, සහ වගා දින දර්ශනයක් මෙම ප්‍රදේශයේ පෙන්වනු ඇත.' },
+      { target: 'cr-predict-btn', title: "ඔබේ නිර්දේශය ලබා ගන්න", body: "ඔබ ඇතුළත් කළ දේ මත AI ආකෘතිය ක්‍රියාත්මක කරයි. ප්‍රතිඵලය පෝරමය අසල විවෘත වේ: නිර්දේශිත බෝගය, එය ගැළපෙන තරම සහ හේතුව." },
+      { target: 'cr-history', title: "ඔබේ පෙර පුරෝකථන", body: "ඔබ ලබාගන්නා සෑම නිර්දේශයක්ම මෙහි සුරැකේ; පසුව නැවත විවෘත කළ හැක." },
+      { target: 'cr-result-card', title: "ඔබේ නිර්දේශය", body: "ඔබේ ඉඩමට හොඳම බෝගය සහ එහි ගැළපුම් ප්‍රතිශතය, ඔබ ඇතුළත් කළ අගයන්, සහ සැසඳීමට විකල්ප දෙකක්." },
       { target: 'cr-xai-card', title: 'මන්දැයි තේරුම් ගන්න', body: 'පස, දේශගුණය, කන්නය වැනි කුමන සාධක මෙම නිර්දේශයට හේතු වූයේද, සහ එක් එක් සාධකයේ බලපෑම කොපමණද යන්න බලන්න.' },
       { target: 'cr-crop-info-card', title: 'සම්පූර්ණ බෝග පැතිකඩ', body: 'නිර්දේශිත බෝගය සඳහා පරමාදර්ශී කාලසීමාව, ජල අවශ්‍යතාව, සහ පෝෂක පරාසයන් — ඔබේ අගයන් සමඟ සසඳන්න.' },
       { target: 'cr-compare-card', title: 'ඉහළම තේරීම් සසඳන්න', body: 'තීරණය කිරීමට පෙර ඉහළම බෝග 3 එකිනෙකට සසඳා බලන්න.' },
@@ -55,12 +56,12 @@ const CR_TOUR_T = {
   },
   ta: {
     steps: [
-      { target: 'cr-history', title: 'உங்கள் முந்தைய பரிந்துரைகள்', body: 'நீங்கள் இயக்கும் ஒவ்வொரு பரிந்துரையும் பின்னர் பார்வையிட இங்கே சேமிக்கப்படும்.' },
       { target: 'cr-district-select', title: 'உங்கள் மாவட்டத்தைத் தேர்வு செய்யுங்கள்', body: 'உங்கள் மாவட்டம் வேளாண்-சுற்றுச்சூழல் மண்டலத்தை நிர்ணயித்து கீழே நேரடி வானிலை தானியங்கி-நிரப்புதலைத் திறக்கும்.' },
       { target: 'cr-soil-select', title: 'மண் வகை', body: 'உங்கள் மண் என்னவென்று உறுதியாக தெரியவில்லையா? இந்த புலத்திற்கு அருகில் உள்ள "என் மண்ணை அடையாளம் காணுங்கள்" வழிகாட்டியைப் பயன்படுத்துங்கள்.' },
       { target: 'cr-nutrient-fields', title: 'மண் மற்றும் காலநிலை மதிப்புகள்', body: 'உங்கள் N/P/K மற்றும் காலநிலை அளவீடுகளை உள்ளிடுங்கள், அல்லது மாவட்டம் தேர்ந்தெடுத்தவுடன் வானிலை தானாக நிரப்பட்டும்.' },
-      { target: 'cr-predict-btn', title: 'உங்கள் பரிந்துரையைப் பெறுங்கள்', body: 'முழு AI பகுப்பாய்வை இயக்குங்கள் — பரிந்துரைக்கப்பட்ட பயிர், நம்பகத்தன்மை மதிப்பெண் மற்றும் ஏன் என்பதற்கான விளக்கத்தைப் பெறுவீர்கள்.' },
-      { target: 'cr-result-card', title: 'உங்கள் முடிவு இங்கே தோன்றும்', body: 'பரிந்துரைக்கப்பட்ட பயிர், மாற்றுகள் மற்றும் நடவு நாட்காட்டி இந்தப் பகுதியில் தோன்றும்.' },
+      { target: 'cr-predict-btn', title: "உங்கள் பரிந்துரையைப் பெறுங்கள்", body: "நீங்கள் உள்ளிட்டவற்றின் மீது AI மாதிரியை இயக்குகிறது. முடிவு படிவத்தின் அருகில் திறக்கும்: பரிந்துரைக்கப்பட்ட பயிர், அது எவ்வளவு பொருந்துகிறது, ஏன் என்பது." },
+      { target: 'cr-history', title: "உங்கள் முந்தைய கணிப்புகள்", body: "நீங்கள் பெறும் ஒவ்வொரு பரிந்துரையும் இங்கே சேமிக்கப்படும்; பின்னர் மீண்டும் திறக்கலாம்." },
+      { target: 'cr-result-card', title: "உங்கள் பரிந்துரை", body: "உங்கள் நிலத்துக்கான சிறந்த பயிர், அதன் பொருத்த மதிப்பெண், நீங்கள் அளித்த மதிப்புகள், ஒப்பிட இரண்டு மாற்றுகள்." },
       { target: 'cr-xai-card', title: 'ஏன் என்பதை புரிந்துகொள்ளுங்கள்', body: 'மண், காலநிலை, பருவகாலம் போன்ற எந்த காரணிகள் இந்த பரிந்துரையை உருவாக்கின, ஒவ்வொரு காரணியின் தாக்கம் எவ்வளவு என்பதைப் பாருங்கள்.' },
       { target: 'cr-crop-info-card', title: 'முழுமையான பயிர் விவரம்', body: 'பரிந்துரைக்கப்பட்ட பயிருக்கான சிறந்த காலஅளவு, நீர் தேவை, மற்றும் ஊட்டச்சத்து வரம்புகள் — உங்கள் மதிப்புகளுடன் ஒப்பிடுங்கள்.' },
       { target: 'cr-compare-card', title: 'சிறந்த தேர்வுகளை ஒப்பிடுங்கள்', body: 'முடிவெடுப்பதற்கு முன் சிறந்த 3 பயிர்களை பக்கத்திற்குப் பக்கம் ஒப்பிட்டுப் பாருங்கள்.' },
@@ -180,6 +181,7 @@ const SOIL_MODAL_T = {
 };
 
 function SoilGuideModal({ lang, t, onClose }) {
+  useDialogDismiss(true, onClose);
   const [search, setSearch] = useState('');
   const mt = SOIL_MODAL_T[lang] || SOIL_MODAL_T.en;
   const filtered = search.trim()
@@ -457,13 +459,18 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
     setHum(String(fit("hum",
       weather.season_avg_humidity != null ? weather.season_avg_humidity : c.humidity
     )));
-    // Rainfall: use actual season-to-date accumulation from Open-Meteo archive.
-    // Falls back to climatological seasonal lookup if archive not available.
+    // Rainfall: the model was trained on whole-season totals. A finished
+    // season has a real total in the archive; a season still under way only
+    // has its rain so far (a few days in, that is a tiny number), so the
+    // district's normal total for that season is used instead.
     const actualMm = weather.season_actual_mm;
     const sr       = weather.seasonal_rainfall || {};
     const seasonKey = weather.season_name || season || "Year-round";
-    const fallback  = sr[seasonKey] ?? sr["Year-round"] ?? null;
-    const rainfallMm = (actualMm != null && actualMm > 0) ? actualMm : fallback;
+    const expected  = weather.season_expected_mm ?? sr[seasonKey] ?? sr["Year-round"] ?? null;
+    const seasonDone = weather.season_in_progress === false;
+    const rainfallMm = (seasonDone && actualMm != null && actualMm > 0)
+      ? actualMm
+      : (expected ?? (actualMm > 0 ? actualMm : null));
     if (rainfallMm !== null) setRain(String(fit("rain", rainfallMm)));
 
     setWxClamped(clamped);
@@ -663,7 +670,7 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
         </div>
       )}
 
-      <div className="cr2-grid">
+      <div className={`cr2-grid${result ? "" : " cr2-grid--solo"}`}>
         {/* ── Inputs ── */}
         <div className="cr2-steps">
           <section className="tu-card cr2-step tu-rise">
@@ -843,37 +850,6 @@ export default function CropRecommendation({ lang, setLang, setPage, weather, se
 
         {/* ── Result ── */}
         <aside className="cr2-res" ref={resRef} data-tour="cr-result-card">
-          {!result && (
-            <div className="tu-card cr2-empty tu-rise">
-              <div className="cr2-empty__ic"><Sprout size={38} /></div>
-              <h3>{c2.emptyT}</h3>
-              <p>{c2.emptyB}</p>
-              <ul>
-                {[c2.e1, c2.e2, c2.e3, c2.e4].map(line => (
-                  <li key={line}><Check size={16} strokeWidth={3} />{line}</li>
-                ))}
-              </ul>
-              <div className="cr2-prog">
-                <small>{doneCount} / 3 {c2.progress}</small>
-                <div className="tu-bar"><i style={{ width: `${(doneCount / 3) * 100}%`, background: "var(--tu-g-green)" }} /></div>
-              </div>
-            </div>
-          )}
-
-          {!result && (
-            <div className="tu-card tu-rise">
-              <div className="tu-head">
-                <span className="tu-ic tu-ic--sm"><Info size={18} /></span>
-                <div><h3>{c2.tipsT}</h3><small>{c2.tipsS}</small></div>
-              </div>
-              <div className="cr2-tips">
-                {[c2.tip1, c2.tip2, c2.tip3].map((tip, i) => (
-                  <div className="cr2-tip" key={i}><i>{i + 1}</i><span>{tip}</span></div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {result && (
             <>
               <div className="cr2-best tu-rise">

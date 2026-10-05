@@ -7,13 +7,17 @@ function getVisibleTarget(target) {
     const rect = el.getBoundingClientRect();
     // width/height alone isn't enough: an off-canvas mobile drawer link (CSS
     // transform: translateX(-100%)) still reports its real size, just parked
-    // outside the viewport. Require the rect to actually intersect the
-    // viewport too, or a closed hamburger/sidebar menu's items get treated
-    // as valid spotlight targets and the tour points at nothing.
+    // off to the side. Require the rect to sit within the page's width, or a
+    // closed hamburger/sidebar menu's items get treated as valid spotlight
+    // targets and the tour points at nothing.
+    //
+    // Only sideways, though: something further down the page is on the page,
+    // and each step scrolls its target into view. Requiring it to be inside
+    // the window already cut every tour down to what happened to be on screen
+    // when "Need Help" was pressed.
     if (
       rect.width > 0 && rect.height > 0 &&
-      rect.right > 0 && rect.bottom > 0 &&
-      rect.left < window.innerWidth && rect.top < window.innerHeight
+      rect.right > 0 && rect.left < window.innerWidth
     ) return el;
   }
   return null;
@@ -107,11 +111,18 @@ export default function SpotlightTour({ steps, open, onClose, labels }) {
   let tooltipStyle;
   if (rect) {
     const spaceBelow = window.innerHeight - (rect.top + rect.height);
-    const placeBelow = spaceBelow > 200 || rect.top < 200;
+    const spaceAbove = rect.top;
     const left = Math.min(Math.max(margin, rect.left), window.innerWidth - tooltipWidth - margin);
-    tooltipStyle = placeBelow
-      ? { top: rect.top + rect.height + margin, left }
-      : { bottom: window.innerHeight - rect.top + margin, left };
+    if (spaceBelow > 200) {
+      tooltipStyle = { top: rect.top + rect.height + margin, left };
+    } else if (spaceAbove > 200) {
+      tooltipStyle = { bottom: window.innerHeight - rect.top + margin, left };
+    } else {
+      // The target fills the window (a long list or grid), so there is no room
+      // above or below it. Sit the tooltip over its lower edge instead of
+      // letting it run off the screen.
+      tooltipStyle = { bottom: margin, left };
+    }
   } else {
     tooltipStyle = { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
   }

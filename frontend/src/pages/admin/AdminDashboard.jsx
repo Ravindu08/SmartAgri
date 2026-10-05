@@ -132,13 +132,13 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div style={{ padding: '28px', maxWidth: '1100px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div style={{ padding: '28px', maxWidth: '1600px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <DashHero lang={lang} tagline={heroT.tagline} tone="purple">
         {totalUsers > 0 && <ProgressRing pct={activePct} label={heroT.ring} sub={heroT.ringSub(suspended)} />}
       </DashHero>
 
       {/* Stats grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 280px))', gap: '16px' }} data-tour="admin-dash-stats">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }} data-tour="admin-dash-stats">
         <StatCard icon="👥" label={t.totalUsers}   value={reports?.users?.total}       color="#7c3aed" />
         <StatCard icon="🌾" label={t.landOwners}   value={reports?.users?.land_owners}  color="#2d6a4f" />
         <StatCard icon="🏪" label={t.traders}       value={reports?.users?.traders}      color="#1565c0" />

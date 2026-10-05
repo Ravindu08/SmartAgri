@@ -38,6 +38,25 @@ async function _doRefresh() {
   }
 }
 
+// FastAPI reports invalid input as a list of {loc, msg}; turn it into a
+// sentence a person can read instead of showing the raw JSON.
+export function errorMessage(detail, fallback = 'Request failed') {
+  if (!detail) return fallback;
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) {
+    const parts = detail.map((item) => {
+      if (typeof item === 'string') return item;
+      const field = Array.isArray(item?.loc)
+        ? item.loc.filter((p) => !['body', 'query', 'path'].includes(p)).join('.').replace(/_/g, ' ')
+        : '';
+      const msg = String(item?.msg ?? '').replace(/^Value error, /, '');
+      return field ? `${field}: ${msg}` : msg;
+    }).filter(Boolean);
+    return parts.length ? parts.join('; ') : fallback;
+  }
+  return JSON.stringify(detail);
+}
+
 // Authenticated request against either service (main backend or ML service).
 async function requestTo(baseUrl, path, options = {}, _retry = true) {
   const { token } = getAuthSession();
@@ -66,9 +85,7 @@ async function requestTo(baseUrl, path, options = {}, _retry = true) {
   }
 
   if (!response.ok) {
-    const rawMessage = data?.detail ?? data?.message ?? data ?? 'Request failed';
-    const message = typeof rawMessage === 'string' ? rawMessage : JSON.stringify(rawMessage);
-    throw new Error(message);
+    throw new Error(errorMessage(data?.detail ?? data?.message ?? data?.error));
   }
 
   return data;
@@ -89,10 +106,14 @@ export function saveAuthSession({ access_token: accessToken, refresh_token: refr
 export function getAuthSession() {
   const token = localStorage.getItem('smartagri_token');
   const rawUser = localStorage.getItem('smartagri_user');
-  return {
-    token,
-    user: rawUser ? JSON.parse(rawUser) : null,
-  };
+  let user = null;
+  try {
+    user = rawUser ? JSON.parse(rawUser) : null;
+  } catch {
+    // A damaged entry must not crash every page that reads the session.
+    user = null;
+  }
+  return { token, user };
 }
 
 export function clearAuthSession() {
@@ -198,10 +219,12 @@ export function markAllNotificationsRead() {
 
 // ── Admin exports ─────────────────────────────────────────────────────────────
 export async function downloadAdminCSV(type) {
-  const { token } = getAuthSession();
-  const response = await fetch(`${API_BASE_URL}/api/admin/export/${type}.csv`, {
-    headers: { Authorization: `Bearer ${token}` },
+  const download = () => fetch(`${API_BASE_URL}/api/admin/export/${type}.csv`, {
+    headers: { Authorization: `Bearer ${getAuthSession().token}` },
   });
+  let response = await download();
+  // An export is often the first click after the page has sat open for a while.
+  if (response.status === 401 && await _refreshOnce()) response = await download();
   if (!response.ok) throw new Error('Export failed');
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);

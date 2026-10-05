@@ -4,9 +4,10 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useOutletContext } from 'react-router';
+import { Link, useOutletContext, useSearchParams } from 'react-router';
 import useSWR, { mutate } from 'swr';
 import CustomSelect from '../components/CustomSelect';
+import useDialogDismiss from '../hooks/useDialogDismiss';
 import PayDialog from '../components/PayDialog';
 import { SkeletonListingGrid, SkeletonRows } from '../components/Skeleton';
 import { relativeTime } from '../utils/relativeTime';
@@ -58,7 +59,8 @@ const M = {
     requestInvalid: 'Enter a valid quantity and price.',
     estimatedTotal: 'Estimated total',
     available: 'available', soldLabel: 'Sold', reservedLabel: 'Reserved',
-    ownerTabs: ['My Listings', 'Browse', 'Incoming Orders', 'History'],
+    ownerTabs: ['My Listings', 'Browse', 'Incoming Orders', 'History', 'My Purchases'],
+    buyersOfCrops: 'Crops are bought by traders.', buyersOfProducts: 'Farm supplies are bought by land owners.',
     traderTabs: ['Browse', 'My Products', 'My Orders', 'History', 'Incoming Requests'],
     availableCrops: 'Crop Listings', availableProducts: 'Agricultural Products',
     loadingOrders: 'Loading orders…',
@@ -66,7 +68,8 @@ const M = {
     buyer: 'Buyer', seller: 'Seller', qty: 'Qty', price: 'Price', total: 'Total',
     status: 'Status', orderDate: 'Date',
     markAs: 'Mark as', confirmComplete: 'Confirm Receipt',
-    negotiate: 'Negotiate / Note', noNotes: 'No notes yet.',
+    histTotal: 'Total Orders', histCompleted: 'Completed', histValue: 'Total Value',
+    negotiate: 'Negotiate / Note', viewNotes: 'View notes', ratedLabel: 'Rated', noNotes: 'No notes yet.',
     buyerNote: "Buyer's Note", sellerNote: "Seller's Response",
     counterOffer: 'Counter offer', addNote: 'Add Note',
     yourNote: 'Your note…', yourCounter: 'Counter price (optional)',
@@ -74,6 +77,7 @@ const M = {
     deleteListing: 'Delete', deleteConfirm: 'Delete this listing? This cannot be undone.',
     archiveListing: 'Archive', restoreListing: 'Restore', archivedToast: 'archived — hidden from buyers.', restoredToast: 'is live on the marketplace again.',
     accept: 'Accept', reject: 'Reject', cancel: 'Cancel',
+    confirmCancelOrder: 'Cancel this order? This cannot be undone.', confirmRejectOrder: 'Reject this request? This cannot be undone.',
     switchRole: 'Switch Role',
     pendingStatus: 'Pending', confirmedStatus: 'Confirmed',
     deliveredStatus: 'Delivered', completedStatus: 'Completed',
@@ -109,7 +113,8 @@ const M = {
     requestInvalid: 'වලංගු ප්‍රමාණයක් සහ මිලක් ඇතුළත් කරන්න.',
     estimatedTotal: 'අනුමාන මුළු',
     available: 'ලබා ගත හැකි', soldLabel: 'විකිණී', reservedLabel: 'වෙන් කළ',
-    ownerTabs: ['මගේ ලැයිස්තු', 'බ්‍රව්ස්', 'ලැබෙන ඇණවුම්', 'ඉතිහාසය'],
+    ownerTabs: ['මගේ ලැයිස්තු', 'බ්‍රව්ස්', 'ලැබෙන ඇණවුම්', 'ඉතිහාසය', 'මගේ මිලදී ගැනීම්'],
+    buyersOfCrops: 'බෝග මිලදී ගන්නේ වෙළඳුන්ය.', buyersOfProducts: 'කෘෂි ද්‍රව්‍ය මිලදී ගන්නේ ඉඩම් හිමියන්ය.',
     traderTabs: ['බ්‍රව්ස්', 'මගේ නිෂ්පාදන', 'මගේ ඇණවුම්', 'ඉතිහාසය', 'එන ඉල්ලීම්'],
     availableCrops: 'බෝග ලැයිස්තු', availableProducts: 'කෘෂි නිෂ්පාදන',
     loadingOrders: 'ඇණවුම් ලෝඩ් වෙමින්…',
@@ -117,7 +122,8 @@ const M = {
     buyer: 'ගැනුම්කරු', seller: 'විකුණුම්කරු', qty: 'ප්‍රමාණය',
     price: 'මිල', total: 'මුළු', status: 'තත්ත්වය', orderDate: 'දිනය',
     markAs: 'ලෙස සලකුණු කරන්න', confirmComplete: 'ලැබිය බව තහවුරු කරන්න',
-    negotiate: 'සාකච්ඡාව / සටහන', noNotes: 'සටහන් නොමැත.',
+    histTotal: 'මුළු ඇණවුම්', histCompleted: 'සම්පූර්ණ', histValue: 'මුළු වටිනාකම',
+    negotiate: 'සාකච්ඡාව / සටහන', viewNotes: 'සටහන් බලන්න', ratedLabel: 'ඇගයීම් කළා', noNotes: 'සටහන් නොමැත.',
     buyerNote: 'ගැනුම්කරුගේ සටහන', sellerNote: 'විකුණුම්කරුගේ ප්‍රතිචාරය',
     counterOffer: 'counter offer', addNote: 'සටහනක් එකතු කරන්න',
     yourNote: 'ඔබේ සටහන…', yourCounter: 'Counter මිල (අවශ්‍ය නොවේ)',
@@ -125,6 +131,7 @@ const M = {
     deleteListing: 'මකන්න', deleteConfirm: 'ලැයිස්තු මකන්නද?',
     archiveListing: 'සංරක්ෂණය', restoreListing: 'නැවත සක්‍රිය කරන්න', archivedToast: 'සංරක්ෂණය කළා — ගැනුම්කරුවන්ට නොපෙනේ.', restoredToast: 'නැවත වෙළඳපොළේ සක්‍රියයි.',
     accept: 'පිළිගන්න', reject: 'ප්‍රතික්ෂේප', cancel: 'අවලංගු',
+    confirmCancelOrder: 'මෙම ඇණවුම අවලංගු කරන්නද? මෙය ආපසු හැරවිය නොහැක.', confirmRejectOrder: 'මෙම ඉල්ලීම ප්‍රතික්ෂේප කරන්නද? මෙය ආපසු හැරවිය නොහැක.',
     switchRole: 'භූමිකාව මාරු',
     pendingStatus: 'අපේක්ෂිත', confirmedStatus: 'තහවුරු',
     deliveredStatus: 'බෙදාදුන්', completedStatus: 'සම්පූර්ණ',
@@ -160,7 +167,8 @@ const M = {
     requestInvalid: 'சரியான அளவு மற்றும் விலையை உள்ளிடவும்.',
     estimatedTotal: 'மதிப்பிடப்பட்ட மொத்தம்',
     available: 'கிடைக்கிறது', soldLabel: 'விற்கப்பட்டது', reservedLabel: 'ஒதுக்கப்பட்டது',
-    ownerTabs: ['என் பட்டியல்கள்', 'உலாவு', 'வரும் ஆர்டர்கள்', 'வரலாறு'],
+    ownerTabs: ['என் பட்டியல்கள்', 'உலாவு', 'வரும் ஆர்டர்கள்', 'வரலாறு', 'என் கொள்முதல்கள்'],
+    buyersOfCrops: 'பயிர்களை வணிகர்கள் வாங்குகிறார்கள்.', buyersOfProducts: 'விவசாயப் பொருட்களை நில உரிமையாளர்கள் வாங்குகிறார்கள்.',
     traderTabs: ['உலாவு', 'என் தயாரிப்புகள்', 'என் ஆர்டர்கள்', 'வரலாறு', 'வரும் கோரிக்கைகள்'],
     availableCrops: 'பயிர் பட்டியல்கள்', availableProducts: 'விவசாய தயாரிப்புகள்',
     loadingOrders: 'ஆர்டர்கள் ஏற்றுகிறது…',
@@ -168,7 +176,8 @@ const M = {
     buyer: 'வாங்குபவர்', seller: 'விற்பவர்', qty: 'அளவு',
     price: 'விலை', total: 'மொத்தம்', status: 'நிலை', orderDate: 'தேதி',
     markAs: 'என்று குறி', confirmComplete: 'பெற்றதை உறுதிப்படுத்து',
-    negotiate: 'பேச்சு / குறிப்பு', noNotes: 'குறிப்புகள் இல்லை.',
+    histTotal: 'மொத்த ஆர்டர்கள்', histCompleted: 'முடிந்தவை', histValue: 'மொத்த மதிப்பு',
+    negotiate: 'பேச்சு / குறிப்பு', viewNotes: 'குறிப்புகளைக் காண்', ratedLabel: 'மதிப்பிடப்பட்டது', noNotes: 'குறிப்புகள் இல்லை.',
     buyerNote: 'வாங்குபவர் குறிப்பு', sellerNote: 'விற்பவர் பதில்',
     counterOffer: 'எதிர் விலை', addNote: 'குறிப்பு சேர்க்கவும்',
     yourNote: 'உங்கள் குறிப்பு…', yourCounter: 'எதிர் விலை (விருப்பமான)',
@@ -176,6 +185,7 @@ const M = {
     deleteListing: 'நீக்கு', deleteConfirm: 'பட்டியலை நீக்கவா?',
     archiveListing: 'காப்பகப்படுத்து', restoreListing: 'மீட்டமை', archivedToast: 'காப்பகப்படுத்தப்பட்டது — வாங்குபவர்களுக்குத் தெரியாது.', restoredToast: 'மீண்டும் சந்தையில் செயலில் உள்ளது.',
     accept: 'ஒப்பு', reject: 'நிராகரி', cancel: 'ரத்து',
+    confirmCancelOrder: 'இந்த ஆர்டரை ரத்து செய்யவா? இதை மாற்ற முடியாது.', confirmRejectOrder: 'இந்தக் கோரிக்கையை நிராகரிக்கவா? இதை மாற்ற முடியாது.',
     switchRole: 'பங்கை மாற்று',
     pendingStatus: 'நிலுவை', confirmedStatus: 'உறுதி',
     deliveredStatus: 'வழங்கல்', completedStatus: 'முடிந்தது',
@@ -195,9 +205,9 @@ const MARKET_TOUR_T = {
     ],
     owner: [
       { target: 'mp-role-pill', title: 'You’re browsing as Land Owner', body: 'Switch roles here anytime if your account also has Trader access.' },
-      { target: 'mp-owner-tabs', title: 'Your seller tools', body: 'My Listings to sell your harvest, Browse to shop, Incoming Orders and History to track sales.' },
+      { target: 'mp-owner-tabs', title: "Your marketplace tabs", body: "My Listings to sell your harvest, Browse to shop for farm supplies, Incoming Orders for requests on your crops, My Purchases for what you ordered, and History." },
       { target: 'mp-add-listing-form', title: 'List your harvest', body: 'Publish a new crop listing here — set quantity, price, location, and an optional photo.' },
-      { target: 'mp-my-listings-grid', title: 'Manage what you’re selling', body: 'See the status of every listing you’ve published, and delete one if it’s no longer available.' },
+      { target: 'mp-my-listings-grid', title: "Manage what you’re selling", body: "Every listing you have published with its status. Archive one to take it off sale, or delete it if it has no orders." },
     ],
     trader: [
       { target: 'mp-role-pill', title: 'You’re browsing as Trader', body: 'Switch roles here anytime if your account also has Land Owner access.' },
@@ -215,9 +225,9 @@ const MARKET_TOUR_T = {
     ],
     owner: [
       { target: 'mp-role-pill', title: 'ඔබ ඉඩම් හිමිකරු ලෙස පිරික්සමින්', body: 'ඔබේ ගිණුමට ව්‍යාපාරික ප්‍රවේශයක්ද ඇත්නම් ඕනෑම වේලාවක මෙහි භූමිකා මාරු කරන්න.' },
-      { target: 'mp-owner-tabs', title: 'ඔබේ විකුණුම් මෙවලම්', body: 'අස්වැන්න විකිණීමට මගේ ලැයිස්තු, සාප්පු සවාරි සඳහා පිරික්සන්න, විකුණුම් ලුහුබැඳීමට ලැබෙන ඇණවුම් සහ ඉතිහාසය.' },
+      { target: 'mp-owner-tabs', title: "ඔබේ වෙළඳසැල් ටැබ්", body: "අස්වැන්න විකිණීමට මගේ ලැයිස්තු, කෘෂි ද්‍රව්‍ය මිලදී ගැනීමට බ්‍රව්ස්, ඔබේ බෝග සඳහා ලැබෙන ඇණවුම්, ඔබ ඇණවුම් කළ දේ සඳහා මගේ මිලදී ගැනීම්, සහ ඉතිහාසය." },
       { target: 'mp-add-listing-form', title: 'ඔබේ අස්වැන්න ලැයිස්තුගත කරන්න', body: 'මෙහි නව බෝග ලැයිස්තුවක් ප්‍රකාශ කරන්න — ප්‍රමාණය, මිල, ස්ථානය, සහ අවශ්‍ය නම් ඡායාරූපයක් සකසන්න.' },
-      { target: 'mp-my-listings-grid', title: 'ඔබ විකුණන දේ කළමනාකරණය කරන්න', body: 'ඔබ ප්‍රකාශ කළ සෑම ලැයිස්තුවක්ම තත්ත්වය බලන්න, තවදුරටත් නොමැති නම් එය මකන්න.' },
+      { target: 'mp-my-listings-grid', title: "ඔබ විකුණන දේ කළමනාකරණය කරන්න", body: "ඔබ ප්‍රකාශ කළ සෑම ලැයිස්තුවක්ම එහි තත්ත්වය සමඟ. විකිණීමෙන් ඉවත් කිරීමට සංරක්ෂණය කරන්න, නැතහොත් ඇණවුම් නොමැති නම් මකන්න." },
     ],
     trader: [
       { target: 'mp-role-pill', title: 'ඔබ ව්‍යාපාරිකයෙකු ලෙස පිරික්සමින්', body: 'ඔබේ ගිණුමට ඉඩම් හිමිකරු ප්‍රවේශයක්ද ඇත්නම් ඕනෑම වේලාවක මෙහි භූමිකා මාරු කරන්න.' },
@@ -235,9 +245,9 @@ const MARKET_TOUR_T = {
     ],
     owner: [
       { target: 'mp-role-pill', title: 'நீங்கள் நில உரிமையாளராகப் பார்க்கிறீர்கள்', body: 'உங்கள் கணக்கிற்கு வணிகர் அணுகலும் இருந்தால் எப்போது வேண்டுமானாலும் இங்கே பாத்திரங்களை மாற்றவும்.' },
-      { target: 'mp-owner-tabs', title: 'உங்கள் விற்பனை கருவிகள்', body: 'அறுவடையை விற்க எனது பட்டியல்கள், உலாவ பிரவுஸ், விற்பனையைக் கண்காணிக்க வரும் ஆர்டர்கள் மற்றும் வரலாறு.' },
+      { target: 'mp-owner-tabs', title: "உங்கள் சந்தை தாவல்கள்", body: "அறுவடையை விற்க என் பட்டியல்கள், விவசாயப் பொருட்களை வாங்க உலாவு, உங்கள் பயிர்களுக்கான வரும் ஆர்டர்கள், நீங்கள் ஆர்டர் செய்தவற்றுக்கு என் கொள்முதல்கள், மற்றும் வரலாறு." },
       { target: 'mp-add-listing-form', title: 'உங்கள் அறுவடையை பட்டியலிடுங்கள்', body: 'இங்கே புதிய பயிர் பட்டியலை வெளியிடுங்கள் — அளவு, விலை, இடம் மற்றும் விருப்பமான புகைப்படத்தை அமைக்கவும்.' },
-      { target: 'mp-my-listings-grid', title: 'நீங்கள் விற்பதை நிர்வகிக்கவும்', body: 'நீங்கள் வெளியிட்ட ஒவ்வொரு பட்டியலின் நிலையையும் பாருங்கள், இனி கிடைக்கவில்லை என்றால் அதை நீக்கவும்.' },
+      { target: 'mp-my-listings-grid', title: "நீங்கள் விற்பதை நிர்வகிக்கவும்", body: "நீங்கள் வெளியிட்ட ஒவ்வொரு பட்டியலும் அதன் நிலையுடன். விற்பனையிலிருந்து நீக்க காப்பகப்படுத்தவும், அல்லது ஆர்டர்கள் இல்லையெனில் நீக்கவும்." },
     ],
     trader: [
       { target: 'mp-role-pill', title: 'நீங்கள் வணிகராகப் பார்க்கிறீர்கள்', body: 'உங்கள் கணக்கிற்கு நில உரிமையாளர் அணுகலும் இருந்தால் எப்போது வேண்டுமானாலும் இங்கே பாத்திரங்களை மாற்றவும்.' },
@@ -284,7 +294,7 @@ async function exportReceiptPDF(order) {
 
   doc.setTextColor(40); doc.setFontSize(11);
   doc.text(order.listing_name || '—', 14, y);
-  doc.text(String(order.requested_quantity), 110, y);
+  doc.text(`${order.requested_quantity} ${order.unit ?? ''}`.trim(), 110, y);
   doc.text(`Rs. ${Number(price).toLocaleString()}`, 140, y);
   doc.text(`Rs. ${Number(total).toLocaleString()}`, 175, y);
 
@@ -320,7 +330,7 @@ function Toaster() {
     () => toastState, () => toastState,
   );
   return (
-    <div style={{ position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 8, pointerEvents: 'none' }}>
+    <div style={{ position: 'fixed', top: 'calc(var(--nav-h, 72px) + 12px)', left: '50%', transform: 'translateX(-50%)', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 8, pointerEvents: 'none' }}>
       {toasts.map(t => (
         <div key={t.id} style={{
           display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px',
@@ -391,6 +401,7 @@ function Textarea({ className = '', ...rest }) {
   return (
     <textarea
       className={`flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${className}`}
+      style={{ fontFamily: 'inherit' }}
       {...rest}
     />
   );
@@ -413,12 +424,7 @@ function Select({ options, className = '', value, onChange, ...rest }) {
 }
 
 function Modal({ open, onClose, title, desc, children }) {
-  useEffect(() => {
-    if (!open) return;
-    const h = e => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', h);
-    return () => document.removeEventListener('keydown', h);
-  }, [open, onClose]);
+  useDialogDismiss(open, onClose);
   if (!open) return null;
   // Rendered into <body>: a card that is transformed (hover lift, entrance
   // animation) becomes the containing block for position:fixed, which used to
@@ -694,7 +700,7 @@ function OrderDialog({ listing, currentUserId, m }) {
               <Input type="number" min="0.01" max={listing.quantity} value={qty} onChange={e => setQty(e.target.value)} />
               <p className="text-xs text-muted-foreground">{listing.quantity} {listing.unit} {m.available}</p>
             </Field>
-            <Field label={`${m.pricePerUnit} / ${listing.unit}`}>
+            <Field label={`${m.pricePerUnit.replace(/ ?\/ ?[^(]*\(/, ' (')} / ${listing.unit}`}>
               <Input type="number" min="0.01" step="0.01" value={proposedPrice} onChange={e => setProposedPrice(e.target.value)} />
             </Field>
           </div>
@@ -813,7 +819,7 @@ function SellerReviewsButton({ userId, rating, count }) {
   );
 }
 
-function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = false }) {
+function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = false, canOrder = true }) {
   const isOwn = listing.owner_id === currentUserId;
 
   return (
@@ -853,20 +859,19 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
             <SellerReviewsButton userId={listing.owner_id} rating={listing.seller_rating} count={listing.seller_rating_count} />
           )}
         </p>
-        {listing.owner_phone && (
-          <p className="text-xs text-muted-foreground mb-3" style={{ color: 'var(--green-primary)' }}>📞 {listing.owner_phone}</p>
-        )}
 
         <div className="mt-auto flex gap-2">
           {showDelete && isOwn
             ? <><ArchiveButton listing={listing} m={m} /><DeleteDialog listingId={listing.id} cropName={listing.crop_name} m={m} /></>
             : null
           }
-          {isAuthenticated && !isOwn
-            ? <OrderDialog listing={listing} currentUserId={currentUserId} m={m} />
-            : isOwn
-              ? null
-              : <p className="text-xs text-muted-foreground">{m.demoWarning.replace('⚠️ ', '')}</p>
+          {isOwn
+            ? null
+            : !isAuthenticated
+              ? <p className="text-xs text-muted-foreground">{m.demoWarning.replace('⚠️ ', '')}</p>
+              : canOrder
+                ? <OrderDialog listing={listing} currentUserId={currentUserId} m={m} />
+                : <p className="text-xs text-muted-foreground">{listing.listing_type === 'product' ? m.buyersOfProducts : m.buyersOfCrops}</p>
           }
         </div>
       </div>
@@ -882,7 +887,7 @@ const SORT_OPTIONS = [
   { value: 'rating',     label: 'Seller rating' },
 ];
 
-function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDelete = false }) {
+function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDelete = false, canOrder = true }) {
   const [filters, setFilters] = useState({ search: '', min_price: '', max_price: '', district: '', category: '' });
   const [sortBy, setSortBy] = useState('newest');
   const categoryOptions = listingType === 'crop' ? CROP_TYPES : PRODUCT_TYPES;
@@ -971,7 +976,7 @@ function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDele
             </div></Card>
           : <div className="mkt-grid grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {listings.map(l => (
-                <ListingCard key={l.id} listing={l} currentUserId={currentUserId} isAuthenticated={isAuthenticated} m={m} showDelete={showDelete} />
+                <ListingCard key={l.id} listing={l} currentUserId={currentUserId} isAuthenticated={isAuthenticated} m={m} showDelete={showDelete} canOrder={canOrder} />
               ))}
             </div>
       }
@@ -1027,6 +1032,8 @@ function NegotiationDialog({ order, isSeller, currentUserId, m }) {
   const [busy, setBusy] = useState(false);
   const [thread, setThread] = useState(null);
   const [threadErr, setThreadErr] = useState('');
+  // A closed order keeps its thread to read, but takes no more notes.
+  const canWrite = order.status === 'Pending' || order.status === 'Confirmed';
 
   async function loadThread() {
     try {
@@ -1057,10 +1064,10 @@ function NegotiationDialog({ order, isSeller, currentUserId, m }) {
     <>
       <Btn variant="outline" size="sm" onClick={() => setOpen(true)}>
         <MessageSquare size={14} />
-        {m.negotiate}
+        {canWrite ? m.negotiate : m.viewNotes}
       </Btn>
-      <Modal open={open} onClose={() => setOpen(false)} title={m.negotiate}
-        desc={`${order.listing_name} · ${order.requested_quantity} ${order.unit ?? 'units'} @ Rs. ${Number(order.proposed_price || 0).toLocaleString()}`}>
+      <Modal open={open} onClose={() => setOpen(false)} title={canWrite ? m.negotiate : m.viewNotes}
+        desc={`${order.listing_name} · ${order.requested_quantity} ${order.unit ?? 'units'} @ Rs. ${Number(order.agreed_price ?? order.counter_offer_price ?? order.proposed_price ?? 0).toLocaleString()}`}>
         <div className="grid gap-3">
           <div className="grid gap-2" style={{ maxHeight: '45vh', overflowY: 'auto' }}>
             {threadErr && <p className="text-sm text-red-600">{threadErr}</p>}
@@ -1084,11 +1091,12 @@ function NegotiationDialog({ order, isSeller, currentUserId, m }) {
               );
             })}
           </div>
-          {order.status === 'Pending' || order.status === 'Confirmed' ? (
+          {canWrite ? (
             <div className="grid gap-2 border-t pt-3">
               <p className="text-xs font-semibold text-muted-foreground">{m.addNote}</p>
               <Textarea placeholder={m.yourNote} value={note} onChange={e => setNote(e.target.value)} rows={2} />
-              {isSeller && (
+              {/* The price is fixed once the order is confirmed */}
+              {isSeller && order.status === 'Pending' && (
                 <Input type="number" min="0.01" step="0.01" placeholder={m.yourCounter} value={counter} onChange={e => setCounter(e.target.value)} />
               )}
               <Btn onClick={send} disabled={busy} size="sm">
@@ -1105,6 +1113,7 @@ function NegotiationDialog({ order, isSeller, currentUserId, m }) {
 
 // ── Order card ─────────────────────────────────────────────────────────────────
 function RatingModal({ order, onClose }) {
+  useDialogDismiss(true, () => onClose(false));
   const [score, setScore]   = useState(0);
   const [hovered, setHover] = useState(0);
   const [comment, setComment] = useState('');
@@ -1133,7 +1142,7 @@ function RatingModal({ order, onClose }) {
             <p style={{ margin: '0 0 16px', color: 'var(--muted)', fontSize: '15px' }}>{order.listing_name} · Seller: {order.seller_name}</p>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', justifyContent: 'center' }}>
               {[1, 2, 3, 4, 5].map(s => (
-                <button key={s} type="button" onClick={() => setScore(s)} onMouseEnter={() => setHover(s)} onMouseLeave={() => setHover(0)}
+                <button key={s} type="button" aria-label={`${s} / 5`} aria-pressed={score === s} onClick={() => setScore(s)} onMouseEnter={() => setHover(s)} onMouseLeave={() => setHover(0)}
                   style={{ fontSize: '28px', background: 'none', border: 'none', cursor: 'pointer', transform: (hovered || score) >= s ? 'scale(1.2)' : 'scale(1)', transition: 'transform 0.1s', filter: (hovered || score) >= s ? 'none' : 'grayscale(1)' }}>
                   ⭐
                 </button>
@@ -1144,7 +1153,7 @@ function RatingModal({ order, onClose }) {
               placeholder="Leave a comment (optional)…"
               value={comment}
               onChange={e => setComment(e.target.value)}
-              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '15px', resize: 'vertical', marginBottom: '12px', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '15px', fontFamily: 'inherit', resize: 'vertical', marginBottom: '12px', boxSizing: 'border-box' }}
             />
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
               <button type="button" onClick={onClose} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '15px' }}>Cancel</button>
@@ -1181,6 +1190,9 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
   }, [order.status]);
 
   async function updateStatus(newStatus) {
+    // Both end the order for good, so one stray click should not be enough.
+    const question = { Cancelled: m.confirmCancelOrder, Rejected: m.confirmRejectOrder }[newStatus];
+    if (question && !window.confirm(question)) return;
     setBusy(true);
     try {
       await apiPost(`/api/marketplace/orders/${order.id}/status`, { status: newStatus }, 'PUT');
@@ -1209,7 +1221,7 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
               </span>
             </div>
             <p className="text-sm text-muted-foreground mt-0.5">
-              {order.requested_quantity} units · Rs. {Number(effectivePrice).toLocaleString()} ea. ={' '}
+              {order.requested_quantity} {order.unit ?? 'units'} · Rs. {Number(effectivePrice).toLocaleString()} ea. ={' '}
               <span className="font-medium text-foreground">Rs. {totalVal.toLocaleString()}</span>
             </p>
             {(order.status === 'Confirmed' || order.status === 'Delivered' || order.status === 'Completed') && (
@@ -1257,6 +1269,13 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
           )}
 
           {/* Buyer pays after the seller confirms — required before the seller can mark it Delivered */}
+          {/* A seller is not left holding stock for a buyer who never pays */}
+          {isSeller && order.status === 'Confirmed' && !isPaid && (
+            <Btn size="sm" variant="danger" onClick={() => updateStatus('Cancelled')} disabled={busy}>
+              <X size={14} />{m.cancel}
+            </Btn>
+          )}
+
           {isBuyer && order.status === 'Confirmed' && !isPaid && (
             <Btn size="sm" onClick={() => setPayOpen(true)} disabled={busy}>
               💳 {m.payNow}
@@ -1271,17 +1290,18 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
           )}
 
           {/* Buyer can cancel before delivery (stock is restored automatically) */}
-          {isBuyer && (order.status === 'Pending' || order.status === 'Confirmed') && (
+          {/* A paid order can no longer be cancelled, so the button goes with the payment */}
+          {isBuyer && (order.status === 'Pending' || order.status === 'Confirmed') && !isPaid && (
             <Btn size="sm" variant="danger" onClick={() => updateStatus('Cancelled')} disabled={busy}>
               <X size={14} />{m.cancel}
             </Btn>
           )}
 
           {/* Buyer rates completed order */}
-          {isBuyer && order.status === 'Completed' && !rated && (
-            <Btn size="sm" variant="outline" onClick={() => setRatingOpen(true)}>
-              ⭐ Rate Seller
-            </Btn>
+          {isBuyer && order.status === 'Completed' && (
+            (rated || order.rated)
+              ? <span className="text-xs text-muted-foreground self-center">⭐ {m.ratedLabel}</span>
+              : <Btn size="sm" variant="outline" onClick={() => setRatingOpen(true)}>⭐ Rate Seller</Btn>
           )}
 
           {/* Either party can download a receipt once paid */}
@@ -1297,7 +1317,7 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
         <PayDialog
           order={order}
           onClose={() => setPayOpen(false)}
-          onSuccess={() => { setPayOpen(false); toast.success(m.paymentPaid); refreshOrders(); }}
+          onSuccess={() => { setPayOpen(false); toast.success(m.paymentPaid.replace(/^✓\s*/, '')); refreshOrders(); }}
         />
       )}
     </Card>
@@ -1337,9 +1357,9 @@ function OrdersPanel({ currentUserId, m, historyMode = false, filterRole }) {
       <div className="grid gap-4">
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: 'Total Orders', val: orders.length },
-            { label: 'Completed', val: completed.length },
-            { label: 'Total Value', val: `Rs. ${totalVal.toLocaleString()}` },
+            { label: m.histTotal, val: orders.length },
+            { label: m.histCompleted, val: completed.length },
+            { label: m.histValue, val: `Rs. ${totalVal.toLocaleString()}` },
           ].map(c => (
             <Card key={c.label}>
               <div className="py-4 text-center">
@@ -1379,8 +1399,19 @@ export default function MarketplacePage() {
   const [roleVersion, setRoleVersion] = useState(0);
   function switchToRole(r) { setActiveRole(r); setRoleVersion(v => v + 1); }
 
-  const [ownerTab, setOwnerTab] = useState('my-listings');
-  const [traderTab, setTraderTab] = useState('browse');
+  // Links can open a tab directly: ?tab=incoming (orders on my listings),
+  // ?tab=purchases (orders I placed) or ?tab=history.
+  const [searchParams] = useSearchParams();
+  const linkedTab = searchParams.get('tab');
+  const [ownerTab, setOwnerTab] = useState(
+    () => ({ incoming: 'orders', purchases: 'purchases', history: 'history' })[linkedTab] || 'my-listings');
+  const [traderTab, setTraderTab] = useState(
+    () => ({ incoming: 'incoming', purchases: 'orders', history: 'history' })[linkedTab] || 'browse');
+  useEffect(() => {
+    if (linkedTab === 'incoming') { setOwnerTab('orders'); setTraderTab('incoming'); }
+    if (linkedTab === 'purchases') { setOwnerTab('purchases'); setTraderTab('orders'); }
+    if (linkedTab === 'history') { setOwnerTab('history'); setTraderTab('history'); }
+  }, [linkedTab]);
 
   const currentUserId = user?.id ?? null;
 
@@ -1416,7 +1447,7 @@ export default function MarketplacePage() {
               <h2 className="text-xl font-bold leading-tight text-foreground">{m.headerTitle}</h2>
               <p className="text-xs text-muted-foreground">
                 {m.headerSub}
-                {isAuthenticated && ` · ${sessionRole ?? user?.role}`}
+                {isAuthenticated && ` · ${role === 'owner' ? m.landOwner : role === 'trader' ? m.trader : (sessionRole ?? user?.role)}`}
               </p>
             </div>
           </div>
@@ -1424,16 +1455,16 @@ export default function MarketplacePage() {
           <div className="flex items-center gap-3 flex-wrap">
             {isAuthenticated ? (
               <div className="flex rounded-lg border bg-muted p-1" data-tour="mp-role-pill">
-                <button
+                {userRoles.includes('Land Owner') && <button
                   onClick={() => isDual && role !== 'owner' ? switchToRole('Land Owner') : undefined}
                   className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${role === 'owner' ? 'bg-primary text-primary-foreground' : isDual ? 'text-muted-foreground hover:text-foreground cursor-pointer' : 'text-muted-foreground cursor-default'}`}>
                   <Tractor size={15} />{m.landOwner}
-                </button>
-                <button
+                </button>}
+                {userRoles.includes('Trader') && <button
                   onClick={() => isDual && role !== 'trader' ? switchToRole('Trader') : undefined}
                   className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${role === 'trader' ? 'bg-primary text-primary-foreground' : isDual ? 'text-muted-foreground hover:text-foreground cursor-pointer' : 'text-muted-foreground cursor-default'}`}>
                   <Store size={15} />{m.trader}
-                </button>
+                </button>}
               </div>
             ) : (
               <div className="flex items-center gap-1.5 rounded-lg border bg-muted px-3 py-1.5 text-sm text-muted-foreground" data-tour="mp-role-pill">
@@ -1494,6 +1525,7 @@ export default function MarketplacePage() {
               { value: 'my-listings', label: m.ownerTabs[0] },
               { value: 'browse',      label: m.ownerTabs[1] },
               { value: 'orders',      label: m.ownerTabs[2] },
+              { value: 'purchases',   label: m.ownerTabs[4] },
               { value: 'history',     label: m.ownerTabs[3] },
             ]} />
             </div>
@@ -1511,7 +1543,7 @@ export default function MarketplacePage() {
               <div className="grid gap-8">
                 <div className="grid gap-3" data-tour="mp-listings-grid">
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{m.availableCrops}</h2>
-                  <ListingsGrid listingType="crop" currentUserId={currentUserId} isAuthenticated m={m} />
+                  <ListingsGrid listingType="crop" currentUserId={currentUserId} isAuthenticated m={m} canOrder={false} />
                 </div>
                 <div className="grid gap-3">
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{m.availableProducts}</h2>
@@ -1520,6 +1552,7 @@ export default function MarketplacePage() {
               </div>
             )}
             {ownerTab === 'orders'  && <OrdersPanel currentUserId={currentUserId} m={m} filterRole="seller" />}
+            {ownerTab === 'purchases' && <OrdersPanel currentUserId={currentUserId} m={m} filterRole="buyer" />}
             {ownerTab === 'history' && <OrdersPanel currentUserId={currentUserId} m={m} historyMode />}
           </div>
         )}
@@ -1545,7 +1578,7 @@ export default function MarketplacePage() {
                 </div>
                 <div className="grid gap-3">
                   <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{m.availableProducts}</h2>
-                  <ListingsGrid listingType="product" currentUserId={currentUserId} isAuthenticated m={m} />
+                  <ListingsGrid listingType="product" currentUserId={currentUserId} isAuthenticated m={m} canOrder={false} />
                 </div>
               </div>
             )}

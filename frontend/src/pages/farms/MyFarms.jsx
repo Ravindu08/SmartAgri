@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router';
+import useDialogDismiss from '../../hooks/useDialogDismiss';
+import { Link, useLocation } from 'react-router';
 import { deleteFarm, getFarms } from '../../services/farmService';
 import { getCrops } from '../../services/cropService';
 import { useApp } from '../../context/AppContext';
@@ -42,8 +43,11 @@ export default function MyFarms() {
   const [cropCounts,  setCropCounts]  = useState({});
   const [isLoading,   setIsLoading]   = useState(true);
   const [searchText,  setSearchText]  = useState('');
-  const [toast,       setToast]       = useState({ type: 'success', message: '' });
+  const location = useLocation();
+  // Arriving from the add/edit form: confirm that the save went through.
+  const [toast,       setToast]       = useState({ type: 'success', message: location.state?.saved ? t.farmSavedOk : '' });
   const [deleteTarget,setDeleteTarget]= useState(null);
+  useDialogDismiss(Boolean(deleteTarget), () => setDeleteTarget(null));
   const [tourOpen, setTourOpen] = useState(false);
 
   const loadData = async () => {
