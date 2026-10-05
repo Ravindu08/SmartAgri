@@ -20,7 +20,7 @@ def simulate_payment_endpoint(
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> PaymentSimulateResponse:
-    order = get_order(db, order_id)
+    order = get_order(db, order_id, lock=True)
     if order is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
     if order.buyer_id != current_user.id:
@@ -36,13 +36,13 @@ def simulate_payment_endpoint(
         type="payment_received",
         title=f"Payment received — {order.listing_name}",
         body=f"{order.buyer_name} has paid for this order. You can now mark it as delivered.",
-        link="/marketplace",
+        link="/marketplace?tab=incoming",
     )
     db.commit()
     # Sent after the response so a slow SMTP server doesn't stall the request.
     if order.seller and order.seller.email:
         background_tasks.add_task(send_order_event_email_quietly, order.seller.email, order.seller_name,
-                                  "payment_received", order.listing_name, "/marketplace")
+                                  "payment_received", order.listing_name, "/marketplace?tab=incoming")
 
     return PaymentSimulateResponse(
         status=payment.status.value,

@@ -77,10 +77,6 @@ class MarketplaceListing(Base):
     def owner_name(self) -> str:
         return self.owner.full_name if self.owner is not None else ""
 
-    @property
-    def owner_phone(self) -> Optional[str]:
-        return self.owner.phone_number if self.owner is not None else None
-
 
 class MarketplaceOrder(Base):
     __tablename__ = "marketplace_orders"
@@ -146,6 +142,14 @@ class MarketplaceOrder(Base):
     @property
     def listing_name(self) -> str:
         return self.listing.crop_name if self.listing is not None else ""
+
+    @property
+    def unit(self) -> str:
+        return self.listing.unit if self.listing is not None else "units"
+
+    @property
+    def listing_type(self) -> str:
+        return self.listing.listing_type if self.listing is not None else "crop"
 
     @property
     def buyer_name(self) -> str:

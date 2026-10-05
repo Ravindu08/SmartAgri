@@ -1750,6 +1750,12 @@ async def get_weather(district: str, season: Optional[str] = None, lang: str = "
 
     # Seasonal lookup (climatological expected totals — fallback / reference)
     seasonal_lookup = DISTRICT_SEASON_RAINFALL.get(district, {})
+    # While the season is still running, the total so far is only part of it:
+    # four days into Maha it is a few dozen mm, not a season's rain. The crop
+    # model was trained on whole-season totals, so callers need to know which
+    # of the two numbers they are holding.
+    season_in_progress = hist_end >= (_date.today() - _timedelta(days=1)).isoformat()
+    season_expected_mm = seasonal_lookup.get(season_name)
 
     rain_today_total = float((daily.get("precipitation_sum") or [0])[0] or 0)
     advice = _agricultural_advice(temp, humidity, wind_kph, rain_now, rain_tomorrow,
@@ -1774,6 +1780,8 @@ async def get_weather(district: str, season: Optional[str] = None, lang: str = "
         "season_name":         season_name,
         "season_start":        hist_start,
         "season_actual_mm":    season_actual_mm,
+        "season_in_progress":  season_in_progress,
+        "season_expected_mm":  season_expected_mm,
         "season_avg_temp":     season_avg_temp,
         "season_avg_humidity": season_avg_humidity,
         # Climatological seasonal averages per season (lookup table fallback)
