@@ -317,7 +317,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 SMARTAGRI_CORS_ORIGINS=http://localhost:5173
 
 # Optional — defaults shown
-ADMIN_EMAIL=admin@smartagri.lk
+ADMIN_EMAIL=admin.smartagri@gmail.com
 ADMIN_PASSWORD=Admin@12345
 ADMIN_FULL_NAME=System Administrator
 ```
@@ -390,7 +390,7 @@ The admin user is created automatically when the main API starts for the first t
 
 | Field | Default |
 |---|---|
-| Email | admin@smartagri.lk |
+| Email | admin.smartagri@gmail.com |
 | Password | Admin@12345 |
 | Role | Admin |
 
