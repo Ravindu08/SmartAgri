@@ -138,7 +138,7 @@ def get_redirect_path(user: User) -> str:
 
 
 def ensure_admin_user(db: Session) -> User:
-    admin_email = os.getenv("ADMIN_EMAIL", "admin@smartagri.lk")
+    admin_email = os.getenv("ADMIN_EMAIL", "admin.smartagri@gmail.com")
     admin_password = os.getenv("ADMIN_PASSWORD", "Admin@12345")
     admin_full_name = os.getenv("ADMIN_FULL_NAME", "System Administrator")
 

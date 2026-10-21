@@ -95,7 +95,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 SMARTAGRI_CORS_ORIGINS=http://localhost:5173
 ```
 
-The admin account (`admin@smartagri.lk`) is created automatically on first startup.
+The admin account (`admin.smartagri@gmail.com`) is created automatically on first startup.
 
 ### Tests
 
@@ -221,6 +221,6 @@ Single mode — **Full Analysis**: N, P, K, Temperature, Rainfall, pH, Humidity 
 | Land Owner + Trader | ravindutharusha08@gmail.com |
 | Land Owner + Trader | nuhafarook21@gmail.com |
 | Land Owner + Trader | thathsaradinidu9@gmail.com |
-| Admin | admin@smartagri.lk |
+| Admin | admin.smartagri@gmail.com |
 
 (Verified against the live dev DB 2026-07-13 — these 5 accounts are the only ones that exist; older test accounts like `testtrader@smartagri.com` have since been deleted. Ask a teammate for passwords — not listed here since this repo is public.)
