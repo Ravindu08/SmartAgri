@@ -69,7 +69,7 @@ export default function AdminFarms() {
         </div>
       </div>
 
-      <div className="fx-card" style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', overflow: 'hidden' }}>
+      <div className="fx-card" style={{ background: 'var(--card)', borderRadius: '14px', border: '1px solid var(--border)', overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
