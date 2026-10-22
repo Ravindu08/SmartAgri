@@ -1894,16 +1894,19 @@ export const HELP_FAQS = {
 
 export const HELP_CONTACT_CHANNELS = {
   en: [
+    { icon: '📧', label: 'Email Support',    value: 'support@smartagri.lk',           detail: 'Response within 24 hours' },
     { icon: '📞', label: 'Hotline',           value: '+94 11 234 5678',                detail: 'Mon–Fri, 8 AM – 5 PM' },
     { icon: '💬', label: 'WhatsApp',          value: '+94 77 123 4567',                detail: 'Quick queries and photos' },
     { icon: '🏢', label: 'Regional Office',   value: 'No. 48, Galle Road, Colombo 03', detail: 'Walk-in by appointment' },
   ],
   si: [
+    { icon: '📧', label: 'ඊමේල් සහාය',       value: 'support@smartagri.lk',           detail: 'ය 24 ක් ඇතුළත ප්‍රතිචාර' },
     { icon: '📞', label: 'ක්ෂණික දුරකථනය',   value: '+94 11 234 5678',                detail: 'සඳු–සිකු, උදේ 8 – සවස 5' },
     { icon: '💬', label: 'WhatsApp',          value: '+94 77 123 4567',                detail: 'ඉක්මන් ප්‍රශ්න සහ ඡායාරූප' },
     { icon: '🏢', label: 'ප්‍රාදේශීය කාර්යාලය', value: 'No. 48, Galle Road, Colombo 03', detail: 'හමුවෙන් ඇතුළු වීම' },
   ],
   ta: [
+    { icon: '📧', label: 'மின்னஞ்சல் ஆதரவு', value: 'support@smartagri.lk',           detail: '24 மணி நேரத்திற்குள் பதில்' },
     { icon: '📞', label: 'உதவி தொலைபேசி',    value: '+94 11 234 5678',                detail: 'திங்கள்–வெள்ளி, காலை 8 – மாலை 5' },
     { icon: '💬', label: 'WhatsApp',          value: '+94 77 123 4567',                detail: 'விரைவான கேள்விகள் மற்றும் படங்கள்' },
     { icon: '🏢', label: 'பிராந்திய அலுவலகம்', value: 'No. 48, Galle Road, Colombo 03', detail: 'சந்திப்பு மூலம் உள்நுழையவும்' },
