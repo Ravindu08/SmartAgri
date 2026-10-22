@@ -6,7 +6,7 @@ import { celebrate } from "../utils/celebrate";
 import { getFarms, getFarm } from "../services/farmService";
 import { createCrop, deleteCrop, updateCrop } from "../services/cropService";
 import { useApp } from "../context/AppContext";
-import { getCropLabel, getSoilLabel } from "../data/cropData";
+import { getCropLabel } from "../data/cropData";
 import { STAGE_NAME_LABELS } from "../data/translations";
 import CustomSelect from "./CustomSelect";
 // Cultivation dashboard/calendar/modal styles live in CropGuidance.css. Import
