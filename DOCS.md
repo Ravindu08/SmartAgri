@@ -1138,6 +1138,12 @@ Once `payment_status=Paid`, the order's `Confirmed → Delivered` transition (bl
 **Other**
 - `backend/tests/test_api.py` now imports from `ml_service.app` directly instead of a `sys.path` hack.
 
+**Final clean-up (Oct 2026)**
+- Default admin account is now `admin.smartagri@gmail.com` (code default, `.env.example`, README, this file); the password default is unchanged.
+- Fixed a layout bug where the admin pages and the Land Owner / Trader Settings pages scrolled sideways on a phone: `.lo-main` is a flex item and needed `min-width: 0` so wide tables scroll inside their own wrapper; the All Farms and Marketplace admin tables now scroll horizontally instead of clipping.
+- Removed two unused imports, stopped tracking the machine-specific `.claude/launch.json`, and corrected the Tailwind design note above.
+- The hosted Azure demo was switched off to save credit; the README notes it is paused.
+
 ---
 
 ## 10. Design Decisions
@@ -1158,9 +1164,9 @@ Standard choice for a React SPA. The alternative (httpOnly cookies) requires sam
 
 Global state is minimal: language, theme, and current weather. These fit comfortably in a single `AppContext`. A state library would add dependencies and indirection with no benefit.
 
-### Why plain CSS instead of Tailwind or a component library?
+### Why mostly plain CSS instead of Tailwind or a component library?
 
-Zero-dependency, easy to read, and the styles here are simple enough that utility classes would not reduce complexity. Component libraries (MUI, Chakra) would significantly increase bundle size.
+Almost every page is styled with hand-written CSS in `styles.css` and the per-feature files in `src/styles/`: it has no extra dependency, is easy to read, and the styles are simple enough that utility classes would not reduce complexity. The one exception is the Marketplace page, which uses Tailwind utilities (scoped to `MarketplacePage.jsx` in `tailwind.config.js`, with Tailwind's base reset turned off so it cannot restyle the rest of the app). Component libraries (MUI, Chakra) would significantly increase bundle size.
 
 ### Why keep Random Forest for XAI instead of XGBoost's built-in SHAP?
 
