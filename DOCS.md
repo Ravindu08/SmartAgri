@@ -386,7 +386,7 @@ python -m pytest backend/tests/ -v
 
 ### Admin account
 
-The admin user is created when the main API starts, from `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env`. There is no built-in default: if either is missing, startup logs a warning and no admin is created. `ADMIN_FULL_NAME` is optional (default `System Administrator`). The account gets the Admin role, and it is created only if no user with that e-mail exists yet.
+The admin user is created when the main API starts, from `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env`. Always set your own values: the code only has a development fallback for local use, which must not be relied on anywhere else. `ADMIN_FULL_NAME` is optional (default `System Administrator`). The account gets the Admin role, and it is created only if no user with that e-mail exists yet.
 
 ---
 
@@ -1116,7 +1116,7 @@ Once `payment_status=Paid`, the order's `Confirmed → Delivered` transition (bl
 **Contact form & notifications**
 - The Contact Us form now actually sends email via the existing SMTP pipeline (`POST /api/contact`) instead of just opening a `mailto:` link and unconditionally showing "Message Sent!".
 - Admin replies to feedback/complaints now create an in-app notification and send a confirmation email to the user, reusing the marketplace order-update notification/email pattern.
-- Contact page and footer e-mail placeholder removed (the contact form is the only way to reach the team from the site).
+- Contact/feedback email updated to the project's own address (Footer, Contact page, About page) instead of a placeholder.
 
 **UI/UX polish**
 - Lowered the navbar's hamburger-menu breakpoint from 1600px to 1500px. The navbar's own container-query system already handles narrowing down to ~1459px (measured worst case: Tamil labels, fully compressed); the old 1600px threshold meant desktop users at common scaled resolutions (e.g. a 1920×1080 laptop at Windows' default 125% scaling → 1536px effective viewport) only ever saw the mobile dropdown.
@@ -1131,7 +1131,7 @@ Once `payment_status=Paid`, the order's `Confirmed → Delivered` transition (bl
 - `backend/tests/test_api.py` now imports from `ml_service.app` directly instead of a `sys.path` hack.
 
 **Final clean-up (Oct 2026)**
-- Removed the hard-coded default admin credentials from the code, `.env.example`, README and this file: the admin account is now created only from `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `.env`, and nothing is created if they are unset. The README's list of dev account e-mails was removed too.
+- Documentation clean-up: removed the default admin credentials and the list of dev account e-mails from the README, this file and `.env.example` (placeholder values only), and redacted e-mail addresses and phone numbers in the screenshots.
 - Fixed a layout bug where the admin pages and the Land Owner / Trader Settings pages scrolled sideways on a phone: `.lo-main` is a flex item and needed `min-width: 0` so wide tables scroll inside their own wrapper; the All Farms and Marketplace admin tables now scroll horizontally instead of clipping.
 - Removed two unused imports, stopped tracking the machine-specific `.claude/launch.json`, and corrected the Tailwind design note above.
 - The hosted Azure demo was switched off to save credit; the README notes it is paused.

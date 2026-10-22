@@ -95,7 +95,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 SMARTAGRI_CORS_ORIGINS=http://localhost:5173
 ```
 
-The admin account is created on first startup from `ADMIN_EMAIL` and `ADMIN_PASSWORD` in your `.env` (see `backend/.env.example`). There is no built-in default: if they are not set, no admin account is created.
+The admin account is created automatically on first startup. Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in your `.env` to choose its credentials (see `backend/.env.example`), and always use your own values rather than relying on the built-in development fallback.
 
 ### Tests
 
