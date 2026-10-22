@@ -316,9 +316,9 @@ ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 SMARTAGRI_CORS_ORIGINS=http://localhost:5173
 
-# Optional — defaults shown
-ADMIN_EMAIL=admin.smartagri@gmail.com
-ADMIN_PASSWORD=Admin@12345
+# Admin account, created on first startup (both are required; there is no default)
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=choose-a-strong-password
 ADMIN_FULL_NAME=System Administrator
 ```
 
@@ -384,17 +384,9 @@ Training takes 3–5 minutes and writes `.pkl` files to `backend/ai_models/train
 python -m pytest backend/tests/ -v
 ```
 
-### Default admin account
+### Admin account
 
-The admin user is created automatically when the main API starts for the first time:
-
-| Field | Default |
-|---|---|
-| Email | admin.smartagri@gmail.com |
-| Password | Admin@12345 |
-| Role | Admin |
-
-Override with `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_FULL_NAME` in `.env`.
+The admin user is created when the main API starts, from `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env`. There is no built-in default: if either is missing, startup logs a warning and no admin is created. `ADMIN_FULL_NAME` is optional (default `System Administrator`). The account gets the Admin role, and it is created only if no user with that e-mail exists yet.
 
 ---
 
@@ -799,7 +791,7 @@ Live conditions + 7-day forecast (Open-Meteo) + season-to-date rainfall + farm a
 Registers a new account as **Land Owner**, **Trader**, or both at once (Admin cannot self-register). Rate-limited to 5/minute.
 
 ```json
-{ "full_name": "Sunil Perera", "email": "sunil@example.com", "password": "Secret@123", "roles": ["Land Owner"] }
+{ "full_name": "Sunil Perera", "email": "sunil@example.com", "password": "<password>", "roles": ["Land Owner"] }
 ```
 
 Returns `201` with `{ message, email }`. The account is created but **not yet active** — the user must enter the 6-digit code emailed to them (`POST /auth/verify-email`) before logging in. If `EMAIL_ENABLED=false`, the account is auto-verified so local dev doesn't need a real mailbox.
@@ -821,7 +813,7 @@ Marks the account `is_verified=true` and clears the code. Returns `200 { message
 #### Auth — `POST /auth/login`
 
 ```json
-{ "email": "sunil@example.com", "password": "Secret@123" }
+{ "email": "sunil@example.com", "password": "<password>" }
 ```
 
 Returns `AuthResponse { access_token, refresh_token, token_type, redirect_to, user }`.
@@ -849,7 +841,7 @@ Sends a reset link valid for 1 hour. Always returns `200 { message }` (prevents 
 #### Auth — `POST /auth/reset-password`
 
 ```json
-{ "token": "<reset_token>", "new_password": "NewSecret@123" }
+{ "token": "<reset_token>", "new_password": "<new-password>" }
 ```
 
 Validates token is not expired, updates password, clears reset fields. Returns `400` for invalid/expired token.
@@ -1124,7 +1116,7 @@ Once `payment_status=Paid`, the order's `Confirmed → Delivered` transition (bl
 **Contact form & notifications**
 - The Contact Us form now actually sends email via the existing SMTP pipeline (`POST /api/contact`) instead of just opening a `mailto:` link and unconditionally showing "Message Sent!".
 - Admin replies to feedback/complaints now create an in-app notification and send a confirmation email to the user, reusing the marketplace order-update notification/email pattern.
-- Contact/feedback email updated to `admin.smartagri@gmail.com` (Footer, Contact page, About page) — was a placeholder `hello@smartagri.lk`.
+- Contact/feedback email updated to the project's own address (Footer, Contact page, About page) — was a placeholder `hello@smartagri.lk`.
 
 **UI/UX polish**
 - Lowered the navbar's hamburger-menu breakpoint from 1600px to 1500px. The navbar's own container-query system already handles narrowing down to ~1459px (measured worst case: Tamil labels, fully compressed); the old 1600px threshold meant desktop users at common scaled resolutions (e.g. a 1920×1080 laptop at Windows' default 125% scaling → 1536px effective viewport) only ever saw the mobile dropdown.
@@ -1139,7 +1131,7 @@ Once `payment_status=Paid`, the order's `Confirmed → Delivered` transition (bl
 - `backend/tests/test_api.py` now imports from `ml_service.app` directly instead of a `sys.path` hack.
 
 **Final clean-up (Oct 2026)**
-- Default admin account is now `admin.smartagri@gmail.com` (code default, `.env.example`, README, this file); the password default is unchanged.
+- Removed the hard-coded default admin credentials from the code, `.env.example`, README and this file: the admin account is now created only from `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `.env`, and nothing is created if they are unset. The README's list of dev account e-mails was removed too.
 - Fixed a layout bug where the admin pages and the Land Owner / Trader Settings pages scrolled sideways on a phone: `.lo-main` is a flex item and needed `min-width: 0` so wide tables scroll inside their own wrapper; the All Farms and Marketplace admin tables now scroll horizontally instead of clipping.
 - Removed two unused imports, stopped tracking the machine-specific `.claude/launch.json`, and corrected the Tailwind design note above.
 - The hosted Azure demo was switched off to save credit; the README notes it is paused.

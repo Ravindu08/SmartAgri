@@ -95,7 +95,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 SMARTAGRI_CORS_ORIGINS=http://localhost:5173
 ```
 
-The admin account (`admin.smartagri@gmail.com`) is created automatically on first startup.
+The admin account is created on first startup from `ADMIN_EMAIL` and `ADMIN_PASSWORD` in your `.env` (see `backend/.env.example`). There is no built-in default: if they are not set, no admin account is created.
 
 ### Tests
 
@@ -211,16 +211,3 @@ Single mode — **Full Analysis**: N, P, K, Temperature, Rainfall, pH, Humidity 
 
 > **Dev tip:** leave `EMAIL_ENABLED=false`. Token links are printed to the backend console so you can test without a real email account.
 
----
-
-## Dev Accounts (local only)
-
-| Role | Email |
-|---|---|
-| Land Owner + Trader | induwara.ihalavithana@gmail.com |
-| Land Owner + Trader | ravindutharusha08@gmail.com |
-| Land Owner + Trader | nuhafarook21@gmail.com |
-| Land Owner + Trader | thathsaradinidu9@gmail.com |
-| Admin | admin.smartagri@gmail.com |
-
-(Verified against the live dev DB 2026-07-13 — these 5 accounts are the only ones that exist; older test accounts like `testtrader@smartagri.com` have since been deleted. Ask a teammate for passwords — not listed here since this repo is public.)
