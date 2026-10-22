@@ -66,3 +66,6 @@ data/
 
 # Database dumps contain user e-mails, phone numbers and password hashes
 *.sql
+
+# Local tool configs
+.claude/
