@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import useDialogDismiss from "../hooks/useDialogDismiss";
 import { useNavigate } from "react-router";
-import { ArrowRight, BookOpen, ChartLine, Check, CloudSun, Info, MapPin, Printer, Sparkles, Sprout, TriangleAlert } from "lucide-react";
+import { ArrowRight, BookOpen, ChartLine, Check, CloudSun, Info, MapPin, Printer, Sparkles, TriangleAlert } from "lucide-react";
 import { ML_BASE_URL } from "../services/api";
 import { celebrate } from "../utils/celebrate";
 

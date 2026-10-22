@@ -4,7 +4,7 @@
 
 Full-stack web application for Sri Lankan agribusiness. Farmers get AI-driven crop recommendations and lifecycle guidance; land owners manage farms, crops, and cultivation sessions; traders access their own dashboard and marketplace; admins have full platform oversight.
 
-**Live demo:** https://smartagri.centralindia.cloudapp.azure.com
+**Live demo:** https://smartagri.centralindia.cloudapp.azure.com *(paused for now to save cloud credit, so it may not load; the whole stack also runs locally, see below)*
 
 ---
 
