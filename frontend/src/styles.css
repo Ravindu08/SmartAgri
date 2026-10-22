@@ -3044,6 +3044,7 @@
 
 .lo-main {
   flex: 1;
+  min-width: 0;
   margin-left: 240px;
   display: flex;
   flex-direction: column;
