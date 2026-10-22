@@ -1,5 +1,7 @@
+import logging
 import os
 import secrets
+from typing import Optional
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
@@ -7,6 +9,8 @@ from sqlalchemy.orm import Session
 from app.core.security import hash_password, verify_password
 from app.models.user import User, UserRole
 from app.schemas.auth import UserRegister
+
+logger = logging.getLogger(__name__)
 
 
 ALLOWED_REGISTRATION_ROLES = {UserRole.TRADER, UserRole.LAND_OWNER}
@@ -137,10 +141,15 @@ def get_redirect_path(user: User) -> str:
     return ROLE_REDIRECT_PATHS.get(user.role, "/marketplace")
 
 
-def ensure_admin_user(db: Session) -> User:
-    admin_email = os.getenv("ADMIN_EMAIL", "admin.smartagri@gmail.com")
-    admin_password = os.getenv("ADMIN_PASSWORD", "Admin@12345")
+def ensure_admin_user(db: Session) -> Optional[User]:
+    """Create the admin account from ADMIN_EMAIL / ADMIN_PASSWORD (set in .env).
+    There is no built-in default: without both variables no admin is created."""
+    admin_email = normalize_email(os.getenv("ADMIN_EMAIL", ""))
+    admin_password = os.getenv("ADMIN_PASSWORD", "")
     admin_full_name = os.getenv("ADMIN_FULL_NAME", "System Administrator")
+    if not admin_email or not admin_password:
+        logger.warning("[startup] ADMIN_EMAIL / ADMIN_PASSWORD not set - no admin account created")
+        return None
 
     user = get_user_by_email(db, admin_email)
     if user is not None:
