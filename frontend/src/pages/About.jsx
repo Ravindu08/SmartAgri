@@ -37,7 +37,6 @@ const ABOUT_T = {
     contactLabel:   "Contact",
     contactTitle:   "Contact Us",
     contactSub:     "Have questions or feedback? Reach out to the SmartAgri team.",
-    contactEmail:   "Email",
     contactProject: "Location",
     contactProjectVal: "Sri Lanka",
     contactNote:    "SmartAgri is built and maintained by a small team focused on Sri Lankan agriculture. We'd love to hear from you.",
@@ -78,7 +77,6 @@ const ABOUT_T = {
     contactLabel:   "සම්බන්ධතා",
     contactTitle:   "සම්බන්ධ කරගන්න",
     contactSub:     "ප්‍රශ්න හෝ ප්‍රතිපෝෂණ ඇතිද? SmartAgri කණ්ඩායමට සම්බන්ධ වන්න.",
-    contactEmail:   "ඊ-තැපෑල",
     contactProject: "ස්ථානය",
     contactProjectVal: "ශ්‍රී ලංකාව",
     contactNote:    "SmartAgri, ශ්‍රී ලාංකික කෘෂිකර්මය කෙරෙහි අවධානය යොමු කළ කුඩා කණ්ඩායමක් විසින් ගොඩනඟා නඩත්තු කරයි.",
@@ -119,7 +117,6 @@ const ABOUT_T = {
     contactLabel:   "தொடர்பு",
     contactTitle:   "தொடர்பு கொள்ளுங்கள்",
     contactSub:     "கேள்விகள் அல்லது கருத்துக்கள் உள்ளதா? SmartAgri குழுவை தொடர்பு கொள்ளுங்கள்.",
-    contactEmail:   "மின்னஞ்சல்",
     contactProject: "இடம்",
     contactProjectVal: "இலங்கை",
     contactNote:    "SmartAgri இலங்கை வேளாண்மையில் கவனம் செலுத்தும் ஒரு சிறிய குழுவால் உருவாக்கப்பட்டு பராமரிக்கப்படுகிறது.",
@@ -347,18 +344,6 @@ export default function About({ lang }) {
           <p className="about-section-sub">{t.contactSub}</p>
 
           <div className="about-contact-grid">
-            <div className="about-contact-card">
-              <div className="about-contact-icon">📧</div>
-              <div className="about-contact-label">{t.contactEmail}</div>
-              <a className="about-contact-value" href="mailto:admin.smartagri@gmail.com">
-                hello@<wbr />smartagri.lk
-              </a>
-            </div>
-            <div className="about-contact-card">
-              <div className="about-contact-icon">📍</div>
-              <div className="about-contact-label">{t.contactProject}</div>
-              <div className="about-contact-value">{t.contactProjectVal}</div>
-            </div>
             <div className="about-contact-card">
               <div className="about-contact-icon">💬</div>
               <div className="about-contact-label">GitHub</div>

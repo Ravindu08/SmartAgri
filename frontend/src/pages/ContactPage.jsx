@@ -20,7 +20,6 @@ const CONTACT_T = {
     errorMsg: "Couldn't send your message. Please try again in a moment.",
     infoTitle: 'Get In Touch',
     infoSub: "We're happy to hear from farmers, traders, and anyone interested in SmartAgri.",
-    emailLabel: 'Email', emailVal: 'admin.smartagri@gmail.com',
     locationLabel: 'Location', locationVal: 'Sri Lanka',
     projectLabel: 'Response Time', projectVal: 'Within 24 hours',
     githubLabel: 'GitHub', githubVal: 'SmartAgri',
@@ -42,7 +41,6 @@ const CONTACT_T = {
     errorMsg: 'ඔබේ පණිවිඩය යැවීමට නොහැකි විය. කරුණාකර මොහොතකින් නැවත උත්සාහ කරන්න.',
     infoTitle: 'සම්බන්ධ වන්න',
     infoSub: 'ගොවීන්, වෙළෙන්දන්, සහ SmartAgri ගැන ඕනෑ කෙනෙකු ඉදිරියෙන් ඇසීමට සතුටු වෙමු.',
-    emailLabel: 'ඊ-තැපෑල', emailVal: 'admin.smartagri@gmail.com',
     locationLabel: 'ස්ථානය', locationVal: 'ශ්‍රී ලංකාව',
     projectLabel: 'ප්‍රතිචාර කාලය', projectVal: 'පැය 24ක් තුළ',
     githubLabel: 'GitHub', githubVal: 'SmartAgri',
@@ -64,7 +62,6 @@ const CONTACT_T = {
     errorMsg: 'உங்கள் செய்தியை அனுப்ப முடியவில்லை. தயவுசெய்து சிறிது நேரத்தில் மீண்டும் முயற்சிக்கவும்.',
     infoTitle: 'தொடர்பு கொள்ளுங்கள்',
     infoSub: 'விவசாயிகள், வர்த்தகர்கள் மற்றும் SmartAgri இல் ஆர்வமுள்ள எவரிடமிருந்தும் கேட்க மகிழ்ச்சியாக இருக்கிறோம்.',
-    emailLabel: 'மின்னஞ்சல்', emailVal: 'admin.smartagri@gmail.com',
     locationLabel: 'இடம்', locationVal: 'இலங்கை',
     projectLabel: 'பதில் நேரம்', projectVal: '24 மணி நேரத்திற்குள்',
     githubLabel: 'GitHub', githubVal: 'SmartAgri',
@@ -169,13 +166,6 @@ export default function ContactPage() {
             <p className="contact-info-sub">{t.infoSub}</p>
 
             <div className="contact-info-cards">
-              <a href="mailto:admin.smartagri@gmail.com" className="contact-info-card">
-                <div className="contact-info-icon">📧</div>
-                <div>
-                  <div className="contact-info-label">{t.emailLabel}</div>
-                  <div className="contact-info-val">{t.emailVal}</div>
-                </div>
-              </a>
               <div className="contact-info-card">
                 <div className="contact-info-icon">📍</div>
                 <div>

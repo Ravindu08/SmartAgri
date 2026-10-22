@@ -1116,7 +1116,7 @@ Once `payment_status=Paid`, the order's `Confirmed → Delivered` transition (bl
 **Contact form & notifications**
 - The Contact Us form now actually sends email via the existing SMTP pipeline (`POST /api/contact`) instead of just opening a `mailto:` link and unconditionally showing "Message Sent!".
 - Admin replies to feedback/complaints now create an in-app notification and send a confirmation email to the user, reusing the marketplace order-update notification/email pattern.
-- Contact/feedback email updated to the project's own address (Footer, Contact page, About page) — was a placeholder `hello@smartagri.lk`.
+- Contact page and footer e-mail placeholder removed (the contact form is the only way to reach the team from the site).
 
 **UI/UX polish**
 - Lowered the navbar's hamburger-menu breakpoint from 1600px to 1500px. The navbar's own container-query system already handles narrowing down to ~1459px (measured worst case: Tamil labels, fully compressed); the old 1600px threshold meant desktop users at common scaled resolutions (e.g. a 1920×1080 laptop at Windows' default 125% scaling → 1536px effective viewport) only ever saw the mobile dropdown.
