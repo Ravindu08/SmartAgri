@@ -19,7 +19,7 @@ const ADMIN_TOUR_T = {
   },
   si: {
     steps: [
-      { target: 'admin-dash-stats', title: 'වේදිකාව එක් බැල්මකින්', body: 'පරිශීලකයන්, ගොවිපල, ලැයිස්තු, ඇණවුම් සහ විවෘත ප්‍රතිපෝෂණ — සියල්ල සජීවීව.' },
+      { target: 'admin-dash-stats', title: 'වේදිකාව එක් බැල්මකින්', body: 'පරිශීලකයන්, ගොවිපළ, ලැයිස්තු, ඇණවුම් සහ විවෘත ප්‍රතිපෝෂණ — සියල්ල සජීවීව.' },
       { target: 'admin-dash-quicklinks', title: 'ඉක්මන් ක්‍රියා', body: 'පරිශීලකයෙකු එකතු කරන්න, ප්‍රතිපෝෂණ වෙත යන්න, හෝ සම්පූර්ණ වාර්තා පිටුව විවෘත කරන්න.' },
       { target: 'admin-dash-activity', title: 'මෑත ක්‍රියාකාරකම්', body: 'වේදිකාව පුරා පරිපාලක සහ පද්ධති ක්‍රියා සජීවී සංග්‍රහයක්.' },
     ],
@@ -46,13 +46,13 @@ const T = {
     recentActivity: 'Recent Activity', viewAll: 'View all →',
   },
   si: {
-    title: 'පරිපාලක ඩෑෂ්බෝඩ', loading: 'පූරණය වෙමින්...', noActivity: 'ක්‍රියාකාරකම් නොමැත',
+    title: 'පරිපාලක ඩැෂ්බෝඩ්', loading: 'පූරණය වෙමින්...', noActivity: 'ක්‍රියාකාරකම් නොමැත',
     totalUsers: 'සම්පූර්ණ පරිශීලකයන්', landOwners: 'ඉඩම් හිමිකරුවන්', traders: 'වෙළෙන්දන්',
-    suspended: 'අත්හිටුවා ඇත', totalFarms: 'සම්පූර්ණ ගොවිපල', listings: 'ලැයිස්තු',
+    suspended: 'අත්හිටුවා ඇත', totalFarms: 'සම්පූර්ණ ගොවිපළ', listings: 'ලැයිස්තු',
     orders: 'ඇණවුම්', openFeedback: 'විවෘත ප්‍රතිපෝෂණ',
-    needsAttention: 'අවධානය අවශ්‍යයි', allClear: 'සිය‍ල්ල හොඳයි',
+    needsAttention: 'අවධානය අවශ්‍යයි', allClear: 'සියල්ල හොඳයි',
     addUser: '+ පරිශීලකයෙකු එකතු කරන්න', viewFeedback: '💬 ප්‍රතිපෝෂණ බලන්න', fullReports: '📈 සම්පූර්ණ වාර්තා',
-    recentActivity: 'මෑත ක්‍රියාකාරකම්', viewAll: 'සිය‍ල්ල බලන්න →',
+    recentActivity: 'මෑත ක්‍රියාකාරකම්', viewAll: 'සියල්ල බලන්න →',
   },
   ta: {
     title: 'நிர்வாக டாஷ்போர்டு', loading: 'ஏற்றுகிறது...', noActivity: 'செயல்பாடு இல்லை',

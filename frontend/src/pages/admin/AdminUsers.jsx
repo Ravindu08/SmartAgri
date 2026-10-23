@@ -11,7 +11,7 @@ const PAGE_SIZE = 10;
 const T = {
   en: {
     title: 'Users', loading: 'Loading…', addUser: '+ Add User', importCsv: 'Import CSV',
-    searchPlaceholder: 'Search name or email…', allRoles: 'All roles',
+    searchPlaceholder: 'Search name or email…', allRoles: 'All roles', roleLandOwner: 'Land Owner', roleTrader: 'Trader', roleAdmin: 'Admin',
     colName: 'Name', colEmail: 'Email', colRoles: 'Role(s)',
     colJoined: 'Joined', colStatus: 'Status', colActions: 'Actions',
     statusActive: 'Active', statusSuspended: 'Suspended',
@@ -24,26 +24,26 @@ const T = {
   },
   si: {
     title: 'පරිශීලකයන්', loading: 'පූරණය වෙමින්...', addUser: '+ පරිශීලකයෙකු එකතු කරන්න', importCsv: 'CSV ආයාත කරන්න',
-    searchPlaceholder: 'නම හෝ ඊ-මේල් සොයන්න...', allRoles: 'සෑම භූමිකාවක්ම',
-    colName: 'නම', colEmail: 'ඊ-මේල්', colRoles: 'භූමිකාව(ය)',
-    colJoined: 'සම්බන්ධ වූ', colStatus: 'තත්ත්වය', colActions: 'ක්‍රියා',
+    searchPlaceholder: 'නම හෝ ඊමේල් සොයන්න...', allRoles: 'සියලු භූමිකා', roleLandOwner: 'ඉඩම් හිමිකරු', roleTrader: 'වෙළෙන්දා', roleAdmin: 'පරිපාලක',
+    colName: 'නම', colEmail: 'ඊමේල්', colRoles: 'භූමිකාව(ය)',
+    colJoined: 'එක් වූ දිනය', colStatus: 'තත්ත්වය', colActions: 'ක්‍රියා',
     statusActive: 'ක්‍රියාකාරී', statusSuspended: 'අත්හිටුවා ඇත',
     suspend: 'අත්හිටුවන්න', unsuspend: 'නැවත සක්‍රිය කරන්න', delete: 'මකන්න',
     noUsers: 'පරිශීලකයන් හමු නොවීය',
-    confirmDelete: (name) => `${name} මකන්නද? මෙය 되돌릴 නොහැක.`,
+    confirmDelete: (name) => `${name} මකන්නද? මෙය ආපසු හැරවිය නොහැක.`,
     toastSuspended: (name) => `${name} අත්හිටුවා ඇත`,
     toastUnsuspended: (name) => `${name} නැවත සක්‍රිය කරන ලදී`,
     toastDeleted: (name) => `${name} මකන ලදී`,
   },
   ta: {
-    title: 'பயனர்கள்', loading: 'ஏற்றுகிறது...', addUser: '+ பயனரைச் சேர்க்கவும்', importCsv: 'CSV இறக்கு',
-    searchPlaceholder: 'பெயர் அல்லது மின்னஞ்சல் தேடவும்...', allRoles: 'அனைத்து பங்குகளும்',
+    title: 'பயனர்கள்', loading: 'ஏற்றுகிறது...', addUser: '+ பயனரைச் சேர்க்கவும்', importCsv: 'CSV இறக்குமதி',
+    searchPlaceholder: 'பெயர் அல்லது மின்னஞ்சல் தேடவும்...', allRoles: 'அனைத்து பங்குகளும்', roleLandOwner: 'நில உரிமையாளர்', roleTrader: 'வணிகர்', roleAdmin: 'நிர்வாகி',
     colName: 'பெயர்', colEmail: 'மின்னஞ்சல்', colRoles: 'பங்கு(கள்)',
     colJoined: 'இணைந்தது', colStatus: 'நிலை', colActions: 'நடவடிக்கைகள்',
     statusActive: 'செயலில்', statusSuspended: 'இடைநிறுத்தப்பட்டது',
     suspend: 'இடைநிறுத்து', unsuspend: 'மீண்டும் செயல்படுத்து', delete: 'நீக்கு',
     noUsers: 'பயனர்கள் கிடைக்கவில்லை',
-    confirmDelete: (name) => `${name} ஐ நீக்கவா? இதை மீட்டெடுக்க முடியாது.`,
+    confirmDelete: (name) => `${name} ஐ நீக்கவா? இதைத் திரும்பப் பெற முடியாது.`,
     toastSuspended: (name) => `${name} இடைநிறுத்தப்பட்டது`,
     toastUnsuspended: (name) => `${name} மீண்டும் செயல்படுத்தப்பட்டது`,
     toastDeleted: (name) => `${name} நீக்கப்பட்டது`,
@@ -157,9 +157,9 @@ export default function AdminUsers() {
         <CustomSelect name="roleFilter" value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
           aria-label={t.allRoles} style={{ flex: '0 1 240px' }}>
           <option value="">{t.allRoles}</option>
-          <option value="Land Owner">Land Owner</option>
-          <option value="Trader">Trader</option>
-          <option value="Admin">Admin</option>
+          <option value="Land Owner">{t.roleLandOwner}</option>
+          <option value="Trader">{t.roleTrader}</option>
+          <option value="Admin">{t.roleAdmin}</option>
         </CustomSelect>
       </div>
 
