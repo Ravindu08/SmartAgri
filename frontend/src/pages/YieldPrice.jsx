@@ -252,7 +252,7 @@ export default function YieldPrice({ lang }) {
                 <label className="tu-label">{t.landUnit}</label>
                 <div className="tu-seg">
                   {LAND_UNITS.map(u => (
-                    <button key={u} type="button" aria-pressed={yf.landUnit === u} onClick={() => setYf(p => ({ ...p, landUnit: u }))}>{u}</button>
+                    <button key={u} type="button" aria-pressed={yf.landUnit === u} onClick={() => setYf(p => ({ ...p, landUnit: u }))}>{({ si: { Acre: "අක්කර", Perch: "පර්චස්", Hectare: "හෙක්ටයාර" }, ta: { Acre: "ஏக்கர்", Perch: "பர்ச்", Hectare: "ஹெக்டேர்" } }[lang] || {})[u] || u}</button>
                   ))}
                 </div>
               </div>

@@ -34,7 +34,7 @@ const LO_LAYOUT_T = {
     profileSettings: 'පැතිකඩ සැකසීම්', logout: 'ලොග් අවුට්',
     notifications: 'දැනුම්දීම්', noNotifications: 'නව දැනුම්දීම් නොමැත.',
     markAllSeen: 'සියල්ල දුටු ලෙස ලකුණු කරන්න', markSeen: 'දුටු ලෙස ලකුණු කරන්න', seenLabel: 'දුටුවා',
-    switchRole: 'ව්‍යාපාරිකයාට මාරු වන්න', sendFeedback: 'ප්‍රතිපෝෂණ',
+    switchRole: 'වෙළෙන්දා වෙත මාරු වන්න', sendFeedback: 'ප්‍රතිපෝෂණ',
     fbTitle: 'ප්‍රතිපෝෂණ යවන්න', fbType: 'වර්ගය', fbSubject: 'විෂය',
     fbMessage: 'පණිවිඩය', fbSend: 'යවන්න', fbSending: 'යවමින්…', fbSent: 'යැවීය!',
     fbTypes: { feedback: 'ප්‍රතිපෝෂණ', complaint: 'පැමිණිලි', bug: 'දෝෂ වාර්තාව' },

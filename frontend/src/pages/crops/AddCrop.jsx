@@ -233,7 +233,7 @@ export default function AddCrop() {
                 value={formData.crop_name}
                 onChange={handleChange}
                 required
-                placeholder="e.g. Chilli"
+                placeholder={lang === "si" ? "උදා. මිරිස්" : lang === "ta" ? "எ.கா. மிளகாய்" : "e.g. Chilli"}
               />
             )}
           </label>

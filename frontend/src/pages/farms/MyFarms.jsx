@@ -6,6 +6,7 @@ import { getCrops } from '../../services/cropService';
 import { useApp } from '../../context/AppContext';
 import { LAND_T, SEA_LABELS, IRR_LABELS } from '../../data/translations';
 import { getSoilLabel } from '../../data/cropData';
+import { sizeUnitLabel } from '../../data/farmOptions';
 import Toast from '../../components/Toast';
 import SpotlightTour   from '../../components/tour/SpotlightTour';
 import HelpButton      from '../../components/tour/HelpButton';
@@ -20,7 +21,7 @@ const MF_TOUR_T = {
   },
   si: {
     steps: [
-      { target: 'farm-add-btn', title: 'ඔබේ පළමු ගොවිපළ එකතු කරන්න', body: 'එහි බෝග, වගාවන් සහ වෙළඳසැල් ලැයිස්තු ලුහුබැඳීම ආරම්භ කිරීමට ගොවිපළක් ලියාපදිංචි කරන්න.' },
+      { target: 'farm-add-btn', title: 'ඔබේ පළමු ගොවිපළ එකතු කරන්න', body: 'එහි බෝග, වගාවන් සහ වෙළඳසැල් ලැයිස්තු නිරීක්ෂණය ආරම්භ කිරීමට ගොවිපළක් ලියාපදිංචි කරන්න.' },
       { target: 'farm-card-actions', title: 'ගොවිපළක් කළමනාකරණය කරන්න', body: 'මෙතැනින් සම්පූර්ණ විස්තර බලන්න, සංස්කරණය කරන්න, හෝ මකන්න.' },
     ],
     next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
@@ -148,7 +149,7 @@ export default function MyFarms() {
                 <div className="farm-card__details">
                   <div>
                     <span>{t.sizeLabel}</span>
-                    <strong>{farm.farm_size} {farm.size_unit || 'acres'}</strong>
+                    <strong>{farm.farm_size} {sizeUnitLabel(farm.size_unit || 'acres', lang)}</strong>
                   </div>
                   <div>
                     <span>{t.soilLabel}</span>

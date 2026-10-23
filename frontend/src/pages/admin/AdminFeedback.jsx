@@ -27,10 +27,10 @@ const T = {
     title: 'கருத்துக்கள் & புகார்கள்', loading: 'ஏற்றுகிறது...', noFeedback: 'கருத்துக்கள் இல்லை',
     tabOpen: 'திறந்திருக்கும்', tabResolved: 'தீர்க்கப்பட்டது', tabAll: 'அனைத்தும்',
     adminReply: 'நிர்வாக பதில்', replyResolve: 'பதிலளித்து தீர்க்கவும்',
-    replyTo: '↩ பதில்:', replyPlaceholder: 'உங்கள் பதிலை தட்டவும்...',
+    replyTo: '↩ பதில்:', replyPlaceholder: 'உங்கள் பதிலைத் தட்டச்சு செய்யுங்கள்...',
     cancel: 'ரத்து செய்', sending: 'அனுப்புகிறது...', sendResolve: 'அனுப்பி தீர்க்கவும்',
     resolvedOn: (date) => `தீர்க்கப்பட்டது ${date}`,
-    deleteItem: 'நீக்கு', confirmDelete: 'இந்தக் கருத்தை நீக்கவா? இதை மாற்ற முடியாது.', deletedUser: 'நீக்கப்பட்ட கணக்கு',
+    deleteItem: 'நீக்கு', confirmDelete: 'இந்தக் கருத்தை நீக்கவா? இதைத் திரும்பப் பெற முடியாது.', deletedUser: 'நீக்கப்பட்ட கணக்கு',
   },
 };
 

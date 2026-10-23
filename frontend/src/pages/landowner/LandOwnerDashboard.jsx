@@ -25,7 +25,7 @@ const LO_TOUR_T = {
   si: {
     steps: [
       { target: 'lo-checklist', title: 'ආරම්භ කිරීම', body: 'ඔබේ ගොවිපළ SmartAgri හි සකසා ගැනීමට මෙම විස්තර ලැයිස්තුව අනුගමනය කරන්න.' },
-      { target: 'lo-notif-bell', title: 'දැනුම්දීම් ලබාගන්න', body: 'කල් ඉකුත් වූ කාර්යයන් සහ එන අස්වනු පිළිබඳ ඇඟවීම් මෙහි එයි.' },
+      { target: 'lo-notif-bell', title: 'දැනුම්දීම් ලබාගන්න', body: 'ප්‍රමාද වූ කාර්යයන් සහ ළඟා වන අස්වනු පිළිබඳ ඇඟවීම් මෙහි පෙනේ.' },
     ],
     next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
   },
@@ -40,8 +40,8 @@ const LO_TOUR_T = {
 
 const LO_CHECKLIST_T = {
   en: { title: 'Getting started', addFarm: 'Add your first farm', addCrop: 'Add your first crop', completeHarvest: 'Complete your first harvest', dismissAria: 'Dismiss checklist' },
-  si: { title: 'ආරම්භ කිරීම', addFarm: 'ඔබේ පළමු ගොවිපළ එකතු කරන්න', addCrop: 'ඔබේ පළමු බෝගය එකතු කරන්න', completeHarvest: 'ඔබේ පළමු අස්වැන්න සම්පූර්ණ කරන්න', dismissAria: 'විස්තර ලැයිස්තුව ඉවත් කරන්න' },
-  ta: { title: 'தொடங்குதல்', addFarm: 'உங்கள் முதல் பண்ணையைச் சேர்க்கவும்', addCrop: 'உங்கள் முதல் பயிரைச் சேர்க்கவும்', completeHarvest: 'உங்கள் முதல் அறுவடையை முடிக்கவும்', dismissAria: 'பட்டியலை நிராகரிக்கவும்' },
+  si: { title: 'ආරම්භ කිරීම', addFarm: 'ඔබේ පළමු ගොවිපළ එකතු කරන්න', addCrop: 'ඔබේ පළමු බෝගය එකතු කරන්න', completeHarvest: 'ඔබේ පළමු අස්වැන්න සම්පූර්ණ කරන්න', dismissAria: 'පරීක්ෂා ලැයිස්තුව සඟවන්න' },
+  ta: { title: 'தொடங்குதல்', addFarm: 'உங்கள் முதல் பண்ணையைச் சேர்க்கவும்', addCrop: 'உங்கள் முதல் பயிரைச் சேர்க்கவும்', completeHarvest: 'உங்கள் முதல் அறுவடையை முடிக்கவும்', dismissAria: 'பட்டியலை மறைக்கவும்' },
 };
 
 function daysBetween(a, b) {

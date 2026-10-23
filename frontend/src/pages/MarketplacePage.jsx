@@ -30,6 +30,54 @@ const ORDER_STATUS_FLOW = ['Pending', 'Confirmed', 'Delivered', 'Completed'];
 const CROP_TYPES = ['Vegetable', 'Grain', 'Fruit', 'Spice', 'Herb', 'Legume', 'Other'];
 const PRODUCT_TYPES = ['Fertilizer', 'Pesticide', 'Herbicide', 'Fungicide', 'Seed', 'Equipment', 'Other'];
 
+
+// ── extra UI strings (filters, reviews, rating, toasts) ──────────────────────
+let CUR_LANG = 'en';
+const MX = {
+  en: {
+    newest: 'Newest first', priceAsc: 'Price: Low to High', priceDesc: 'Price: High to Low', rating: 'Seller rating',
+    searchName: 'Search by name…', minPrice: 'Min price (Rs.)', maxPrice: 'Max price (Rs.)', districtPh: 'District…',
+    allCats: 'All categories', clear: '✕ Clear', reviewsTitle: 'Seller Reviews',
+    reviewsDesc: (r, c) => `${r} ★ average from ${c} rating${c === 1 ? '' : 's'}`,
+    loading: 'Loading…', noReviews: 'No written reviews yet.', locationPh: 'e.g. Anuradhapura', descPh: 'Quality, harvest date, grade…',
+    imgTooBig: 'Image must be under 2 MB', onlyAvail: (q, u) => `Only ${q} ${u} available`, deletedToast: n => `"${n}" deleted.`,
+    typeNote: 'Type a note first', noteSent: 'Note sent.', pickStar: 'Please select a star rating', thanksRating: '⭐ Thanks for rating!',
+    rateExp: 'Rate your experience', sellerLbl: 'Seller', commentPh: 'Leave a comment (optional)…', submitting: 'Submitting…', submitRating: 'Submit Rating',
+    orderMarked: s => `Order marked as ${s}`,
+    cat: {}, st: {},
+  },
+  si: {
+    newest: 'අලුත්ම මුලින්', priceAsc: 'මිල: අඩු සිට වැඩි', priceDesc: 'මිල: වැඩි සිට අඩු', rating: 'විකුණුම්කරුගේ ශ්‍රේණිගත කිරීම',
+    searchName: 'නම අනුව සොයන්න…', minPrice: 'අවම මිල (රු.)', maxPrice: 'උපරිම මිල (රු.)', districtPh: 'දිස්ත්‍රික්කය…',
+    allCats: 'සියලු කාණ්ඩ', clear: '✕ ඉවත් කරන්න', reviewsTitle: 'විකුණුම්කරුගේ සමාලෝචන',
+    reviewsDesc: (r, c) => `ශ්‍රේණිගත කිරීම් ${c}කින් සාමාන්‍යය ${r} ★`,
+    loading: 'පූරණය වෙමින්…', noReviews: 'තවම ලිඛිත සමාලෝචන නැත.', locationPh: 'උදා. අනුරාධපුරය', descPh: 'ගුණාත්මකභාවය, අස්වනු නෙළූ දිනය, ශ්‍රේණිය…',
+    imgTooBig: 'රූපය 2 MB ට අඩු විය යුතුය', onlyAvail: (q, u) => `${q} ${u} ක් පමණක් තිබේ`, deletedToast: n => `"${n}" මකා දමන ලදී.`,
+    typeNote: 'පළමුව සටහනක් ටයිප් කරන්න', noteSent: 'සටහන යැව්වා.', pickStar: 'කරුණාකර තරු ශ්‍රේණිගත කිරීමක් තෝරන්න', thanksRating: '⭐ ශ්‍රේණිගත කළාට ස්තූතියි!',
+    rateExp: 'ඔබේ අත්දැකීම ශ්‍රේණිගත කරන්න', sellerLbl: 'විකුණුම්කරු', commentPh: 'අදහසක් දමන්න (අත්‍යවශ්‍ය නොවේ)…', submitting: 'යවමින්…', submitRating: 'ශ්‍රේණිගත කිරීම යවන්න',
+    orderMarked: s => `ඇණවුම ${s} ලෙස සලකුණු කළා`,
+    cat: { Vegetable: 'එළවළු', Grain: 'ධාන්‍ය', Fruit: 'පළතුරු', Spice: 'කුළුබඩු', Herb: 'ඖෂධීය පැළ', Legume: 'රනිල බෝග', Other: 'වෙනත්', Fertilizer: 'පොහොර', Pesticide: 'කෘමිනාශක', Herbicide: 'වල් නාශක', Fungicide: 'දිලීර නාශක', Seed: 'බීජ', Equipment: 'උපකරණ' },
+    st: { Active: 'සක්‍රිය', Reserved: 'වෙන් කළ', Sold: 'විකුණා අවසන්', Archived: 'සංරක්ෂිත' },
+  },
+  ta: {
+    newest: 'புதியவை முதலில்', priceAsc: 'விலை: குறைவு முதல் அதிகம்', priceDesc: 'விலை: அதிகம் முதல் குறைவு', rating: 'விற்பனையாளர் மதிப்பீடு',
+    searchName: 'பெயரால் தேடுங்கள்…', minPrice: 'குறைந்தபட்ச விலை (ரூ.)', maxPrice: 'அதிகபட்ச விலை (ரூ.)', districtPh: 'மாவட்டம்…',
+    allCats: 'அனைத்து வகைகளும்', clear: '✕ அழி', reviewsTitle: 'விற்பனையாளர் மதிப்புரைகள்',
+    reviewsDesc: (r, c) => `${c} மதிப்பீடுகளில் சராசரி ${r} ★`,
+    loading: 'ஏற்றுகிறது…', noReviews: 'இன்னும் எழுத்து மதிப்புரைகள் இல்லை.', locationPh: 'எ.கா. அனுராதபுரம்', descPh: 'தரம், அறுவடை தேதி, தரநிலை…',
+    imgTooBig: 'படம் 2 MB க்கும் குறைவாக இருக்க வேண்டும்', onlyAvail: (q, u) => `${q} ${u} மட்டுமே உள்ளது`, deletedToast: n => `"${n}" நீக்கப்பட்டது.`,
+    typeNote: 'முதலில் ஒரு குறிப்பை எழுதுங்கள்', noteSent: 'குறிப்பு அனுப்பப்பட்டது.', pickStar: 'நட்சத்திர மதிப்பீட்டைத் தேர்வுசெய்யுங்கள்', thanksRating: '⭐ மதிப்பிட்டதற்கு நன்றி!',
+    rateExp: 'உங்கள் அனுபவத்தை மதிப்பிடுங்கள்', sellerLbl: 'விற்பனையாளர்', commentPh: 'கருத்து சேர்க்கவும் (விருப்பம்)…', submitting: 'சமர்ப்பிக்கிறது…', submitRating: 'மதிப்பீட்டைச் சமர்ப்பி',
+    orderMarked: s => `ஆர்டர் ${s} எனக் குறிக்கப்பட்டது`,
+    cat: { Vegetable: 'காய்கறி', Grain: 'தானியம்', Fruit: 'பழம்', Spice: 'மசாலா', Herb: 'மூலிகை', Legume: 'பயறு வகை', Other: 'மற்றவை', Fertilizer: 'உரம்', Pesticide: 'பூச்சிக்கொல்லி', Herbicide: 'களைக்கொல்லி', Fungicide: 'பூஞ்சைக்கொல்லி', Seed: 'விதை', Equipment: 'உபகரணங்கள்' },
+    st: { Active: 'செயலில்', Reserved: 'ஒதுக்கப்பட்டது', Sold: 'விற்றுத் தீர்ந்தது', Archived: 'காப்பகப்படுத்தப்பட்டது' },
+  },
+};
+const mx = () => MX[CUR_LANG] || MX.en;
+const catLabel = c => mx().cat[c] || c;
+const stLabel = s => mx().st[s] || s;
+const catOptions = list => list.map(c => ({ value: c, label: catLabel(c) }));
+
 // ── multilingual strings ───────────────────────────────────────────────────────
 const M = {
   en: {
@@ -38,6 +86,7 @@ const M = {
     headerTitle: 'AgriMarket', headerSub: 'SmartAgri · Crop Marketplace',
     landOwner: 'Land Owner', trader: 'Trader', guest: 'Guest',
     actAs: 'Acting as', loggedInRole: 'Logged in to this role.',
+    agriProduct: 'Agricultural Product', loginLink: 'Login', registerLink: 'Register',
     demoWarning: '⚠️ You are browsing as a guest. Log in or register to buy or list products.',
     addListingTitle: 'Add a Crop Listing', addListingSub: 'List your harvest for traders to browse and purchase.',
     addProductTitle: 'Add a Product Listing', addProductSub: 'List fertilizers, pesticides, seeds or other agricultural supplies.',
@@ -90,51 +139,52 @@ const M = {
     badge: '🛒 කෘෂි වෙළඳසැල', title: 'කෘෂි නිෂ්පාදන මිලදී ගැනීම සහ විකිණීම',
     sub: 'ගොවින් සහ වෙළෙන්දන් සමග සම්බන්ධ වන්න. නැවුම් නිෂ්පාදන විමසන්න, ඇණවුම් කළමනාකරණය කරන්න.',
     headerTitle: 'AgriMarket', headerSub: 'SmartAgri · කෘෂි වෙළඳසැල',
-    landOwner: 'ඉඩම් හිමිකරු', trader: 'වෙළෙන්ද', guest: 'ආගන්තුක',
+    landOwner: 'ඉඩම් හිමිකරු', trader: 'වෙළෙන්දා', guest: 'ආගන්තුක',
     actAs: 'ලෙස ක්‍රියා කිරීම', loggedInRole: 'මෙම භූමිකාවට ලොගින් වී ඇත.',
+    agriProduct: 'කෘෂි නිෂ්පාදනය', loginLink: 'ලොගින් වන්න', registerLink: 'ලියාපදිංචි වන්න',
     demoWarning: '⚠️ ඔබ ආගන්තුකයෙකු ලෙස බ්‍රව්ස් කරයි. ලොගින් වන්න.',
-    addListingTitle: 'බෝග ලැයිස්තු එක් කරන්න', addListingSub: 'ඔබගේ අස්වනු ලැයිස්තු ගොනු කරන්න.',
-    addProductTitle: 'නිෂ්පාදන ලැයිස්තුව එක් කරන්න', addProductSub: 'පොහොර, කෘමිනාශක, බීජ ලැයිස්තු ගොනු කරන්න.',
+    addListingTitle: 'බෝග ලැයිස්තු එක් කරන්න', addListingSub: 'ඔබගේ අස්වනු ලැයිස්තුගත කරන්න.',
+    addProductTitle: 'නිෂ්පාදන ලැයිස්තුව එක් කරන්න', addProductSub: 'පොහොර, කෘමිනාශක, බීජ ලැයිස්තුගත කරන්න.',
     cropName: 'බෝග නම', productName: 'නිෂ්පාදන නම', cropType: 'බෝග වර්ගය', productCategory: 'කාණ්ඩය',
     quantity: 'ප්‍රමාණය', unit: 'ඒකකය', pricePerUnit: 'මිල / ඒකකය (රු.)',
     location: 'ස්ථානය', description: 'විස්තරය',
     imageLabel: 'රූපය (අවශ්‍ය නොවේ)', imageHint: 'ඡායාරූපය (උපරිම 2MB)',
     publishListing: 'ලැයිස්තු ප්‍රකාශ කරන්න', listingInProgress: 'ප්‍රකාශ කිරීම…',
     requiredFields: 'නම, ප්‍රමාණය සහ මිල අවශ්‍යයි.',
-    listed: 'වෙළඳසැලේ ලැයිස්තු ගොනු කිරීය.',
-    yourListing: 'ඔබේ ලැයිස්තුව', cannotBuyOwn: 'ඔබේ ලැයිස්තු මිලදී ගත නොහැක',
-    noListingsOwner: 'ලැයිස්තු නොමැත. ඉහතදී ලැයිස්තු ගොනු කරන්න.',
+    listed: 'වෙළඳසැලේ ලැයිස්තුගත කරන ලදී.',
+    yourListing: 'ඔබේ ලැයිස්තුව', cannotBuyOwn: 'ඔබේම ලැයිස්තුව මිලදී ගත නොහැක',
+    noListingsOwner: 'ලැයිස්තු නොමැත. ඉහතින් ඔබේ පළමු ලැයිස්තුව එක් කරන්න.',
     noListingsTrader: 'ලැයිස්තු නොමැත. පසුව නැවත බලන්න.',
-    noProductsTrader: 'නිෂ්පාදන නොමැත. ඉහතදී එකතු කරන්න.',
+    noProductsTrader: 'නිෂ්පාදන නොමැත. ඉහතින් ඔබේ පළමු නිෂ්පාදනය එක් කරන්න.',
     noProductsOwner: 'කෘෂි නිෂ්පාදන නොමැත.',
-    loadingCrops: 'ලැයිස්තු ලෝඩ් වෙමින්…',
+    loadingCrops: 'ලැයිස්තු පූරණය වෙමින්…',
     sendRequest: 'මිලදී ගැනීමේ ඉල්ලීම', sendBuyRequest: 'මිලදී ගැනීමේ ඉල්ලීම',
-    soldOut: 'විකිණී ඇත', sending: 'යවමින්…', sendRequestBtn: 'ඉල්ලීම යවන්න',
+    soldOut: 'විකුණා අවසන්', sending: 'යවමින්…', sendRequestBtn: 'ඉල්ලීම යවන්න',
     requestInvalid: 'වලංගු ප්‍රමාණයක් සහ මිලක් ඇතුළත් කරන්න.',
-    estimatedTotal: 'අනුමාන මුළු',
+    estimatedTotal: 'ඇස්තමේන්තුගත මුළු මුදල',
     available: 'ලබා ගත හැකි', soldLabel: 'විකිණී', reservedLabel: 'වෙන් කළ',
-    ownerTabs: ['මගේ ලැයිස්තු', 'බ්‍රව්ස්', 'ලැබෙන ඇණවුම්', 'ඉතිහාසය', 'මගේ මිලදී ගැනීම්'],
-    buyersOfCrops: 'බෝග මිලදී ගන්නේ වෙළඳුන්ය.', buyersOfProducts: 'කෘෂි ද්‍රව්‍ය මිලදී ගන්නේ ඉඩම් හිමියන්ය.',
-    traderTabs: ['බ්‍රව්ස්', 'මගේ නිෂ්පාදන', 'මගේ ඇණවුම්', 'ඉතිහාසය', 'එන ඉල්ලීම්'],
+    ownerTabs: ['මගේ ලැයිස්තු', 'පිරික්සන්න', 'ලැබෙන ඇණවුම්', 'ඉතිහාසය', 'මගේ මිලදී ගැනීම්'],
+    buyersOfCrops: 'බෝග මිලදී ගන්නේ වෙළෙන්දන්ය.', buyersOfProducts: 'කෘෂි ද්‍රව්‍ය මිලදී ගන්නේ ඉඩම් හිමියන්ය.',
+    traderTabs: ['පිරික්සන්න', 'මගේ නිෂ්පාදන', 'මගේ ඇණවුම්', 'ඉතිහාසය', 'එන ඉල්ලීම්'],
     availableCrops: 'බෝග ලැයිස්තු', availableProducts: 'කෘෂි නිෂ්පාදන',
-    loadingOrders: 'ඇණවුම් ලෝඩ් වෙමින්…',
+    loadingOrders: 'ඇණවුම් පූරණය වෙමින්…',
     noOrdersYet: 'ඇණවුම් නොමැත.', noHistoryYet: 'සම්පූර්ණ ඇණවුම් නොමැත.',
     buyer: 'ගැනුම්කරු', seller: 'විකුණුම්කරු', qty: 'ප්‍රමාණය',
     price: 'මිල', total: 'මුළු', status: 'තත්ත්වය', orderDate: 'දිනය',
-    markAs: 'ලෙස සලකුණු කරන්න', confirmComplete: 'ලැබිය බව තහවුරු කරන්න',
+    markAs: 'ලෙස සලකුණු කරන්න', confirmComplete: 'ලැබුණු බව තහවුරු කරන්න',
     histTotal: 'මුළු ඇණවුම්', histCompleted: 'සම්පූර්ණ', histValue: 'මුළු වටිනාකම',
-    negotiate: 'සාකච්ඡාව / සටහන', viewNotes: 'සටහන් බලන්න', ratedLabel: 'ඇගයීම් කළා', noNotes: 'සටහන් නොමැත.',
+    negotiate: 'සාකච්ඡාව / සටහන', viewNotes: 'සටහන් බලන්න', ratedLabel: 'ශ්‍රේණිගත කළා', noNotes: 'සටහන් නොමැත.',
     buyerNote: 'ගැනුම්කරුගේ සටහන', sellerNote: 'විකුණුම්කරුගේ ප්‍රතිචාරය',
-    counterOffer: 'counter offer', addNote: 'සටහනක් එකතු කරන්න',
-    yourNote: 'ඔබේ සටහන…', yourCounter: 'Counter මිල (අවශ්‍ය නොවේ)',
+    counterOffer: 'ප්‍රති-දීමනාව', addNote: 'සටහනක් එකතු කරන්න',
+    yourNote: 'ඔබේ සටහන…', yourCounter: 'ප්‍රති-දීමනා මිල (අවශ්‍ය නොවේ)',
     saving: 'සුරකිමින්…', save: 'යවන්න',
-    deleteListing: 'මකන්න', deleteConfirm: 'ලැයිස්තු මකන්නද?',
+    deleteListing: 'මකන්න', deleteConfirm: 'මෙම ලැයිස්තුව මකන්නද? මෙය ආපසු හැරවිය නොහැක.',
     archiveListing: 'සංරක්ෂණය', restoreListing: 'නැවත සක්‍රිය කරන්න', archivedToast: 'සංරක්ෂණය කළා — ගැනුම්කරුවන්ට නොපෙනේ.', restoredToast: 'නැවත වෙළඳපොළේ සක්‍රියයි.',
     accept: 'පිළිගන්න', reject: 'ප්‍රතික්ෂේප', cancel: 'අවලංගු',
     confirmCancelOrder: 'මෙම ඇණවුම අවලංගු කරන්නද? මෙය ආපසු හැරවිය නොහැක.', confirmRejectOrder: 'මෙම ඉල්ලීම ප්‍රතික්ෂේප කරන්නද? මෙය ආපසු හැරවිය නොහැක.',
     switchRole: 'භූමිකාව මාරු',
-    pendingStatus: 'අපේක්ෂිත', confirmedStatus: 'තහවුරු',
-    deliveredStatus: 'බෙදාදුන්', completedStatus: 'සම්පූර්ණ',
+    pendingStatus: 'පොරොත්තුවෙන්', confirmedStatus: 'තහවුරු',
+    deliveredStatus: 'භාර දුන්', completedStatus: 'සම්පූර්ණ',
     rejectedStatus: 'ප්‍රතික්ෂේප', cancelledStatus: 'අවලංගු',
     phoneAfterConfirm: 'ඇණවුම තහවුරු වූ පසු ඇමතුම් අංකය පෙන්වයි',
     payNow: 'දැන් ගෙවන්න', paymentPaid: '✓ ගෙවා ඇත', awaitingPayment: 'ගෙවීම බලාපොරොත්තුවෙන්',
@@ -145,14 +195,15 @@ const M = {
     sub: 'விவசாயிகள் மற்றும் வணிகர்களுடன் இணையுங்கள். புதிய உற்பத்திகளை ஆய்வு செய்யவும்.',
     headerTitle: 'AgriMarket', headerSub: 'SmartAgri · விவசாய சந்தை',
     landOwner: 'நில உரிமையாளர்', trader: 'வணிகர்', guest: 'விருந்தினர்',
-    actAs: 'நடிக்கிறீர்கள்', loggedInRole: 'இந்த பங்கில் உள்நுழைந்தீர்கள்.',
+    actAs: 'இவ்வாறு செயல்படுகிறீர்கள்', loggedInRole: 'இந்த பங்கில் உள்நுழைந்தீர்கள்.',
+    agriProduct: 'விவசாயப் பொருள்', loginLink: 'உள்நுழைக', registerLink: 'பதிவு செய்க',
     demoWarning: '⚠️ நீங்கள் விருந்தினராக உலாவுகிறீர்கள். உள்நுழையவும்.',
     addListingTitle: 'பயிர் பட்டியலைச் சேர்க்கவும்', addListingSub: 'உங்கள் அறுவடையை பட்டியலிடவும்.',
     addProductTitle: 'தயாரிப்பு பட்டியல்', addProductSub: 'உரங்கள், பூச்சிக்கொல்லிகள் பட்டியலிடவும்.',
     cropName: 'பயிர் பெயர்', productName: 'தயாரிப்பு பெயர்', cropType: 'பயிர் வகை', productCategory: 'வகை',
     quantity: 'அளவு', unit: 'அலகு', pricePerUnit: 'விலை / அலகு (ரூ.)',
     location: 'இடம்', description: 'விவரம்',
-    imageLabel: 'படம் (விருப்பமான)', imageHint: 'படம் பதிவேற்று (அதிகபட்சம் 2MB)',
+    imageLabel: 'படம் (விருப்பம்)', imageHint: 'படம் பதிவேற்று (அதிகபட்சம் 2MB)',
     publishListing: 'பட்டியலை வெளியிடு', listingInProgress: 'வெளியிடுகிறது…',
     requiredFields: 'பெயர், அளவு மற்றும் விலை அவசியம்.',
     listed: 'சந்தையில் பட்டியலிடப்பட்டது.',
@@ -180,15 +231,15 @@ const M = {
     negotiate: 'பேச்சு / குறிப்பு', viewNotes: 'குறிப்புகளைக் காண்', ratedLabel: 'மதிப்பிடப்பட்டது', noNotes: 'குறிப்புகள் இல்லை.',
     buyerNote: 'வாங்குபவர் குறிப்பு', sellerNote: 'விற்பவர் பதில்',
     counterOffer: 'எதிர் விலை', addNote: 'குறிப்பு சேர்க்கவும்',
-    yourNote: 'உங்கள் குறிப்பு…', yourCounter: 'எதிர் விலை (விருப்பமான)',
+    yourNote: 'உங்கள் குறிப்பு…', yourCounter: 'எதிர் விலை (விருப்பம்)',
     saving: 'சேமிக்கிறது…', save: 'அனுப்பு',
-    deleteListing: 'நீக்கு', deleteConfirm: 'பட்டியலை நீக்கவா?',
+    deleteListing: 'நீக்கு', deleteConfirm: 'இந்தப் பட்டியலை நீக்கவா? இதைத் திரும்பப் பெற முடியாது.',
     archiveListing: 'காப்பகப்படுத்து', restoreListing: 'மீட்டமை', archivedToast: 'காப்பகப்படுத்தப்பட்டது — வாங்குபவர்களுக்குத் தெரியாது.', restoredToast: 'மீண்டும் சந்தையில் செயலில் உள்ளது.',
-    accept: 'ஒப்பு', reject: 'நிராகரி', cancel: 'ரத்து',
+    accept: 'ஏற்கவும்', reject: 'நிராகரி', cancel: 'ரத்து',
     confirmCancelOrder: 'இந்த ஆர்டரை ரத்து செய்யவா? இதை மாற்ற முடியாது.', confirmRejectOrder: 'இந்தக் கோரிக்கையை நிராகரிக்கவா? இதை மாற்ற முடியாது.',
     switchRole: 'பங்கை மாற்று',
-    pendingStatus: 'நிலுவை', confirmedStatus: 'உறுதி',
-    deliveredStatus: 'வழங்கல்', completedStatus: 'முடிந்தது',
+    pendingStatus: 'நிலுவை', confirmedStatus: 'உறுதிசெய்யப்பட்டது',
+    deliveredStatus: 'வழங்கப்பட்டது', completedStatus: 'முடிந்தது',
     rejectedStatus: 'நிராகரிக்கப்பட்டது', cancelledStatus: 'ரத்தானது',
     phoneAfterConfirm: 'ஆர்டர் உறுதிசெய்யப்பட்டதும் தொடர்பு எண் தெரியும்',
     payNow: 'இப்போது செலுத்து', paymentPaid: '✓ செலுத்தப்பட்டது', awaitingPayment: 'கட்டணத்திற்காக காத்திருக்கிறது',
@@ -219,7 +270,7 @@ const MARKET_TOUR_T = {
   },
   si: {
     guest: [
-      { target: 'mp-role-pill', title: 'වෙළඳසැලට සාදරයෙන් පිළිගනිමු', body: 'සැබෑ ගොවීන් සහ ව්‍යාපාරිකයන්ගේ බෝග සහ නිෂ්පාදන පිරික්සන්න. මිලදී ගැනීමට හෝ විකිණීමට ලොගින් වන්න.' },
+      { target: 'mp-role-pill', title: 'වෙළඳසැලට සාදරයෙන් පිළිගනිමු', body: 'සැබෑ ගොවීන් සහ වෙළෙන්දන්ගේ බෝග සහ නිෂ්පාදන පිරික්සන්න. මිලදී ගැනීමට හෝ විකිණීමට ලොගින් වන්න.' },
       { target: 'mp-filters', title: 'සොයන්න සහ පෙරහන් කරන්න', body: 'නම, මිල පරාසය, දිස්ත්‍රික්කය, හෝ කාණ්ඩය අනුව ලැයිස්තු පටු කරන්න, අලුත්ම හෝ මිල අනුව අනුපිළිවෙළට සකසන්න.' },
       { target: 'mp-listings-grid', title: 'ලබා ගත හැකි ලැයිස්තු', body: 'මේවා ඔබට දැන් පිරික්සිය හැකි සජීවී ලැයිස්තු — නිදහසේ පෙරහන් කරන්න, සොයන්න සහ මිල පරීක්ෂා කරන්න.' },
     ],
@@ -230,8 +281,8 @@ const MARKET_TOUR_T = {
       { target: 'mp-my-listings-grid', title: "ඔබ විකුණන දේ කළමනාකරණය කරන්න", body: "ඔබ ප්‍රකාශ කළ සෑම ලැයිස්තුවක්ම එහි තත්ත්වය සමඟ. විකිණීමෙන් ඉවත් කිරීමට සංරක්ෂණය කරන්න, නැතහොත් ඇණවුම් නොමැති නම් මකන්න." },
     ],
     trader: [
-      { target: 'mp-role-pill', title: 'ඔබ ව්‍යාපාරිකයෙකු ලෙස පිරික්සමින්', body: 'ඔබේ ගිණුමට ඉඩම් හිමිකරු ප්‍රවේශයක්ද ඇත්නම් ඕනෑම වේලාවක මෙහි භූමිකා මාරු කරන්න.' },
-      { target: 'mp-trader-tabs', title: 'ඔබේ මිලදී ගැනීමේ මෙවලම්', body: 'සාප්පු සවාරි සඳහා පිරික්සන්න, විකිණීමට මගේ නිෂ්පාදන, ලැබෙන ඉල්ලීම්, මගේ ඇණවුම් සහ ඉතිහාසය.' },
+      { target: 'mp-role-pill', title: 'ඔබ වෙළෙන්දෙකු ලෙස පිරික්සමින්', body: 'ඔබේ ගිණුමට ඉඩම් හිමිකරු ප්‍රවේශයක්ද ඇත්නම් ඕනෑම වේලාවක මෙහි භූමිකා මාරු කරන්න.' },
+      { target: 'mp-trader-tabs', title: 'ඔබේ මිලදී ගැනීමේ මෙවලම්', body: 'මිලදී ගැනීමට පිරික්සන්න, විකිණීමට මගේ නිෂ්පාදන, ලැබෙන ඉල්ලීම්, මගේ ඇණවුම් සහ ඉතිහාසය.' },
       { target: 'mp-filters', title: 'සොයන්න සහ පෙරහන් කරන්න', body: 'නම, මිල පරාසය, දිස්ත්‍රික්කය, හෝ කාණ්ඩය අනුව ලැයිස්තු පටු කරන්න, අලුත්ම හෝ මිල අනුව අනුපිළිවෙළට සකසන්න.' },
       { target: 'mp-listings-grid', title: 'ලබා ඇති දේ පිරික්සන්න', body: 'ඕනෑම ලැයිස්තු කාඩ්පතකින්ම මිලදී ගැනීමේ ඉල්ලීමක් යවන්න.' },
     ],
@@ -251,7 +302,7 @@ const MARKET_TOUR_T = {
     ],
     trader: [
       { target: 'mp-role-pill', title: 'நீங்கள் வணிகராகப் பார்க்கிறீர்கள்', body: 'உங்கள் கணக்கிற்கு நில உரிமையாளர் அணுகலும் இருந்தால் எப்போது வேண்டுமானாலும் இங்கே பாத்திரங்களை மாற்றவும்.' },
-      { target: 'mp-trader-tabs', title: 'உங்கள் வாங்குதல் கருவிகள்', body: 'உலாவ பிரவுஸ், விற்க எனது பொருட்கள், வரும் கோரிக்கைகள், எனது ஆர்டர்கள் மற்றும் வரலாறு.' },
+      { target: 'mp-trader-tabs', title: 'உங்கள் வாங்குதல் கருவிகள்', body: 'உலாவ உலாவு, விற்க என் தயாரிப்புகள், வரும் கோரிக்கைகள், எனது ஆர்டர்கள் மற்றும் வரலாறு.' },
       { target: 'mp-filters', title: 'தேடு & வடிகட்டு', body: 'பெயர், விலை வரம்பு, மாவட்டம் அல்லது வகை மூலம் பட்டியல்களை குறுக்கவும், புதியது அல்லது விலை அடிப்படையில் வரிசைப்படுத்தவும்.' },
       { target: 'mp-listings-grid', title: 'கிடைப்பவற்றைப் பாருங்கள்', body: 'எந்தவொரு பட்டியல் அட்டையிலிருந்தும் நேரடியாக வாங்குதல் கோரிக்கையை அனுப்பவும்.' },
     ],
@@ -515,7 +566,7 @@ function ImageUpload({ value, onChange, m }) {
   function handle(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { toast.error('Image must be under 2 MB'); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error(mx().imgTooBig); return; }
     const reader = new FileReader();
     reader.onload = ev => onChange(ev.target.result);
     reader.readAsDataURL(file);
@@ -612,10 +663,10 @@ function CreateListingForm({ listingType = 'crop', m }) {
         <form onSubmit={submit} className="grid gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={listingType === 'crop' ? m.cropName : (m.productName || 'Product name')}>
-              <Input placeholder={listingType === 'crop' ? 'e.g. Fresh Tomatoes' : 'e.g. NPK Fertilizer'} value={name} onChange={e => setName(e.target.value)} />
+              <Input placeholder={listingType === 'crop' ? ({ si: 'උදා. නැවුම් තක්කාලි', ta: 'எ.கா. புதிய தக்காளி' }[CUR_LANG] || 'e.g. Fresh Tomatoes') : ({ si: 'උදා. NPK පොහොර', ta: 'எ.கா. NPK உரம்' }[CUR_LANG] || 'e.g. NPK Fertilizer')} value={name} onChange={e => setName(e.target.value)} />
             </Field>
             <Field label={listingType === 'crop' ? m.cropType : m.productCategory}>
-              <Select options={types} value={type} onChange={e => setType(e.target.value)} />
+              <Select options={catOptions(types)} value={type} onChange={e => setType(e.target.value)} />
             </Field>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
@@ -633,10 +684,10 @@ function CreateListingForm({ listingType = 'crop', m }) {
             </Field>
           </div>
           <Field label={m.location}>
-            <Input placeholder="e.g. Anuradhapura" value={location} onChange={e => setLocation(e.target.value)} />
+            <Input placeholder={mx().locationPh} value={location} onChange={e => setLocation(e.target.value)} />
           </Field>
           <Field label={m.description}>
-            <Textarea placeholder="Quality, harvest date, grade…" value={desc} onChange={e => setDesc(e.target.value)} rows={2} />
+            <Textarea placeholder={mx().descPh} value={desc} onChange={e => setDesc(e.target.value)} rows={2} />
           </Field>
           <ImageUpload value={image} onChange={setImage} m={m} />
           <div>
@@ -664,7 +715,7 @@ function OrderDialog({ listing, currentUserId, m }) {
 
   async function submit() {
     if (!Number(qty) || !Number(proposedPrice)) { toast.error(m.requestInvalid); return; }
-    if (Number(qty) > listing.quantity) { toast.error(`Only ${listing.quantity} ${listing.unit} available`); return; }
+    if (Number(qty) > listing.quantity) { toast.error(mx().onlyAvail(listing.quantity, listing.unit)); return; }
     setBusy(true);
     try {
       const newOrder = await apiPost('/api/marketplace/orders', {
@@ -755,7 +806,7 @@ function DeleteDialog({ listingId, cropName, m }) {
     setBusy(true);
     try {
       await request(`/api/marketplace/listings/${listingId}`, { method: 'DELETE' });
-      toast.success(`"${cropName}" deleted.`);
+      toast.success(mx().deletedToast(cropName));
       setOpen(false);
       refreshListings();
     } catch (err) { toast.error(err.message); }
@@ -798,11 +849,11 @@ function SellerReviewsButton({ userId, rating, count }) {
       >
         {' '}⭐ {rating} ({count})
       </button>
-      <Modal open={open} onClose={() => setOpen(false)} title="Seller Reviews" desc={`${rating} ★ average from ${count} rating${count === 1 ? '' : 's'}`}>
+      <Modal open={open} onClose={() => setOpen(false)} title={mx().reviewsTitle} desc={mx().reviewsDesc(rating, count)}>
         <div className="grid gap-3" style={{ maxHeight: '50vh', overflowY: 'auto' }}>
           {err && <p className="text-sm text-red-600">{err}</p>}
-          {reviews === null && !err && <p className="text-sm text-muted-foreground">Loading…</p>}
-          {reviews?.length === 0 && <p className="text-sm text-muted-foreground">No written reviews yet.</p>}
+          {reviews === null && !err && <p className="text-sm text-muted-foreground">{mx().loading}</p>}
+          {reviews?.length === 0 && <p className="text-sm text-muted-foreground">{mx().noReviews}</p>}
           {reviews?.map(r => (
             <div key={r.id} style={{ borderBottom: '1px solid var(--border)', paddingBottom: '10px' }}>
               <div className="flex items-center justify-between gap-2">
@@ -834,13 +885,13 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
       <div className="p-5 pb-3 flex flex-col flex-1">
         <div className="flex items-start justify-between gap-2 mb-1">
           <h3 className="font-semibold text-foreground text-balance break-words">{listing.crop_name}</h3>
-          <Badge color={listingStatusColor(listing.status)}>{listing.status}</Badge>
+          <Badge color={listingStatusColor(listing.status)}>{stLabel(listing.status)}</Badge>
         </div>
         {listing.crop_type && (
           <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <Badge color={categoryColor(listing.crop_type)}>{listing.crop_type}</Badge>
+            <Badge color={categoryColor(listing.crop_type)}>{catLabel(listing.crop_type)}</Badge>
             {listing.listing_type === 'product' && (
-              <span className="text-xs text-muted-foreground">Agricultural Product</span>
+              <span className="text-xs text-muted-foreground">{m.agriProduct}</span>
             )}
           </div>
         )}
@@ -854,7 +905,7 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
           <span className="text-sm font-normal text-muted-foreground">/{listing.unit}</span>
         </div>
         <p className="text-xs text-muted-foreground mb-1">
-          Seller: {listing.owner_name}
+          {mx().sellerLbl}: {listing.owner_name}
           {listing.seller_rating != null && (
             <SellerReviewsButton userId={listing.owner_id} rating={listing.seller_rating} count={listing.seller_rating_count} />
           )}
@@ -881,10 +932,10 @@ function ListingCard({ listing, currentUserId, isAuthenticated, m, showDelete = 
 
 // ── Listings grid ──────────────────────────────────────────────────────────────
 const SORT_OPTIONS = [
-  { value: 'newest',     label: 'Newest first' },
-  { value: 'price_asc',  label: 'Price: Low to High' },
-  { value: 'price_desc', label: 'Price: High to Low' },
-  { value: 'rating',     label: 'Seller rating' },
+  { value: 'newest',     label: 'newest' },
+  { value: 'price_asc',  label: 'priceAsc' },
+  { value: 'price_desc', label: 'priceDesc' },
+  { value: 'rating',     label: 'rating' },
 ];
 
 function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDelete = false, canOrder = true }) {
@@ -919,28 +970,28 @@ function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDele
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px', alignItems: 'center' }} data-tour={listingType === 'crop' ? 'mp-filters' : undefined}>
         <input
           type="text"
-          placeholder="Search by name…"
+          placeholder={mx().searchName}
           value={filters.search}
           onChange={e => setFilters(f => ({ ...f, search: e.target.value }))}
           style={{ flex: '1 1 160px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '15px' }}
         />
         <input
           type="number"
-          placeholder="Min price (Rs.)"
+          placeholder={mx().minPrice}
           value={filters.min_price}
           onChange={e => setFilters(f => ({ ...f, min_price: e.target.value }))}
           style={{ flex: '1 1 120px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '15px' }}
         />
         <input
           type="number"
-          placeholder="Max price (Rs.)"
+          placeholder={mx().maxPrice}
           value={filters.max_price}
           onChange={e => setFilters(f => ({ ...f, max_price: e.target.value }))}
           style={{ flex: '1 1 120px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '15px' }}
         />
         <input
           type="text"
-          placeholder="District…"
+          placeholder={mx().districtPh}
           value={filters.district}
           onChange={e => setFilters(f => ({ ...f, district: e.target.value }))}
           style={{ flex: '1 1 120px', padding: '7px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '15px' }}
@@ -949,13 +1000,13 @@ function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDele
           style={{ flex: '1 1 150px' }}
           value={filters.category}
           onChange={e => setFilters(f => ({ ...f, category: e.target.value }))}
-          options={[{ value: '', label: 'All categories' }, ...categoryOptions]}
+          options={[{ value: '', label: mx().allCats }, ...catOptions(categoryOptions)]}
         />
         <Select
           style={{ flex: '1 1 170px' }}
           value={sortBy}
           onChange={e => setSortBy(e.target.value)}
-          options={SORT_OPTIONS}
+          options={SORT_OPTIONS.map(o => ({ value: o.value, label: mx()[o.label] }))}
         />
         {(filters.search || filters.min_price || filters.max_price || filters.district || filters.category) && (
           <button
@@ -963,7 +1014,7 @@ function ListingsGrid({ listingType, currentUserId, isAuthenticated, m, showDele
             onClick={() => setFilters({ search: '', min_price: '', max_price: '', district: '', category: '' })}
             style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--muted)', cursor: 'pointer', fontSize: '15px' }}
           >
-            ✕ Clear
+            {mx().clear}
           </button>
         )}
       </div>
@@ -1001,11 +1052,11 @@ function MyListingsGrid({ listingType, currentUserId, m }) {
           <div className="p-4 flex flex-col flex-1">
             <div className="flex items-start justify-between gap-2 mb-1">
               <h3 className="font-semibold text-foreground">{l.crop_name}</h3>
-              <Badge color={listingStatusColor(l.status)}>{l.status}</Badge>
+              <Badge color={listingStatusColor(l.status)}>{stLabel(l.status)}</Badge>
             </div>
             {l.crop_type && (
               <div className="mb-1">
-                <Badge color={categoryColor(l.crop_type)}>{l.crop_type}</Badge>
+                <Badge color={categoryColor(l.crop_type)}>{catLabel(l.crop_type)}</Badge>
               </div>
             )}
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground mb-2">
@@ -1045,14 +1096,14 @@ function NegotiationDialog({ order, isSeller, currentUserId, m }) {
   useEffect(() => { if (open) loadThread(); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function send() {
-    if (!note) { toast.error('Type a note first'); return; }
+    if (!note) { toast.error(mx().typeNote); return; }
     setBusy(true);
     try {
       await apiPost(`/api/marketplace/orders/${order.id}/negotiation`, {
         message: note,
         proposed_price: counter ? Number(counter) : undefined,
       });
-      toast.success('Note sent.');
+      toast.success(mx().noteSent);
       setNote(''); setCounter('');
       await loadThread();
       refreshOrders();
@@ -1121,7 +1172,7 @@ function RatingModal({ order, onClose }) {
   const [done, setDone]     = useState(false);
 
   const submit = async () => {
-    if (!score) { toast.error('Please select a star rating'); return; }
+    if (!score) { toast.error(mx().pickStar); return; }
     setBusy(true);
     try {
       await request(`/api/ratings/orders/${order.id}`, { method: 'POST', body: JSON.stringify({ score, comment: comment.trim() || undefined }) });
@@ -1135,11 +1186,11 @@ function RatingModal({ order, onClose }) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={onClose}>
       <div style={{ background: 'var(--card)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '400px', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }} onClick={e => e.stopPropagation()}>
         {done ? (
-          <div style={{ textAlign: 'center', fontSize: '32px' }}>⭐ Thanks for rating!</div>
+          <div style={{ textAlign: 'center', fontSize: '32px' }}>{mx().thanksRating}</div>
         ) : (
           <>
-            <h3 style={{ margin: '0 0 8px', color: 'var(--text)', fontSize: '18px' }}>Rate your experience</h3>
-            <p style={{ margin: '0 0 16px', color: 'var(--muted)', fontSize: '15px' }}>{order.listing_name} · Seller: {order.seller_name}</p>
+            <h3 style={{ margin: '0 0 8px', color: 'var(--text)', fontSize: '18px' }}>{mx().rateExp}</h3>
+            <p style={{ margin: '0 0 16px', color: 'var(--muted)', fontSize: '15px' }}>{order.listing_name} · {mx().sellerLbl}: {order.seller_name}</p>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', justifyContent: 'center' }}>
               {[1, 2, 3, 4, 5].map(s => (
                 <button key={s} type="button" aria-label={`${s} / 5`} aria-pressed={score === s} onClick={() => setScore(s)} onMouseEnter={() => setHover(s)} onMouseLeave={() => setHover(0)}
@@ -1150,15 +1201,15 @@ function RatingModal({ order, onClose }) {
             </div>
             <textarea
               rows={3}
-              placeholder="Leave a comment (optional)…"
+              placeholder={mx().commentPh}
               value={comment}
               onChange={e => setComment(e.target.value)}
               style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--input-bg)', color: 'var(--text)', fontSize: '15px', fontFamily: 'inherit', resize: 'vertical', marginBottom: '12px', boxSizing: 'border-box' }}
             />
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-              <button type="button" onClick={onClose} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '15px' }}>Cancel</button>
+              <button type="button" onClick={onClose} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '15px' }}>{CUR_LANG === 'si' ? 'අවලංගු කරන්න' : CUR_LANG === 'ta' ? 'ரத்து செய்' : 'Cancel'}</button>
               <button type="button" onClick={submit} disabled={busy || !score} style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: 'var(--green-primary)', color: '#fff', cursor: 'pointer', fontSize: '15px', fontWeight: 600, opacity: (!score || busy) ? 0.6 : 1 }}>
-                {busy ? 'Submitting…' : 'Submit Rating'}
+                {busy ? mx().submitting : mx().submitRating}
               </button>
             </div>
           </>
@@ -1196,7 +1247,7 @@ function OrderCard({ order, currentUserId, m, showHistory = false }) {
     setBusy(true);
     try {
       await apiPost(`/api/marketplace/orders/${order.id}/status`, { status: newStatus }, 'PUT');
-      toast.success(`Order marked as ${newStatus}`);
+      toast.success(mx().orderMarked(statusLabel(newStatus, m)));
       if (newStatus === 'Completed') celebrate();
       refreshOrders();
     } catch (err) { toast.error(err.message); }
@@ -1388,6 +1439,7 @@ export default function MarketplacePage() {
   const outlet = useOutletContext() || {};
   const lang = outlet?.lang || 'en';
   const m = M[lang] || M.en;
+  CUR_LANG = lang;
 
   const { user } = getAuthSession();
   const isAuthenticated = !!user;
@@ -1492,9 +1544,9 @@ export default function MarketplacePage() {
         {!isAuthenticated ? (
           <div className="mb-5 rounded-lg border border-amber-400 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 dark:border-amber-500/60 dark:bg-amber-950/40 dark:text-amber-300">
             {m.demoWarning}
-            {' '}<Link to="/login" className="underline font-semibold ml-1">Login</Link>
+            {' '}<Link to="/login" className="underline font-semibold ml-1">{m.loginLink}</Link>
             {' '}<span className="mx-1">·</span>
-            <Link to="/register" className="underline font-semibold">Register</Link>
+            <Link to="/register" className="underline font-semibold">{m.registerLink}</Link>
           </div>
         ) : (
           <div className="mb-5 rounded-lg border bg-accent/40 px-4 py-3 text-sm text-accent-foreground">

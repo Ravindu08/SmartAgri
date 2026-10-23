@@ -12,7 +12,7 @@ const T = {
   },
   si: {
     title: 'නව පරිශීලකයෙකු එකතු කරන්න',
-    labelFullName: 'සම්පූර්ණ නම', labelEmail: 'ඊ-මේල් ලිපිනය', labelPassword: 'මුරපදය', labelRoles: 'භූමිකාව',
+    labelFullName: 'සම්පූර්ණ නම', labelEmail: 'ඊමේල් ලිපිනය', labelPassword: 'මුරපදය', labelRoles: 'භූමිකාව',
     cancel: 'අවලංගු කරන්න', creating: 'සාදමින්...', createUser: 'පරිශීලකයා සාදන්න',
     errNoRole: 'අවම වශයෙන් එක් භූමිකාවක් තෝරන්න',
   },

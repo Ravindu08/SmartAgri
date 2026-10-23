@@ -14,12 +14,12 @@ const T = {
     feedback: 'Feedback', allResolved: 'All resolved ✓', openNeedAttention: 'Open items need attention',
   },
   si: {
-    title: 'වාර්තා', loading: 'පූරණය වෙමින්...', failedLoad: 'වාර්තා ලෝඩ් කිරීමට අසමත් විය',
-    exportCsv: '⬇ CSV ලෙස දිනා', exportFarms: '⬇ ගොවිපල CSV', exportHarvest: '⬇ අස්වනු CSV',
+    title: 'වාර්තා', loading: 'පූරණය වෙමින්...', failedLoad: 'වාර්තා පූරණය කිරීමට අසමත් විය',
+    exportCsv: '⬇ CSV ලෙස බාගන්න', exportFarms: '⬇ ගොවිපළ CSV', exportHarvest: '⬇ අස්වනු CSV',
     userDist: 'පරිශීලක බෙදාහැරීම', landOwners: 'ඉඩම් හිමිකරුවන්', traders: 'වෙළෙන්දන්', suspended: 'අත්හිටුවා ඇත',
     totalUsers: 'සම්පූර්ණ පරිශීලකයන්:',
-    farms: 'ගොවිපල', totalFarmsReg: 'ලියාපදිංචි ගොවිපල',
-    marketplace: 'වෙළඳසල', listings: 'ලැයිස්තු', orders: 'ඇණවුම්',
+    farms: 'ගොවිපළ', totalFarmsReg: 'ලියාපදිංචි ගොවිපළ',
+    marketplace: 'වෙළඳසැල', listings: 'ලැයිස්තු', orders: 'ඇණවුම්',
     feedback: 'ප්‍රතිපෝෂණ', allResolved: 'සියල්ල විසඳා ඇත ✓', openNeedAttention: 'විවෘත අයිතම අවධානය අවශ්‍යයි',
   },
   ta: {

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { createFarm } from '../../services/farmService';
-import { DISTRICTS, IRRIGATION_TYPES, SEASONS, SIZE_UNITS, SOIL_TYPES } from '../../data/farmOptions';
+import { DISTRICTS, IRRIGATION_TYPES, SEASONS, SIZE_UNITS, SOIL_TYPES, sizeUnitLabel } from '../../data/farmOptions';
 import { useApp } from '../../context/AppContext';
 import { LAND_T, SEA_LABELS, IRR_LABELS, DISTRICT_LABELS } from '../../data/translations';
 import { getSoilLabel } from '../../data/cropData';
@@ -163,7 +163,7 @@ export default function AddFarm() {
                 required
               />
               <CustomSelect name="size_unit" value={formData.size_unit} onChange={handleChange}>
-                {SIZE_UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                {SIZE_UNITS.map(u => <option key={u} value={u}>{sizeUnitLabel(u, lang)}</option>)}
               </CustomSelect>
             </div>
           </label>

@@ -7,6 +7,7 @@ import { createCrop, getCropsByFarm } from '../../services/cropService';
 import { listCultivations, findSessionForCrop } from '../../utils/cultivationApi';
 import { getAuthSession } from '../../services/api';
 import { CROP_EMOJI, getCropLabel, getSoilLabel } from '../../data/cropData';
+import { sizeUnitLabel } from '../../data/farmOptions';
 import { useApp } from '../../context/AppContext';
 import { LAND_T, SEA_LABELS, IRR_LABELS, GROWTH_STAGE_LABELS } from '../../data/translations';
 import Toast from '../../components/Toast';
@@ -180,7 +181,7 @@ export default function FarmDetails() {
             </div>
             <div className="detail-row">
               <span className="detail-row__label">{t.farmSizeRow}</span>
-              <span className="detail-row__value">{farm.farm_size} {farm.size_unit || 'acres'}</span>
+              <span className="detail-row__value">{farm.farm_size} {sizeUnitLabel(farm.size_unit || 'acres', lang)}</span>
             </div>
             <div className="detail-row">
               <span className="detail-row__label">{t.soilTypeRow}</span>

@@ -12,7 +12,7 @@ import ToolIntro from "../components/ToolIntro";
 import { T, DISTRICT_LABELS, ZONE_LABELS, IRR_LABELS, SEA_LABELS, SEA_DESC } from "../data/translations";
 import { DISTRICT_TO_ZONES }                                         from "../data/districtZones";
 import { SOIL_TYPES, CROP_EMOJI, SOIL_GUIDE_ROWS,
-         getSoilLabel, getCropLabel, getSuitability, xaiSentence }   from "../data/cropData";
+         getSoilLabel, getCropLabel, getSuitability, xaiSentence, SOIL_DRAINAGE_LABELS }   from "../data/cropData";
 
 import SuitBar        from "../components/SuitBar";
 import CalendarCard   from "../components/CalendarCard";
@@ -43,7 +43,7 @@ const CR_TOUR_T = {
   si: {
     steps: [
       { target: 'cr-district-select', title: 'ඔබේ දිස්ත්‍රික්කය තෝරන්න', body: 'ඔබේ දිස්ත්‍රික්කය කෘෂි-පාරිසරික කලාපය තීරණය කර පහත සජීවී කාලගුණ ස්වයං-පිරවීම විවෘත කරයි.' },
-      { target: 'cr-soil-select', title: 'පස වර්ගය', body: 'ඔබේ පස කුමක්දැයි විශ්වාස නැද්ද? මෙම ක්ෂේත්‍රය අසල ඇති "මගේ පස හඳුනාගන්න" මාර්ගෝපදේශය භාවිතා කරන්න.' },
+      { target: 'cr-soil-select', title: 'පාංශු වර්ගය', body: 'ඔබේ පස කුමක්දැයි විශ්වාස නැද්ද? මෙම ක්ෂේත්‍රය අසල ඇති "මගේ පස හඳුනාගන්න" මාර්ගෝපදේශය භාවිතා කරන්න.' },
       { target: 'cr-nutrient-fields', title: 'පස සහ දේශගුණ අගයන්', body: 'ඔබේ N/P/K සහ දේශගුණ කියැවීම් ඇතුළත් කරන්න, නැතහොත් දිස්ත්‍රික්කයක් තෝරූ පසු කාලගුණ ස්වයං-පිරවීමට ඉඩ දෙන්න.' },
       { target: 'cr-predict-btn', title: "ඔබේ නිර්දේශය ලබා ගන්න", body: "ඔබ ඇතුළත් කළ දේ මත AI ආකෘතිය ක්‍රියාත්මක කරයි. ප්‍රතිඵලය පෝරමය අසල විවෘත වේ: නිර්දේශිත බෝගය, එය ගැළපෙන තරම සහ හේතුව." },
       { target: 'cr-history', title: "ඔබේ පෙර පුරෝකථන", body: "ඔබ ලබාගන්නා සෑම නිර්දේශයක්ම මෙහි සුරැකේ; පසුව නැවත විවෘත කළ හැක." },
@@ -164,19 +164,19 @@ const SOIL_MODAL_T = {
     title: '🪨 ඔබේ පාංශු වර්ගය හඳුනාගන්නේ කෙසේද',
     intro: 'ඔබේ පාංශු හඳුනාගැනීමට මෙම සරල ක්ෂේත්‍ර පරීක්ෂා සිදු කරන්න. 10-20 cm ගැඹුරෙන් සාම්පලයක් රැගෙන, ටිකක් තෙත් කිරීමෙන් පසු පරීක්ෂා කරන්න.',
     close: 'වසන්න',
-    colType: 'පාංශු වර්ගය', colColour: 'වර්ණය', colTexture: 'ස්ථාරය / රූ ගතිය',
+    colType: 'පාංශු වර්ගය', colColour: 'වර්ණය', colTexture: 'ස්පර්ශ ගුණය / ගතිය',
     colDrainage: 'ජල බැස්ම', colIdentify: '🔍 ක්ෂේත්‍රයේ හඳුනාගන්නේ කෙසේද',
     testTip: '💡 ක්ෂේත්‍ර පරීක්ෂා ඉඟිය',
-    testDesc: 'තෙත් ගොඩක් ගන්න → ශක්තිමත්ව මිරිකන්න → අත ඇරෙන්න නිරීක්ෂා කරන්න. ඉන්පසු රිබොනයක් සෑදීමට ළිවේ.',
+    testDesc: 'තෙත් ගොඩක් ගන්න → ශක්තිමත්ව මිරිකන්න → අත ඇරෙන්න නිරීක්ෂා කරන්න. ඉන්පසු පටියක් (රිබන් එකක්) සෑදීමට එය අත්ල දෙක අතර පෙරළන්න.',
   },
   ta: {
     title: '🪨 உங்கள் மண் வகையை எவ்வாறு அடையாளம் காண்பது',
-    intro: 'உங்கள் மண்ணை அடையாளம் காண இந்த எளிய வயல் சோதனைகளை மேற்கொள்ளுங்கள். 10-20 செ.மீ ஆழத்தில் மாதிரி எடுக்கவும்.',
+    intro: 'உங்கள் மண்ணை அடையாளம் காண இந்த எளிய வயல் சோதனைகளை மேற்கொள்ளுங்கள். 10-20 செ.மீ ஆழத்தில் மாதிரி எடுக்கவும். சோதனைக்கு முன் சிறிது ஈரப்படுத்துங்கள்.',
     close: 'மூடு',
     colType: 'மண் வகை', colColour: 'நிறம்', colTexture: 'தன்மை / உணர்வு',
     colDrainage: 'நீர் வடிகால்', colIdentify: '🔍 வயலில் எப்படி அடையாளம் காண்பது',
     testTip: '💡 வயல் சோதனை குறிப்பு',
-    testDesc: 'ஈரமான ஒரு கைப்பிடி மண் எடுக்கவும் → உறுதியாக அழுத்துங்கள் → உள்ளங்கையை திறந்து கவனியுங்கள்.',
+    testDesc: 'ஈரமான ஒரு கைப்பிடி மண் எடுக்கவும் → உறுதியாக அழுத்துங்கள் → உள்ளங்கையைத் திறந்து கவனியுங்கள். பின்னர் உள்ளங்கைகளுக்கு இடையே உருட்டி நாடா போல் உருவாக்குங்கள்.',
   },
 };
 
@@ -185,7 +185,7 @@ function SoilGuideModal({ lang, t, onClose }) {
   const [search, setSearch] = useState('');
   const mt = SOIL_MODAL_T[lang] || SOIL_MODAL_T.en;
   const filtered = search.trim()
-    ? SOIL_GUIDE_ROWS.filter(r => r.type.toLowerCase().includes(search.toLowerCase()))
+    ? SOIL_GUIDE_ROWS.filter(r => (r.type + " " + getSoilLabel(r.type, lang)).toLowerCase().includes(search.toLowerCase()))
     : SOIL_GUIDE_ROWS;
 
   return (
@@ -210,12 +210,12 @@ function SoilGuideModal({ lang, t, onClose }) {
           {filtered.map(row => (
             <div key={row.type} className="soil-info-card">
               <div className="soil-info-card__header">
-                <span className="soil-info-card__name">{row.type}</span>
-                <span className="soil-info-card__drainage">{mt.colDrainage}: <strong>{row.drainage}</strong></span>
+                <span className="soil-info-card__name">{getSoilLabel(row.type, lang)}</span>
+                <span className="soil-info-card__drainage">{mt.colDrainage}: <strong>{(SOIL_DRAINAGE_LABELS[lang] || {})[row.drainage] || row.drainage}</strong></span>
               </div>
               <div className="soil-info-card__meta">
-                <div><span className="soil-meta-label">{mt.colColour}:</span> {row.colour}</div>
-                <div><span className="soil-meta-label">{mt.colTexture}:</span> {row.texture}</div>
+                <div><span className="soil-meta-label">{mt.colColour}:</span> {row["colour_" + lang] || row.colour}</div>
+                <div><span className="soil-meta-label">{mt.colTexture}:</span> {row["texture_" + lang] || row.texture}</div>
               </div>
               {(row.identify_en || row.identify_si || row.identify_ta) && (
                 <div className="soil-info-card__identify">
