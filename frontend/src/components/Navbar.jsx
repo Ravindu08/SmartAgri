@@ -25,7 +25,7 @@ const NAV_T = {
     aboutUs: 'අප ගැන',
     contactUs: 'සම්බන්ධ කරගන්න',
     marketplace: 'වෙළඳසැල',
-    myDashboard: 'මගේ උපකරණ පුවරුව',
+    myDashboard: 'මගේ ඩැෂ්බෝඩ්',
     more: 'තවත්',
     logout: 'ලොග් අවුට්',
     login: 'ලොගින්',

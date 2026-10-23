@@ -42,8 +42,8 @@ const TR_TOUR_T = {
 
 const TR_CHECKLIST_T = {
   en: { title: 'Getting started', placeOrder: 'Place your first order', getConfirmed: 'Get an order confirmed', trackDelivery: 'Track a delivery', completeTxn: 'Complete a transaction', dismissAria: 'Dismiss checklist' },
-  si: { title: 'ආරම්භ කිරීම', placeOrder: 'ඔබේ පළමු ඇණවුම දෙන්න', getConfirmed: 'ඇණවුමක් තහවුරු කරගන්න', trackDelivery: 'බෙදාහැරීමක් නිරීක්ෂණය කරන්න', completeTxn: 'ගනුදෙනුවක් සම්පූර්ණ කරන්න', dismissAria: 'විස්තර ලැයිස්තුව ඉවත් කරන්න' },
-  ta: { title: 'தொடங்குதல்', placeOrder: 'உங்கள் முதல் ஆர்டரை வையுங்கள்', getConfirmed: 'ஆர்டரை உறுதிப்படுத்துங்கள்', trackDelivery: 'டெலிவரியை கண்காணிக்கவும்', completeTxn: 'பரிவர்த்தனையை முடிக்கவும்', dismissAria: 'பட்டியலை நிராகரிக்கவும்' },
+  si: { title: 'ආරම්භ කිරීම', placeOrder: 'ඔබේ පළමු ඇණවුම දෙන්න', getConfirmed: 'ඇණවුමක් තහවුරු කරගන්න', trackDelivery: 'බෙදාහැරීමක් නිරීක්ෂණය කරන්න', completeTxn: 'ගනුදෙනුවක් සම්පූර්ණ කරන්න', dismissAria: 'පරීක්ෂා ලැයිස්තුව සඟවන්න' },
+  ta: { title: 'தொடங்குதல்', placeOrder: 'உங்கள் முதல் ஆர்டரை வையுங்கள்', getConfirmed: 'ஆர்டரை உறுதிப்படுத்துங்கள்', trackDelivery: 'டெலிவரியை கண்காணிக்கவும்', completeTxn: 'பரிவர்த்தனையை முடிக்கவும்', dismissAria: 'பட்டியலை மறைக்கவும்' },
 };
 
 const T = {
@@ -61,20 +61,20 @@ const T = {
     Completed: 'Completed', Rejected: 'Rejected', Cancelled: 'Cancelled',
   },
   si: {
-    welcome: 'නැවත සාදරයෙන් පිළිගනිමු', trader: 'වෙළෙන්ද',
-    statsRequests: 'අපේක්ෂිත ඇණවුම්', statsOrders: 'ක්‍රියාත්මක ඇණවුම්',
+    welcome: 'නැවත සාදරයෙන් පිළිගනිමු', trader: 'වෙළෙන්දා',
+    statsRequests: 'පොරොත්තුවෙන් ඇති ඇණවුම්', statsOrders: 'ක්‍රියාත්මක ඇණවුම්',
     statsActive: 'සම්පූර්ණ ක්‍රියාත්මක', statsCompleted: 'සම්පූර්ණ',
     quickActions: 'ඉක්මන් ක්‍රියා', browseMarket: 'වෙළඳසැල බලන්න',
     browseMarketDesc: 'මිලදී ගත හැකි බෝග සොයන්න',
-    viewRequests: 'අපේක්ෂිත ඇණවුම්', viewRequestsDesc: 'විකුණුම්කරු තහවුරු කිරීමට රැඳෙන ඇණවුම්',
-    viewOrders: 'ක්‍රියාත්මක ඇණවුම්', viewOrdersDesc: 'තහවුරු ඇණවුම් නිරීක්ෂණය',
+    viewRequests: 'පොරොත්තුවෙන් ඇති ඇණවුම්', viewRequestsDesc: 'විකුණුම්කරු තහවුරු කිරීමට රැඳෙන ඇණවුම්',
+    viewOrders: 'ක්‍රියාත්මක ඇණවුම්', viewOrdersDesc: 'තහවුරු කළ සහ බෙදාහැරීමේ අදියරේ ඇති ඇණවුම්',
     viewHistory: 'ගනුදෙනු ඉතිහාසය', viewHistoryDesc: 'පසුගිය ගනුදෙනු බලන්න',
     recentActivity: 'මෑත ක්‍රියාකාරකම්', noActivity: 'මෑත ක්‍රියාකාරකම් නොමැත.',
-    Pending: 'අපේක්ෂිත', Confirmed: 'තහවුරු', Delivered: 'බෙදාදුන්',
+    Pending: 'පොරොත්තුවෙන්', Confirmed: 'තහවුරු', Delivered: 'භාර දුන්',
     Completed: 'සම්පූර්ණ', Rejected: 'ප්‍රතික්ෂේප', Cancelled: 'අවලංගු',
   },
   ta: {
-    welcome: 'மீண்டும் வருக', trader: 'கடைவர்',
+    welcome: 'மீண்டும் வருக', trader: 'வணிகர்',
     statsRequests: 'நிலுவை ஆர்டர்கள்', statsOrders: 'செயலில் ஆர்டர்கள்',
     statsActive: 'மொத்த செயலில்', statsCompleted: 'முடிந்தவை',
     quickActions: 'விரைவு செயல்கள்', browseMarket: 'சந்தையை உலாவுக',

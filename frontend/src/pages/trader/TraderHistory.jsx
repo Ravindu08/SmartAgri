@@ -36,7 +36,7 @@ const TRH_TOUR_T = {
 
 const RATE_T = {
   en: { rate: 'Rate the seller', rated: 'Rated' },
-  si: { rate: 'විකුණුම්කරු ඇගයීම', rated: 'ඇගයීම් කළා' },
+  si: { rate: 'විකුණුම්කරු ශ්‍රේණිගත කරන්න', rated: 'ශ්‍රේණිගත කළා' },
   ta: { rate: 'விற்பனையாளரை மதிப்பிடு', rated: 'மதிப்பிடப்பட்டது' },
 };
 

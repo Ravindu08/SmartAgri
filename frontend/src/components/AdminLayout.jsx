@@ -15,7 +15,7 @@ const ADMIN_T = {
   si: {
     dashboard: 'ඩැෂ්බෝඩ්', users: 'පරිශීලකයන්', marketplace: 'වෙළඳසැල',
     farms: 'සියලු ගොවිපළ', activity: 'ක්‍රියාකාරකම් ලොග', feedback: 'ප්‍රතිපෝෂණ',
-    reports: 'වාර්තා', harvestForecast: 'අස්වනු පෙරනිමිය', admin: 'පරිපාලක', profileSettings: 'පැතිකඩ සැකසීම්',
+    reports: 'වාර්තා', harvestForecast: 'අස්වනු අනාවැකිය', admin: 'පරිපාලක', profileSettings: 'පැතිකඩ සැකසීම්',
     logout: 'ලොග් අවුට්', systemAdmin: 'පද්ධති පරිපාලක',
   },
   ta: {
