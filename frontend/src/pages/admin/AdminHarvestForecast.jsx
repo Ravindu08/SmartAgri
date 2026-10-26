@@ -30,7 +30,7 @@ const T = {
     loading: 'අනාවැකිය පූරණය වෙමින්...',
     noData: 'ක්‍රියාකාරී වගා සැසි හමු නොවීය.',
     colFarm: 'ගොවිපළ', colFarmer: 'ගොවියා', colDistrict: 'දිස්ත්‍රික්කය',
-    colCrop: 'බෝගය', colPlanted: 'සිටුවූ දිනය', colHarvest: 'අස්වනු දිනය', colSize: 'ප්‍රමාණය',
+    colCrop: 'බෝගය', colPlanted: 'සිටුවූ දිනය', colHarvest: 'අපේක්ෂිත අස්වනු දිනය', colSize: 'ප්‍රමාණය',
     daysUntil: (n) => `දින ${n}කින්`,
     overdue: 'ප්‍රමාද වූ',
     today: 'අද',
@@ -38,7 +38,7 @@ const T = {
   ta: {
     title: 'அறுவடை முன்னறிவிப்பு',
     allDistricts: 'அனைத்து மாவட்டங்கள்',
-    exportCsv: '⬇ CSV ஏற்றுமதி',
+    exportCsv: '⬇ CSV பதிவிறக்கு',
     loading: 'முன்னறிவிப்பு ஏற்றுகிறது...',
     noData: 'செயலில் உள்ள சாகுபடி அமர்வுகள் இல்லை.',
     colFarm: 'பண்ணை', colFarmer: 'விவசாயி', colDistrict: 'மாவட்டம்',

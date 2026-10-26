@@ -1,4 +1,10 @@
-"""Generate crop_guidance.json for all 41 crops. Run: python generate_guidance.py"""
+"""Generate crop_guidance.json for all 41 crops. Run: python generate_guidance.py
+
+WARNING: this is the original scaffold only. models/crop_guidance.json has since been edited by hand —
+crop overviews, the full Sinhala/Tamil translations (`*_si` / `*_ta`), irrigation.critical_stage_names,
+corrected Pathola/Carrot facts and a rewritten Innala guide. Re-running this script overwrites all of
+that; edit the JSON directly instead.
+"""
 import json
 from pathlib import Path
 

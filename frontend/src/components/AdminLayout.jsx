@@ -14,13 +14,13 @@ const ADMIN_T = {
   },
   si: {
     dashboard: 'ඩැෂ්බෝඩ්', users: 'පරිශීලකයන්', marketplace: 'වෙළඳසැල',
-    farms: 'සියලු ගොවිපළ', activity: 'ක්‍රියාකාරකම් ලොග', feedback: 'ප්‍රතිපෝෂණ',
+    farms: 'සියලු ගොවිපළ', activity: 'ක්‍රියාකාරකම් සටහන', feedback: 'ප්‍රතිචාර',
     reports: 'වාර්තා', harvestForecast: 'අස්වනු අනාවැකිය', admin: 'පරිපාලක', profileSettings: 'පැතිකඩ සැකසීම්',
-    logout: 'ලොග් අවුට්', systemAdmin: 'පද්ධති පරිපාලක',
+    logout: 'පිටවන්න', systemAdmin: 'පද්ධති පරිපාලක',
   },
   ta: {
     dashboard: 'டாஷ்போர்டு', users: 'பயனர்கள்', marketplace: 'சந்தை',
-    farms: 'அனைத்து பண்ணைகள்', activity: 'செயல்பாட்டு பதிவு', feedback: 'கருத்து',
+    farms: 'அனைத்துப் பண்ணைகள்', activity: 'செயல்பாட்டு பதிவு', feedback: 'கருத்து',
     reports: 'அறிக்கைகள்', harvestForecast: 'அறுவடை முன்னறிவிப்பு', admin: 'நிர்வாகி', profileSettings: 'சுயவிவர அமைப்புகள்',
     logout: 'வெளியேறு', systemAdmin: 'கணினி நிர்வாகி',
   },
