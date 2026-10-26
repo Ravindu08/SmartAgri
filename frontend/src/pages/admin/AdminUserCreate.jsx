@@ -12,15 +12,15 @@ const T = {
   },
   si: {
     title: 'නව පරිශීලකයෙකු එකතු කරන්න',
-    labelFullName: 'සම්පූර්ණ නම', labelEmail: 'ඊමේල් ලිපිනය', labelPassword: 'මුරපදය', labelRoles: 'භූමිකාව',
+    labelFullName: 'සම්පූර්ණ නම', labelEmail: 'ඊමේල් ලිපිනය', labelPassword: 'මුරපදය', labelRoles: 'භූමිකා',
     cancel: 'අවලංගු කරන්න', creating: 'සාදමින්...', createUser: 'පරිශීලකයා සාදන්න',
     errNoRole: 'අවම වශයෙන් එක් භූමිකාවක් තෝරන්න',
   },
   ta: {
     title: 'புதிய பயனரைச் சேர்க்கவும்',
-    labelFullName: 'முழு பெயர்', labelEmail: 'மின்னஞ்சல் முகவரி', labelPassword: 'கடவுச்சொல்', labelRoles: 'பங்குகள்',
+    labelFullName: 'முழு பெயர்', labelEmail: 'மின்னஞ்சல் முகவரி', labelPassword: 'கடவுச்சொல்', labelRoles: 'பாத்திரங்கள்',
     cancel: 'ரத்து', creating: 'உருவாக்குகிறது...', createUser: 'பயனரை உருவாக்கு',
-    errNoRole: 'குறைந்தபட்சம் ஒரு பங்கைத் தேர்ந்தெடுக்கவும்',
+    errNoRole: 'குறைந்தபட்சம் ஒரு பாத்திரத்தைத் தேர்ந்தெடுக்கவும்',
   },
 };
 

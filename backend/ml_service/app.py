@@ -375,6 +375,72 @@ except Exception as e:
     crop_guidance_db = {}
     logger.warning("[WARN] Crop guidance: %s", e)
 
+
+def _build_guidance_text_index(node, index: dict) -> dict:
+    """Map every English guidance string that has `_si`/`_ta` siblings to those translations.
+
+    Cultivation tasks are stored in English (copied from the guidance when a
+    session starts), so this index is how they are shown in Sinhala/Tamil —
+    including tasks created before the translations existed.
+    """
+    if isinstance(node, list):
+        for item in node:
+            _build_guidance_text_index(item, index)
+    elif isinstance(node, dict):
+        for key, val in node.items():
+            if key.endswith(("_si", "_ta")) or key == "local_name":
+                continue
+            si, ta = node.get(f"{key}_si"), node.get(f"{key}_ta")
+            if isinstance(val, str) and isinstance(si, str):
+                index.setdefault(val, {"si": si, "ta": ta or ""})
+            elif isinstance(val, list) and isinstance(si, list) and len(si) == len(val):
+                for en, s, t in zip(val, si, ta or [""] * len(val)):
+                    if isinstance(en, str):
+                        index.setdefault(en, {"si": s, "ta": t})
+            else:
+                _build_guidance_text_index(val, index)
+    return index
+
+
+_guidance_text_index = _build_guidance_text_index(crop_guidance_db, {})
+
+# Labels for the task titles _gen_cultivation_tasks composes itself.
+_TASK_TITLE_LABELS = {
+    "fertilize":  {"si": "පොහොර යොදන්න", "ta": "உரமிடுங்கள்"},
+    "irrigation": {"si": "ජලසම්පාදන පරීක්ෂාව", "ta": "நீர்ப்பாசனச் சோதனை"},
+    "Fertilization": {"si": "පොහොර යෙදීම", "ta": "உரமிடல்"},
+}
+_FERT_TITLE_PREFIX = "Fertilize: "
+_IRRIG_TITLE_PREFIX = "Irrigation check — "
+
+
+def _localize_task(task: dict) -> dict:
+    """Add title/description/why/stage_name `_si` and `_ta` fields to a task dict (in place)."""
+    def tr(text: str, lang: str) -> Optional[str]:
+        return (_guidance_text_index.get(text) or {}).get(lang) or None
+
+    title = task.get("title") or ""
+    for lang in ("si", "ta"):
+        if title.startswith(_FERT_TITLE_PREFIX):
+            part = title[len(_FERT_TITLE_PREFIX):]
+            loc_title = f"{_TASK_TITLE_LABELS['fertilize'][lang]}: {tr(part, lang) or part}"
+        elif title.startswith(_IRRIG_TITLE_PREFIX):
+            part = title[len(_IRRIG_TITLE_PREFIX):]
+            loc_title = f"{_TASK_TITLE_LABELS['irrigation'][lang]} — {tr(part, lang) or part}"
+        else:
+            loc_title = tr(title, lang)
+        if loc_title:
+            task[f"title_{lang}"] = loc_title
+        stage = task.get("stage_name") or ""
+        loc_stage = _TASK_TITLE_LABELS.get(stage, {}).get(lang) or tr(stage, lang)
+        if loc_stage:
+            task[f"stage_name_{lang}"] = loc_stage
+        for key in ("description", "why"):
+            loc = tr(task.get(key) or "", lang)
+            if loc:
+                task[f"{key}_{lang}"] = loc
+    return task
+
 # Pre-compute feature sets for O(1) column lookup during inference
 _full_feature_set = set(full_model_info["feature_columns"]) if full_model_info else set()
 
@@ -563,7 +629,7 @@ def generate_xai_summary(xai_features: list, crop: str, user_inputs: dict) -> di
             elif val < f.ideal_min:
                 parts_en.append(f"your {lbl['en']} ({val:.1f}) is below ideal - consider enriching")
                 parts_si.append(f"ඔබේ {lbl['si']} ({val:.1f}) සුදුසු ප්‍රමාණයට අඩු ය")
-                parts_ta.append(f"உங்கள் {lbl['ta']} ({val:.1f}) சரியான அளவுக்கு கீழே உள்ளது")
+                parts_ta.append(f"உங்கள் {lbl['ta']} ({val:.1f}) சரியான அளவுக்குக் கீழே உள்ளது")
             else:
                 parts_en.append(f"your {lbl['en']} ({val:.1f}) is higher than ideal")
                 parts_si.append(f"ඔබේ {lbl['si']} ({val:.1f}) සුදුසු ප්‍රමාණයට වැඩි ය")
@@ -580,7 +646,7 @@ def generate_xai_summary(xai_features: list, crop: str, user_inputs: dict) -> di
 
     return {
         "en": f"{crop} was recommended because {join_en(parts_en)}",
-        "si": f"{crop} නිර්දේශ කරන ලද්දේ: {' '.join(parts_si)}.",
+        "si": f"{crop} නිර්දේශ කළේ මේ හේතු නිසා: {', '.join(parts_si)}.",
         "ta": f"{crop} பரிந்துரைக்கப்பட்டது ஏனெனில்: {', '.join(parts_ta)}.",
     }
 
@@ -931,7 +997,9 @@ def _gen_cultivation_tasks(crop_data: dict, planting_date_str: str) -> list:
         })
 
     irrigation = crop_data.get("irrigation", {})
-    critical   = set(irrigation.get("critical_stages", []))
+    # critical_stages holds descriptive phases for display ("Pod Fill (Day 50–80)");
+    # critical_stage_names lists the matching stage names the checks are scheduled on.
+    critical   = set(irrigation.get("critical_stage_names") or irrigation.get("critical_stages", []))
     irrig_note = irrigation.get("frequency", "")
     for stage in crop_data.get("stages", []):
         if stage.get("name") not in critical:
@@ -963,7 +1031,7 @@ def _gen_cultivation_tasks(crop_data: dict, planting_date_str: str) -> list:
 def _session_to_dict(session: "_CultivationSession") -> dict:
     tasks_dict = {}
     for task in (session.tasks or []):
-        tasks_dict[task.id] = {
+        tasks_dict[task.id] = _localize_task({
             "id":             task.id,
             "type":           task.type,
             "title":          task.title,
@@ -975,7 +1043,7 @@ def _session_to_dict(session: "_CultivationSession") -> dict:
             "stage_name":     task.stage_name,
             "status":         task.status,
             "photo":          task.photo,
-        }
+        })
     return {
         "id":            str(session.id),
         "user_id":       session.user_id,
@@ -1059,7 +1127,7 @@ def start_cultivation(req: StartCultivationRequest, uid: str = Depends(current_u
         "district":      req.district,
         "created_at":    _date.today().isoformat(),
         "status":        "active",
-        "tasks":         {f"{session_id}-{t['id']}": {**t, "id": f"{session_id}-{t['id']}"} for t in task_list},
+        "tasks":         {f"{session_id}-{t['id']}": _localize_task({**t, "id": f"{session_id}-{t['id']}"}) for t in task_list},
     }
     _cultivations_fallback.setdefault(req.user_id, {})[session_id] = session
     return session
@@ -1147,7 +1215,7 @@ def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: T
                     (t.status for t in session_obj.tasks or []),
                 )
                 db.commit()
-                return {
+                return _localize_task({
                     "session_status": session_obj.status,
                     "id":             task_obj.id,
                     "type":           task_obj.type,
@@ -1160,7 +1228,7 @@ def update_cultivation_task(user_id: str, session_id: str, task_id: str, body: T
                     "stage_name":     task_obj.stage_name,
                     "status":         task_obj.status,
                     "photo":          task_obj.photo,
-                }
+                })
             finally:
                 db.close()
         except HTTPException:
@@ -1300,9 +1368,9 @@ _WMO_LABELS: Dict[int, Dict] = {
     3:  {"en": "Overcast",           "si": "සම්පූර්ණ වළාකුළු",          "ta": "முழு மேகமூட்டம்",         "icon": "☁️"},
     45: {"en": "Fog",                "si": "මීදුම",                     "ta": "மூடுபனி",                 "icon": "🌫️"},
     48: {"en": "Icy Fog",            "si": "ශීතල මීදුම",                "ta": "பனி மூடுபனி",             "icon": "🌫️"},
-    51: {"en": "Light Drizzle",      "si": "සැහැල්ලු කිල්ලන් වැසි",     "ta": "இலேசான தூறல்",           "icon": "🌦️"},
-    53: {"en": "Drizzle",            "si": "කිල්ලන් වැසි",               "ta": "தூறல்",                   "icon": "🌦️"},
-    55: {"en": "Heavy Drizzle",      "si": "අධික කිල්ලන් වැසි",          "ta": "அதிகமான தூறல்",          "icon": "🌦️"},
+    51: {"en": "Light Drizzle",      "si": "සැහැල්ලු පොද වැසි",     "ta": "இலேசான தூறல்",           "icon": "🌦️"},
+    53: {"en": "Drizzle",            "si": "පොද වැසි",               "ta": "தூறல்",                   "icon": "🌦️"},
+    55: {"en": "Heavy Drizzle",      "si": "අධික පොද වැසි",          "ta": "அதிகமான தூறல்",          "icon": "🌦️"},
     61: {"en": "Light Rain",         "si": "සැහැල්ලු වර්ෂාව",           "ta": "இலேசான மழை",             "icon": "🌦️"},
     63: {"en": "Rain",               "si": "වර්ෂාව",                    "ta": "மழை",                     "icon": "🌧️"},
     65: {"en": "Heavy Rain",         "si": "අධික වර්ෂාව",                "ta": "கனமழை",                  "icon": "🌧️"},
@@ -1310,14 +1378,14 @@ _WMO_LABELS: Dict[int, Dict] = {
     73: {"en": "Snow",               "si": "හිම",                        "ta": "பனிவீழ்ச்சி",            "icon": "🌨️"},
     75: {"en": "Heavy Snow",         "si": "අධික හිම",                   "ta": "கனமான பனிவீழ்ச்சி",     "icon": "❄️"},
     77: {"en": "Snow Grains",        "si": "හිම කැට",                    "ta": "பனித்துகள்கள்",           "icon": "🌨️"},
-    80: {"en": "Rain Showers",       "si": "ෂවර් වර්ෂාව",               "ta": "மழைப்பொழிவு",            "icon": "🌦️"},
-    81: {"en": "Rain Showers",       "si": "ෂවර් වර්ෂාව",               "ta": "மழைப்பொழிவு",            "icon": "🌦️"},
-    82: {"en": "Heavy Showers",      "si": "අධික ෂවර් වර්ෂාව",           "ta": "கடும் மழைப்பொழிவு",     "icon": "🌧️"},
+    80: {"en": "Rain Showers",       "si": "විටින් විට වැසි",               "ta": "மழைப்பொழிவு",            "icon": "🌦️"},
+    81: {"en": "Rain Showers",       "si": "විටින් විට වැසි",               "ta": "மழைப்பொழிவு",            "icon": "🌦️"},
+    82: {"en": "Heavy Showers",      "si": "තද වැසි",           "ta": "கடும் மழைப்பொழிவு",     "icon": "🌧️"},
     85: {"en": "Snow Showers",       "si": "හිම ෂවරය",                  "ta": "பனி மழைப்பொழிவு",        "icon": "🌨️"},
     86: {"en": "Heavy Snow Showers", "si": "අධික හිම ෂවරය",              "ta": "கடும் பனி மழைப்பொழிவு", "icon": "❄️"},
-    95: {"en": "Thunderstorm",       "si": "ගිගිරුම් සහිත වැසි",         "ta": "இடி மழை",                "icon": "⛈️"},
-    96: {"en": "Thunderstorm",       "si": "ගිගිරුම් සහිත වැසි",         "ta": "இடி மழை",                "icon": "⛈️"},
-    99: {"en": "Thunderstorm",       "si": "ගිගිරුම් සහිත වැසි",         "ta": "இடி மழை",                "icon": "⛈️"},
+    95: {"en": "Thunderstorm",       "si": "ගිගුරුම් සහිත වැසි",         "ta": "இடி மழை",                "icon": "⛈️"},
+    96: {"en": "Thunderstorm",       "si": "ගිගුරුම් සහිත වැසි",         "ta": "இடி மழை",                "icon": "⛈️"},
+    99: {"en": "Thunderstorm",       "si": "ගිගුරුම් සහිත වැසි",         "ta": "இடி மழை",                "icon": "⛈️"},
 }
 
 _THUNDERSTORM_CODES = {95, 96, 99}
@@ -1402,7 +1470,7 @@ _ADVICE_TEXT = {
         },
         "ta": {
             "title": "இரசாயனங்கள் தெளிக்காதீர்கள் — மழை எதிர்பார்க்கப்படுகிறது",
-            "detail": "நாளை மழை ({rain} mm). 5 mm க்கு மேல் மழை பூச்சிக்கொல்லிகளை கழுவிவிடும். மழை நின்ற பிறகு தெளிக்கவும்.",
+            "detail": "நாளை மழை ({rain} mm). 5 mm க்கு மேல் மழை பூச்சிக்கொல்லிகளைக் கழுவிவிடும். மழை நின்ற பிறகு தெளிக்கவும்.",
         },
     },
     "fert_good": {
@@ -1412,11 +1480,11 @@ _ADVICE_TEXT = {
         },
         "si": {
             "title": "පොහොර යෙදීමට සුදුසු වේලාව",
-            "detail": "වර්ෂාව {rain} mm — පොහොර අවශෝෂණයට ප්‍රශස්ත ආර්ද්‍රතාව (30–60 mm). දැන් යෙදීම නිර්දේශ කෙරේ.",
+            "detail": "වර්ෂාව {rain} mm — පොහොර අවශෝෂණයට ප්‍රශස්ත පාංශු තෙතමනය (30–60 mm). දැන් යෙදීම නිර්දේශ කෙරේ.",
         },
         "ta": {
             "title": "உரமிட சிறந்த நேரம்",
-            "detail": "மழை அளவு {rain} mm — உரம் உறிஞ்சுவதற்கு சிறந்த மண் ஈரப்பதம் (30–60 mm). இப்போது உரமிடவும்.",
+            "detail": "மழை அளவு {rain} mm — உரம் உறிஞ்சுவதற்குச் சிறந்த மண் ஈரப்பதம் (30–60 mm). இப்போது உரமிடவும்.",
         },
     },
     "fert_wet": {
@@ -1430,7 +1498,7 @@ _ADVICE_TEXT = {
         },
         "ta": {
             "title": "உரமிடாதீர்கள் — அதிகப்படியான மழை",
-            "detail": "மழை {rain} mm (60 mm ஐ தாண்டியது). கடுமையான மழை உரத்தை கழுவிவிடும் — ஊட்டச்சத்து உறிஞ்சப்படுவதற்கு முன்பே போய்விடும்.",
+            "detail": "மழை {rain} mm (60 mm ஐ தாண்டியது). கடுமையான மழை உரத்தைக் கழுவிவிடும் — ஊட்டச்சத்து உறிஞ்சப்படுவதற்கு முன்பே போய்விடும்.",
         },
     },
     "fert_dry": {
@@ -1440,11 +1508,11 @@ _ADVICE_TEXT = {
         },
         "si": {
             "title": "පොහොර යෙදීම නිර්දේශ නොකෙරේ — වියළි පස",
-            "detail": "වර්ෂාව 30 mm ට අඩු. වියළි පස පොහොර ශෝෂණය අඩු කරයි. ජලය ලබා දෙන්න හෝ මධ්‍යස්ථ වර්ෂාවකට (30–60 mm) බලා සිටින්න.",
+            "detail": "වර්ෂාව 30 mm ට අඩු. වියළි පස පොහොර අවශෝෂණය අඩු කරයි. ජලය ලබා දෙන්න හෝ මධ්‍යස්ථ වර්ෂාවකට (30–60 mm) බලා සිටින්න.",
         },
         "ta": {
             "title": "உரமிட பரிந்துரைக்கப்படவில்லை — வறண்ட மண்",
-            "detail": "மழை 30 mm க்கு குறைவு. வறண்ட மண் உரம் உறிஞ்சுவதை குறைக்கும். வயலுக்கு நீர் பாய்ச்சவும் அல்லது மிதமான மழைக்கு (30–60 mm) காத்திருக்கவும்.",
+            "detail": "மழை 30 mm க்குக் குறைவு. வறண்ட மண் உரம் உறிஞ்சுவதை குறைக்கும். வயலுக்கு நீர் பாய்ச்சவும் அல்லது மிதமான மழைக்கு (30–60 mm) காத்திருக்கவும்.",
         },
     },
     "disease_risk": {
@@ -1454,11 +1522,11 @@ _ADVICE_TEXT = {
         },
         "si": {
             "title": "ඉහළ රෝග අවදානම",
-            "detail": "ආර්ද්‍රතාවය {hum}%. දිලීර රෝග (දූෂිත, මලකඳ) සඳහා බෝග නිරීක්ෂණය කරන්න. හැකි තැනක වාතාශ්‍රය වැඩිදියුණු කරන්න.",
+            "detail": "ආර්ද්‍රතාවය {hum}%. දිලීර රෝග (අංගමාරය, මලකඩ, පුස්) සඳහා බෝග නිරීක්ෂණය කරන්න. හැකි තැනක වාතාශ්‍රය වැඩිදියුණු කරන්න.",
         },
         "ta": {
             "title": "அதிக நோய் ஆபத்து",
-            "detail": "ஈரப்பதம் {hum}%. பூஞ்சை நோய்களுக்கு (காய்ப்பழுக்கை, துருப்பூச்சு, தூள் நோய்) பயிர்களை கண்காணிக்கவும்.",
+            "detail": "ஈரப்பதம் {hum}%. பூஞ்சை நோய்களுக்கு (கருகல், துரு நோய், சாம்பல் நோய்) பயிர்களைக் கண்காணியுங்கள். முடிந்த இடங்களில் காற்றோட்டத்தை மேம்படுத்துங்கள்.",
         },
     },
     "increase_irr": {
@@ -1468,7 +1536,7 @@ _ADVICE_TEXT = {
         },
         "si": {
             "title": "ජලසේචනය වැඩි කරන්න",
-            "detail": "උෂ්ණය {temp}°C. තාප ආතතිය අස්වැන්න අඩු කරයි — ගේගල් ශෝෂණය අවම කිරීමට උදෑ හෝ සාය ජලය ලබා දෙන්න.",
+            "detail": "උෂ්ණත්වය {temp}°C. තාප ආතතිය අස්වැන්න අඩු කරයි — වාෂ්පීකරණය අවම කිරීමට උදෑසන හෝ සවස ජලය ලබා දෙන්න.",
         },
         "ta": {
             "title": "நீர்ப்பாசனம் அதிகரிக்கவும்",
@@ -1482,7 +1550,7 @@ _ADVICE_TEXT = {
         },
         "si": {
             "title": "ශීතල ආතතිය අනතුරු ඇඟවීම",
-            "detail": "උෂ්ණය {temp}°C. ස්පර්ශශීලී බෝග (තක්කාලි, ගම්මිරිස්, බෝංචි) ශීතල හානියට ලක් විය හැකිය. රාත්‍රී ආවරණ සලකා බලන්න.",
+            "detail": "උෂ්ණත්වය {temp}°C. සංවේදී බෝග (තක්කාලි, මිරිස්, බෝංචි) ශීතල හානියට ලක් විය හැකිය. රාත්‍රී ආවරණ සලකා බලන්න.",
         },
         "ta": {
             "title": "குளிர் அழுத்த எச்சரிக்கை",
@@ -1496,11 +1564,11 @@ _ADVICE_TEXT = {
         },
         "si": {
             "title": "ඉසීමෙන් වළකින්න",
-            "detail": "සුළං වේගය {wind} km/h. ප්‍රබල සුළඟේ ස්ප්‍රේ කිරීම ගලා යයි. සුළං 15 km/h ට අඩු වූ විට ස්ප්‍රේ කරන්න.",
+            "detail": "සුළං වේගය {wind} km/h. තද සුළඟේදී ඉසින දියර සුළඟට ගසාගෙන යයි. සුළඟ 15 km/h ට අඩු වූ විට ඉසින්න.",
         },
         "ta": {
             "title": "தெளிப்பதை தவிருங்கள்",
-            "detail": "காற்று வேகம் {wind} km/h. அதிக காற்றில் தெளிப்பது பயனற்றது மற்றும் அருகிலுள்ள பயிர்களை பாதிக்கும்.",
+            "detail": "காற்று வேகம் {wind} km/h. அதிக காற்றில் தெளிப்பது பயனற்றது மற்றும் அருகிலுள்ள பயிர்களைப் பாதிக்கும்.",
         },
     },
     "thunderstorm": {
@@ -1509,12 +1577,12 @@ _ADVICE_TEXT = {
             "detail": "Severe weather expected. Secure farm structures, stay indoors, and postpone all field operations.",
         },
         "si": {
-            "title": "ගිගිරුම් අනතුරු ඇඟවීම",
-            "detail": "ප්‍රබල කාලගුණ ඇතිවේ. ගොවිපළ ව්‍යූහ සුරක්ෂිත කරන්න, නිවස ඇතුළේ රැඳෙන්න. ක්ෂේත්‍ර ක්‍රියාකාරකම් කල් දමන්න.",
+            "title": "ගිගුරුම් අනතුරු ඇඟවීම",
+            "detail": "දරුණු කාලගුණයක් අපේක්ෂිතයි. ගොවිපළ ඉදිකිරීම් ආරක්ෂා කරන්න, නිවස ඇතුළේ රැඳෙන්න. ක්ෂේත්‍ර ක්‍රියාකාරකම් කල් දමන්න.",
         },
         "ta": {
             "title": "இடியுடன் கூடிய புயல் எச்சரிக்கை",
-            "detail": "கடுமையான வானிலை எதிர்பார்க்கப்படுகிறது. பண்ணை கட்டமைப்புகளை பாதுகாக்கவும், வீட்டினுள் இருக்கவும். வயல் பணிகளை ஒத்திடுங்கள்.",
+            "detail": "கடுமையான வானிலை எதிர்பார்க்கப்படுகிறது. பண்ணை கட்டமைப்புகளைப் பாதுகாக்கவும், வீட்டினுள் இருக்கவும். வயல் பணிகளை ஒத்திவையுங்கள்.",
         },
     },
     "good_conditions": {
@@ -1524,10 +1592,10 @@ _ADVICE_TEXT = {
         },
         "si": {
             "title": "ක්ෂේත්‍ර කටයුතු සඳහා හොඳ කොන්දේසි",
-            "detail": "අඩු වර්ෂාව සහ මධ්‍යස්ථ ආර්ද්‍රතාවය — ඉඩම් සකස් කිරීම, අස්වනු නෙළීම හෝ බෝග පරීක්ෂාවට ශ්‍රේෂ්ඨ.",
+            "detail": "අඩු වර්ෂාව සහ මධ්‍යස්ථ ආර්ද්‍රතාවය — ඉඩම් සකස් කිරීම, අස්වනු නෙළීම හෝ බෝග පරීක්ෂාවට ඉතා සුදුසුයි.",
         },
         "ta": {
-            "title": "வயல் வேலைக்கு சிறந்த நிலைமைகள்",
+            "title": "வயல் வேலைக்குச் சிறந்த நிலைமைகள்",
             "detail": "குறைந்த மழை மற்றும் மிதமான ஈரப்பதம் — நிலம் தயாரிப்பு, அறுவடை அல்லது பயிர் பரிசோதனைக்கு ஏற்றது.",
         },
     },
@@ -1542,7 +1610,7 @@ _ADVICE_TEXT = {
         },
         "ta": {
             "title": "சாதாரண நிலைமைகள்",
-            "detail": "வானிலை நிலைமைகள் சாதாரண வரம்பில் உள்ளன. வழக்கமான பண்ணை நடவடிக்கைகளை தொடருங்கள்.",
+            "detail": "வானிலை நிலைமைகள் சாதாரண வரம்பில் உள்ளன. வழக்கமான பண்ணை நடவடிக்கைகளைத் தொடருங்கள்.",
         },
     },
 }

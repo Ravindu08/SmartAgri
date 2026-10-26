@@ -7,7 +7,8 @@ import { getFarms, getFarm } from "../services/farmService";
 import { createCrop, deleteCrop, updateCrop } from "../services/cropService";
 import { useApp } from "../context/AppContext";
 import { getCropLabel } from "../data/cropData";
-import { STAGE_NAME_LABELS } from "../data/translations";
+import { STAGE_NAME_LABELS, DISTRICT_LABELS } from "../data/translations";
+import { taskText } from "../utils/taskText";
 import CustomSelect from "./CustomSelect";
 // Cultivation dashboard/calendar/modal styles live in CropGuidance.css. Import
 // directly here (not just from the CropGuidance page) so the tracker renders
@@ -83,14 +84,19 @@ function daysSince(plantingDate) {
   return Math.floor((Date.now() - new Date(plantingDate).getTime()) / 86400000);
 }
 
-function fmtDate(dateStr) {
+// English keeps the browser's own date format; Tamil uses Intl. Chrome ships
+// no Sinhala date data (si-LK falls back to English), so Sinhala months are listed here.
+const SI_MONTHS = ["ජන.", "පෙබ.", "මාර්තු", "අප්‍රේල්", "මැයි", "ජූනි", "ජූලි", "අගෝ.", "සැප්.", "ඔක්.", "නොවැ.", "දෙසැ."];
+
+function fmtDate(dateStr, lang) {
   // Parse as local midnight to avoid UTC shift
   const [y, mo, d] = dateStr.split("-").map(Number);
-  return new Date(y, mo - 1, d).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  if (lang === "si") return `${SI_MONTHS[mo - 1]} ${d}`;
+  return new Date(y, mo - 1, d).toLocaleDateString(lang === "ta" ? "ta-LK" : undefined, { month: "short", day: "numeric" });
 }
 
 // ── TaskModal ─────────────────────────────────────────────────────────────────
-function TaskModal({ task, t, onClose, onUpdate }) {
+function TaskModal({ task, t, lang, onClose, onUpdate }) {
   useDialogDismiss(true, onClose);
   const meta   = ACT_META[task.type] || { icon: "📋" };
   const status = effectiveStatus(task);
@@ -100,7 +106,7 @@ function TaskModal({ task, t, onClose, onUpdate }) {
   function handlePhotoPick(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { alert("Image must be under 2 MB"); return; }
+    if (file.size > 2 * 1024 * 1024) { alert(t.photoTooLarge || "Image must be under 2 MB"); return; }
     const reader = new FileReader();
     reader.onload = () => setPhotoPreview(reader.result);
     reader.readAsDataURL(file);
@@ -117,20 +123,20 @@ function TaskModal({ task, t, onClose, onUpdate }) {
         <div className="cult-modal-header">
           <span className="cult-modal-icon">{meta.icon}</span>
           <div>
-            <div className="cult-modal-stage">{task.stage_name}</div>
-            <div className="cult-modal-title">{task.title}</div>
+            <div className="cult-modal-stage">{taskText(task, "stage_name", lang)}</div>
+            <div className="cult-modal-title">{taskText(task, "title", lang)}</div>
           </div>
         </div>
         <div className="cult-modal-meta">
-          <span>{t.scheduledFor}: <strong>{fmtDate(task.scheduled_date)}</strong></span>
+          <span>{t.scheduledFor}: <strong>{fmtDate(task.scheduled_date, lang)}</strong></span>
           <span className={`cult-status-badge status-${status}`}>
             {t[`taskStatus_${status}`] || status}
           </span>
         </div>
-        {task.description && <p className="cult-modal-desc">{task.description}</p>}
+        {task.description && <p className="cult-modal-desc">{taskText(task, "description", lang)}</p>}
         {task.why && (
           <div className="cult-modal-why">
-            <span>💡</span> {task.why}
+            <span>💡</span> {taskText(task, "why", lang)}
           </div>
         )}
 
@@ -211,7 +217,7 @@ function StageProgressBar({ stages, daysElapsed, t, lang }) {
               key={stage.id}
               className={`cult-stage-seg${isCur ? " current" : ""}`}
               style={{ left: `${left}%`, width: `${width}%`, background: stage.color || "#4caf50" }}
-              title={`${stage.name}: ${t.stageDay} ${stage.day_start}–${stage.day_end}`}
+              title={`${STAGE_NAME_LABELS[lang]?.[stage.name] || stage.name}: ${t.stageDay} ${stage.day_start}–${stage.day_end}`}
             />
           );
         })}
@@ -228,7 +234,7 @@ function StageProgressBar({ stages, daysElapsed, t, lang }) {
               key={stage.id}
               className={`cult-stage-icon-label${isCur ? " current" : ""}`}
               style={{ left: `${left}%` }}
-              title={stage.name}
+              title={STAGE_NAME_LABELS[lang]?.[stage.name] || stage.name}
             >
               {stage.icon}
             </span>
@@ -240,7 +246,7 @@ function StageProgressBar({ stages, daysElapsed, t, lang }) {
 }
 
 // ── WarningPanel ──────────────────────────────────────────────────────────────
-function WarningPanel({ session, t, onTaskClick }) {
+function WarningPanel({ session, t, lang, onTaskClick }) {
   const tasks    = Object.values(session.tasks);
   const today    = todayStr();
   const in3days  = toDateStr(new Date(Date.now() + 3 * 86400000));
@@ -264,8 +270,8 @@ function WarningPanel({ session, t, onTaskClick }) {
             {overdue.map(task => (
               <li key={task.id}>
                 <button type="button" className="cult-warn-task" onClick={() => onTaskClick?.(task)}>
-                  <span>{ACT_META[task.type]?.icon || "📋"} {task.title}</span>
-                  <span className="cult-warn-date">{fmtDate(task.scheduled_date)}</span>
+                  <span>{ACT_META[task.type]?.icon || "📋"} {taskText(task, "title", lang)}</span>
+                  <span className="cult-warn-date">{fmtDate(task.scheduled_date, lang)}</span>
                 </button>
               </li>
             ))}
@@ -279,8 +285,8 @@ function WarningPanel({ session, t, onTaskClick }) {
             {dueSoon.map(task => (
               <li key={task.id}>
                 <button type="button" className="cult-warn-task" onClick={() => onTaskClick?.(task)}>
-                  <span>{ACT_META[task.type]?.icon || "📋"} {task.title}</span>
-                  <span className="cult-warn-date">{fmtDate(task.scheduled_date)}</span>
+                  <span>{ACT_META[task.type]?.icon || "📋"} {taskText(task, "title", lang)}</span>
+                  <span className="cult-warn-date">{fmtDate(task.scheduled_date, lang)}</span>
                 </button>
               </li>
             ))}
@@ -292,7 +298,7 @@ function WarningPanel({ session, t, onTaskClick }) {
 }
 
 // ── WeeklyCalendar ────────────────────────────────────────────────────────────
-function WeeklyCalendar({ session, t, onTaskClick }) {
+function WeeklyCalendar({ session, t, lang, onTaskClick }) {
   const [offset, setOffset] = useState(0);
 
   const refDate  = new Date(Date.now() + offset * 7 * 86400000);
@@ -314,7 +320,7 @@ function WeeklyCalendar({ session, t, onTaskClick }) {
       <div className="cult-cal-nav">
         <button className="cult-cal-nav-btn" onClick={() => setOffset(o => o - 1)}>‹</button>
         <span className="cult-cal-range">
-          {fmtDate(weekStart)} – {fmtDate(weekEnd)}
+          {fmtDate(weekStart, lang)} – {fmtDate(weekEnd, lang)}
         </span>
         <button className="cult-cal-nav-btn" onClick={() => setOffset(o => o + 1)}>›</button>
         {offset !== 0 && (
@@ -343,8 +349,8 @@ function WeeklyCalendar({ session, t, onTaskClick }) {
                       key={task.id}
                       className={`cult-task-chip status-${st}`}
                       onClick={() => onTaskClick(task)}
-                      title={`${task.title} — ${t[`taskStatus_${st}`] || st}`}
-                      aria-label={`${task.title} — ${t[`taskStatus_${st}`] || st}`}
+                      title={`${taskText(task, "title", lang)} — ${t[`taskStatus_${st}`] || st}`}
+                      aria-label={`${taskText(task, "title", lang)} — ${t[`taskStatus_${st}`] || st}`}
                     >
                       <span className="cult-chip-icon">{meta.icon}</span>
                       {st === "done"    && <span className="cult-chip-badge cult-chip-badge--done">✓</span>}
@@ -395,6 +401,7 @@ function CultivationDashboard({ session, guidanceData, t, onBack, onUpdateTask, 
         <TaskModal
           task={activeTask}
           t={t}
+          lang={lang}
           onClose={() => setActiveTask(null)}
           onUpdate={handleUpdate}
         />
@@ -408,11 +415,11 @@ function CultivationDashboard({ session, guidanceData, t, onBack, onUpdateTask, 
           <div>
             <h2 className="cult-dash-crop">{getCropLabel(session.crop, lang)}</h2>
             <div className="cult-dash-meta">
-              📅 {t.plantingDate}: <strong>{fmtDate(session.planting_date)}</strong>
+              📅 {t.plantingDate}: <strong>{fmtDate(session.planting_date, lang)}</strong>
               {elapsed !== null && (
                 <> · {t.stageDay} <strong>{elapsed}</strong></>
               )}
-              {session.district && <> · 📍 {session.district}</>}
+              {session.district && <> · 📍 {DISTRICT_LABELS[lang]?.[session.district] || session.district}</>}
             </div>
           </div>
           <button
@@ -439,11 +446,11 @@ function CultivationDashboard({ session, guidanceData, t, onBack, onUpdateTask, 
         </div>
       )}
 
-      <WarningPanel session={session} t={t} onTaskClick={setActiveTask} />
+      <WarningPanel session={session} t={t} lang={lang} onTaskClick={setActiveTask} />
 
       <div className="cult-section">
         <div className="cult-section-title">📆 {t.weeklyCalendar}</div>
-        <WeeklyCalendar session={session} t={t} onTaskClick={setActiveTask} />
+        <WeeklyCalendar session={session} t={t} lang={lang} onTaskClick={setActiveTask} />
       </div>
     </div>
   );
@@ -464,9 +471,9 @@ function SessionCard({ session, t, onOpen, onAbandon, lang }) {
         <div>
           <div className="cult-card-crop">{getCropLabel(session.crop, lang)}</div>
           <div className="cult-card-sub">
-            📅 {fmtDate(session.planting_date)}
+            📅 {fmtDate(session.planting_date, lang)}
             {elapsed !== null && <> · {t.stageDay} {elapsed}</>}
-            {session.district && <> · 📍 {session.district}</>}
+            {session.district && <> · 📍 {DISTRICT_LABELS[lang]?.[session.district] || session.district}</>}
           </div>
         </div>
         <span className={`cult-status-badge status-${session.status}`}>
@@ -549,7 +556,7 @@ function addDays(dateStr, n) {
 }
 
 // ── StartCultivationForm ──────────────────────────────────────────────────────
-function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existingCropData }) {
+function StartCultivationForm({ t, lang, userId, onBack, onCreate, defaultCrop, existingCropData }) {
   const [cropList,         setCropList]         = useState([]);
   const [farms,            setFarms]            = useState([]);
   const [crop,             setCrop]             = useState(defaultCrop || "");
@@ -624,7 +631,7 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
       );
       onCreate(session);
     } catch (err) {
-      setError(err.message || "Failed to start cultivation");
+      setError(err.message || t.cultStartFailed || "Failed to start cultivation");
     } finally {
       setSaving(false);
     }
@@ -643,7 +650,7 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
           <div className="cult-start-known-icon">🌱</div>
           <div>
             <h2>{t.startCultivation}</h2>
-            <p className="cult-start-known-name">{crop}</p>
+            <p className="cult-start-known-name">{getCropLabel(crop, lang)}</p>
             <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>
               {existingCropData.farm_name ? `📍 ${existingCropData.farm_name}` : ''}
             </p>
@@ -683,9 +690,9 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
       <p>{t.startCultivationSub}</p>
       <div className="guidance-selector-row cult-form-three-col">
         <div>
-          <label>Farm</label>
+          <label>{t.cultFarm || "Farm"}</label>
           <CustomSelect name="farmId" value={farmId} onChange={e => { setFarmId(e.target.value); setCrop(""); }}>
-            <option value="">Select a farm…</option>
+            <option value="">{t.cultSelectFarm || "Select a farm…"}</option>
             {farms.map(f => (
               <option key={f.id} value={f.id}>{f.farm_name}</option>
             ))}
@@ -695,12 +702,12 @@ function StartCultivationForm({ t, userId, onBack, onCreate, defaultCrop, existi
           <label>{t.selectCrop}</label>
           {noPlannedCrops ? (
             <p style={{ color: "var(--muted)", fontSize: "0.85rem", margin: "8px 0 0" }}>
-              No crops are planned for this farm. Add planned crops in Farm Details first.
+              {t.cultNoPlannedCrops || "No crops are planned for this farm. Add planned crops in Farm Details first."}
             </p>
           ) : (
             <CustomSelect name="crop" value={crop} onChange={e => setCrop(e.target.value)} disabled={!farmId}>
-              <option value="">{farmId ? t.selectCropPh : "Select a farm first…"}</option>
-              {filteredCrops.map(c => <option key={c} value={c}>{c}</option>)}
+              <option value="">{farmId ? t.selectCropPh : (t.cultSelectFarmFirst || "Select a farm first…")}</option>
+              {filteredCrops.map(c => <option key={c} value={c}>{getCropLabel(c, lang)}</option>)}
             </CustomSelect>
           )}
         </div>
@@ -801,7 +808,7 @@ export default function CultivationTracker({ t, userId, initialSessionId, initia
         }
       }
     } catch (err) {
-      alert(err.message || "Update failed");
+      alert(err.message || t.cultUpdateFailed || "Update failed");
     }
   }
 
@@ -825,6 +832,7 @@ export default function CultivationTracker({ t, userId, initialSessionId, initia
     return (
       <StartCultivationForm
         t={t}
+        lang={lang}
         userId={userId}
         onBack={onExternalBack || (() => setView("list"))}
         onCreate={handleCreate}
