@@ -72,7 +72,7 @@ export const SOIL_SI_LABELS = {
 };
 
 export const SOIL_TA_LABELS = {
-  "Alluvial":"ஆற்றுப்படிவு மண்","Alluvial Loam":"ஆற்றுப்படிவு கலிமண்","Bog and Half-Bog Soil":"சதுப்பு மற்றும் அரைச் சதுப்பு மண்","Clay Loam":"களிமண் கலந்த கலிமண்","Clay Soil":"களிமண்","Deep Loam":"ஆழமான கலிமண்","Deep Sandy Loam":"ஆழமான மணற்பாங்கான கலிமண்","Fertile Loam":"வளமான கலிமண்","Humic Gley":"ஹியூமிக் கிளே மண்","Immature Brown Loam":"முழுமையாக வளராத பழுப்பு கலிமண்","Lateritic Loam":"லேட்டரைட் கலிமண்","Lateritic Soil":"லேட்டரைட் மண்","Light Loam":"இலகு கலிமண்","Light Sandy Loam":"இலகு மணற்பாங்கான கலிமண்","Loam":"கலிமண்","Loamy Sand":"கலிமண் கலந்த மணல் மண்","Low-Humic Gley":"குறைந்த ஹியூமஸ் கிளே மண்","Marshy Soil":"சதுப்பு நில மண்","Mountain Regosol":"மலைப்பகுதி ரெகோசோல் மண்","Non-Calcic Brown Earth":"சுண்ணாம்பு இல்லாத பழுப்பு மண்","Organic-Rich Loam":"கரிமப் பொருள் நிறைந்த கலிமண்","Red Loam":"சிவப்பு கலிமண்","Red-Brown Earth":"சிவப்பு-பழுப்பு மண்","Red-Yellow Latosol":"சிவப்பு-மஞ்சள் லேட்டோசோல் மண்","Red-Yellow Podzolic":"சிவப்பு-மஞ்சள் பொட்சோலிக் மண்","Reddish-Brown Earth":"செம்மை கலந்த பழுப்பு மண்","Reddish-Brown Latosol":"செம்மை கலந்த பழுப்பு லேட்டோசோல் மண்","Regosol":"ரெகோசோல் மண்","Sandy Clay Loam":"மணல்-களிமண் கலந்த கலிமண்","Sandy Loam":"மணற்பாங்கான கலிமண்","Sandy Regosol":"மணற்பாங்கான ரெகோசோல் மண்","Sandy Soil":"மணல் மண்","Silt Loam":"வண்டல் கலிமண்","Well Drained Loam":"நன்றாக நீர் வடிகாலாகும் கலிமண்",
+  "Alluvial":"ஆற்றுப்படிவு மண்","Alluvial Loam":"ஆற்றுப்படிவு இருமண்","Bog and Half-Bog Soil":"சதுப்பு மற்றும் அரைச் சதுப்பு மண்","Clay Loam":"களிமண் கலந்த இருமண்","Clay Soil":"களிமண்","Deep Loam":"ஆழமான இருமண்","Deep Sandy Loam":"ஆழமான மணற்பாங்கான இருமண்","Fertile Loam":"வளமான இருமண்","Humic Gley":"ஹியூமிக் கிளே மண்","Immature Brown Loam":"முழுமையாக வளராத பழுப்பு இருமண்","Lateritic Loam":"லேட்டரைட் இருமண்","Lateritic Soil":"லேட்டரைட் மண்","Light Loam":"இலகு இருமண்","Light Sandy Loam":"இலகு மணற்பாங்கான இருமண்","Loam":"இருமண்","Loamy Sand":"இருமண் கலந்த மணல் மண்","Low-Humic Gley":"குறைந்த ஹியூமஸ் கிளே மண்","Marshy Soil":"சதுப்பு நில மண்","Mountain Regosol":"மலைப்பகுதி ரெகோசோல் மண்","Non-Calcic Brown Earth":"சுண்ணாம்பு இல்லாத பழுப்பு மண்","Organic-Rich Loam":"கரிமப் பொருள் நிறைந்த இருமண்","Red Loam":"சிவப்பு இருமண்","Red-Brown Earth":"சிவப்பு-பழுப்பு மண்","Red-Yellow Latosol":"சிவப்பு-மஞ்சள் லேட்டோசோல் மண்","Red-Yellow Podzolic":"சிவப்பு-மஞ்சள் பொட்சோலிக் மண்","Reddish-Brown Earth":"செம்மை கலந்த பழுப்பு மண்","Reddish-Brown Latosol":"செம்மை கலந்த பழுப்பு லேட்டோசோல் மண்","Regosol":"ரெகோசோல் மண்","Sandy Clay Loam":"மணல்-களிமண் கலந்த இருமண்","Sandy Loam":"மணற்பாங்கான இருமண்","Sandy Regosol":"மணற்பாங்கான ரெகோசோல் மண்","Sandy Soil":"மணல் மண்","Silt Loam":"வண்டல் இருமண்","Well Drained Loam":"நன்றாக நீர் வடிகாலாகும் இருமண்",
 };
 
 export const CROP_SI_LABELS = {
@@ -175,7 +175,7 @@ export const SOIL_GUIDE_ROWS = [
     drainage: "Fast",
     identify_en: "Squeeze a moist handful — it barely holds a shape and falls apart when released. Rubbing between fingers feels gritty. Most common soil in Sri Lanka's Dry Zone.",
     identify_si: "තෙත් අතුල්ලක් පස් ගෙන මිරිකන්න — එයට හැඩයක් ගත නොහැකි අතර අත ඇරූ විට කැඩී යයි. ඇඟිලි අතර අතුල්ලන විට රළු බවක් දැනේ. ශ්‍රී ලංකාවේ වියළි කලාපයේ වඩාත් බහුල පස මෙයයි.",
-    identify_ta: "ஈரமான ஒரு கைப்பிடி மண்ணை அழுத்துங்கள் — அது வடிவம் பிடிக்காமல், கையைத் திறந்ததும் உதிர்ந்துவிடும். விரல்களுக்கு இடையே தேய்த்தால் கரடுமுரடாக இருக்கும். இலங்கையின் வறண்ட மண்டலத்தில் மிகப் பரவலான மண் இதுவே.",
+    identify_ta: "ஈரமான ஒரு கைப்பிடி மண்ணை அழுத்துங்கள் — அது வடிவம் பிடிக்காமல், கையைத் திறந்ததும் உதிர்ந்துவிடும். விரல்களுக்கு இடையே தேய்த்தால் கரடுமுரடாக இருக்கும். இலங்கையின் உலர் வலயத்தில் மிகப் பரவலான மண் இதுவே.",
   },
   {
     type: "Loam",
@@ -188,7 +188,7 @@ export const SOIL_GUIDE_ROWS = [
     drainage: "Good",
     identify_en: "The 'perfect' farm soil. Moist loam forms a ball when squeezed, ribbons about 2–3 cm before breaking. Feels neither too gritty nor too sticky. Rich earthy smell after rain.",
     identify_si: "'පරිපූර්ණ' ගොවිතැන් පස. තෙත් ලෝම් පස මිරිකූ විට බෝලයක් සෑදෙන අතර කැඩීමට පෙර 2–3 cm පමණ පටියක් සෑදේ. වැඩියෙන් රළු හෝ වැඩියෙන් ඇලෙන සුළු බවක් නොදැනේ. වැස්සෙන් පසු පසේ සුවඳක් හමයි.",
-    identify_ta: "சிறந்த விவசாய மண். ஈரமான கலிமண்ணை அழுத்தினால் உருண்டையாகும்; உடையும் முன் 2–3 செ.மீ நாடா போல நீளும். மிகவும் கரடுமுரடாகவோ மிகவும் ஒட்டும் தன்மையுடனோ இருக்காது. மழைக்குப் பிறகு மண் வாசனை வீசும்.",
+    identify_ta: "சிறந்த விவசாய மண். ஈரமான இருமண்ணை அழுத்தினால் உருண்டையாகும்; உடையும் முன் 2–3 செ.மீ நாடா போல நீளும். மிகவும் கரடுமுரடாகவோ மிகவும் ஒட்டும் தன்மையுடனோ இருக்காது. மழைக்குப் பிறகு மண் வாசனை வீசும்.",
   },
   {
     type: "Clay Soil",
@@ -227,7 +227,7 @@ export const SOIL_GUIDE_ROWS = [
     drainage: "Moderate",
     identify_en: "Unmistakably deep red colour — indicates iron oxides. Forms a firm ball when moist; ribbons about 3–4 cm. Common in Sri Lanka's intermediate and up-country zones. Good for most field crops.",
     identify_si: "පැහැදිලිවම තද රතු පැහැයකි — යකඩ ඔක්සයිඩ් ඇති බව පෙන්වයි. තෙත් විට ස්ථිර බෝලයක් සෑදෙන අතර 3–4 cm පමණ පටියක් සෑදේ. ශ්‍රී ලංකාවේ අතරමැදි සහ උඩරට කලාපවල බහුලයි. බොහෝ ක්ෂේත්‍ර බෝග සඳහා සුදුසුයි.",
-    identify_ta: "தெளிவாகத் தெரியும் அடர் சிவப்பு நிறம் — இரும்பு ஆக்சைடு இருப்பதைக் காட்டுகிறது. ஈரத்தில் உறுதியான உருண்டையாகும்; 3–4 செ.மீ நாடா உருவாகும். இலங்கையின் இடைநிலை மற்றும் மலைநாட்டு மண்டலங்களில் பொதுவானது. பெரும்பாலான வயல் பயிர்களுக்கு ஏற்றது.",
+    identify_ta: "தெளிவாகத் தெரியும் அடர் சிவப்பு நிறம் — இரும்பு ஆக்சைடு இருப்பதைக் காட்டுகிறது. ஈரத்தில் உறுதியான உருண்டையாகும்; 3–4 செ.மீ நாடா உருவாகும். இலங்கையின் இடைநிலை மற்றும் மலைநாட்டு வலயங்களில் பொதுவானது. பெரும்பாலான வயல் பயிர்களுக்கு ஏற்றது.",
   },
   {
     type: "Lateritic Soil",
@@ -240,7 +240,7 @@ export const SOIL_GUIDE_ROWS = [
     drainage: "Fast",
     identify_en: "Bright red or orange, often with visible iron/aluminium nodules. Very hard when dry — difficult to break with a spade. Common in the wet and intermediate zones. Low fertility but drains well.",
     identify_si: "දීප්තිමත් රතු හෝ තැඹිලි පැහැති වන අතර බොහෝ විට යකඩ/ඇලුමිනියම් කැට පෙනේ. වියළි විට ඉතා තද බැවින් උදැල්ලෙන් කඩා ගැනීමට අපහසුයි. තෙත් සහ අතරමැදි කලාපවල බහුලයි. සරුබව අඩු නමුත් ජලය හොඳින් බැස යයි.",
-    identify_ta: "பிரகாசமான சிவப்பு அல்லது ஆரஞ்சு நிறம்; பெரும்பாலும் இரும்பு/அலுமினியக் கட்டிகள் தெரியும். உலர்ந்தால் மிகவும் கடினம் — மண்வெட்டியால் உடைப்பது கடினம். ஈர மற்றும் இடைநிலை மண்டலங்களில் பொதுவானது. வளம் குறைவு, ஆனால் நீர் நன்றாக வடியும்.",
+    identify_ta: "பிரகாசமான சிவப்பு அல்லது ஆரஞ்சு நிறம்; பெரும்பாலும் இரும்பு/அலுமினியக் கட்டிகள் தெரியும். உலர்ந்தால் மிகவும் கடினம் — மண்வெட்டியால் உடைப்பது கடினம். ஈர மற்றும் இடை வலயங்களில் பொதுவானது. வளம் குறைவு, ஆனால் நீர் நன்றாக வடியும்.",
   },
   {
     type: "Alluvial",
@@ -292,7 +292,7 @@ export const SOIL_GUIDE_ROWS = [
     drainage: "Moderate–Poor",
     identify_en: "Between clay and loam. Feels sticky when wet but not as plastic as pure clay. Forms a ribbon of about 3–4 cm. Moderate drainage. Good for crops that need moisture retention like sugarcane and vegetables.",
     identify_si: "මැටි සහ ලෝම් පස අතර ස්වභාවයකි. තෙත් විට ඇලෙන සුළු වුවත් පිරිසිදු මැටි තරම් ප්ලාස්ටික් බවක් නැත. ~3–4 cm පමණ පටියක් සෑදේ. ජලය බැස යාම මධ්‍යස්ථයි. උක් සහ එළවළු වැනි තෙතමනය රඳවා ගැනීම අවශ්‍ය බෝග සඳහා සුදුසුයි.",
-    identify_ta: "களிமண்ணுக்கும் கலிமண்ணுக்கும் இடைப்பட்டது. ஈரத்தில் ஒட்டும், ஆனால் தூய களிமண் அளவுக்கு இழுபடாது. சுமார் 3–4 செ.மீ நாடா உருவாகும். நீர் வடிதல் மிதமானது. கரும்பு, காய்கறிகள் போன்ற ஈரப்பதம் தேவைப்படும் பயிர்களுக்கு நல்லது.",
+    identify_ta: "களிமண்ணுக்கும் இருமண்ணுக்கும் இடைப்பட்டது. ஈரத்தில் ஒட்டும், ஆனால் தூய களிமண் அளவுக்கு இழுபடாது. சுமார் 3–4 செ.மீ நாடா உருவாகும். நீர் வடிதல் மிதமானது. கரும்பு, காய்கறிகள் போன்ற ஈரப்பதம் தேவைப்படும் பயிர்களுக்கு நல்லது.",
   },
   {
     type: "Sandy Clay Loam",
@@ -312,5 +312,5 @@ export const SOIL_GUIDE_ROWS = [
 /** Drainage wording for the soil guide (the English value is the key). */
 export const SOIL_DRAINAGE_LABELS = {
   si: { "Fast": "ඉක්මනින් බැස යයි", "Very fast": "ඉතා ඉක්මනින් බැස යයි", "Good": "හොඳයි", "Moderate": "මධ්‍යස්ථයි", "Moderate–Poor": "මධ්‍යස්ථ–දුර්වලයි", "Poor": "දුර්වලයි", "Variable": "වෙනස් වේ" },
-  ta: { "Fast": "விரைவாக வடியும்", "Very fast": "மிக விரைவாக வடியும்", "Good": "நன்றாக வடியும்", "Moderate": "மிதமானது", "Moderate–Poor": "மிதமானது–மோசம்", "Poor": "மோசம்", "Variable": "மாறுபடும்" },
+  ta: { "Fast": "விரைவாக வடியும்", "Very fast": "மிக விரைவாக வடியும்", "Good": "நன்றாக வடியும்", "Moderate": "மிதமாக வடியும்", "Moderate–Poor": "மிதமாக–மோசமாக வடியும்", "Poor": "மோசமாக வடியும்", "Variable": "மாறுபடும்" },
 };

@@ -17,7 +17,7 @@ const FOOTER_T = {
     yieldPrice: 'Yield & Price', weather: 'Weather', aboutUs: 'About Us', contactUs: 'Contact Us',
   },
   si: {
-    tagline: 'ශ්‍රී ලාංකික ගොවීන් සඳහා AI-ශක්‍ය බෝග සැලසුම.',
+    tagline: 'ශ්‍රී ලාංකික ගොවීන් සඳහා AI මත පදනම් වූ බෝග සැලසුම.',
     quickLinks: 'ඉක්මන් සබැඳි',
     contact: 'සම්බන්ධතා',
     emailVal: 'admin.smartagri@gmail.com',
@@ -35,12 +35,12 @@ const FOOTER_T = {
     contact: 'தொடர்பு',
     emailVal: 'admin.smartagri@gmail.com',
     locationVal: 'இலங்கை',
-    projectVal: 'நாடு முழுவதும் விவசாயிகளுக்கு சேவை',
+    projectVal: 'நாடு முழுவதும் விவசாயிகளுக்குச் சேவை',
     copyright: '© 2026 SmartAgri. அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை.',
     madeWith: 'இலங்கை வேளாண்மைக்காக ❤️ உடன் உருவாக்கப்பட்டது',
     openSource: 'SmartAgri தளம்',
     home: 'முகப்பு', cropRec: 'பயிர் பரிந்துரை', cropGuide: 'பயிர் வழிகாட்டி',
-    yieldPrice: 'மகசூல் & விலை', weather: 'வானிலை', aboutUs: 'எங்களை பற்றி', contactUs: 'தொடர்பு',
+    yieldPrice: 'மகசூல் & விலை', weather: 'வானிலை', aboutUs: 'எங்களைப் பற்றி', contactUs: 'தொடர்பு',
   },
 };
 

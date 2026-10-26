@@ -15,13 +15,13 @@ const T = {
     colOwner: 'Owner ID', colCreated: 'Created',
   },
   si: {
-    title: 'සියල්ල ගොවිපළ', loading: 'පූරණය වෙමින්...', noFarms: 'ගොවිපළ හමු නොවීය', importCsv: 'CSV ආයාත කරන්න',
+    title: 'සියලු ගොවිපළ', loading: 'පූරණය වෙමින්...', noFarms: 'ගොවිපළ හමු නොවීය', importCsv: 'CSV ආයාත කරන්න',
     searchPlaceholder: 'නම හෝ දිස්ත්‍රික්කය සොයන්න...',
     colFarmName: 'ගොවිපළ නම', colDistrict: 'දිස්ත්‍රික්කය', colSize: 'ප්‍රමාණය',
     colOwner: 'හිමිකරු ID', colCreated: 'සාදන ලද',
   },
   ta: {
-    title: 'அனைத்து பண்ணைகளும்', loading: 'ஏற்றுகிறது...', noFarms: 'பண்ணைகள் கிடைக்கவில்லை', importCsv: 'CSV இறக்குமதி',
+    title: 'அனைத்துப் பண்ணைகளும்', loading: 'ஏற்றுகிறது...', noFarms: 'பண்ணைகள் கிடைக்கவில்லை', importCsv: 'CSV இறக்குமதி',
     searchPlaceholder: 'பெயர் அல்லது மாவட்டம் தேடவும்...',
     colFarmName: 'பண்ணை பெயர்', colDistrict: 'மாவட்டம்', colSize: 'அளவு',
     colOwner: 'உரிமையாளர் ID', colCreated: 'உருவாக்கப்பட்டது',

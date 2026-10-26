@@ -73,8 +73,8 @@ import './styles/tool-ui.css';
 // ── 404 Not Found ─────────────────────────────────────────────────────────────
 const NOT_FOUND_T = {
   en: { title: 'Page Not Found', sub: "The page you're looking for doesn't exist or may have been moved.", backHome: '← Back to Home', tryCrop: 'Try Crop Recommendation' },
-  si: { title: 'පිටුව හමු නොවීය', sub: 'ඔබ සොයන පිටුව නොමැත හෝ මාරු කර ඇත.', backHome: '← මුල් පිටුවට', tryCrop: 'බෝග නිර්දේශ' },
-  ta: { title: 'பக்கம் கிடைக்கவில்லை', sub: 'நீங்கள் தேடும் பக்கம் இல்லை.', backHome: '← முகப்பு பக்கத்திற்கு', tryCrop: 'பயிர் பரிந்துரை' },
+  si: { title: 'පිටුව හමු නොවීය', sub: 'ඔබ සොයන පිටුව නොමැත හෝ මාරු කර ඇත.', backHome: '← මුල් පිටුවට', tryCrop: 'බෝග නිර්දේශය උත්සාහ කරන්න' },
+  ta: { title: 'பக்கம் கிடைக்கவில்லை', sub: 'நீங்கள் தேடும் பக்கம் இல்லை அல்லது வேறு இடத்துக்கு மாற்றப்பட்டிருக்கலாம்.', backHome: '← முகப்பு பக்கத்திற்கு', tryCrop: 'பயிர் பரிந்துரையை முயலுங்கள்' },
 };
 
 function NotFound() {
