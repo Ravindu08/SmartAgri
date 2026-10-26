@@ -25,7 +25,7 @@ const T = {
   si: {
     title: 'පරිශීලකයන්', loading: 'පූරණය වෙමින්...', addUser: '+ පරිශීලකයෙකු එකතු කරන්න', importCsv: 'CSV ආයාත කරන්න',
     searchPlaceholder: 'නම හෝ ඊමේල් සොයන්න...', allRoles: 'සියලු භූමිකා', roleLandOwner: 'ඉඩම් හිමිකරු', roleTrader: 'වෙළෙන්දා', roleAdmin: 'පරිපාලක',
-    colName: 'නම', colEmail: 'ඊමේල්', colRoles: 'භූමිකාව(ය)',
+    colName: 'නම', colEmail: 'ඊමේල්', colRoles: 'භූමිකා',
     colJoined: 'එක් වූ දිනය', colStatus: 'තත්ත්වය', colActions: 'ක්‍රියා',
     statusActive: 'ක්‍රියාකාරී', statusSuspended: 'අත්හිටුවා ඇත',
     suspend: 'අත්හිටුවන්න', unsuspend: 'නැවත සක්‍රිය කරන්න', delete: 'මකන්න',
@@ -37,8 +37,8 @@ const T = {
   },
   ta: {
     title: 'பயனர்கள்', loading: 'ஏற்றுகிறது...', addUser: '+ பயனரைச் சேர்க்கவும்', importCsv: 'CSV இறக்குமதி',
-    searchPlaceholder: 'பெயர் அல்லது மின்னஞ்சல் தேடவும்...', allRoles: 'அனைத்து பங்குகளும்', roleLandOwner: 'நில உரிமையாளர்', roleTrader: 'வணிகர்', roleAdmin: 'நிர்வாகி',
-    colName: 'பெயர்', colEmail: 'மின்னஞ்சல்', colRoles: 'பங்கு(கள்)',
+    searchPlaceholder: 'பெயர் அல்லது மின்னஞ்சல் தேடவும்...', allRoles: 'அனைத்துப் பாத்திரங்களும்', roleLandOwner: 'நில உரிமையாளர்', roleTrader: 'வணிகர்', roleAdmin: 'நிர்வாகி',
+    colName: 'பெயர்', colEmail: 'மின்னஞ்சல்', colRoles: 'பாத்திரம்(கள்)',
     colJoined: 'இணைந்தது', colStatus: 'நிலை', colActions: 'நடவடிக்கைகள்',
     statusActive: 'செயலில்', statusSuspended: 'இடைநிறுத்தப்பட்டது',
     suspend: 'இடைநிறுத்து', unsuspend: 'மீண்டும் செயல்படுத்து', delete: 'நீக்கு',

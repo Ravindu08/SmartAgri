@@ -4,6 +4,7 @@ import { getFarms } from '../../services/farmService';
 import { getCrops } from '../../services/cropService';
 import { getAuthSession, ML_BASE_URL } from '../../services/api';
 import { listCultivations } from '../../utils/cultivationApi';
+import { taskText } from '../../utils/taskText';
 import { CROP_EMOJI, getCropLabel } from '../../data/cropData';
 import { useApp } from '../../context/AppContext';
 import { LAND_T, SEA_LABELS, IRR_LABELS, GROWTH_STAGE_LABELS, CROP_STATUS_LABELS, DISTRICT_LABELS } from '../../data/translations';
@@ -24,17 +25,17 @@ const LO_TOUR_T = {
   },
   si: {
     steps: [
-      { target: 'lo-checklist', title: 'ආරම්භ කිරීම', body: 'ඔබේ ගොවිපළ SmartAgri හි සකසා ගැනීමට මෙම විස්තර ලැයිස්තුව අනුගමනය කරන්න.' },
+      { target: 'lo-checklist', title: 'ආරම්භ කිරීම', body: 'ඔබේ ගොවිපළ SmartAgri හි සකසා ගැනීමට මෙම පරීක්ෂා ලැයිස්තුව අනුගමනය කරන්න.' },
       { target: 'lo-notif-bell', title: 'දැනුම්දීම් ලබාගන්න', body: 'ප්‍රමාද වූ කාර්යයන් සහ ළඟා වන අස්වනු පිළිබඳ ඇඟවීම් මෙහි පෙනේ.' },
     ],
-    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව් අවශ්‍යද?',
   },
   ta: {
     steps: [
-      { target: 'lo-checklist', title: 'தொடங்குதல்', body: 'உங்கள் பண்ணையை SmartAgri-இல் அமைக்க இந்த சரிபார்ப்புப் பட்டியலைப் பின்பற்றுங்கள்.' },
-      { target: 'lo-notif-bell', title: 'அறிவிப்புகள்', body: 'தாமதமான பணிகள் மற்றும் வரவிருக்கும் அறுவடைகள் பற்றிய எச்சரிக்கைகள் இங்கே வரும்.' },
+      { target: 'lo-checklist', title: 'தொடங்குதல்', body: 'உங்கள் பண்ணையை SmartAgri-இல் அமைக்க இந்தச் சரிபார்ப்புப் பட்டியலைப் பின்பற்றுங்கள்.' },
+      { target: 'lo-notif-bell', title: 'அறிவிப்புகளைப் பெறுங்கள்', body: 'தாமதமான பணிகள் மற்றும் வரவிருக்கும் அறுவடைகள் பற்றிய எச்சரிக்கைகள் இங்கே வரும்.' },
     ],
-    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி வேண்டுமா?',
   },
 };
 
@@ -130,7 +131,7 @@ function buildTaskNotifications(sessions, lt, getLang) {
         type: 'danger',
         icon: '🚨',
         title: lt.overdueTasks(overdue.length, cropLabel),
-        detail: overdue.slice(0, 3).map(t => t.title).join(', ') + (overdue.length > 3 ? ` +${overdue.length - 3} more` : ''),
+        detail: overdue.slice(0, 3).map(t => taskText(t, 'title', getLang)).join(', ') + (overdue.length > 3 ? ` +${overdue.length - 3}` : ''),
         href: '/landowner/cultivations',
         sessionId: session.id,
       });
@@ -148,9 +149,9 @@ function buildTaskNotifications(sessions, lt, getLang) {
         type: 'task',
         icon: '📅',
         title: daysLeft === 0
-          ? lt.upcomingTaskToday(cropLabel, next.title)
-          : lt.upcomingTaskInDays(cropLabel, next.title, daysLeft),
-        detail: lt.upcomingTaskDetail(upcoming.length) + (next.description ? ' ' + next.description : ''),
+          ? lt.upcomingTaskToday(cropLabel, taskText(next, 'title', getLang))
+          : lt.upcomingTaskInDays(cropLabel, taskText(next, 'title', getLang), daysLeft),
+        detail: lt.upcomingTaskDetail(upcoming.length) + (next.description ? ' ' + taskText(next, 'description', getLang) : ''),
         href: '/landowner/cultivations',
         sessionId: session.id,
       });

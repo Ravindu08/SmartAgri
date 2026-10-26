@@ -30,23 +30,24 @@ const MCV_TOUR_T = {
       { target: 'cult-start-btn', title: 'වගාවක් නිරීක්ෂණය කිරීම ආරම්භ කරන්න', body: 'බෝගයක් අදියරෙන් අදියර අනුගමනය කරන්න — කාර්යයන්, ඡායාරූප සහ ප්‍රගතිය සියල්ල එකම තැනක.' },
       { target: 'cult-crop-card', title: 'ඔබේ ක්‍රියාකාරී බෝග', body: 'සෑම කාඩ්පතක්ම රෝපණය/අස්වනු දින සහ ඔබ එකක් ආරම්භ කර ඇත්නම් සජීවී නිරීක්ෂණ ප්‍රගතිය පෙන්වයි.' },
       { target: 'cult-progress', title: 'ඔබේ ප්‍රගතිය නිරීක්ෂණය කරන්න', body: 'කී කාර්යයන් අවසන් වී ඇත්දැයි බලන්න, කාලසටහනට පසුබට වී ඇත්නම් ප්‍රමාද ඇඟවීමක් ලැබේ.' },
-      { target: 'cult-export-pdf', title: 'PDF වාර්තාවක් නිර්යාත කරන්න', body: 'සම්පූර්ණ කාර්ය ලැයිස්තුව සහ ප්‍රගතිය PDF ලෙස බාගන්න — වාර්තා තබා ගැනීමට හෝ බෙදාගැනීමට පහසුයි.' },
+      { target: 'cult-export-pdf', title: 'PDF වාර්තාවක් බාගන්න', body: 'සම්පූර්ණ කාර්ය ලැයිස්තුව සහ ප්‍රගතිය PDF ලෙස බාගන්න — වාර්තා තබා ගැනීමට හෝ බෙදාගැනීමට පහසුයි.' },
       { target: 'cult-open-track-btn', title: 'විවෘත කරන්න හෝ නිරීක්ෂණය ආරම්භ කරන්න', body: 'පවතින නිරීක්ෂණයක් විවෘත කිරීමට, හෝ මෙම බෝගය සඳහා නව එකක් ආරම්භ කිරීමට මෙහි ක්ලික් කරන්න.' },
     ],
-    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව් අවශ්‍යද?',
   },
   ta: {
     steps: [
       { target: 'cult-start-btn', title: 'ஒரு சாகுபடியைக் கண்காணிக்கத் தொடங்குங்கள்', body: 'ஒரு பயிரை நிலைவாரியாகப் பின்பற்றுங்கள் — பணிகள், புகைப்படங்கள் மற்றும் முன்னேற்றம் அனைத்தும் ஒரே இடத்தில்.' },
       { target: 'cult-crop-card', title: 'உங்கள் செயலில் உள்ள பயிர்கள்', body: 'ஒவ்வொரு அட்டையும் நடவு/அறுவடை தேதிகள் மற்றும் நீங்கள் தொடங்கியிருந்தால் நேரடி கண்காணிப்பு முன்னேற்றத்தையும் காட்டுகிறது.' },
       { target: 'cult-progress', title: 'உங்கள் முன்னேற்றத்தைக் கண்காணிக்கவும்', body: 'எத்தனை பணிகள் முடிந்துள்ளன என்பதைப் பாருங்கள், அட்டவணையை விட பின்தங்கியிருந்தால் தாமத எச்சரிக்கை கிடைக்கும்.' },
-      { target: 'cult-export-pdf', title: 'PDF அறிக்கையை ஏற்றுமதி செய்யுங்கள்', body: 'முழு பணிப் பட்டியல் மற்றும் முன்னேற்றத்தை PDF ஆக பதிவிறக்கவும் — பதிவு வைத்திருக்க அல்லது பகிர வசதியானது.' },
-      { target: 'cult-open-track-btn', title: 'திறக்க அல்லது கண்காணிப்பைத் தொடங்குங்கள்', body: 'ஏற்கனவே உள்ள கண்காணிப்பாளரைத் திறக்க, அல்லது இந்த பயிருக்கு புதிதாகத் தொடங்க இங்கே கிளிக் செய்யுங்கள்.' },
+      { target: 'cult-export-pdf', title: 'PDF அறிக்கையைப் பதிவிறக்குங்கள்', body: 'முழு பணிப் பட்டியல் மற்றும் முன்னேற்றத்தை PDF ஆக பதிவிறக்கவும் — பதிவு வைத்திருக்க அல்லது பகிர வசதியானது.' },
+      { target: 'cult-open-track-btn', title: 'திறக்க அல்லது கண்காணிப்பைத் தொடங்குங்கள்', body: 'ஏற்கனவே உள்ள கண்காணிப்பாளரைத் திறக்க, அல்லது இந்தப் பயிருக்குப் புதிதாகத் தொடங்க இங்கே கிளிக் செய்யுங்கள்.' },
     ],
-    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி வேண்டுமா?',
   },
 };
 
+// English only: jsPDF's built-in fonts have no Sinhala/Tamil glyphs.
 async function exportSessionPDF(session, cropLabel) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
@@ -170,7 +171,7 @@ export default function MyCultivations() {
     try {
       if (session) await abandonCultivation(userId, session.id);
       await deleteCrop(crop.id);
-      setToast({ type: 'success', message: lt.cropRemovedMsg(crop.crop_name) });
+      setToast({ type: 'success', message: lt.cropRemovedMsg(getCropLabel(crop.crop_name, lang)) });
       await loadData();
     } catch (err) {
       setToast({ type: 'error', message: err.message });
@@ -289,7 +290,7 @@ export default function MyCultivations() {
                           className="cult-btn cult-btn-open"
                           type="button"
                           style={{ background: 'var(--surface-2)', color: 'var(--text)', fontSize: '14px' }}
-                          onClick={() => exportSessionPDF(session, getCropLabel(crop.crop_name, lang))}
+                          onClick={() => exportSessionPDF(session, crop.crop_name)}
                           title={EXPORT_T[lang] || EXPORT_T.en}
                           data-tour={i === 0 ? 'cult-export-pdf' : undefined}
                         >

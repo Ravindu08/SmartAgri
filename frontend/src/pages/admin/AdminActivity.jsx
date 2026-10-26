@@ -12,7 +12,7 @@ const T = {
     user: 'User #', byAdmin: 'by Admin #', searchPlaceholder: 'Search action, details or user…',
   },
   si: {
-    title: 'ක්‍රියාකාරකම් ලොගය', loading: 'පූරණය වෙමින්...', noActivity: 'ක්‍රියාකාරකම් තවම නොමැත',
+    title: 'ක්‍රියාකාරකම් සටහන', loading: 'පූරණය වෙමින්...', noActivity: 'ක්‍රියාකාරකම් තවම නොමැත',
     user: 'පරිශීලකයා #', byAdmin: 'පරිපාලක #', searchPlaceholder: 'ක්‍රියාව, විස්තර, හෝ පරිශීලක # සොයන්න...',
   },
   ta: {

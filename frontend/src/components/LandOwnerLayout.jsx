@@ -8,6 +8,7 @@ import { useApp } from '../context/AppContext';
 import { getAuthSession, clearAuthSession, getActiveRole, isDualRole, submitFeedback, fetchNotifications, markNotificationRead, markAllNotificationsRead } from '../services/api';
 import { getCrops } from '../services/cropService';
 import { listCultivations } from '../utils/cultivationApi';
+import { taskText } from '../utils/taskText';
 import { getCropLabel } from '../data/cropData';
 import { LAND_T } from '../data/translations';
 import { relativeTime } from '../utils/relativeTime';
@@ -31,13 +32,13 @@ const LO_LAYOUT_T = {
     myCultivations: 'මගේ වගාවන්', advisories: 'උපදෙස්',
     marketplace: 'වෙළඳසැල', settings: 'සැකසීම්',
     helpSupport: 'උදව් සහ සහාය', landOwner: 'ඉඩම් හිමිකරු',
-    profileSettings: 'පැතිකඩ සැකසීම්', logout: 'ලොග් අවුට්',
+    profileSettings: 'පැතිකඩ සැකසීම්', logout: 'පිටවන්න',
     notifications: 'දැනුම්දීම්', noNotifications: 'නව දැනුම්දීම් නොමැත.',
     markAllSeen: 'සියල්ල දුටු ලෙස ලකුණු කරන්න', markSeen: 'දුටු ලෙස ලකුණු කරන්න', seenLabel: 'දුටුවා',
-    switchRole: 'වෙළෙන්දා වෙත මාරු වන්න', sendFeedback: 'ප්‍රතිපෝෂණ',
-    fbTitle: 'ප්‍රතිපෝෂණ යවන්න', fbType: 'වර්ගය', fbSubject: 'විෂය',
-    fbMessage: 'පණිවිඩය', fbSend: 'යවන්න', fbSending: 'යවමින්…', fbSent: 'යැවීය!',
-    fbTypes: { feedback: 'ප්‍රතිපෝෂණ', complaint: 'පැමිණිලි', bug: 'දෝෂ වාර්තාව' },
+    switchRole: 'වෙළෙන්දා වෙත මාරු වන්න', sendFeedback: 'ප්‍රතිචාර යවන්න',
+    fbTitle: 'ප්‍රතිචාර යවන්න', fbType: 'වර්ගය', fbSubject: 'මාතෘකාව',
+    fbMessage: 'පණිවිඩය', fbSend: 'යවන්න', fbSending: 'යවමින්…', fbSent: 'යැව්වා!',
+    fbTypes: { feedback: 'ප්‍රතිචාර', complaint: 'පැමිණිලි', bug: 'දෝෂ වාර්තාව' },
   },
   ta: {
     dashboard: 'டாஷ்போர்டு', myFarms: 'என் பண்ணைகள்', myCrops: 'என் பயிர்கள்',
@@ -47,7 +48,7 @@ const LO_LAYOUT_T = {
     profileSettings: 'சுயவிவர அமைப்புகள்', logout: 'வெளியேறு',
     notifications: 'அறிவிப்புகள்', noNotifications: 'புதிய அறிவிப்புகள் இல்லை.',
     markAllSeen: 'அனைத்தையும் பார்த்ததாகக் குறி', markSeen: 'பார்த்ததாகக் குறி', seenLabel: 'பார்த்தது',
-    switchRole: 'வணிகருக்கு மாறு', sendFeedback: 'கருத்து',
+    switchRole: 'வணிகருக்கு மாறு', sendFeedback: 'கருத்து அனுப்பு',
     fbTitle: 'கருத்து அனுப்பு', fbType: 'வகை', fbSubject: 'தலைப்பு',
     fbMessage: 'செய்தி', fbSend: 'அனுப்பு', fbSending: 'அனுப்புகிறது…', fbSent: 'அனுப்பப்பட்டது!',
     fbTypes: { feedback: 'கருத்து', complaint: 'புகார்', bug: 'பிழை அறிக்கை' },
@@ -213,7 +214,7 @@ export default function LandOwnerLayout() {
             allNotifs.push({
               id: `overdue-${session.id}`, type: 'danger', icon: '🚨',
               title: lt.overdueTasks(overdue.length, cropLabel),
-              detail: overdue.slice(0, 3).map(tk => tk.title).join(', ') + (overdue.length > 3 ? ` +${overdue.length - 3}` : ''),
+              detail: overdue.slice(0, 3).map(tk => taskText(tk, 'title', lang)).join(', ') + (overdue.length > 3 ? ` +${overdue.length - 3}` : ''),
               href: '/landowner/cultivations',
             });
           }
@@ -227,8 +228,8 @@ export default function LandOwnerLayout() {
             allNotifs.push({
               id: `upcoming-${session.id}-${next.id}`, type: 'task', icon: '📅',
               title: daysLeft === 0
-                ? lt.upcomingTaskToday(cropLabel, next.title)
-                : lt.upcomingTaskInDays(cropLabel, next.title, daysLeft),
+                ? lt.upcomingTaskToday(cropLabel, taskText(next, 'title', lang))
+                : lt.upcomingTaskInDays(cropLabel, taskText(next, 'title', lang), daysLeft),
               detail: lt.upcomingTaskDetail(upcoming.length),
               href: '/landowner/cultivations',
             });

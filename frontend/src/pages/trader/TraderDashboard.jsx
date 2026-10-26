@@ -27,23 +27,23 @@ const TR_TOUR_T = {
       { target: 'tr-recent-activity', title: 'මෑත ක්‍රියාකාරකම්', body: 'ඔබේ නවතම ඇණවුම් මෙහි දිස්වේ — විස්තර සඳහා ඇණවුම් හෝ ඉතිහාසය වෙත කෙලින්ම යාමට එකක් තට්ටු කරන්න.' },
       { target: 'tr-notif-bell', title: 'දැනුම්දීම් ලබාගන්න', body: 'ඇණවුම් තහවුරු කිරීම් සහ බෙදාහැරීමේ යාවත්කාලීන කිරීම් මෙහි එයි.' },
     ],
-    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව් අවශ්‍යද?',
   },
   ta: {
     steps: [
       { target: 'tr-checklist', title: 'தொடங்குதல்', body: 'உங்கள் முதல் ஆர்டரிலிருந்து முதல் முழுமையான வாங்குதல் வரையிலான பாதை.' },
-      { target: 'tr-quick-actions', title: 'விரைவு செயல்கள்', body: 'கோரிக்கைகள், ஆர்டர்கள் அல்லது பரிவர்த்தனை வரலாற்றுக்கு நேரடியாக செல்லுங்கள்.' },
-      { target: 'tr-recent-activity', title: 'சமீபத்திய செயல்பாடு', body: 'உங்கள் சமீபத்திய ஆர்டர்கள் இங்கே தோன்றும் — விவரங்களுக்கு ஆர்டர்கள் அல்லது வரலாற்றுக்கு நேரடியாக செல்ல ஒன்றைத் தட்டவும்.' },
-      { target: 'tr-notif-bell', title: 'அறிவிப்புகள்', body: 'ஆர்டர் உறுதிப்படுத்தல்கள் மற்றும் டெலிவரி புதுப்பிப்புகள் இங்கே வரும்.' },
+      { target: 'tr-quick-actions', title: 'விரைவு செயல்கள்', body: 'கோரிக்கைகள், ஆர்டர்கள் அல்லது பரிவர்த்தனை வரலாற்றுக்கு நேரடியாகச் செல்லுங்கள்.' },
+      { target: 'tr-recent-activity', title: 'சமீபத்திய செயல்பாடு', body: 'உங்கள் சமீபத்திய ஆர்டர்கள் இங்கே தோன்றும் — விவரங்களுக்கு ஆர்டர்கள் அல்லது வரலாற்றுக்கு நேரடியாகச் செல்ல ஒன்றைத் தட்டவும்.' },
+      { target: 'tr-notif-bell', title: 'அறிவிப்புகளைப் பெறுங்கள்', body: 'ஆர்டர் உறுதிப்படுத்தல்கள் மற்றும் டெலிவரி புதுப்பிப்புகள் இங்கே வரும்.' },
     ],
-    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி வேண்டுமா?',
   },
 };
 
 const TR_CHECKLIST_T = {
   en: { title: 'Getting started', placeOrder: 'Place your first order', getConfirmed: 'Get an order confirmed', trackDelivery: 'Track a delivery', completeTxn: 'Complete a transaction', dismissAria: 'Dismiss checklist' },
   si: { title: 'ආරම්භ කිරීම', placeOrder: 'ඔබේ පළමු ඇණවුම දෙන්න', getConfirmed: 'ඇණවුමක් තහවුරු කරගන්න', trackDelivery: 'බෙදාහැරීමක් නිරීක්ෂණය කරන්න', completeTxn: 'ගනුදෙනුවක් සම්පූර්ණ කරන්න', dismissAria: 'පරීක්ෂා ලැයිස්තුව සඟවන්න' },
-  ta: { title: 'தொடங்குதல்', placeOrder: 'உங்கள் முதல் ஆர்டரை வையுங்கள்', getConfirmed: 'ஆர்டரை உறுதிப்படுத்துங்கள்', trackDelivery: 'டெலிவரியை கண்காணிக்கவும்', completeTxn: 'பரிவர்த்தனையை முடிக்கவும்', dismissAria: 'பட்டியலை மறைக்கவும்' },
+  ta: { title: 'தொடங்குதல்', placeOrder: 'உங்கள் முதல் ஆர்டரை வையுங்கள்', getConfirmed: 'ஆர்டரை உறுதிப்படுத்துங்கள்', trackDelivery: 'டெலிவரியைக் கண்காணிக்கவும்', completeTxn: 'பரிவர்த்தனையை முடிக்கவும்', dismissAria: 'பட்டியலை மறைக்கவும்' },
 };
 
 const T = {
@@ -63,9 +63,9 @@ const T = {
   si: {
     welcome: 'නැවත සාදරයෙන් පිළිගනිමු', trader: 'වෙළෙන්දා',
     statsRequests: 'පොරොත්තුවෙන් ඇති ඇණවුම්', statsOrders: 'ක්‍රියාත්මක ඇණවුම්',
-    statsActive: 'සම්පූර්ණ ක්‍රියාත්මක', statsCompleted: 'සම්පූර්ණ',
+    statsActive: 'මුළු ක්‍රියාත්මක', statsCompleted: 'සම්පූර්ණ',
     quickActions: 'ඉක්මන් ක්‍රියා', browseMarket: 'වෙළඳසැල බලන්න',
-    browseMarketDesc: 'මිලදී ගත හැකි බෝග සොයන්න',
+    browseMarketDesc: 'මිලදී ගත හැකි බෝග සහ නිෂ්පාදන සොයන්න',
     viewRequests: 'පොරොත්තුවෙන් ඇති ඇණවුම්', viewRequestsDesc: 'විකුණුම්කරු තහවුරු කිරීමට රැඳෙන ඇණවුම්',
     viewOrders: 'ක්‍රියාත්මක ඇණවුම්', viewOrdersDesc: 'තහවුරු කළ සහ බෙදාහැරීමේ අදියරේ ඇති ඇණවුම්',
     viewHistory: 'ගනුදෙනු ඉතිහාසය', viewHistoryDesc: 'පසුගිය ගනුදෙනු බලන්න',
@@ -78,10 +78,10 @@ const T = {
     statsRequests: 'நிலுவை ஆர்டர்கள்', statsOrders: 'செயலில் ஆர்டர்கள்',
     statsActive: 'மொத்த செயலில்', statsCompleted: 'முடிந்தவை',
     quickActions: 'விரைவு செயல்கள்', browseMarket: 'சந்தையை உலாவுக',
-    browseMarketDesc: 'வாங்கக் கிடைக்கும் பயிர்களைக் கண்டறியவும்',
-    viewRequests: 'நிலுவை ஆர்டர்கள்', viewRequestsDesc: 'விற்பனையாளர் உறுதிக்காக காத்திருக்கும் ஆர்டர்கள்',
-    viewOrders: 'செயலில் ஆர்டர்கள்', viewOrdersDesc: 'உறுதிப்படுத்தப்பட்ட ஆர்டர்களை கண்காணிக்கவும்',
-    viewHistory: 'பரிவர்த்தனை வரலாறு', viewHistoryDesc: 'கடந்த பரிவர்த்தனைகளை பார்க்கவும்',
+    browseMarketDesc: 'வாங்கக் கிடைக்கும் பயிர்கள் மற்றும் பொருட்களைக் கண்டறியவும்',
+    viewRequests: 'நிலுவை ஆர்டர்கள்', viewRequestsDesc: 'விற்பனையாளர் உறுதிக்காகக் காத்திருக்கும் ஆர்டர்கள்',
+    viewOrders: 'செயலில் ஆர்டர்கள்', viewOrdersDesc: 'உறுதிப்படுத்தப்பட்ட மற்றும் விநியோகத்தில் உள்ள ஆர்டர்கள்',
+    viewHistory: 'பரிவர்த்தனை வரலாறு', viewHistoryDesc: 'கடந்த பரிவர்த்தனைகளைப் பார்க்கவும்',
     recentActivity: 'சமீபத்திய செயல்பாடு', noActivity: 'சமீபத்திய செயல்பாடு இல்லை.',
     Pending: 'நிலுவையில்', Confirmed: 'உறுதிப்படுத்தப்பட்டது', Delivered: 'வழங்கப்பட்டது',
     Completed: 'முடிந்தது', Rejected: 'நிராகரிக்கப்பட்டது', Cancelled: 'ரத்து',

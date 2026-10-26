@@ -17,19 +17,19 @@ const T = {
     title: 'වාර්තා', loading: 'පූරණය වෙමින්...', failedLoad: 'වාර්තා පූරණය කිරීමට අසමත් විය',
     exportCsv: '⬇ CSV ලෙස බාගන්න', exportFarms: '⬇ ගොවිපළ CSV', exportHarvest: '⬇ අස්වනු CSV',
     userDist: 'පරිශීලක බෙදාහැරීම', landOwners: 'ඉඩම් හිමිකරුවන්', traders: 'වෙළෙන්දන්', suspended: 'අත්හිටුවා ඇත',
-    totalUsers: 'සම්පූර්ණ පරිශීලකයන්:',
+    totalUsers: 'මුළු පරිශීලකයන්:',
     farms: 'ගොවිපළ', totalFarmsReg: 'ලියාපදිංචි ගොවිපළ',
     marketplace: 'වෙළඳසැල', listings: 'ලැයිස්තු', orders: 'ඇණවුම්',
-    feedback: 'ප්‍රතිපෝෂණ', allResolved: 'සියල්ල විසඳා ඇත ✓', openNeedAttention: 'විවෘත අයිතම අවධානය අවශ්‍යයි',
+    feedback: 'ප්‍රතිචාර', allResolved: 'සියල්ල විසඳා ඇත ✓', openNeedAttention: 'විවෘත අයිතම අවධානය අවශ්‍යයි',
   },
   ta: {
     title: 'அறிக்கைகள்', loading: 'ஏற்றுகிறது...', failedLoad: 'அறிக்கைகளை ஏற்ற முடியவில்லை',
-    exportCsv: '⬇ CSV ஆக ஏற்றுமதி', exportFarms: '⬇ பண்ணை CSV', exportHarvest: '⬇ அறுவடை CSV',
+    exportCsv: '⬇ CSV ஆகப் பதிவிறக்கு', exportFarms: '⬇ பண்ணை CSV', exportHarvest: '⬇ அறுவடை CSV',
     userDist: 'பயனர் விநியோகம்', landOwners: 'நில உரிமையாளர்கள்', traders: 'வணிகர்கள்', suspended: 'இடைநிறுத்தப்பட்டது',
     totalUsers: 'மொத்த பயனர்கள்:',
     farms: 'பண்ணைகள்', totalFarmsReg: 'பதிவு செய்யப்பட்ட பண்ணைகள்',
     marketplace: 'சந்தை', listings: 'பட்டியல்கள்', orders: 'ஆர்டர்கள்',
-    feedback: 'கருத்துக்கள்', allResolved: 'அனைத்தும் தீர்க்கப்பட்டது ✓', openNeedAttention: 'திறந்த உருப்படிகளுக்கு கவனம் தேவை',
+    feedback: 'கருத்துக்கள்', allResolved: 'அனைத்தும் தீர்க்கப்பட்டது ✓', openNeedAttention: 'திறந்த உருப்படிகளுக்குக் கவனம் தேவை',
   },
 };
 

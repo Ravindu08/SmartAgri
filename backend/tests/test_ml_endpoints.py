@@ -75,6 +75,27 @@ def test_cultivation_start_generates_tasks(memory_store):
     assert all(t["scheduled_date"] >= today for t in s["tasks"].values())
 
 
+def test_cultivation_tasks_carry_sinhala_and_tamil(memory_store):
+    s = _start().json()
+    for t in s["tasks"].values():
+        for key in ("title", "stage_name"):
+            assert t[f"{key}_si"] and t[f"{key}_ta"], (key, t[key])
+    fert = next(t for t in s["tasks"].values() if t["id"].endswith("-f-0"))
+    assert fert["title_si"].startswith("පොහොර යොදන්න: ")
+    assert fert["stage_name_ta"] == "உரமிடல்"
+
+
+def test_every_crop_schedules_irrigation_checks():
+    for crop, data in ml.crop_guidance_db.items():
+        tasks = ml._gen_cultivation_tasks(data, "2026-06-01")
+        assert any(t["id"].startswith("irr-") for t in tasks), crop
+
+
+def test_localize_task_leaves_unknown_text_english():
+    t = ml._localize_task({"title": "Custom note", "stage_name": "", "description": "", "why": ""})
+    assert "title_si" not in t and t["title"] == "Custom note"
+
+
 def test_cultivation_unknown_crop_404(memory_store):
     r = client.post("/cultivation", json={"user_id": USER, "crop": "NotACrop", "planting_date": "2026-06-01"})
     assert r.status_code == 404

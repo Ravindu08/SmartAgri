@@ -19,11 +19,11 @@ const ADMIN_TOUR_T = {
   },
   si: {
     steps: [
-      { target: 'admin-dash-stats', title: 'වේදිකාව එක් බැල්මකින්', body: 'පරිශීලකයන්, ගොවිපළ, ලැයිස්තු, ඇණවුම් සහ විවෘත ප්‍රතිපෝෂණ — සියල්ල සජීවීව.' },
-      { target: 'admin-dash-quicklinks', title: 'ඉක්මන් ක්‍රියා', body: 'පරිශීලකයෙකු එකතු කරන්න, ප්‍රතිපෝෂණ වෙත යන්න, හෝ සම්පූර්ණ වාර්තා පිටුව විවෘත කරන්න.' },
+      { target: 'admin-dash-stats', title: 'වේදිකාව එක් බැල්මකින්', body: 'පරිශීලකයන්, ගොවිපළ, ලැයිස්තු, ඇණවුම් සහ විවෘත ප්‍රතිචාර — සියල්ල සජීවීව.' },
+      { target: 'admin-dash-quicklinks', title: 'ඉක්මන් ක්‍රියා', body: 'පරිශීලකයෙකු එකතු කරන්න, ප්‍රතිචාර වෙත යන්න, හෝ සම්පූර්ණ වාර්තා පිටුව විවෘත කරන්න.' },
       { target: 'admin-dash-activity', title: 'මෑත ක්‍රියාකාරකම්', body: 'වේදිකාව පුරා පරිපාලක සහ පද්ධති ක්‍රියා සජීවී සංග්‍රහයක්.' },
     ],
-    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව්',
+    next: 'ඊළඟට →', back: '← ආපසු', skip: 'මඟ හරින්න', done: 'තේරුණා', helpAria: 'මාර්ගෝපදේශය නැවත ධාවනය කරන්න', needHelp: 'උදව් අවශ්‍යද?',
   },
   ta: {
     steps: [
@@ -31,7 +31,7 @@ const ADMIN_TOUR_T = {
       { target: 'admin-dash-quicklinks', title: 'விரைவு செயல்கள்', body: 'ஒரு பயனரைச் சேர்க்கவும், கருத்துக்களுக்குச் செல்லவும், அல்லது முழு அறிக்கைகள் பக்கத்தைத் திறக்கவும்.' },
       { target: 'admin-dash-activity', title: 'சமீபத்திய செயல்பாடு', body: 'தளம் முழுவதும் நிர்வாக மற்றும் கணினி செயல்களின் நேரடி ஊட்டம்.' },
     ],
-    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி',
+    next: 'அடுத்து →', back: '← பின்', skip: 'தவிர்', done: 'சரி', helpAria: 'வழிகாட்டலை மீண்டும் இயக்கு', needHelp: 'உதவி வேண்டுமா?',
   },
 };
 
@@ -47,11 +47,11 @@ const T = {
   },
   si: {
     title: 'පරිපාලක ඩැෂ්බෝඩ්', loading: 'පූරණය වෙමින්...', noActivity: 'ක්‍රියාකාරකම් නොමැත',
-    totalUsers: 'සම්පූර්ණ පරිශීලකයන්', landOwners: 'ඉඩම් හිමිකරුවන්', traders: 'වෙළෙන්දන්',
-    suspended: 'අත්හිටුවා ඇත', totalFarms: 'සම්පූර්ණ ගොවිපළ', listings: 'ලැයිස්තු',
-    orders: 'ඇණවුම්', openFeedback: 'විවෘත ප්‍රතිපෝෂණ',
+    totalUsers: 'මුළු පරිශීලකයන්', landOwners: 'ඉඩම් හිමිකරුවන්', traders: 'වෙළෙන්දන්',
+    suspended: 'අත්හිටුවා ඇත', totalFarms: 'මුළු ගොවිපළ', listings: 'ලැයිස්තු',
+    orders: 'ඇණවුම්', openFeedback: 'විවෘත ප්‍රතිචාර',
     needsAttention: 'අවධානය අවශ්‍යයි', allClear: 'සියල්ල හොඳයි',
-    addUser: '+ පරිශීලකයෙකු එකතු කරන්න', viewFeedback: '💬 ප්‍රතිපෝෂණ බලන්න', fullReports: '📈 සම්පූර්ණ වාර්තා',
+    addUser: '+ පරිශීලකයෙකු එකතු කරන්න', viewFeedback: '💬 ප්‍රතිචාර බලන්න', fullReports: '📈 සම්පූර්ණ වාර්තා',
     recentActivity: 'මෑත ක්‍රියාකාරකම්', viewAll: 'සියල්ල බලන්න →',
   },
   ta: {
@@ -60,7 +60,7 @@ const T = {
     suspended: 'இடைநிறுத்தப்பட்டது', totalFarms: 'மொத்த பண்ணைகள்', listings: 'பட்டியல்கள்',
     orders: 'ஆர்டர்கள்', openFeedback: 'திறந்த கருத்துக்கள்',
     needsAttention: 'கவனம் தேவை', allClear: 'அனைத்தும் சரி',
-    addUser: '+ பயனரைச் சேர்க்கவும்', viewFeedback: '💬 கருத்துக்களை காண்க', fullReports: '📈 முழு அறிக்கைகள்',
+    addUser: '+ பயனரைச் சேர்க்கவும்', viewFeedback: '💬 கருத்துக்களைக் காண்க', fullReports: '📈 முழு அறிக்கைகள்',
     recentActivity: 'சமீபத்திய செயல்பாடு', viewAll: 'அனைத்தையும் காண்க →',
   },
 };
