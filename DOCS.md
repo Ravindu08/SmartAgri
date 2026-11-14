@@ -386,7 +386,7 @@ python -m pytest backend/tests/ -v
 
 ### Admin account
 
-The admin user is created when the main API starts, from `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env`. Always set your own values: the code only has a development fallback for local use, which must not be relied on anywhere else. `ADMIN_FULL_NAME` is optional (default `System Administrator`). The account gets the Admin role, and it is created only if no user with that e-mail exists yet.
+The admin user is created when the main API starts, from `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env`. Neither value is stored in the code: if either is not set, no admin account is created and a warning is logged at startup. `ADMIN_FULL_NAME` is optional (default `System Administrator`). The account gets the Admin role, and it is created only if no user with that e-mail exists yet.
 
 ---
 
