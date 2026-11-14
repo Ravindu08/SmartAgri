@@ -138,13 +138,26 @@ def get_redirect_path(user: User) -> str:
 
 
 def ensure_admin_user(db: Session) -> User:
-    admin_email = os.getenv("ADMIN_EMAIL", "admin.smartagri@gmail.com")
-    admin_password = os.getenv("ADMIN_PASSWORD", "***REMOVED***")
+    # The admin e-mail and password live only in the environment (.env),
+    # never in the code.
+    admin_email = os.getenv("ADMIN_EMAIL")
+    admin_password = os.getenv("ADMIN_PASSWORD")
     admin_full_name = os.getenv("ADMIN_FULL_NAME", "System Administrator")
+    if not admin_email:
+        raise RuntimeError(
+            "ADMIN_EMAIL is not set, so the admin account was not checked or "
+            "created. Set ADMIN_EMAIL and ADMIN_PASSWORD in backend/.env."
+        )
 
     user = get_user_by_email(db, admin_email)
     if user is not None:
         return user
+
+    if not admin_password:
+        raise RuntimeError(
+            "ADMIN_PASSWORD is not set, so the admin account was not created. "
+            "Set it in backend/.env and restart."
+        )
 
     user = User(
         full_name=admin_full_name,
