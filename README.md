@@ -6,6 +6,8 @@ Full-stack web application for Sri Lankan agribusiness. Farmers get AI-driven cr
 
 **Live demo:** https://smartagri.centralindia.cloudapp.azure.com *(paused for now to save cloud credit, so it may not load; the whole stack also runs locally, see below)*
 
+**Demo video:** [watch the walkthrough on LinkedIn](https://lnkd.in/p/g42mwwTA)
+
 ---
 
 ## Screenshots
